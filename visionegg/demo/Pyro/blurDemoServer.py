@@ -69,8 +69,7 @@ p.add_realtime_controller(drum.parameters,'contrast',contrast_controller.eval)
 # local only controller -- current time
 p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
 
-# tricky -- projection controller -- must also serve references to projections
-# this allows remote object to set the projection
+# projection controller --  allows remote object to set the projection
 projection_controller = LocalDictPyroController({'perspective_proj':perspective_proj,
                                                  'ortho_proj':ortho_proj})
 pyro_server.connect(projection_controller,'projection_controller')
@@ -80,6 +79,11 @@ p.add_transitional_controller(viewport.parameters,'projection',projection_contro
 drum_flat_controller = ConstantPyroController(0)
 pyro_server.connect(drum_flat_controller,'drum_flat_controller')
 p.add_transitional_controller(drum.parameters,'flat',drum_flat_controller.eval)
+
+# linear interpolation controller
+interpolation_controller = ConstantPyroController(1)
+pyro_server.connect(interpolation_controller,'interpolation_controller')
+p.add_transitional_controller(drum.parameters,'texture_scale_linear_interp',interpolation_controller.eval)
 
 ################### done with controllers
 

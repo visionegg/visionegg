@@ -11,14 +11,14 @@ default_max_speed = 1000.0
 client = PyroClient()
 
 fixation_spot_on_controller = client.get('fixation_spot_on_controller')
-#drum_on_controller = client.get('drum_on_controller') # don't need to change from default state
+drum_on_controller = client.get('drum_on_controller')
 motion_blur_on_controller = client.get('motion_blur_on_controller')
 duration_controller = client.get('duration_controller')
 angle_controller = client.get('angle_controller')
 contrast_controller = client.get('contrast_controller')
 projection_controller = client.get('projection_controller')
 drum_flat_controller = client.get('drum_flat_controller')
-
+interpolation_controller = client.get('interpolation_controller')
 go_object = client.get('go_object')
 
 class BlurDrumGui(Tkinter.Frame):
@@ -53,12 +53,22 @@ class BlurDrumGui(Tkinter.Frame):
                                       label="Duration (seconds):")
         self.duration.set(10.0)
         self.duration.pack(expand=1,fill=Tkinter.X)
-
+        
+        # On between stimulus presentations
+        self.isi_on = Tkinter.BooleanVar()
+        self.isi_on.set(0)
+        Tkinter.Checkbutton(self,
+                            text='Visible between stimuli',
+                            command=self.push_values,
+                            variable=self.isi_on,
+                            relief=Tkinter.FLAT).pack()
+        
         # Blur on
         self.blur_on = Tkinter.BooleanVar()
         self.blur_on.set(1)
         Tkinter.Checkbutton(self,
                             text='Motion blur',
+                            command=self.push_values,
                             variable=self.blur_on,
                             relief=Tkinter.FLAT).pack()
 
@@ -71,12 +81,21 @@ class BlurDrumGui(Tkinter.Frame):
                             command=self.push_values,
                             relief=Tkinter.FLAT).pack()
 
-        # Fixation spot
+        # Drum type/projection type
         self.flat = Tkinter.BooleanVar()
         self.flat.set(0)
         Tkinter.Checkbutton(self,
                             text='Flat projection',
                             variable=self.flat,
+                            command=self.push_values,
+                            relief=Tkinter.FLAT).pack()
+
+        # Interpolation mode
+        self.linear_interp = Tkinter.BooleanVar()
+        self.linear_interp.set(1)
+        Tkinter.Checkbutton(self,
+                            text='Linear interpolation',
+                            variable=self.linear_interp,
                             command=self.push_values,
                             relief=Tkinter.FLAT).pack()
         
@@ -107,12 +126,14 @@ class BlurDrumGui(Tkinter.Frame):
     def push_values(self):
         self.validate_pos_string()
         self.validate_c_string()
-
+        
+        drum_on_controller.set_value(1,self.isi_on.get())
         fixation_spot_on_controller.set_value(gui_window.fixation_spot.get())
         motion_blur_on_controller.set_value(gui_window.blur_on.get())
         duration_controller.set_value(gui_window.duration.get())
         angle_controller.set_value(self.validated_pos_string)
         contrast_controller.set_value(self.validated_c_string)
+        interpolation_controller.set_value(self.linear_interp.get())
         if gui_window.flat.get():
             # Use orthographic projection
             projection_controller.set_value('ortho_proj')
@@ -133,6 +154,6 @@ class BlurDrumGui(Tkinter.Frame):
         sys.exit()
 
 gui_window = BlurDrumGui()
-
+gui_window.push_values() # make sure everything is in sync
 gui_window.mainloop()
 
