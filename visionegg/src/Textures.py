@@ -20,7 +20,10 @@ import Image, ImageDraw                         # Python Imaging Library package
 
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
-from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
+try:
+    from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
+except ImportError, x:
+    print "WARNING: Will not be able to do contrast control:",x
 
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
@@ -357,10 +360,12 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         glEndList()
 
     def init_gl(self):
-        if glInitTextureEnvCombineARB():
-            self.contrast_control_enabled = 1
-        else:
-            self.contrast_control_enabled = 0
+        self.contrast_control_enabled = 0
+        try:
+            if glInitTextureEnvCombineARB():
+                self.contrast_control_enabled = 1
+        except:
+            pass
 
         if not self.contrast_control_enabled:
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE) # use if ARB_texture_env_combine extension not avaliable
