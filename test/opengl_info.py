@@ -83,8 +83,8 @@ for ext in exts:
             print "OK"
         else:
             print "Failed"
-    except:
-        print "Failed (exception raised)"
+    except Exception, x:
+        print "Failed (exception raised):",x
         
 print
 
