@@ -152,6 +152,35 @@ if 'VisionEgg' in globals().keys():
     print "The demo files should be in %s"%(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demos'),)
 
     print
+
+    # These things have been removed from the installed library directory.
+    # Print error if it's still around
+    ancient_VisionEgg_files = ['AppHelper.py', # old module
+                               'demo', # old install location
+                               'test', # old install location
+                               ]
+    files_installed = os.listdir(os.path.dirname(VisionEgg.__file__))
+    ancient_files = []
+    for filename in ancient_VisionEgg_files:
+        if filename in files_installed:
+            ancient_files.append(filename)
+    if len(ancient_files):
+        print """        ************************************************************
+        
+        WARNING: The following files were found in your VisionEgg
+        library directory:
+
+        %s
+
+        The library directory is %s
+
+        These files are from old installations of the Vision
+        Egg. Although they will not cause problems unless your scripts
+        import them, they may lead to confusion.
+        
+        ************************************************************
+        
+        """%(string.join(ancient_files),os.path.abspath(os.path.dirname(VisionEgg.__file__)))
 else:
     print "VisionEgg not installed (or other VisionEgg import problems)"
     print
