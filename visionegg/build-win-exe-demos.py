@@ -18,25 +18,85 @@ build = os.path.join(installer_dir,"Build.py")
 output_dir = "sumo"
 
 # File list
-
 scripts_orig = string.split(r"""
 check-config.py
-demo\displayText.py
-demo\grating.py
-demo\lib3ds-demo.py
-demo\makeMovie.py
-demo\mouseTarget.py
-demo\movingPOV.py
-demo\perspectiveGrating.py
-demo\target.py
-demo\targetBackground.py
-demo\texture.py
-demo\textureDrum.py
-demo\tcp\gratingTCP.py
-demo\tcp\gratingGUI.py
+test/conform.py
+test/display_dc_restoration.py
+test/display_voltage_regulation.py
+test/opengl_info.py
+demo/alpha_texture.py
+demo/az_el_grid.py
+demo/color_grating.py
+demo/convert3d_to_2d.py
+demo/daq/simple_lpt_out.py
+demo/daq/trigger_in.py
+demo/daq/trigger_out.py
+demo/displayText.py
+demo/dots.py
+demo/dots_simple_loop.py
+demo/ephys_gui.py
+demo/ephys_server.py
+demo/flames_pygame.py
+demo/flames_visionegg.py
+demo/gabor.py
+demo/gamma.py
+demo/grating.py
+demo/gratings_multi.py
+demo/GUI/drumDemoGUI.py
+demo/image_sequence_fast.py
+demo/image_sequence_slow.py
+demo/lib3ds-demo.py
+demo/makeMovie.py
+demo/makeMovie2.py
+demo/mouse_gabor_2d.py
+demo/mouse_gabor_perspective.py
+demo/mouseTarget.py
+demo/mouseTarget_user_loop.py
+demo/movingPOV.py
+demo/mpeg.py
+demo/multi_stim.py
+demo/plaid.py
+demo/put_pixels.py
+demo/pygame_texture.py
+demo/Pyro/gratingPyroGUI.py
+demo/Pyro/gratingPyroServer.py
+demo/Pyro/metaPyroGUI.py
+demo/Pyro/metaPyroGUI.pyc
+demo/Pyro/metaPyroServer.py
+demo/Pyro/simpleClient.py
+demo/Pyro/simpleServer.py
+demo/quicktime.py
+demo/sphereMap.py
+demo/target.py
+demo/targetBackground.py
+demo/tcp/gratingGUI.py
+demo/tcp/gratingTCP.py
+demo/texture.py
+demo/textureDrum.py
+demo/visual_jitter.py
 """)
 
+scripts_orig = [ os.path.join( *x.split('/') ) for x in scripts_orig ]
+
+inf = 'demo/README.txt'
+infd = open(inf,"r")
+fname = 'sumo_list.txt'
+fd = open(fname,"w")
+for line in infd.readlines():
+    split_line = line.strip().split()
+    if not split_line:
+        continue
+    ft = split_line[0]
+    if ft.endswith('.py') or ft.endswith('.pyw'):
+        ft = ft.split('/')[-1]
+        new_name = os.path.splitext(ft)[0] + '.exe'
+        new_line = new_name+' '+' '.join(split_line[1:])+'\n'
+        fd.write(new_line)
+infd.close()
+fd.close()
+
 copy_list = string.split(r"""
+data/az_el.png
 data/panorama.jpg
 data/visionegg.bmp
 VisionEgg.cfg
@@ -48,9 +108,8 @@ CHANGELOG.txt
 # set options for each script
 scripts = []
 for script in scripts_orig:
-    if script == "check-config.py":
-        opts = "--tk --ascii"
-    elif script == r"demo\tcp\gratingGUI.py":
+    if script == "check-config.py" or script == r"demo\tcp\gratingGUI.py" \
+           or script.startswith('test'):
         opts = "--tk --ascii"
     else:
         opts = "--noconsole --tk --ascii"
@@ -67,6 +126,7 @@ binaries = []
 sumo_buffer = ""
 for script, opts in scripts:
     makespec_command = string.join([python,makespec,opts,script])
+    print makespec_command
     os.system(makespec_command)
 
     base_name = os.path.splitext(os.path.basename(script))[0]
@@ -131,7 +191,7 @@ for file in copy_list:
     if file == "README-BINARY-DEMOS.txt": # Rename file
         dest = os.path.join(os.path.split(dest)[0],"README.txt")
     shutil.copy2(file,dest)
-    if dest[-4:] == ".txt":
+    if dest[-4:] in [".txt",".cfg"]:
         print "Converting newlines in %s"%(dest,)
         # convert newlines
         f = open(dest,"r")
