@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Retinal slip demonstration"""
 
 # Visual jitter demonstration for the Vision Egg.
 

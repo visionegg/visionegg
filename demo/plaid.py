@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Sinusoidal grating calculated in realtime."""
+"""Multiple sinusoidal gratings (with mask)."""
 
 ############################
 #  Import various modules  #

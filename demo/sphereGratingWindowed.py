@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Perspective-distorted sin grating in gaussian window"""
 
 show_grid = 0 # show grid on which grating is defined
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Sinusoidal color grating calculated in realtime."""
+"""Colored sine wave grating in circular mask"""
 
 ############################
 #  Import various modules  #
