@@ -66,8 +66,9 @@ if sys.platform in ['darwin','mac','win32'] and gui_ok:
                 self.mainloop()
         if sys.platform == 'darwin':
             
-            add_str = """ To see this information, run the utility
-            'Console' in the 'Applications/Utilities' Folder."""
+            add_str = """ To see this information, switch to the
+            Terminal window that should have opened when you launched
+            this program."""
             
         elif sys.platform == 'win32':
             
