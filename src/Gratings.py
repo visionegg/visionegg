@@ -174,7 +174,7 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
                                'wavelength':36.0, # in degrees
                                'phase':0.0, # degrees
                                'orientation':0.0, # 0=right, 90=down
-                               'num_samples':256, # number of spatial samples, should be a power of 2
+                               'num_samples':1024, # number of spatial samples, should be a power of 2
                                'num_sides':50 # number of sides of cylinder
                                }
     def __init__(self,projection = None,**kw):
