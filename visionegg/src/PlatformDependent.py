@@ -17,7 +17,7 @@ sync_swap_with_vbl_post_gl_init -- Try to synchronize buffer swapping and vertic
 #
 ####################################################################
 
-import sys,os,string
+import sys, os, string
 import VisionEgg.Core
 
 __version__ = VisionEgg.release_name
@@ -32,6 +32,83 @@ except:
     def set_realtime():
         """Raise the Vision Egg to maximum priority. (NOT SUPPORTED)"""
         pass
+
+def set_realtime(*args,**kw):
+    # potential keywords
+    parse_me = ["darwin_realtime_period_denom",
+                "darwin_realtime_computation_denom",
+                "darwin_realtime_constraint_denom",
+                "darwin_realtime_preemptible",
+                "darwin_maxpriority_conventional_not_realtime",
+                "darwin_conventional_priority",
+                "darwin_pthread_priority"]
+
+    params = {}
+    # set variable in local namespace
+    for word in parse_me:
+        # set the value from VisionEgg.config
+        config_name = "VISIONEGG_"+string.upper(word)
+        value = getattr(VisionEgg.config,config_name)
+        # set the value if present in keyword arguments
+        if word in kw.keys():
+            value = kw[word]
+        params[word] = value
+
+    if sys.platform != 'darwin':
+        try:
+            import _maxpriority
+            apply(_maxpriority.set_realtime,args,kw)
+            return 1
+        except:
+            return 0
+    elif sys.platform == 'darwin':
+        try:
+            import darwin_maxpriority
+        except:
+            return 0
+
+        if params['darwin_maxpriority_conventional_not_realtime']:
+            import errno
+            darwin_maxpriority.cvar.errno = 0 # set errno in c
+            current_priority = darwin_maxpriority.getpriority(darwin_maxpriority.PRIO_PROCESS,0)
+            if darwin_maxpriority.cvar.errno != 0:
+                raise RuntimeError("Error calling getpriority(): %s"%errno.errorcode[darwin_maxpriority.cvar.errno])
+
+            if not darwin_maxpriority.setpriority(darwin_maxpriority.PRIO_PROCESS,0,params['darwin_conventional_priority']):
+                raise RuntimeError("Error calling getpriority(): %s"%errno.errorcode[darwin_maxpriority.cvar.errno])
+
+            darwin_pthread_priority = params['darwin_pthread_priority']
+            if darwin_pthread_priority == "max": # should otherwise be an int
+                darwin_pthread_priority = darwin_maxpriority.sched_get_priority_max(darwin_maxpriority.SCHED_RR)
+
+            VisionEgg.Core.message.add( "Setting max priority mode for darwin platform "\
+                                        "using conventional priority.",
+                                        VisionEgg.Core.Message.INFO)
+
+            if darwin_maxpriority.set_self_pthread_priority(darwin_maxpriority.SCHED_RR,
+                                                            darwin_pthread_priority) == -1:
+                raise RuntimeError("set_self_pthread failed.")
+
+        else:
+            bus_speed = darwin_maxpriority.get_bus_speed()
+            
+            VisionEgg.Core.message.add( "Setting max priority mode for darwin platform "\
+                                        "using realtime threads. ( period = %d / %d, "\
+                                        "computation = %d / %d, constraint = %d / %d, "\
+                                        "preemptible = %d )"%
+                                        ( bus_speed, params['darwin_realtime_period_denom'],
+                                          bus_speed, params['darwin_realtime_computation_denom'],
+                                          bus_speed, params['darwin_realtime_constraint_denom'],
+                                          params['darwin_realtime_preemptible'] ),
+                                        VisionEgg.Core.Message.INFO)
+
+            period = bus_speed / params['darwin_realtime_period_denom']
+            computation = bus_speed / params['darwin_realtime_computation_denom']
+            constraint = bus_speed / params['darwin_realtime_constraint_denom']
+            preemptible = params['darwin_realtime_preemptible']
+        
+            darwin_maxpriority.set_self_thread_time_constraint_policy( period, computation, constraint, preemptible )
+            return 1
             
 def linux_but_not_nvidia():
     """Warn that platform is linux, but drivers not nVidia."""
