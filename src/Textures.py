@@ -166,14 +166,19 @@ class Texture:
 
 class TextureFromFile(Texture):
     """A Texture that is loaded from a graphics file"""
-    def __init__(self,filename):
+    def __init__(self,file):
         try:
-            self.orig = Image.open(filename)
-        except:
+            self.orig = Image.open(file)
+        except Exception, x:
             import os
-            VisionEgg.Core.message.add("Could not open \"%s\""%(os.path.abspath(filename),),
-                                       level=VisionEgg.Core.Message.WARNING)
-            raise
+            try:
+                VisionEgg.Core.message.add("Could not open \"%s\", raising exception."%(os.path.abspath(file),),
+                                           level=VisionEgg.Core.Message.WARNING)
+            except:
+                pass
+            raise x
+        if hasattr(file,"seek"):
+            file.seek(0) # go back to beginning
 
 class TextureFromPILImage(Texture):
     """A Texture that is loaded from a Python Imaging Library Image."""
