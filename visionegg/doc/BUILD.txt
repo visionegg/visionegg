@@ -12,6 +12,7 @@ paper-a4
 paper-letter
 perl
 templates
+texinputs
 tools
 
 Additionally, create a link called icons that links html/icons.
