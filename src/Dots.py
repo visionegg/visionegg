@@ -42,13 +42,13 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     constant_parameters_and_defaults = {'num_dots' : ( 100, types.IntType )}
 
     def __init__(self, **kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
         # store positions normalized between 0 and 1 so that re-sizing is ok
         num_dots = self.constant_parameters.num_dots # shorthand
         self.x_positions = RandomArray.uniform(0.0,1.0,(num_dots,))
         self.y_positions = RandomArray.uniform(0.0,1.0,(num_dots,))
         self.random_directions_radians = RandomArray.uniform(0.0,2*math.pi,(num_dots,))
-        self.last_time_sec = VisionEgg.timing_func()
+        self.last_time_sec = VisionEgg.time_func()
         self.start_times_sec = None # setup variable, assign later
         self._gave_alpha_warning = 0
 
@@ -77,7 +77,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             else:
                 gl.glDisable( gl.GL_BLEND )
                 
-            now_sec = VisionEgg.timing_func()
+            now_sec = VisionEgg.time_func()
             if self.start_times_sec:
                 # compute extinct dots and generate new positions
                 replace_indices = Numeric.nonzero( Numeric.greater( now_sec - self.start_times_sec, p.dot_lifespan_sec) )
@@ -128,7 +128,9 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
-
+            
+            gl.glDisable(gl.GL_TEXTURE_2D)
+            
             if p.depth is None:
                 depth = 0.0
             else:
