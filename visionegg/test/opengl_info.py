@@ -14,6 +14,7 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+import time
 import pygame
 from pygame.locals import *
 from OpenGL.GL import * # PyOpenGL packages
@@ -107,10 +108,13 @@ for w in try_dims:
     for h in try_dims:
         print " GL_PROXY_TEXTURE_2D trying (%d x %d):"%(w,h),
         data = resize(3.0*arange(w)*2.0*math.pi/w,(w,h)).astype('b')
+        
+        tic = time.time()
         glTexImage2D(GL_PROXY_TEXTURE_2D,0,GL_RGB,w,h,0,GL_RGB,GL_UNSIGNED_BYTE,data)
+        toc = time.time()
         if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) != 0:
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) != 0:
-                print "OK"
+                print "OK (%.1f msec)"%((toc-tic)*1000.0,)
             else:
                 print "Failed"
         else:
