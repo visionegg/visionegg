@@ -64,15 +64,20 @@ class Screen:
         # Choose an appropriate framebuffer pixel representation
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
-    
+
+        if sys.platform=='linux2': # linux will report it can do 32 bpp, but fails on init
+            try:
+                while 1:
+                    try_bpps.remove(32)
+            except:
+                pass
+        
         found_mode = 0
         for bpp in try_bpps:
             modeList = pygame.display.list_modes( bpp, flags )
+            print modeList
             if modeList == -1: # equal to -1 if any resolution will work
-                # confirmed this works on TiBook OSX
-                # this indicates error on x86 linux, against pygame docs
-                if not sys.platform=='linux2':
-                    found_mode = 1
+                found_mode = 1
             else:
                 if len(modeList) == 0: # any resolution is OK
                     found_mode = 1
