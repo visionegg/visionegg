@@ -5,13 +5,12 @@
 # GNU Lesser General Public License (LGPL).
 
 name             = "visionegg"
-version          = "0.9.4"
+version          = "0.9.5a0"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
 license          = "LGPL" # Lesser GNU Public License
 description      = "2D/3D visual stimulus generation"
-platform         = ['win32','darwin','linux','irix','others']
 
 long_description = \
 """The Vision Egg is a programming library (with demo applications) that
@@ -76,7 +75,7 @@ if not skip_c_compilation:
         ext_modules.append(Extension(name='_win32_maxpriority',
                                      sources=[os.path.join('src','win32_maxpriority.c'),
                                               os.path.join('src','win32_maxpriority_wrap.c')]))
-    elif sys.platform in ['linux2','irix','posix']:
+    elif sys.platform[:4] == 'irix' or sys.platform[:5] in ['linux','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
                                               'src/posix_maxpriority_wrap.c']))
@@ -110,7 +109,7 @@ if not skip_c_compilation:
                                               'src/darwin_app_stuff_wrap.c'],
                                      extra_link_args=['-framework','Cocoa']))
 
-    if sys.platform == 'linux2':
+    if sys.platform[:5] == 'linux':
         ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
     if sys.platform[:4] == 'irix':
