@@ -172,7 +172,7 @@ class BlurTextureFamily:
             self.texGLSpeedsDps.append( deg_per_sec ) # lower bound of speed this texture is used for
             
         self.texGLSpeedsDps = array(self.texGLSpeedsDps) # convert back to Numeric array type
-
+        
         # save our cache parameters if we re-made the cache
         if not use_cache: # save our new cache parameters
             if new_cache_valid:
@@ -246,9 +246,14 @@ class BlurredDrum(SpinningDrum):
                 vel_dps = 0
                 speedIndex = 0
             else:
-                vel_dps = delta_pos/delta_t
+                #vel_dps = abs(delta_pos/delta_t) + 2.0e-9 # add a tiny bit to account for floating point innacuracies
+                vel_dps = abs(delta_pos/delta_t)
+                #vel_dps = abs(delta_pos/delta_t) + 1.0e-5
                 # Get the highest cached velocity less than or equal to the current velocity
-                speedIndex = nonzero(less_equal(self.texs.texGLSpeedsDps,abs(vel_dps)))[-1]
+                speedIndex = nonzero(less_equal(self.texs.texGLSpeedsDps,vel_dps))[-1]
+                #print speedIndex
+                #print vel_dps - self.texs.texGLSpeedsDps
+                #speedIndex = -1
         else: # In case motion blur is turned off
             speedIndex = 0
         return self.texs.texGLIdList[speedIndex]
