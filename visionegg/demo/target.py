@@ -22,12 +22,11 @@ def on_during_experiment(t):
         return 1
     
 screen = get_default_screen()
-screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white
-projection = SimplePerspectiveProjection(fov_x=45.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
+screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white (RGBA)
+viewport = Viewport(screen,(0,0),screen.size)
 target = Target2D()
 target.init_gl()
-target.parameters.color = (0.0,0.0,0.0,1.0) # black target
+target.parameters.color = (0.0,0.0,0.0,1.0) # black target (RGBA)
 viewport.add_overlay(target)
 p = Presentation(duration_sec=10.0,viewports=[viewport])
 p.add_realtime_controller(target.parameters,'x', x_as_function_of_time)
