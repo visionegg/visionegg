@@ -65,9 +65,7 @@ swap_buffers = pygame.display.flip              # make shortcut name
 
                                                 # from PyOpenGL:
 import OpenGL.GL                                #   main package
-import OpenGL.GLU                               #   utility package
 gl = OpenGL.GL                                  # shorthand
-glu = OpenGL.GLU                                # shorthand
 
 import Numeric  				# Numeric Python package
 import MLab                                     # Matlab function imitation from Numeric Python
@@ -455,11 +453,24 @@ class SimplePerspectiveProjection(Projection):
         fov_y = fov_x / aspect_ratio
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadIdentity() # Clear the projection matrix
-        glu.gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
         matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
+        # This is a translation of what gluPerspective does:
+        #glu.gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
+        radians = fov_y / 2.0 * math.pi / 180.0
+        delta_z = z_clip_far - z_clip_near
+        sine = math.sin(radians)
+        if (delta_z == 0.0) or (sine == 0.0) or (aspect_ratio == 0.0):
+            raise ValueError("Invalid parameters passed to SimpleProjection.__init__()")
+        cotangent = math.cos(radians) / sine
+        matrix[0][0] = cotangent/aspect_ratio
+        matrix[1][1] = cotangent
+        matrix[2][2] = -(z_clip_far + z_clip_near) / delta_z
+        matrix[2][3] = -1.0
+        matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z
+        matrix[3][3] = 0.0
         apply(Projection.__init__,(self,),{'matrix':matrix})
 
 class PerspectiveProjection(Projection):
