@@ -7,3 +7,5 @@ include demo/daq/*.py
 include demo/tcp/*.py
 include demo/GUI/*.py
 include demo/Pyro/*.py
+exclude demo/gamma.py
+exclude demo/daq/tcp
