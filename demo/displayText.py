@@ -20,7 +20,7 @@ viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
                     stimuli=[text])
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport])
 p.add_controller(text,'lowerleft', FunctionController(during_go_func=lowerleft_as_function_of_time))
 p.go()
 

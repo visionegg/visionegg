@@ -53,7 +53,7 @@ drum_viewport = Viewport(screen=screen,
 # Add target_viewport last so its stimulus is drawn last. This way the
 # target is always drawn after (on top of) the drum and is therefore
 # visible.
-p = Presentation(duration=(10.0,'seconds'),viewports=[drum_viewport,target_viewport])
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[drum_viewport,target_viewport])
 
 ########################
 #  Define controllers  #

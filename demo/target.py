@@ -29,7 +29,7 @@ viewport = Viewport(screen=screen, stimuli=[target])
 
 # Create an instance of the Presentation class.  This contains the
 # the Vision Egg's runtime control abilities.
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport])
 
 #######################
 #  Define controller  #

@@ -59,7 +59,7 @@ viewport2 = Viewport(screen=screen,
                      projection=projection2,
                      stimuli=[stimulus])
 
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
 
 p.add_controller(stimulus,'angular_position', FunctionController(during_go_func=angle_as_function_of_time))
 p.add_controller(projection2,'matrix', FunctionController(during_go_func=projection_matrix_f))
