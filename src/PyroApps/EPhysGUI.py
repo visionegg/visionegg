@@ -848,6 +848,14 @@ class AppWindow(Tkinter.Frame):
         self.notify_on_dropped_frames.set(1)
         self.bar.calibration_menu.add_checkbutton(label='Warn on frame skip',
                                                   variable=self.notify_on_dropped_frames)
+        
+        self.override_t_abs_sec = Tkinter.StringVar() # Tkinter DoubleVar loses precision
+        self.override_t_abs_sec.set("0.0")
+        
+        self.override_t_abs_on = Tkinter.BooleanVar()
+        self.override_t_abs_on.set(0)
+        self.bar.calibration_menu.add_checkbutton(label='Override server absolute time (CAUTION)',
+                                                  variable=self.override_t_abs_on)
 
         row = 0
 
@@ -1089,6 +1097,22 @@ class AppWindow(Tkinter.Frame):
             VisionEgg.GUI.showexception(exc_type,exc_value,"")
         self.stim_frame.set_parameters_dict( new_params )
         self.autosave_basename.set(load_dict['stim_type'])
+
+        try:
+            override_t_abs_sec = load_dict['go_loop_start_time_abs_sec']
+        except Exception, x:
+            tkMessageBox.showwarning("No absolute time parameter",
+                                     "No absolute time parameter when loading file",
+                                     parent=self)
+        else:
+            if not self.override_t_abs_on.get():
+                self.override_t_abs_on.set(1)
+                tkMessageBox.showwarning("Overriding absolute time parameter",
+                                         "Overriding absolute time parameter on server. "+\
+                                         "Remember to turn this option off (in Configure "+\
+                                         "/ Calibrate menu) when done.",
+                                         parent=self)
+            self.override_t_abs_sec.set(repr(override_t_abs_sec)) # make string
         
         self.stim_frame.update_tk_vars()
         return load_dict # return unused variables
@@ -1225,33 +1249,47 @@ class AppWindow(Tkinter.Frame):
         process_loops(0) # start recursion on top level
         
     def do_single_trial(self):
+        # Get filename to save parameters
+        if not self.autosave.get():
+            file_stream = None # not saving file
+        else:
+            duration_sec = self.stim_frame.get_duration_sec()
+            (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
+            trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
+            if self.param_file_type_tk_var.get() == "Python format":
+                # Figure out filename to save parameters in
+                filename = self.autosave_basename.get() + trial_time_str + "_params.py"
+                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                file_stream = open(fullpath_filename,"w")
+            elif self.param_file_type_tk_var.get() == "Matlab format":
+                # Figure out filename to save results in
+                filename = self.autosave_basename.get() + trial_time_str + "_params.m"
+                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                file_stream = open(fullpath_filename,"w")
+            else:
+                raise ValueError('Unknown file format: "%s"'%(self.param_file_type_tk_var.get(),))
+            
         # this class is broken into parts so it can be subclassed more easily
-        self.do_single_trial_pre()
+        self.do_single_trial_pre(file_stream)
         self.do_single_trial_work()
+        self.do_single_trial_post(file_stream)
 
-    def do_single_trial_pre(self, file_stream=None):
+        # Close parameter save file
+        if self.autosave.get():
+            file_stream.close()
+
+    def do_single_trial_pre(self, file_stream):
         # if file_stream is None, open default file
         if self.autosave.get():
             duration_sec = self.stim_frame.get_duration_sec()
             (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
-            self.trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
             if self.param_file_type_tk_var.get() == "Python format":
-                if file_stream is None:
-                    # Figure out filename to save results in
-                    filename = self.autosave_basename.get() + self.trial_time_str + "_params.py"
-                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                    file_stream = open(fullpath_filename,"w")
                 file_stream.write("stim_type = '%s'\n"%self.stim_frame.get_shortname())
                 file_stream.write("finished_time = %04d%02d%02d%02d%02d%02d\n"%(year,month,day,hour24,min,sec))
                 parameter_list = self.stim_frame.get_parameters_as_py_strings()
                 for parameter_name, parameter_value in parameter_list:
                     file_stream.write("%s = %s\n"%(parameter_name, parameter_value))
             elif self.param_file_type_tk_var.get() == "Matlab format":
-                if file_stream is None:
-                    # Figure out filename to save results in
-                    filename = self.autosave_basename.get() + self.trial_time_str + "_params.m"
-                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                    file_stream = open(fullpath_filename,"w")
                 file_stream.write("stim_type = '%s';\n"%self.stim_frame.get_shortname())
                 file_stream.write("finished_time = %04d%02d%02d%02d%02d%02d;\n"%(year,month,day,hour24,min,sec))
                 parameter_list = self.stim_frame.get_parameters_as_m_strings()
@@ -1271,6 +1309,11 @@ class AppWindow(Tkinter.Frame):
         self.progress.updateProgress(0)
         
         duration_sec = self.stim_frame.get_duration_sec()
+        
+        if self.override_t_abs_on.get():
+            new_t_abs_str = self.override_t_abs_sec.get()
+            self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
+
         self.stim_frame.go() # start server going, but this return control immediately
         self.sleep_with_progress(duration_sec)
         while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
@@ -1287,6 +1330,20 @@ class AppWindow(Tkinter.Frame):
         self.progress.labelText = "Ready"
         self.progress.updateProgress(0)
 
+    def do_single_trial_post(self, file_stream):
+        # if file_stream is None, open default file
+        if self.autosave.get():
+            frames_dropped = self.ephys_server.were_frames_dropped_in_last_go_loop()
+            go_loop_start_time = self.ephys_server.get_last_go_loop_start_time_absolute_sec()
+            if self.param_file_type_tk_var.get() == "Python format":
+                file_stream.write("frames_dropped = %s # boolean\n"%str(frames_dropped))
+                file_stream.write("go_loop_start_time_abs_sec = %s\n"%repr(go_loop_start_time))
+            elif self.param_file_type_tk_var.get() == "Matlab format":
+                file_stream.write("frames_dropped = %s; %% boolean\n"%str(frames_dropped))
+                file_stream.write("go_loop_start_time_abs_sec = %s;\n"%repr(go_loop_start_time))
+            else:
+                raise RuntimeError("Unknown parameter file type") # Should never get here
+                
     def sleep_with_progress(self, duration_sec):
         if duration_sec == 0.0:
             return # don't do anything
