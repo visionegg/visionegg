@@ -75,7 +75,6 @@ class Screen:
         found_mode = 0
         for bpp in try_bpps:
             modeList = pygame.display.list_modes( bpp, flags )
-            print modeList
             if modeList == -1: # equal to -1 if any resolution will work
                 found_mode = 1
             else:
@@ -93,7 +92,11 @@ class Screen:
             print "WARNING: Could not find acceptable video mode! Trying anyway..."
 
         print "Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],bpp)
-        pygame.display.set_mode(self.size, flags, bpp )
+        try:
+            pygame.display.set_mode(self.size, flags, bpp )
+        except pygame.error, x:
+            print "FATAL VISION EGG ERROR:",x
+            sys.exit(1)
         self.bpp = pygame.display.Info().bitsize
         self.cursor_visible_func = pygame.mouse.set_visible
         if self.fullscreen:
