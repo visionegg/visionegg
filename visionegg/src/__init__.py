@@ -398,4 +398,28 @@ def _get_lowerleft(position,anchor,size):
         raise ValueError("No anchor position %s"%anchor)
     return lowerleft
 
+def _get_center(position,anchor,size):
+    """Private helper function"""
+    if anchor == 'lowerleft':
+        center = (position[0] + size[0]/2.0, position[1] + size[1]/2.0)
+    elif anchor == 'center':
+        center = position
+    elif anchor == 'lowerright':
+        center = (position[0] - size[0]/2.0, position[1] + size[1]/2.0)
+    elif anchor == 'upperright':
+        center = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
+    elif anchor == 'upperleft':
+        center = (position[0] + size[0]/2.0, position[1] - size[1]/2.0)
+    elif anchor == 'left':
+        center = (position[0] + size[0]/2.0, position[1])
+    elif anchor == 'right':
+        center = (position[0] - size[0]/2.0, position[1])
+    elif anchor == 'bottom':
+        center = (position[0],position[1] + size[1]/2.0)
+    elif anchor == 'top':
+        center = (position[0],position[1] - size[1]/2.0)
+    else:
+        raise ValueError("No anchor position %s"%anchor)
+    return center
+
 
