@@ -92,11 +92,12 @@ class Screen(ClassWithParameters):
             requested_alpha = 1
         else:
             requested_alpha = 0
+            
             print "WARNING: Could not request alpha in framebuffer"
-            print "because you need pygame version 1.5 or greater (or the"
-            print "latest 1.4-cvs). This is only of concern if you use a"
-            print "stimulus that needs this feature. In that case, it should"
-            print "verify the presence of alpha."
+            print "because you need pygame release 1.4.9 or greater. This is"
+            print "only of concern if you use a stimulus that needs this"
+            print "feature. In that case, the stimulus should verify the presence of"
+            print "alpha."
             
         pygame.display.set_caption("Vision Egg")
         
@@ -221,15 +222,17 @@ class Viewport(ClassWithParameters):
     viewport's projection from the default.  This is typically the
     case for 3D stimuli.    
     """
-    parameters_and_defaults = {'lowerleft':(0,0),
-                               'size':(640,480),
-                               'projection':None}
+    parameters_and_defaults = {'lowerleft':(0,0), # tuple of length 2
+                               'size':None,       # tuple of length 2, will use screen.size if not specified
+                               'projection':None} # instance of VisionEgg.Core.Projection
 
     def __init__(self,screen,**kw):
         apply(ClassWithParameters.__init__,(self,),kw)
         
         self.screen = screen
         self.stimuli = []
+        if self.parameters.size is None:
+            self.parameters.size = self.screen.size
         if self.parameters.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
