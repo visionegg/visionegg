@@ -20,7 +20,7 @@
 # VisionEgg.
 #
 #
-# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
 import string
