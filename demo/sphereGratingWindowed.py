@@ -112,7 +112,7 @@ projection = SimplePerspectiveProjection(fov_x=130.0)
 #                    (0.0,1.0,0.0) )
 
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/mercator.png")
-texture = TextureFromFile(filename)
+texture = Texture(filename)
 grid_stimulus = SphereMap(texture = texture,
                           shrink_texture_ok = 1,
                           stacks = 100,
