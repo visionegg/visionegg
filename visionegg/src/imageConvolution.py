@@ -4,6 +4,12 @@
 # Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
+####################################################################
+#
+#        Import all the necessary packages
+#
+####################################################################
+
 import string
 __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
@@ -15,10 +21,24 @@ from Numeric import *
 from MLab import *
 from FFT import *
 
+####################################################################
+#
+#        Math functions
+#
+####################################################################
+
 def complex_abs(array):
+    """Return an array with the magnitudes of an array of complex numbers"""
     return sqrt(array*conjugate(array)).real
 
+####################################################################
+#
+#        Linear filter implementation
+#
+####################################################################
+
 class Filter:
+    """Base class for filters"""
     def __init__(self,unityGain=1):
         self.damn_close_to_zero = 1.0e-10
         self.unityGain = unityGain
@@ -67,6 +87,12 @@ class BoxcarFilter(Filter):
         #return less_equal(abx(x),self.radius).astype('f')
         return less_equal(x*x,self.radius*self.radius).astype('f') # quicker than above, same result
 
+####################################################################
+#
+#        Convolution implementation
+#
+####################################################################
+
 def convolveImageHoriz(image,filter,edgeMethod='wrap'):
     if edgeMethod != 'wrap':
         raise NotImplementedError("convolveImageHoriz only does wrap-around convolutions.")
@@ -78,14 +104,6 @@ def convolveImageHoriz(image,filter,edgeMethod='wrap'):
         data.shape = (image.size[1],image.size[0],1)
     else: # RGB
         data.shape = (image.size[1],image.size[0],3)
-#    data = fromstring(image.tostring(),'b')
-#    if len(image.getbands()) == 1: # luminance only
-#        data.shape = (image.size[0],image.size[1],1)
-#        #data[5,:5,:] = 255 # temp thing for 'L' mode
-#        data = transpose(data,(1,0))
-#    else: # RGB
-#        data.shape = (image.size[0],image.size[1],len(image.getbands()))
-#        data = transpose(data,(1,0,2))
     height,width = data.shape[:2] 
     data = data.astype('f')
     data = data / 255.0
