@@ -116,7 +116,7 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
 ###### The following methods are specific to tcp daq device ########
 
     def quit_server(self):
-        self.connection.quit_socket()
+        self.connection.quit_server()
 
     def arm(self):
         # Must be device-wide because MacAdios triggers all channels together
@@ -125,8 +125,8 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
             for existing_channel in self.channels:
                 channel_numbers.append(existing_channel.constant_parameters.channel_number)
             channel_numbers.sort()
-            num_channels = channel_numbers[-1]
-            sampled_channels = range(num_channels)
+            sampled_channels = range(channel_numbers[-1]+1)
+            num_channels = len(sampled_channels)
             # all the durations and sample frequencies and trigger modes are the same
             buffered = self.channels[0].constant_parameters.daq_mode
             trigger_num = None
@@ -143,12 +143,12 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
 
 class DebugSocket(socket.socket):
     def send(self,string):
-        print "SEND",string
+        #print "SEND",string
         apply(socket.socket.send,(self,string))
 
     def recv(self,bufsize):
         results = apply(socket.socket.recv,(self,bufsize))
-        print "RECV",results
+        #print "RECV",results
         return results
 
 class DaqConnection:
@@ -165,6 +165,7 @@ class DaqConnection:
     # some more constants
     command_prompt = re.compile('^daqserv> ')
     ready_prompt = re.compile('^ready> ')
+    re_crlf = re.compile(CRLF)
     begin_data_prompt = re.compile('^'+re.escape(
         'BEGIN ASCII DATA (32 bit big-endian signed int)'
         )+'$')
@@ -181,11 +182,13 @@ class DaqConnection:
 
         self.socket.connect((hostname,port))
         self.buffer = ''
-        
+
         # Wait until we get a command prompt
         while not DaqConnection.command_prompt.search(self.buffer):
             self.buffer = self.buffer + self.socket.recv(DaqConnection.BUFSIZE)
-        # XXX prune everything up to the end of command_prompt from self.buffer
+            # Prune all but the last line from the buffer
+            self.buffer = string.split(self.buffer,"%s%s"%(chr(0x0D),chr(0x0A)))[-1]
+        # XXX to-do: prune everything up to the end of command_prompt from self.buffer
         
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
@@ -218,6 +221,7 @@ class DaqConnection:
                                                    sample_rate_hz,
                                                    duration_sec,
                                                    trigger_num)
+        self.current_data_array = Numeric.zeros((0,num_channels),'f')
         self.socket.send(digitize_string + DaqConnection.CRLF)
 
         # I should go into non-blocking mode and wait
@@ -251,56 +255,56 @@ class DaqConnection:
         # Parse data
         done = 0
         getting_waves = 0
-        waves = []
         leftover_data = ""
-        print "a"
+        #print "a"
         while not done:
-            print "b"
+            #print "b"
             data = self.socket.recv(DaqConnection.BUFSIZE)
-            print "c"
+            #print "c"
             lines = string.split(data,DaqConnection.CRLF)
 
-            print "lines",lines
+            #print "lines",lines
 
             # due to buffering not being lined up with lines:
             lines[0] = leftover_data + lines[0] # use last incomplete line
             leftover_data = lines.pop() # incomplete last line
 
-            print "leftover_data",leftover_data
+            #print "leftover_data",leftover_data
 
             # because the command prompt doesn't end with CRLF, check for it:
             if self.command_prompt.search(leftover_data):
                 done = 1
 
             for line in lines:
-                print line
+                #print line
                 if line == "": # Nothing in this line, do the next
                     continue 
                 if not getting_waves:
                     if DaqConnection.begin_data_prompt.search(line):
-                        print "START!"
+                        #print "START!"
                         getting_waves = 1
                     else:
                         raise ValueError("Unexpected string from daq server when parsing output: '%s'"%line)
                 else: # getting_waves 
                     if DaqConnection.end_data_prompt.search(line):
-                        print "DONE!"
-                        self.current_data_array = Numeric.array(waves)
-                        waves = []
+#                        print "DONE!"
+                        #self.current_data_array = Numeric.array(waves)
+                        #waves = []
                         getting_waves = 0
                     else: # The data!
                         this_row = map(int,string.split(line))
 ##                        samples = string.split(line)
 ##                        for sample in samples:
 ##                            this_row.append(int(sample))
-                        print this_row
+#                        print this_row
                         if len(this_row) > 0:
                             this_row = Numeric.array(this_row)
-                            waves.append(this_row)
+                            #waves.append(this_row)
                             ## Could speed next line up with concatenate?
                             # (Also would have to save waves...)
-                            self.current_data_array = Numeric.array(waves)
-        print self.current_data_array
+                            #self.current_data_array = Numeric.array(waves)
+                            Numeric.concatenate(self.current_data_array,this_row)
+#        print self.current_data_array
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
     def close_socket(self,command='exit'):
