@@ -51,23 +51,32 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
-    
+   
+bpps = [32, 24, 0]
 sizes = [ (640,480), (800,600), (1024,768), (1280,1024) ]
-for size in sizes:
+for bpp in bpps:
     success = False
-    try:
-        screen = VisionEgg.Core.Screen( size          = size,
-                                        fullscreen    = True,
-                                        preferred_bpp = 32,
-                                        maxpriority   = False,
-                                        hide_mouse    = True,
-                                        sync_swap     = True,
-                                        )
-        success = True
-    except:
-        pass
+    for size in sizes:
+        print 'trying to initialize fullscreen %d x %d, %d bpp'%(
+            size[0], size[1], bpp)
+        try:
+            screen = VisionEgg.Core.Screen( size          = size,
+                                            fullscreen    = True,
+                                            preferred_bpp = bpp,
+                                            maxpriority   = False,
+                                            hide_mouse    = True,
+                                            sync_swap     = True,
+                                            )
+            success = True
+        except:
+            pass
+        if success:
+            break # we don't need to try other resolutions
     if success:
-        break # we don't need to try other resolutions
+        break
+
+if not success:
+    raise RuntimeError('ERROR: could not initialize fullscreen mode.')
 
 if not screen.constant_parameters.sync_swap:
     raise RuntimeError('This test requires sync_swap to work')
