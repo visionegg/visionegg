@@ -1,5 +1,16 @@
 #!/usr/bin/env python
-"""Display a sequence of images using a pseudo-blit routine."""
+"""Display a sequence of images using a pseudo-blit routine.
+
+This is a fast way to switch images because the OpenGL texture object
+is already created and the image data is already in system RAM.
+Switching the image merely consists of putting the new data into
+OpenGL.
+
+Currently, there is no support for ensuring image sizes remain
+constant, so if you get strange behavior, please ensure that all your
+images are the same size.
+"""
+
 from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
