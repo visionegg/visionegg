@@ -10,6 +10,7 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import VisionEgg
+import VisionEgg.Core
 import VisionEgg.GUI
 
 def get_default_screen():
