@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import string, os, glob
-"""build-win-exe.py -- build a .exe windows files
+"""build-win-exe.py -- build .exe windows files
+
+This is used to create the Win32 executable demo files.
 
 Run this from a new directory, e.g.:
 
