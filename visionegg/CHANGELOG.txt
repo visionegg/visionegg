@@ -1,3 +1,18 @@
+Changes for 0.9.5:
+------------------
+Allow use of pygame Surfaces as source of texture data
+TrueType font rendering
+Positioning of TextureStimulus can use 'anchor' for flexibility
+Renamed timing_func() to time_func()
+EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
+Screen.put_pixels() method for (pseudo)blitting of raw pixel data
+Many small enhancements and bugfixes
+
+New demos:
+multi_stim.py shows many stimuli at once
+dots_simple_loop.py uses own loop rather than Presentation class
+mouseTarget_user_loop.py uses own loop rather than Presentation class
+
 Changes for 0.9.4:
 ------------------
 Major features:
