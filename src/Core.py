@@ -107,19 +107,19 @@ class Screen(VisionEgg.ClassWithParameters):
     Constant Parameters
     ===================
     frameless     -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     fullscreen    -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     hide_mouse    -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     maxpriority   -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     preferred_bpp -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     size          -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     sync_swap     -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
@@ -1125,13 +1125,13 @@ class Viewport(VisionEgg.ClassWithParameters):
     position    -- Position (in pixel units) within the screen (Sequence2 of Real)
                    Default: (0, 0)
     projection  -- projection for coordinate transforms (Instance of <class 'VisionEgg.Core.Projection'>)
-                   Default: (determined at instantiation)
+                   Default: (determined at runtime)
     screen      -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
-                   Default: (determined at instantiation)
+                   Default: (determined at runtime)
     size        -- Size (in pixel units) (Sequence2 of Real)
-                   Default: (determined at instantiation)
+                   Default: (determined at runtime)
     stimuli     -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
-                   Default: (determined at instantiation)
+                   Default: (determined at runtime)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
