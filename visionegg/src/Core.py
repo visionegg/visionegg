@@ -896,16 +896,16 @@ class Presentation(ClassWithParameters):
                 s = ' '
                 if qi:
                     s = '*'
-                print "%5s"%(s,),
+                print "%3s"%(s,),
             print
         print " Time:",
         for bin in bins:
-            print "%5.2f"%(bin*1.0e3,),
+            print "%3d"%(int(bin*1.0e3),),
         print "+",
         print "(msec)"
         print "Total:",
         for hi in h:
-            print "%5d"%(hi,),
+            print "%3d"%(hi,),
         print
         
 ####################################################################
