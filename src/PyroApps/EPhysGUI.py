@@ -805,11 +805,13 @@ class AppWindow(Tkinter.Frame):
                  server_hostname='',
                  server_port=7766,
                  **cnf):
-        # Keep original exception handler
-        self._orig_report_callback_exception = Tkinter.Tk.report_callback_exception
-        self._tk = Tkinter.Tk
-        # Use Vision Egg exception handler
-        Tkinter.Tk.report_callback_exception = VisionEgg._exception_hook_keeper.handle_exception
+
+        if hasattr(VisionEgg, '_exception_hook_keeper'):
+            # Keep original exception handler
+            self._orig_report_callback_exception = Tkinter.Tk.report_callback_exception
+            self._tk = Tkinter.Tk
+            # Use Vision Egg exception handler
+            Tkinter.Tk.report_callback_exception = VisionEgg._exception_hook_keeper.handle_exception
 
         # Allow VisionEgg Tkinter exception window
         VisionEgg.config._Tkinter_used = True
@@ -979,7 +981,8 @@ class AppWindow(Tkinter.Frame):
         self.config_dir = None
 
     def __del__( self ):
-        self._tk.report_callback_exception = self._orig_report_callback_exception
+        if hasattr(self,'_orig_report_callback_exception'):
+            self._tk.report_callback_exception = self._orig_report_callback_exception
 
     def switch_to_stimkey( self, stimkey ):
         success = 0
