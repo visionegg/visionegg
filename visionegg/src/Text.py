@@ -19,19 +19,34 @@ import VisionEgg.Core
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 
-class BitmapText(VisionEgg.Core.Stimulus):
-    def __init__(self,text="Text",font=GLUT_BITMAP_TIMES_ROMAN_24,projection=None):
-        self.parameters = VisionEgg.Core.Parameters()
-        self.parameters.on = 1
-        if projection is None:
-            self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
-        else:
+class TextStimulus(VisionEgg.Core.Stimulus):
+    """Don't instantiate this class directly.
+
+    It's a base class that defines the common interface between the
+    other text stimuli."""
+    parameters_and_defaults = {'projection':None, # set in __init__
+                               'on':1,
+                               'color':(1.0,1.0,1.0,1.0),
+                               'x':0.5,
+                               'y':0.5,
+                               'text':'the string to display'}
+    def __init__(self,projection=None,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        # Make sure the projection is set
+        if projection is not None:
+            # Use the user-supplied projection
             self.parameters.projection = projection
-        self.parameters.x = 0.0
-        self.parameters.y = 0.0
-        self.parameters.color = (1.0,1.0,1.0,1.0)
-        self.parameters.text = text
-        self.parameters.font = font
+        else:
+            # No user-supplied projection, use the default. (Which is probably None.)
+            if self.parameters.projection is None:
+                # Since the default projection is None, set it to something useful.
+                # Assume spot is in center of viewport.
+                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
+
+class BitmapText(TextStimulus):
+    parameters_and_defaults = {'font':GLUT_BITMAP_TIMES_ROMAN_24}
+    def __init__(self,projection=None,**kw):
+        apply(TextStimulus.__init__,(self,projection),kw)
 
     def draw(self):
         if self.parameters.on:
@@ -57,49 +72,41 @@ class BitmapText(VisionEgg.Core.Stimulus):
             # Now restore everything
             glPopMatrix() # restore projection matrix
 
-class StrokeText(VisionEgg.Core.Stimulus):
-    def __init__(self,text="Text",font=GLUT_STROKE_ROMAN,projection=None):
+class StrokeText(TextStimulus):
+    parameters_and_defaults = {'font':GLUT_STROKE_ROMAN,
+                               'orientation':0.0,
+                               'linewidth':3.0, # in pixels
+                               'anti_aliasing':1}
+    def __init__(self,projection=None,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
-        self.parameters = VisionEgg.Core.Parameters()
-        self.parameters.on = 1
-        if projection is None:
-            self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
-        else:
-            self.parameters.projection = projection
-        self.parameters.orientation = 0.0
-        self.parameters.x = 0.0
-        self.parameters.y = 0.0
-        self.parameters.color = (1.0,1.0,1.0,1.0)
-        self.parameters.text = text
-        self.parameters.font = font
-        self.parameters.linewidth = 3.0
-        self.parameters.antialiasing = 0
+        apply(TextStimulus.__init__,(self,projection),kw)
 
     def draw(self):
         if self.parameters.on:
             glDisable(GL_TEXTURE_2D)
-            glDisable(GL_BLEND)
             glDisable(GL_DEPTH_TEST)
-
-            # save and set the projection matrix
-            self.parameters.projection.push_and_set_gl_projection()
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
             glTranslate(self.parameters.x,self.parameters.y,0.0)
             glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
+            # save and set the projection matrix
+            self.parameters.projection.push_and_set_gl_projection()
+
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
 
             glLineWidth(self.parameters.linewidth)
 
-            if self.parameters.antialiasing:
+            if self.parameters.anti_aliasing:
                 glEnable(GL_BLEND)
                 glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
                 glEnable(GL_LINE_SMOOTH)
+            else:
+                glDisable(GL_BLEND)
 
-            # This code successfully draws a box...
+##            # This code successfully draws a box...
 ##            glBegin(GL_QUADS)
 ##            glVertex2f(0.0,0.0)
 ##            glVertex2f(0.0,0.1)
@@ -111,5 +118,4 @@ class StrokeText(VisionEgg.Core.Stimulus):
             for char in self.parameters.text:
                 glutStrokeCharacter(self.parameters.font,ord(char))
 
-            glMatrixMode(GL_PROJECTION)
             glPopMatrix() # restore projection matrix
