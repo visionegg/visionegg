@@ -16,7 +16,7 @@ import VisionEgg.ParameterTypes as ve_types
 
 import Numeric
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import string
 
@@ -33,17 +33,21 @@ except NameError:
     False = 1==0
 
 class Target2D(VisionEgg.Core.Stimulus):
+    
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
-        'color':((1.0,1.0,1.0,1.0),
-                 ve_types.Sequence4(ve_types.Real)),
+        'color':((1.0,1.0,1.0),
+                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                ve_types.Sequence4(ve_types.Real))),
         'anti_aliasing':(True,
                          ve_types.Boolean),
         'orientation':(0.0, # 0.0 degrees = right, 90.0 degrees = up
                        ve_types.Real),
         'position' : ( ( 320.0, 240.0 ), # in eye coordinates
-                       ve_types.Sequence2(ve_types.Real) ),
+                       ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
+                                      ve_types.Sequence3(ve_types.Real),
+                                      ve_types.Sequence4(ve_types.Real))),
         'anchor' : ('center',
                     ve_types.String),
         'size':((64.0,16.0), # in eye coordinates
@@ -51,6 +55,10 @@ class Target2D(VisionEgg.Core.Stimulus):
         'center' : (None,  # DEPRECATED -- don't use
                     ve_types.Sequence2(ve_types.Real)),  
         }
+    
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        '_gave_alpha_warning',
+        )
     
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
@@ -73,8 +81,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glTranslate(center[0],center[1],0.0)
             gl.glRotate(p.orientation,0.0,0.0,1.0)
 
-            c = p.color
-            gl.glColorf(c[0],c[1],c[2],c[3])
+            gl.glColorf(*p.color)
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
@@ -91,7 +98,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             
             if p.anti_aliasing:
                 if not self._gave_alpha_warning:
-                    if c[3] != 1.0:
+                    if len(p.color) > 3 and p.color[3] != 1.0:
                         VisionEgg.Core.message.add(
                             """The parameter anti_aliasing is set to
                             true in the Target2D stimulus class, but
@@ -130,6 +137,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                 gl.glDisable(gl.GL_LINE_SMOOTH)
 
 class Rectangle3D(VisionEgg.Core.Stimulus):
+    
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -149,6 +157,9 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                   ve_types.Sequence4(ve_types.Real))),
         }
+    
+    __slots__ = VisionEgg.Core.Stimulus.__slots__
+    
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
 

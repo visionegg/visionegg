@@ -6,7 +6,6 @@
 all = ['AlphaGratingCommon', 'LuminanceGratingCommon',
        'NumSamplesTooLargeError', 'SinGrating2D', ]
 
-
 ####################################################################
 #
 #        Import all the necessary packages
@@ -19,8 +18,7 @@ import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 import Numeric
 import math, types, string, warnings
-
-gl = VisionEgg.Core.gl # get (modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -60,6 +58,15 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
                      ve_types.UnsignedInteger),
         }
     
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        'gl_internal_format',
+        'format',
+        'gl_type',
+        'numeric_type',
+        'max_int_val',
+        'cached_bit_depth',
+        )
+
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
         bit_depth_warning = False
@@ -90,6 +97,15 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
                      ve_types.UnsignedInteger),
         }
     
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        'gl_internal_format',
+        'format',
+        'gl_type',
+        'numeric_type',
+        'max_int_val',
+        'cached_bit_depth',
+        )
+
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
         p = self.parameters # shorthand
@@ -144,13 +160,13 @@ class SinGrating2D(LuminanceGratingCommon):
         'orientation':(0.0, # 0=right, 90=up
                        ve_types.Real),
         'num_samples':(512, # number of spatial samples, should be a power of 2
-                       ve_types.Integer),
+                       ve_types.UnsignedInteger),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
                      ve_types.Real), 
         'color1':((1.0, 1.0, 1.0), # alpha is ignored (if given) -- use max_alpha parameter
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                  ve_types.Sequence4(ve_types.Real))),
-        'color2':(None, # alpha is ignored (if given) -- use max_alpha parameter
+        'color2':(None, # perform interpolation with color1 in RGB space.
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                  ve_types.Sequence4(ve_types.Real))),
         'recalculate_phase_tolerance':(None, # only recalculate texture when phase is changed by more than this amount, None for always recalculate. (Saves time.)
@@ -159,6 +175,11 @@ class SinGrating2D(LuminanceGratingCommon):
                   ve_types.Sequence2(ve_types.Real)),
         }
     
+    __slots__ = LuminanceGratingCommon.__slots__ + (
+        '_texture_object_id',
+        '_last_phase',
+        )
+
     def __init__(self,**kw):
         LuminanceGratingCommon.__init__(self,**kw)
 
@@ -265,33 +286,9 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 
             if p.color2:
-##                if VisionEgg.Core.gl_renderer == 'ATi Rage 128 Pro OpenGL Engine' and VisionEgg.Core.gl_version == '1.1 ATI-1.2.22':
-##                    # this operate the same as GL_BLEND, but causes less problems on ATI Rage 128 (but still isn't right... sigh...)
-##                    c2 = Numeric.array((p.color2[0], p.color2[1], p.color2[2], 0.0),typecode=Numeric.Float32)
-##                    gl.glTexEnvfv( gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, c2 ) # argument 0
-
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_COMBINE_RGB_ARB, gl.GL_INTERPOLATE_ARB)
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_COMBINE_ALPHA_ARB, gl.GL_INTERPOLATE_ARB)
-                    
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE0_RGB_ARB, gl.GL_CONSTANT_ARB ) #Cc
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND0_RGB_ARB, gl.GL_SRC_COLOR )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE0_ALPHA_ARB, gl.GL_CONSTANT_ARB )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND0_ALPHA_ARB, gl.GL_SRC_ALPHA )
-
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE1_RGB_ARB, gl.GL_PRIMARY_COLOR_ARB ) # Cf
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND1_RGB_ARB, gl.GL_SRC_COLOR )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE1_ALPHA_ARB, gl.GL_PRIMARY_COLOR_ARB )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND1_ALPHA_ARB, gl.GL_SRC_ALPHA )
-
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE2_RGB_ARB, gl.GL_TEXTURE ) # Cs
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND2_RGB_ARB, gl.GL_SRC_COLOR )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE2_ALPHA_ARB, gl.GL_TEXTURE )
-##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND2_ALPHA_ARB, gl.GL_SRC_ALPHA )
-##                else:
-                    ## this breaks on ATI Rage128 on Powerbook G4:
-                    gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
-                    gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
-                    ## alpha should be ignored because the texture base internal format is luminance
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
+                gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
+                ## alpha is ignored because the texture base internal format is luminance
             else:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
             

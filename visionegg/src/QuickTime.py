@@ -10,7 +10,7 @@ import VisionEgg.Textures
 import Numeric
 import os
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import Carbon.File
 import Carbon.Qt
@@ -43,6 +43,14 @@ def new_movie_from_filename(filename):
     return movie
     
 class MovieTexture(VisionEgg.Textures.Texture):
+
+    __slots__ = VisionEgg.Textures.Texture.__slots__ + (
+        'movie',
+        'size',
+        'scale',
+        'gl_qt_renderer',
+        )
+    
     def __init__(self,
                  movie=None,
                  texture_size=None, # be default will be big enough for full movie, otherwise 2-tuple
@@ -57,7 +65,6 @@ class MovieTexture(VisionEgg.Textures.Texture):
         self.movie.SetMovieBox((0,0,width,height))
         self.size = (width,height)
         self.scale = 1.0
-        self.started = False
 
     def make_half_size(self):
         self.size = self.size[0]/2, self.size[1]/2

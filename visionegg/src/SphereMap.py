@@ -15,7 +15,7 @@ import VisionEgg.ParameterTypes as ve_types
 import Numeric  				# Numeric Python package
 import Image
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -30,6 +30,7 @@ except NameError:
     False = 1==0
 
 class AzElGrid(VisionEgg.Core.Stimulus):
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -54,6 +55,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         'anti_aliasing' : ( True,
                             ve_types.Boolean ),
         }
+    
     constant_parameters_and_defaults = {
         'use_text':(True,
                     ve_types.Boolean),
@@ -77,6 +79,17 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         'text_anchor':('lowerleft',
                        ve_types.String),
         }
+    
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        'cached_minor_lines_display_list',
+        'cached_major_lines_display_list',
+        'text_viewport',
+        'text_viewport_orig',
+        '_gave_alpha_warning',
+        'labels',
+        'labels_xyz',
+        )
+    
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         self.cached_minor_lines_display_list = gl.glGenLists(1) # Allocate a new display list
@@ -280,6 +293,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     """Mercator mapping of rectangular texture onto sphere."""
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -298,6 +312,13 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
         'stacks':(30,
                   ve_types.UnsignedInteger)}
 
+    __slots__ = VisionEgg.Textures.TextureStimulusBaseClass.__slots__ + (
+        'cached_display_list',
+        '_cached_radius',
+        '_cached_slices',
+        '_cached_stacks',
+        )
+    
     def __init__(self,**kw):
         VisionEgg.Textures.TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
@@ -420,6 +441,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
 
 class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     """Map 2D sinusoidal grating onto sphere."""
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -458,6 +480,15 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         'stacks':(30,
                   ve_types.UnsignedInteger),
         }
+    
+    __slots__ = VisionEgg.Gratings.LuminanceGratingCommon.__slots__ + (
+        'texture_object_id',
+        'cached_display_list_id',
+        '_cached_num_samples',
+        '_cached_radius',
+        '_cached_slices',
+        '_cached_stacks',
+        )
     
     def __init__(self,**kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self,**kw)
@@ -675,7 +706,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
     Note that the bit depth of the alpha component of the framebuffer
     is important for producing smooth transitions in color."""
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -702,6 +733,19 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         'stacks':(30,
                   ve_types.UnsignedInteger),
         }
+    
+    __slots__ = VisionEgg.Gratings.LuminanceGratingCommon.__slots__ + (
+        'texture_object_id',
+        'windowed_display_list_id',
+        'opaque_display_list_id',
+        '_cached_window_shape',
+        '_cached_shape_radius_parameter',
+        '_cached_num_s_samples',
+        '_cached_num_t_samples',
+        '_cached_radius',
+        '_cached_slices',
+        '_cached_stacks',
+        )
     
     def __init__(self, **kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self, **kw )
