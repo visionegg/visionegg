@@ -98,7 +98,6 @@ _maxpriority_methods[] = {
 DL_EXPORT(void)
 init_maxpriority(void)
 {
-  PyObject *module;
-  module = Py_InitModule("_maxpriority", _maxpriority_methods);
+  Py_InitModule("_maxpriority", _maxpriority_methods);
   return;
 }
