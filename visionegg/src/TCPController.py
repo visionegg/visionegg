@@ -89,8 +89,11 @@ class TCPServer:
                 raise
         self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
 
-    def create_listener_once_connected(self):
+    def create_listener_once_connected(self,eval_frequency=None):
         """Wait for connection and spawn instance of SocketListenController."""
+        if eval_frequency is None:
+            # Don't listen to socket during go loop -- especially don't want to skip frames then
+            eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME | VisionEgg.Core.Controller.NOT_DURING_GO
         host,port = self.server_socket.getsockname()
         fqdn = socket.getfqdn(host)
         VisionEgg.Core.message.add(
@@ -244,11 +247,12 @@ class SocketListenController(VisionEgg.Core.Controller):
     <args> -- during_go [, between_go [, eval_frequency [, temporal_variables [, return_type ]]]]
     """
 
-    _re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
+    _re_line = re.compile(r"^(.*)\n",re.MULTILINE)
+    _re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
+    # The real newlines have already been parsed by the time the buffer gets to these statements:
     _re_const = re.compile(r'^const\(\s?(.*)\s?\)$',re.DOTALL)
     _re_eval_str = re.compile(r'^eval_str\(\s?(.*)\s?\)$',re.DOTALL)
     _re_exec_str = re.compile(r'^exec_str\(\s?(\*)?\s?(.*)\s?\)$',re.DOTALL)
-    _re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
     _parse_args_globals = {'types':types}
     _parse_args_locals = VisionEgg.Core.Controller.flag_dictionary
     def __init__(self,
@@ -295,10 +299,21 @@ class SocketListenController(VisionEgg.Core.Controller):
             ready_to_read, temp, temp2 = select.select([self.socket],[],[],0)
             new_info = 0
             while len(ready_to_read):
-                new = self.socket.recv(1024)
-                if len(new) == 0:
+                try:
+                    new = self.socket.recv(1024) # When disconnected, this fails on Win32
+                except socket.error, x:
+                    if not self.disconnect_ok:
+                        raise
+                    else:
+                        self.socket.close()
+                        self.socket = None
+                        if self.server_socket is not None:
+                            self.server_socket.setblocking(0)
+                        return
+                if len(new) == 0: # When disconnected, this happens on unix
                     # Disconnected
-                    self.socket = None # close socket
+                    self.socket.close() # close socket
+                    self.socket = None 
                     if not self.disconnect_ok:
                         raise RuntimeError("Socket disconnected!")
                     else:
@@ -306,7 +321,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                             self.server_socket.setblocking(0)
                     return # don't do any more
                 #assert(ready_to_read[0] == self.socket)
-                self.buffer = self.buffer + new
+                self.buffer += new
                 new_info = 1
                 ready_to_read, temp, temp2 = select.select([self.socket],[],[],0)
 
@@ -319,7 +334,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                 for tcp_name in self.names.keys():
                     (controller, name_re_str, parser, require_type) = self.names[tcp_name]
                     # If the following line makes a match, it
-                    # sticks the result in self.last_command[tcp_name].
+                    # sticks the result in self.last_command[tcp_name] by calling the parser function.
                     self.buffer = name_re_str.sub(parser,self.buffer)
                     # Now act based on the command parsed
                     command = self.last_command[tcp_name]
@@ -344,27 +359,27 @@ class SocketListenController(VisionEgg.Core.Controller):
                 pass
                         
     def __unprocessed_line(self,match):
-        for unprocessed_line in match.groups():
-            if unprocessed_line=="quit":
-                raise SystemExit
-            elif unprocessed_line=="close" or unprocessed_line=="exit":
-                self.socket = None # close socket
-                if not self.disconnect_ok:
-                    raise RuntimeError("Socket disconnected!")
-                else:
-                    if self.server_socket is not None:
-                        self.server_socket.setblocking(0)
-                return ""
-            elif unprocessed_line=="help":
-                self.socket.send(SocketListenController.help_string+"\n")
-                return ""
-            elif unprocessed_line in self.names.keys():
-                (controller, name_re_str, parser, require_type) = self.names[unprocessed_line]
-                self.socket.send(str(controller)+"\n")
-                return ""
-            self.socket.send("Error: Invalid command line \""+unprocessed_line+"\"\n")
-            VisionEgg.Core.message.add("Invalid command line: \""+unprocessed_line+'"',
-                                       level=VisionEgg.Core.Message.INFO)
+        text = match.group(1)
+        if text=="quit": # this a hack, really (should be a controller in charge of Presentation.parameters.quit)
+            raise SystemExit
+        elif text=="close" or text=="exit":
+            self.socket = None # close socket
+            if not self.disconnect_ok:
+                raise RuntimeError("Socket disconnected!")
+            else:
+                if self.server_socket is not None:
+                    self.server_socket.setblocking(0)
+            return ""
+        elif text=="help":
+            self.socket.send(SocketListenController.help_string+"\n")
+            return ""
+        elif text in self.names.keys():
+            (controller, name_re_str, parser, require_type) = self.names[text]
+            self.socket.send(text+"="+str(controller)+"\n")
+            return ""
+        self.socket.send("Error: Invalid command line \""+text+"\"\n")
+        VisionEgg.Core.message.add("Invalid command line: \""+text+'"',
+                                   level=VisionEgg.Core.Message.INFO)
         return ""
 
     def create_tcp_controller(self,
@@ -416,7 +431,7 @@ class SocketListenController(VisionEgg.Core.Controller):
             tcp_name=tcp_name,
             initial_controller=initial_controller
             )
-        name_re_str = re.compile(r"^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
+        name_re_str = re.compile("^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
         parser = Parser(tcp_name,self.last_command).parse_func
         self.names[tcp_name] = (controller, name_re_str, parser, require_type)
         self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
