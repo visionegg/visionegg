@@ -1,13 +1,33 @@
 """Python Remote Objects support
 
+Use this class if you don't want to deal with TCP directly and Python
+is the program on both ends of the network.
+
+The module provides some Vision Egg specific code for Pyro.  Pyro
+allows you to call python objects on remote machines just like they
+are on the local machine.  This makes the task of writing a two
+computer Vision Egg application quite easy, because one can mostly
+ignore the network-based intermediate stage.
+
+PyroControllers are run on the computer performing the presentation.
+The PyroServer class also runs on this computer, and allows these
+controllers to be changed from a computer running PyroClient. To
+listen to the network PyroListenerController must be instantiated by
+the PyroServer -- this checks for any requests coming over the
+network, but only at times specified because it is a subclass of
+VisionEgg.Core.Controller.
+
 Just like TCPControllers, don't use this class for realtime control
-unless you think your network is that fast and reliable."""
+unless you think your network is that fast and reliable.  It's great
+for setting up parameters in advance and sending a trigger pulse,
+though!"""
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
 import os
 import VisionEgg
+import VisionEgg.Core
 import string
 import Numeric
 import math
@@ -16,10 +36,6 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-### Work around Pyro configuration glitch in Mac OS X
-##if 'PYRO_STORAGE' not in os.environ.keys():
-##    os.environ['PYRO_STORAGE'] = VisionEgg.config.VISIONEGG_STORAGE
 
 try:
     import Pyro.core
@@ -30,118 +46,75 @@ except ImportError,x:
     import sys
     sys.exit(1)
 
-import sys
+Pyro.config.PYRO_MULTITHREADED = 0 # No multithreading!
 
-Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
+class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
+    def __init__(self, **kw):
+        apply(VisionEgg.Core.ConstantController.__init__,(self,),kw)
+        apply(Pyro.core.ObjBase.__init__,(self,))
+        
+class PyroEvalStringController(VisionEgg.Core.EvalStringController,Pyro.core.ObjBase):
+    def __init__(self, **kw):
+        apply(VisionEgg.Core.EvalStringController.__init__,(self,),kw)
+        apply(Pyro.core.ObjBase.__init__,(self,))
 
-class PyroGoClass(Pyro.core.ObjBase):
-    """Allows any function to be called remotely.
+class PyroExecStringController(VisionEgg.Core.ExecStringController,Pyro.core.ObjBase):
+    def __init__(self, **kw):
+        apply(VisionEgg.Core.ExecStringController.__init__,(self,),kw)
+        apply(Pyro.core.ObjBase.__init__,(self,))
 
-    Used to allow a remote computer to tell a stimulus presentation to
-    go.
+class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+    """Create the instance of Controller on client, and send it to server.
+
+    This class is analagous to VisionEgg.TCPController.TCPController.
     """
-    def __init__(self, go_func, quit_func=lambda:None):
-        """Create and instance with appropriate go function."""
-        self.go_func = go_func
-        self.quit_func = quit_func
-        Pyro.core.ObjBase.__init__(self)
-    def go(self,arg=None):
-        """Call the go function."""
-        if arg:
-            self.go_func(arg)
+    def __init__(self,initial_controller=None,**kw):
+        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
+        apply(Pyro.core.ObjBase.__init__,(self,))
+
+class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+    """Contain several dictionary entries, set controller accordingly.
+    """
+    def __init__(self, dict=None, key=None, **kw):
+        if dict is None:
+            self.dict = {}
+            initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+                                                                   between_go_value=0,
+                                                                   eval_frequency=VisionEgg.Core.Controller.NEVER)
         else:
-            self.go_func()
-    def quit(self):
-        """Quit the server."""
-        self.quit_func()
-
-class PyroController(Pyro.core.ObjBase):
-    """Abstract base class for remote controllers"""
-    def __init__(self,*args):
-        if len(args) > 0:
-            apply(self.set_value,args)
-        Pyro.core.ObjBase.__init__(self)
-
-class ConstantPyroController(PyroController):
-    """A remote controller with a constant value"""
-    def set_value(self,value):
-        self.value = value
-    def eval(self,t):
-        return self.value
-
-class BiStatePyroController(PyroController):
-    """A remote controller with a stimus state and a between stimuli state."""
-    def set_value(self,during_stimulus,between_stimuli):
-        self.during_stimulus = during_stimulus
-        self.between_stimuli = between_stimuli        
-    def eval(self,t):
-        if t < 0.0:
-            return self.between_stimuli
+            self.dict = dict
+        if key is None:
+            if len(self.dict.keys()):
+                key = self.dict.keys()[0]
+                initial_controller = self.dict[key]
+            else:
+                initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+                                                                       between_go_value=0,
+                                                                       eval_frequency=VisionEgg.Core.Controller.NEVER)
         else:
-            return self.during_stimulus
-
-class EvalStringPyroController(PyroController):
-    """A remote controller that allows a string to be evaluated."""
-    def __init__(self,initial_value,**kw):
-        self.eval_globals = {}
-        # Make Numeric and math modules available
-        self.eval_globals['Numeric'] = Numeric
-        self.eval_globals['math'] = math
-        # Make Numeric and math modules available without module name
-        for key in dir(Numeric):
-            self.eval_globals[key] = getattr(Numeric,key)
-        for key in dir(math):
-            self.eval_globals[key] = getattr(math,key)
-        apply(PyroController.__init__,(self,initial_value),kw)
-    def set_value(self,eval_string):
-        # Make sure eval_string can be evaluated
-        try:
-            t = 1
-            locals = {'t':t}
-            test = eval(eval_string,self.eval_globals,locals)
-        except Exception,x:
-            raise ValueError('"%s" raised exception when evaluated: %s'%(eval_string,str(x)))
-        self.eval_string = eval_string
-    def eval(self,t):
-        try:
-            locals = {'t':t}
-            result = eval(self.eval_string,self.eval_globals,locals)
-        except:
-            print "ERROR when t=",t
-            print "self.eval_string =", self.eval_string
-            import traceback
-            traceback.print_exc()
-            raise
-        return result
-    
-class LocalDictPyroController(PyroController):
-    """A remote controller set by key.
-
-    LocalDictPyroController(dict) where dict is a dictionary.  This
-    allows local objects to be set from a remote location.  For example:
-    LocalDictPyroController({'a':a,'b':b}) would allow a remote Pyro client
-    to set a controller to value a without having to touch object a, only
-    using a name for it, such as the string 'a'."""
-    def __init__(self,dict):
-        PyroController.__init__(self)
-        self.dict = dict
-        self.set_value(self.dict.keys()[0]) # use first key as default
-    def set_value(self,key):
-        self.value = self.dict[key]
-    def eval(self,t):
-        return self.value
+            initial_controller = dict[key]
+        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
+        apply(Pyro.core.ObjBase.__init__,(self,))
+    def use_controller(self,key):
+        self.set_new_controller(self.dict[key])
+    def add_controller(self,key,new_controller):
+        self.dict[key] = new_controller
 
 class PyroServer:
-    """Set up a Pyro server for your PyroControllers and PyroGoClass"""
+    """Set up a Pyro server for your PyroControllers and PyroGoClass.
+
+    This class is analagous to VisionEgg.TCPController.TCPServer.
+
+    """
     def __init__(self):
         # Start Pyro
         Pyro.core.initServer()
         self.daemon = Pyro.core.Daemon()
         # locate the Pyro name server
         locator = Pyro.naming.NameServerLocator()
-        print 'searching for Pyro Name Server...'
+        VisionEgg.Core.message.add('Searching for Pyro Name Server.',VisionEgg.Core.Message.INFO)
         self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        print 'Pyro Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
+        #print 'Pyro Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
         self.daemon.useNameServer(self.ns)
         self.ok_to_run = 1
         
@@ -153,33 +126,58 @@ class PyroServer:
             pass
         self.daemon.connect(object,name)
         
-    def mainloop(self, idle_func=lambda: None, time_out=3.0):
-        """Handle requests for objects."""
-        print "VisionEgg.PyroHelpers.PyroServer handling requests..."
-        while self.ok_to_run:
-            self.daemon.handleRequests(time_out)
-            idle_func()
+    def create_listener_controller(self):
+        if hasattr(self,'listen_controller'):
+            raise RuntimeError("Only one pyro listen controller allowed per server!")
+        self.listen_controller = PyroListenController(self)
+        return self.listen_controller
 
-    def quit_mainloop(self):
-        self.ok_to_run = 0
+class PyroListenController(VisionEgg.Core.Controller):
+    """Handle connection from remote machine, control PyroControllers.
+
+    This meta controller handles a Pyro daemon, which checks the TCP
+    socket for new input and acts accordingly.
+
+    This class is analagous to VisionEgg.TCPController.SocketListenController.
+
+    """
+    
+    def __init__(self,server=None,**kw):
+        """Called by PyroServer. Creates a PyroListenerController instance."""
+        if not isinstance(server,PyroServer):
+            raise ValueError("Must specify a Pyro Server.") 
+        if 'eval_frequency' not in kw.keys():
+            kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
+        if 'return_type' not in kw.keys():
+            kw['return_type'] = type(None)
+        apply(VisionEgg.Core.Controller.__init__,(self,),kw)
+        self.server=server
+
+    def during_go_eval(self):
+        # setting timeout = 0 means return ASAP
+        self.server.daemon.handleRequests(timeout=0)
+
+    def between_go_eval(self):
+        # setting timeout = 0 means return ASAP
+        self.server.daemon.handleRequests(timeout=0)
 
 class PyroClient:
-    """A client for calling a Pyro server."""
+    """Simplifies getting PyroControllers from a remote computer."""
     def __init__(self):
         """Initialize client and find Pyro Name Server."""
         Pyro.core.initClient()
         # locate the NS
         locator = Pyro.naming.NameServerLocator()
-        print 'Searching Name Server...',
+        #print 'Searching Name Server...',
         self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        print 'Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
+        #print 'Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
 
     def get(self,name):
         """Return a remote Pyro object being served by a Pyro server."""
         try:
             URI=self.ns.resolve(name)
-            print '%s URI: %s'%(name,URI)
+            #print '%s URI: %s'%(name,URI)
         except Pyro.core.PyroError,x:
-            print 'Couldn\'t bind object, nameserver says:',x
+            #print 'Couldn\'t bind object, nameserver says:',x
             raise SystemExit
         return Pyro.core.getProxyForURI(URI)
