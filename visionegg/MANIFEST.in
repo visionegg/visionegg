@@ -1,6 +1,2 @@
 include LICENSE
 include CHANGELOG
-include test/*.py
-include demo/*.py
-exclude demo/movingPOV.py
-include demo/GUI/*.py
