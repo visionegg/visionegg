@@ -33,6 +33,7 @@ class StimulusControlFrame(Tkinter.Frame):
         self.entry_width = 10
         self.connected = 0
         self.meta_params = GratingMetaParameters()
+        self.loopable_variables = {}
 
         row = 0
         Tkinter.Label(self,text="Grating Experiment").grid(row=row,column=0,columnspan=2)
@@ -64,7 +65,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       self.send_values,
                       width=self.entry_width,
                       textvariable=self.contrast_tk_var).grid(row=pf_row,column=1)
-        
+        self.loopable_variables["Contrast"] = ("contrast",self.contrast_tk_var)
 
         pf_row += 1
         Tkinter.Label(param_frame,text="Spatial frequency:").grid(row=pf_row,column=0)
@@ -74,6 +75,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       self.send_values,
                       width=self.entry_width,
                       textvariable=self.sf_tk_var).grid(row=pf_row,column=1)
+        self.loopable_variables["Spatial frequency"] = ("sf",self.sf_tk_var)
         
         pf_row += 1
         Tkinter.Label(param_frame,text="Temporal frequency:").grid(row=pf_row,column=0)
@@ -83,6 +85,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       self.send_values,
                       width=self.entry_width,
                       textvariable=self.tf_tk_var).grid(row=pf_row,column=1)
+        self.loopable_variables["Temporal frequency"] = ("tf",self.tf_tk_var)
         
         pf_row += 1
         Tkinter.Label(param_frame,text="Orientation:").grid(row=pf_row,column=0)
@@ -92,6 +95,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       self.send_values,
                       width=self.entry_width,
                       textvariable=self.orient_tk_var).grid(row=pf_row,column=1)
+        self.loopable_variables["Orientation"] = ("orient",self.orient_tk_var)
         
         pf_row += 1
         Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0)
@@ -124,6 +128,53 @@ class StimulusControlFrame(Tkinter.Frame):
             row += 1
             Tkinter.Button(self,text="Begin Trial",command=self.go).grid(row=row,column=0,columnspan=2)
 
+    def get_shortname(self):
+        """Used as basename for saving parameter files"""
+        return "simple_grating"
+
+    def get_param_dict(self):
+        result = {}
+        for param_name in dir(self.meta_params):
+            if param_name[:2] != '__' and param_name[-2:] != '__':
+                result[param_name] = getattr(self.meta_params,param_name)
+        return result
+
+    def get_type(self):
+        return "metaPyroGUI"
+    
+    def set_param_dict(self,new_param_dict):
+        orig_params = dir(self.meta_params)
+        for new_param_name in new_param_dict.keys():
+            if new_param_name[:2] != '__' and new_param_name[-2:] != '__':
+                if new_param_name not in orig_params:
+                    raise ValueError('Gave parameter "%s", which I do not know about.'%(new_param_name,))
+                setattr(self.meta_params,new_param_name,new_param_dict[new_param_name])
+        self.contrast_tk_var.set( self.meta_params.contrast )
+        self.sf_tk_var.set( self.meta_params.sf )
+        self.tf_tk_var.set( self.meta_params.tf )
+        self.orient_tk_var.set( self.meta_params.orient )
+        self.prestim_dur_tk_var.set( self.meta_params.pre_stim_sec )
+        self.stim_dur_tk_var.set( self.meta_params.stim_sec )
+        self.poststim_dur_tk_var.set( self.meta_params.post_stim_sec )
+    
+    def get_parameters_as_strings(self):
+        result = []
+        for param_name in dir(self.meta_params):
+            if param_name[:2] != '__' and param_name[-2:] != '__':
+                value = getattr(self.meta_params,param_name)
+                value_string = str(value)
+                result.append((param_name,value_string))
+        return result
+
+    def get_loopable_variable_names(self):
+        return self.loopable_variables.keys()
+
+    def set_loopable_variable(self,easy_name,value):
+        meta_param_var_name,tk_var = self.loopable_variables[easy_name]
+        setattr(self.meta_params,meta_param_var_name,value)
+        tk_var.set(value)
+        self.update() # update screen with new tk_var value
+        
     def send_values(self,dummy_arg=None):
         self.meta_params.contrast = self.contrast_tk_var.get()
         self.meta_params.sf = self.sf_tk_var.get()
@@ -135,10 +186,19 @@ class StimulusControlFrame(Tkinter.Frame):
         if self.connected:
             self.meta_controller.set_parameters( self.meta_params )
 
+    def get_duration_sec(self):
+        self.meta_params.pre_stim_sec = self.prestim_dur_tk_var.get()
+        self.meta_params.stim_sec = self.stim_dur_tk_var.get()
+        self.meta_params.post_stim_sec = self.poststim_dur_tk_var.get()
+        return self.meta_params.pre_stim_sec + self.meta_params.stim_sec + self.meta_params.post_stim_sec
+
     def go(self,dummy_arg=None):
         self.send_values()
-        if self.connected:
-            self.meta_controller.go()
+        if not self.connected:
+            raise RuntimeError("must be connected to metaPyroServer to run trial")
+        self.meta_controller.go()
+##        if self.connected:
+##            self.meta_controller.go()
 
     def connect(self):
         self.pyro_client = VisionEgg.PyroHelpers.PyroClient()
