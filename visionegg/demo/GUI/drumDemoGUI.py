@@ -4,21 +4,16 @@
 # Vision Egg package.
 #
 # This program displays a spinning drum, with the inside of the drum
-# texture-mapped with a panoramic image.  This image is motion-blurred
-# as appropriate for the rotational velocity of the drum and the frame
-# rate of the display. (You must set the frame rate of your display.)
+# texture-mapped with a panoramic image.
 #
-# By default, the texture displayed on the drum is generated
-# automatically, but can be changed to open any image file.  There are
-# a couple of lines commented out below that show how to use an image
-# file called "orig.bmp".  Feel free to change it to the name of your
-# favorite image!
+# By default, the texture displayed on the drum is loaded from the
+# file "orig.bmp" if possible, otherwise, a white "X" on a blue
+# background is generated.
 #
 # This demo uses the GUI tookit "Tkinter", which may not be available on
 # all platforms. Also, because this code also controls a GUI, it is much
 # more complicated than the minimum needed to create a stimulus with the
 # VisionEgg.
-#
 #
 # Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
@@ -31,7 +26,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.GUI import *
-from VisionEgg.MotionBlur import *
+from VisionEgg.Textures import *
 
 import Tkinter
 from math import *
@@ -40,11 +35,11 @@ import time
 
 default_max_speed = 1000.0
 
-class BlurDrumGui(AppWindow):
+class DrumGui(AppWindow):
     def __init__(self,master=None,**cnf):
 
         apply(AppWindow.__init__,(self,master),cnf)
-        self.winfo_toplevel().title('Vision Egg - Motion blurred drum')
+        self.winfo_toplevel().title('Vision Egg - spinning drum')
         self.pack(expand=1,fill=Tkinter.BOTH)
 
         # Position formula
@@ -70,14 +65,6 @@ class BlurDrumGui(AppWindow):
                                       label="Duration (seconds):")
         self.duration.set(10.0)
         self.duration.pack(expand=1,fill=Tkinter.X)
-
-        # Blur on
-        self.blur_on = Tkinter.BooleanVar()
-        self.blur_on.set(1)
-        Tkinter.Checkbutton(self,
-                            text='Motion blur',
-                            variable=self.blur_on,
-                            relief=Tkinter.FLAT).pack()
 
         # Fixation spot
         self.fixation_spot = Tkinter.BooleanVar()
@@ -133,7 +120,7 @@ try:
 except:
     texture = Texture(size=(256,16)) # otherwise, generate one
 
-drum = BlurredDrum(max_speed=default_max_speed,texture=texture)
+drum = SpinningDrum(texture=texture)
 drum.init_gl()
 
 fixation_spot = FixationSpot()
@@ -143,14 +130,12 @@ viewport.add_stimulus(drum)
 viewport.add_stimulus(fixation_spot)
 
 p = Presentation(viewports=[viewport])
-gui_window = BlurDrumGui(idle_func=p.between_presentations)
+gui_window = DrumGui(idle_func=p.between_presentations)
 
 p.add_transitional_controller(fixation_spot.parameters,'on',lambda t: gui_window.fixation_spot.get())
-p.add_transitional_controller(drum.parameters,'motion_blur_on',lambda t: gui_window.blur_on.get())
 p.add_transitional_controller(p.parameters,'duration',lambda t: (gui_window.duration.get(),'seconds'))
 p.add_realtime_time_controller(drum.parameters,'angle',gui_window.positionFunction)
 p.add_realtime_time_controller(drum.parameters,'contrast',gui_window.contrastFunction)
-p.add_realtime_time_controller(drum.parameters,'cur_time', lambda t: t)
 
 gui_window.mainloop()
 
