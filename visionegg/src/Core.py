@@ -139,21 +139,20 @@ class Screen(VisionEgg.ClassWithParameters):
         
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
-        if VisionEgg.config.SYNCMASTER_PRESENT:
-            global SyncMaster # import into global namespace
-            import SyncMaster
+        if VisionEgg.config.SYNCLYNC_PRESENT:
+            global synclync # import into global namespace
+            import synclync
             try:
-                #print "Loading SyncMaster."
-                SyncMaster.init()
-                VisionEgg.config._SYNCMASTER_CONNECTED = 1
-                message.add( "Connected to SyncMaster device", 
+                VisionEgg.config._SYNCLYNC_CONNECTION = synclync.SyncLyncConnection()
+                message.add( "Connected to SyncLync device", 
                              level=Message.INFO )
-            except SyncMaster.SyncMasterError, x:
-                message.add( "Could not connect to SyncMaster device (SyncMasterError: %s)."%(str(x),),
+            except synclync.SyncLyncError, x:
+                message.add( "Could not connect to SyncLync device (SyncLyncError: %s)."%(str(x),),
                              level=Message.WARNING )
-                VisionEgg.config._SYNCMASTER_CONNECTED = 0
+                VisionEgg.config._SYNCLYNC_CONNECTION = None
+                
         else:
-            VisionEgg.config._SYNCMASTER_CONNECTED = 0
+            VisionEgg.config._SYNCLYNC_CONNECTION = None
 
         # Attempt to synchronize buffer swapping with vertical sync
         if VisionEgg.config.VISIONEGG_SYNC_SWAP:
@@ -1143,9 +1142,12 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_absolute=VisionEgg.timing_func()
         self.time_sec_since_go = 0.0
         self.frames_since_go = 0
-        
-        if VisionEgg.config._SYNCMASTER_CONNECTED:
-            SyncMaster.clear_vsync_count()
+
+        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
+        if synclync_connection:
+            synclync_connection.next_control_packet.action_flags += (synclync.SL_CLEAR_VSYNC_COUNT +
+                                                                     synclync.SL_CLEAR_NOTIFY_SWAPPED_COUNT +
+                                                                     synclync.SL_CLEAR_FRAMESKIP_COUNT)
         
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
@@ -1185,9 +1187,13 @@ class Presentation(VisionEgg.ClassWithParameters):
                 viewport.draw()
                 
             # Swap the buffers
-            if VisionEgg.config._SYNCMASTER_CONNECTED:
+            if synclync_connection:
+                # Notify SyncLync device if present
                 #a=VisionEgg.timing_func()
-                SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS + SyncMaster.IN_GO_LOOP )
+                synclync_connection.next_control_packet.action_flags += (synclync.SL_NOTIFY_SWAPPED_BUFFERS +
+                                                                         synclync.SL_NOTIFY_IN_GO_LOOP)
+                synclync_connection.send_control_packet()
+                data_packet = synclync_connection.get_latest_data_packet()
                 #b=VisionEgg.timing_func()
                 #print (b-a)*1000.0,"msec"
             swap_buffers()
@@ -1236,9 +1242,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             go_started=0,
             doing_transition=1)
 
-        # Tell SyncMaster we're not in go loop anymore
-        if VisionEgg.config._SYNCMASTER_CONNECTED:
-            SyncMaster.notify_device()
+        # Tell SyncLync we're not in go loop anymore
+        if synclync_connection:
+            synclync_connection.send_control_packet() # nothing in action_flags -- finishes go loop
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
@@ -1312,6 +1318,12 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_since_go = 0.0
         self.frames_since_go = 0
         
+        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
+        if synclync_connection:
+            synclync_connection.next_control_packet.action_flags += (synclync.SL_CLEAR_VSYNC_COUNT +
+                                                                     synclync.SL_CLEAR_NOTIFY_SWAPPED_COUNT +
+                                                                     synclync.SL_CLEAR_FRAMESKIP_COUNT)
+        
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
             go_started=1,
@@ -1349,8 +1361,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 viewport.draw()
                 
             # Swap the buffers
-            if VisionEgg.config._SYNCMASTER_CONNECTED:
-                SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS )
+            if synclync_connection:
+                # Notify SyncLync device if present
+                synclync_connection.next_control_packet.action_flags += (synclync.SL_NOTIFY_SWAPPED_BUFFERS +
+                                                                         synclync.SL_NOTIFY_IN_GO_LOOP)
+                synclync_connection.send_control_packet()
             swap_buffers()
             
             # Now save the contents of the framebuffer
@@ -1391,6 +1406,10 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.__call_controllers(
             go_started=0,
             doing_transition=1)
+
+        # Tell SyncLync we're not in go loop anymore
+        if synclync_connection:
+            synclync_connection.send_control_packet() # nothing in action_flags -- finishes go loop
 
         if len(screens) > 1:
             message.add(
@@ -1462,15 +1481,21 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Draw each viewport, including each stimulus
         for viewport in viewports:
             viewport.draw()
-        if VisionEgg.config._SYNCMASTER_CONNECTED:
-            SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS )
+        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
+        if synclync_connection:
+            synclync_connection.next_control_packet.action_flags += synclync.SL_NOTIFY_SWAPPED_BUFFERS
+            synclync_connection.send_control_packet()
         swap_buffers()
         self.frames_absolute = self.frames_absolute+1
         
     def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
         timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
-        if VisionEgg.config._SYNCMASTER_CONNECTED:
-            timing_string += "(SyncMaster counted "+str(SyncMaster.get_vsync_count())+" VSYNCs.)\n"
+        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
+        if synclync_connection:
+            data_packet = synclync_connection.get_latest_data_packet()
+            timing_string += "(SyncLync counted %d VSYNCs, %d buffer swaps, and %d skipped frames.)\n"%(data_packet.vsync_count,
+                                                                                                        data_packet.notify_swapped_count,
+                                                                                                        data_packet.frameskip_count)
         timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
         timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
         timing_string += "\n"

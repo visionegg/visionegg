@@ -190,8 +190,24 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             text='Fullscreen',
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-        cf_row += 1
         
+        cf_row += 1
+        self.synclync_present = Tkinter.BooleanVar()
+        self.synclync_present.set(VisionEgg.config.SYNCLYNC_PRESENT)
+        try:
+            import synclync
+            self.show_synclync_option = 1
+        except:
+            self.show_synclync_option = 0
+
+        if self.show_synclync_option:
+            Tkinter.Checkbutton(cf,
+                                text='SyncLync device present',
+                                variable=self.synclync_present,
+                                relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+           
+        
+        cf_row += 1
         # Maximum priority
         self.maxpriority = Tkinter.BooleanVar()
         self.maxpriority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
@@ -462,6 +478,9 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = not self.darwin_realtime_preemptible.get()
+
+        if self.show_synclync_option:
+            VisionEgg.config.SYNCLYNC_PRESENT = self.synclync_present.get()
         
     def save(self,dummy_arg=None):
         self._set_config_values()

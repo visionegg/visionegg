@@ -64,7 +64,7 @@ defaults= {
     'VISIONEGG_MESSAGE_LEVEL':        1,
     'VISIONEGG_GUI_ON_ERROR':         1,
     'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" (blank string) means sys.stderr
-    'SYNCMASTER_PRESENT':             0,
+    'SYNCLYNC_PRESENT':               0,
     }
 
 extra_darwin_defaults = {
@@ -180,12 +180,13 @@ def save_settings():
     if not VisionEgg.config.VISIONEGG_CONFIG_FILE:
         raise RuntimeError("No config file in use.")
 #    re_section_finder = re.compile(r"^\s?\[(\w+)\]\s?$")
-    re_setting_finder = re.compile(r"^\s?(VISIONEGG_[A-Z_]*)\s?=\s?(\S*)\s?$",re.IGNORECASE)
+    re_setting_finder = re.compile(r"^\s?((?:VISIONEGG_[A-Z_]*)|(?:SYNCLYNC_[A-Z_]*))\s?=\s?(\S*)\s?$",re.IGNORECASE)
 
     used_stderr = 0
     def stderr_header():
         sys.stderr.write("VisionEgg.Configuration.save_settings() messages:\n")
-    
+
+    print VisionEgg.config.VISIONEGG_CONFIG_FILE
     orig_file = open(VisionEgg.config.VISIONEGG_CONFIG_FILE,"r")
     orig_lines = orig_file.readlines()
 
