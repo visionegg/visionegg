@@ -4,6 +4,8 @@ from VisionEgg.Core import *
 from VisionEgg.Textures import *
 from VisionEgg.AppHelper import *
 
+import sys
+
 filename = "orig.bmp"
 if len(sys.argv) > 1:
     filename = sys.argv[1]
