@@ -20,10 +20,6 @@ import Image, ImageDraw                         # Python Imaging Library package
 
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
-try:
-    from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
-except ImportError, x:
-    print "WARNING: Will not be able to do contrast control:",x
 
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
@@ -258,6 +254,9 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         if self.parameters.on:
             # Set OpenGL state variables
             glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
+            glEnable( GL_BLEND ) # Contrast control implemented through blending
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+            
             if self.parameters.texture_scale_linear_interp:
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
@@ -267,12 +266,7 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
 
-            # Make sure texture colors are combined with the fragment
-            # with the appropriate function
-            if self.contrast_control_enabled:
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
-            else:
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
             glLoadIdentity() # clear modelview matrix
 
@@ -360,38 +354,6 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         glEndList()
 
     def init_gl(self):
-        self.contrast_control_enabled = 0
-        try:
-            if glInitTextureEnvCombineARB():
-                self.contrast_control_enabled = 1
-        except:
-            pass
-
-        if not self.contrast_control_enabled:
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE) # use if ARB_texture_env_combine extension not avaliable
-            print "WARNING: OpenGL extension GL_ARB_texture_env_combine not found.  Contrast control disabled."
-        else:
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
-
-            # this is tricky...
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB)
-
-            # GL_INTERPOLATE_ARB means the texture function is = Arg0*(Arg2) + Arg1*(1-Arg2)
-            # So we want Arg2 to be contrast, Arg0 to be the texture, and Arg1 to be the "incoming fragment" (the polygon)
-            # Now we have to define what Arg<n> is.
-
-            # Setup Arg0
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_TEXTURE)
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR)
-            # Setup Arg1
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_PRIMARY_COLOR_ARB)
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR)
-            # Setup Arg2
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_PRIMARY_COLOR_ARB)
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_SRC_ALPHA)
-
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_MODULATE) # just multiply texture alpha with fragment alpha
-
         # Build the display list
         #
         # A "display list" is a series of OpenGL commands that is
