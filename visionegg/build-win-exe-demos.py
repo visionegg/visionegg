@@ -34,7 +34,7 @@ demo/daq/trigger_out.py
 demo/displayText.py
 demo/dots.py
 demo/dots_simple_loop.py
-demo/ephys_gui.py
+demo/ephys_gui.pyw
 demo/ephys_server.py
 demo/flames_pygame.py
 demo/flames_visionegg.py
