@@ -20,11 +20,15 @@ import Image, ImageDraw                         # Python Imaging Library package
 
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
+
 if "GL_CLAMP_TO_EDGE" not in dir():
     # Hack because this isn't defined in my PyOpenGL modules:
+    VisionEgg.Core.add_gl_assumption("GL_VERSION",1.2,"Failed assumption made in Textures.py")
+    # If this assumption fails, there may be a way around it using an extensions, but no Vision Egg support for that yet.
+    
     print "HACK: - setting GL_CLAMP_TO_EDGE.  If your textures are messed up, this may be why!"
     GL_CLAMP_TO_EDGE = 0x812F # This value is in Mesa gl.h and nVidia gl.h, so hopefully it's OK
-
+    
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
@@ -251,6 +255,7 @@ class TextureStimulus(VisionEgg.Core.Stimulus):
             self.parameters.projection = projection
         self.parameters.on = 1
         self.parameters.texture_scale_linear_interp = 1
+        self.parameters.texture_repeat = 0 # if 0 clamp to edge
 
         # object coordinates of the rendered texture
         self.parameters.lower_left = (0.0,0.0)
@@ -272,10 +277,13 @@ class TextureStimulus(VisionEgg.Core.Stimulus):
             else:
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
-##            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
-##            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+                
+            if self.parameters.texture_repeat:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+            else:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
             
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
@@ -320,6 +328,7 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         self.parameters.flat = 0 # toggles flat vs. cylinder
         self.parameters.dist_from_o = 1.0 # z or radius if flat or cylinder
         self.parameters.texture_scale_linear_interp = 1 # if 0 it's nearest-neighbor
+        self.parameters.texture_repeat = 0 # if 0 clamp to edge        
         self.texture_object = self.texture.load()
 
     def draw(self):
@@ -355,9 +364,14 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
             else:
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
 
+            if self.parameters.texture_repeat:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+            else:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
+            
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
             
             # clear modelview matrix
