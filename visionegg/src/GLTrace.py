@@ -1,6 +1,8 @@
 # The Vision Egg: GLTrace
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -53,13 +55,16 @@ raw_args_by_function = {
     'glGenTextures':[0],
     'glGetTexLevelParameteriv':[1],
     'glOrtho':[0,1,2,3,4,5],
+    'glPixelStorei':[1],
     'glReadPixels':[0,1,2,3],
     'glRotate':[0,1,2,3],
+    'glTexCoord2f':[0,1],
     'glTexImage1D':[1,3,4],
     'glTexImage2D':[1,3,4,5],
     'glTexSubImage1D':[1,2,3],
     'glTranslate':[0,1,2],
     'glVertex2f':[0,1],
+    'glVertex3f':[0,1,2],
     'glViewport':[0,1,2,3],
     }
 
@@ -119,22 +124,16 @@ class Wrapper:
         print "%s%s(%s)%s"%(result_str,self.function_name,arg_str,kw_str)
         return result
 
-def attach():
+def gl_trace_attach():
     for attr_name in dir(gl):
         if callable( getattr(gl,attr_name) ):
             wrapper = Wrapper(attr_name)
-            #cmd = "%s = wrapper.run"%attr_name
-            #exec cmd
             globals()[attr_name] = wrapper.run
         else:
-            #cmd = "%s = getattr(gl,'%s')"%(attr_name,attr_name)
-            #print cmd
             attr = getattr(gl,attr_name)
             globals()[attr_name] = attr
             if not attr_name.startswith('__') and not attr_name.startswith('__'):
                 if type(getattr(gl,attr_name)) == int:
                     gl_constants[getattr(gl,attr_name)] = attr_name
-##                    if getattr(gl,attr) > 256: # assume first n aren't constants (n is arbitrary choice)
-##                        gl_constants[getattr(gl,attr)] = attr
 
-attach() # attach when imported
+gl_trace_attach() # attach when imported
