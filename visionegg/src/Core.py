@@ -125,7 +125,11 @@ class Screen(VisionEgg.ClassWithParameters):
                                         'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
                                                          types.IntType),
                                         'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                                                       types.IntType)}
+                                                       types.IntType),
+                                        'hide_mouse':(VisionEgg.config.VISIONEGG_HIDE_MOUSE,
+                                                      types.IntType),
+                                        'frameless':(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                                                           types.IntType)}
 
     parameters_and_defaults = {'bgcolor':((0.5,0.5,0.5,0.0),
                                           types.TupleType)}
@@ -173,6 +177,9 @@ class Screen(VisionEgg.ClassWithParameters):
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF #| pygame.locals.NOFRAME
         if self.constant_parameters.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
+
+        if self.constant_parameters.frameless:
+            flags = flags | pygame.locals.NOFRAME
 
         # Choose an appropriate framebuffer pixel representation
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
@@ -283,8 +290,8 @@ class Screen(VisionEgg.ClassWithParameters):
         # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
         
-        #if self.constant_parameters.fullscreen:
-        self.cursor_visible_func(0)
+        if self.constant_parameters.hide_mouse:
+            self.cursor_visible_func(0)
 
         # Attempt to set maximum priority (This may not be the best
         # place in the code to do it because it's an application-level
@@ -375,7 +382,9 @@ def get_default_screen():
                         fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
                         preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
                         bgcolor=(0.5,0.5,0.5,0.0),
-                        maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
+                        maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                        frameless=VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                        hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
     finally:
         if screen is None:
             # Hmm, opening a screen failed.  Let's do any cleanup that Screen.__init__ missed.
