@@ -29,12 +29,13 @@ mask = Mask2D(function='circle',   # also supports 'circle'
 # RGB space, but I assume there are other interpolation methods that
 # people may want.  Please submit any suggestions.
 
-stimulus = SinGrating2D(color1           = (0.5, 0.25, 0.5, 0.0), # RGBA, Alpha ignored
-                        color2           = (1.0, 0.5,  0.1, 0.0), # RGBA, Alpha ignored
+stimulus = SinGrating2D(color1           = (0.5, 0.25, 0.5), # RGB (alpha ignored if given)
+                        color2           = (1.0, 0.5,  0.1), # RGB (alpha ignored if given)
                         contrast         = 0.2,
                         pedestal         = 0.1,
                         mask             = mask, # optional
-                        center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        anchor           = 'center',
                         size             = ( 300.0 , 300.0 ),
                         spatial_freq     = 20.0 / screen.size[0], # units of cycles/pixel
                         temporal_freq_hz = 1.0,

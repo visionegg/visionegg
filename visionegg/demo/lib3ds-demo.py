@@ -67,7 +67,8 @@ ground = Rectangle3D(color=(0.0,0.6,0.0,0.0),
 
 projection1 = SimplePerspectiveProjection(fov_x=90.0,aspect_ratio=aspect)
 viewport1 = Viewport(screen=screen,
-                     lowerleft=(0,screen.size[1]/2),
+                     position=(0,screen.size[1]/2),
+                     anchor='lowerleft',
                      size=(screen.size[0],screen.size[1]/2),
                      projection=projection1,
                      stimuli=[ground,buildings,car,truck,fly])
@@ -76,7 +77,8 @@ viewport1 = Viewport(screen=screen,
 
 projection2 = SimplePerspectiveProjection(fov_x=90.0,aspect_ratio=aspect)
 viewport2 = Viewport(screen=screen,
-                     lowerleft=(0,0),
+                     position=(0,0),
+                     anchor='lowerleft',
                      size=(screen.size[0],screen.size[1]/2),
                      projection=projection2,
                      stimuli=[ground,buildings,car,truck])
