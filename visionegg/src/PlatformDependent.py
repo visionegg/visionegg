@@ -36,8 +36,11 @@ def sync_swap_with_vbl(failure_ok = 0):
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
         success = 1
         
-##    elif sys.platform == "win32":
-##        raise NotImplementedError
+    elif sys.platform == "win32":
+##        import OpenGL.WGL.EXT.swap_control
+##        OpenGL.WGL.EXT.swap_control.wglInitSwapControlARB()
+##        OpenGL.WGL.EXT.swap_control.wglSwapIntervalEXT(1)
+        success = 1
 
     if not success:
         if failure_ok:
