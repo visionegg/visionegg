@@ -18,10 +18,8 @@ greatly eased by routines within the Vision Egg.
 
 release_name = '0.8.3a0'
 
-import string
 import Configuration # a Vision Egg module
-import os, sys, time # standard python modules
-import pygame, pygame.display
+import string, os, sys, time, types # standard python modules
 
 __version__ = release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -60,9 +58,6 @@ if sys.platform == 'win32':
     timing_func = time.clock
 else:
     timing_func = time.time    
-
-############# What function do we use to swap the buffers? #########
-swap_buffers = pygame.display.flip
 
 ####################################################################
 #
@@ -108,22 +103,39 @@ class ClassWithParameters:
         classes = recursive_base_class_finder(self.__class__)
 
         done_parameters_and_defaults = []
-
+        done_kw = []
+        
         # Fill self.parameters with parameter names and set to default values
         for klass in classes:
             # If a class didn't override base class's parameters_and_defaults dictionary, don't deal with it twice
             if klass.parameters_and_defaults not in done_parameters_and_defaults:
-                done_parameters_and_defaults.append(klass.parameters_and_defaults)
                 for parameter_name in klass.parameters_and_defaults.keys():
                     # Make sure this parameter key/value pair doesn't exist already
                     if hasattr(self.parameters,parameter_name):
                         raise ValueError("More than one definition of parameter '%s'"%parameter_name)
-                    setattr(self.parameters,parameter_name,klass.parameters_and_defaults[parameter_name])
+                    # Get default value and the type
+                    value,tipe = klass.parameters_and_defaults[parameter_name]
+                    # Was a non-default value passed for this parameter?
+                    if parameter_name in kw.keys(): 
+                        value = kw[parameter_name]
+                        done_kw.append(parameter_name)
+                    # Allow None to pass as acceptable value -- lets __init__ set own default
+                    if type(value) != types.NoneType:
+                        # Check anything other than None
+                        if not isinstance(value,tipe):
+                            raise TypeError("Parameter %s value %s is not of type %s"%(parameter_name,value,tipe))
+                    setattr(self.parameters,parameter_name,value)
+                done_parameters_and_defaults.append(klass.parameters_and_defaults)
 
         # Set self.parameters to the value in "kw"
         for kw_parameter_name in kw.keys():
-            # Make sure this parameter exists already
-            if not hasattr(self.parameters,kw_parameter_name):
+            if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
-            else:
-                setattr(self.parameters,kw_parameter_name,kw[kw_parameter_name])
+
+    def get_specified_type(self,parameter_name):
+        # Get a list of all classes this instance is derived from
+        classes = recursive_base_class_finder(self.__class__)
+        for klass in classes:
+            if parameter_name in klass.parameters_and_defaults.keys():
+                return klass.parameters_and_defaults[parameter_name][1]
+
