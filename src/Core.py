@@ -243,7 +243,7 @@ class Screen(VisionEgg.ClassWithParameters):
             self.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
             self.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
             append_str = " (%d %d %d %d RGBA)"%(self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits)
-        message.add("Video system reports %d bpp%s"%(got_bpp,append_str))
+        message.add("Video system reports %d bpp%s."%(got_bpp,append_str))
         if got_bpp < try_bpp:
             message.add(
                 """Video system reports %d bits per pixel, while your program
