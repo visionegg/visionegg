@@ -202,7 +202,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                'slices':(30,types.IntType),
                                'stacks':(30,types.IntType)}
     
-    def __init__(self,projection = None,**kw):
+    def __init__(self,**kw):
         apply(VisionEgg.Gratings.LuminanceGratingCommon.__init__,(self,),kw)
 
         if self.parameters.t0_time_sec_absolute is None:
@@ -368,6 +368,10 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
 
             # do the orientation
             gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+
+            # center the grating
+            gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
+            gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
 
             gl.glCallList(self.cached_display_list)
 
