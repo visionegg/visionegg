@@ -23,12 +23,12 @@ for i in range(len(start_points)):
 
 #print final_points
 
-##from cal_helper import *
+from cal_helper import *
 
-##sig_builder = SignalBuilder()
+sig_builder = SignalBuilder()
 
-##sig_builder.add_sync_signal()
-##sig_builder.add_test_points(points=points,seconds_per_point=0.5)
-##sig_builder.add_sync_signal()
+sig_builder.add_sync_signal()
+sig_builder.add_test_points(points=final_points,seconds_per_point=0.5)
+sig_builder.add_sync_signal()
 
-##sig_builder.run()
+sig_builder.run()
