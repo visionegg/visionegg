@@ -106,11 +106,11 @@ class Texture:
         # The buffer manager will keep track of which
         # buffers are loaded.  It will associate images
         # with power of 2 buffers.
-        
+
         # Create a buffer whose sides are a power of 2
         width_pow2  = int(pow(2.0,math.ceil(self.__log2(float(self.orig.size[0])))))
-        height_pow2 = int(pow(2.0,math.ceil(self.__log2(float(self.orig.size[0])))))
-        
+        height_pow2 = int(pow(2.0,math.ceil(self.__log2(float(self.orig.size[1])))))
+
         self.buf = TextureBuffer( (width_pow2, height_pow2) )
         self.buf.im.paste(self.orig,(0,0,self.orig.size[0],self.orig.size[1]))
 
@@ -159,6 +159,12 @@ class TextureBuffer:
         self.im = Image.new(mode,sizeTuple,color)
     def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR):
         """This loads the texture into OpenGL's texture memory."""
+        # THIS CODE HAS A BUG (OR A FEATURE, DEPENDING ON YOUR POV) ---
+        # OpenGL has the y-values of pixels start at 0 at the LOWER
+        # part of the screen, whereas almost everything else starts
+        # counting from the top of the screen.  The code below was
+        # written during a time when I forgot this about OpenGL, and
+        # therefore just forces its way around the issue.
         self.gl_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFilter)
@@ -166,7 +172,7 @@ class TextureBuffer:
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP) # Hopefully make artifacts more visible
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP)
         if self.im.mode == "RGB":
-            image_data = self.im.tostring("raw","RGB", 0, -1)
+            image_data = self.im.tostring("raw","RGB")
 
             # Do error-checking on texture to make sure it will load
             max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
@@ -764,6 +770,7 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
     caption = "Vision Egg"
 
     pygame.init()
+    pygame.display.set_caption(caption)
     flags = OPENGL | DOUBLEBUF
     if fullscreen:
         flags = flags | FULLSCREEN
@@ -789,8 +796,6 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
 
     print "Initializing graphics at %d x %d ( %d bpp )."%(screen_width,screen_height,bpp)
     pygame.display.set_mode((screen_width,screen_height), flags, bpp )
-                
-    pygame.display.set_caption(caption)
     if fullscreen:
         pygame.mouse.set_visible(0)
     
