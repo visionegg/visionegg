@@ -26,7 +26,7 @@ if sys.platform == 'linux2' or is_source_distribution:
 setup(name="visionegg",
       version = "0.8.3a0",
       description = "Vision Egg",
-      url = 'http://visionegg.sourceforge.net',
+      url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
       author_email = "astraw@users.sourceforge.net",
       licence = "GPL",
