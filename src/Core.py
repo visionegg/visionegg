@@ -80,23 +80,12 @@ __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-if sys.platform == "darwin":
-    # override pygame's default icon
-    VisionEgg.PlatformDependent.set_icon(os.path.abspath(
-        os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                     'data','visionegg.tif')))
-
 # Use Python's bool constants if available, make aliases if not
 try:
     True
 except NameError:
     True = 1==1
     False = 1==0
-
-##try:
-##    gl.GL_BGRA
-##except AttributeError:
-##    gl.GL_BGRA = 0x80E1 # XXX why doesn't PyOpenGL define this?!
 
 try:
     gl.GL_UNSIGNED_INT_8_8_8_8_REV
@@ -279,6 +268,14 @@ class Screen(VisionEgg.ClassWithParameters):
                 pygame.display.set_icon(pygame.transform.scale(pygame.image.load(
                     os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
                                  'data','visionegg.bmp')).convert(),(32,32)))
+            else:
+                import AppKit # requires PyObjC, which is required by pygame osx
+                im = AppKit.NSImage.alloc()
+                im.initWithContentsOfFile_(
+                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                                 'data','visionegg.tif'))
+                AppKit.NSApplication.setApplicationIconImage_(AppKit.NSApp(),im)
+                
         except Exception,x:
             message.add("Error while trying to set_icon: %s: %s"%
                         (str(x.__class__),str(x)),
@@ -2515,8 +2512,11 @@ class FrameTimer:
         return (self._true_time_last_frame - self.first_tick_sec)/sum( self.timing_histogram )
     
     def print_histogram(self,fd=sys.stdout):
+        if self.first_tick_sec is None:
+            print >> fd, '0 frames were drawn.'
+            return
         average_ifi_sec = self.get_average_ifi_sec()
-        print >> fd, '%d frames were drawn.'%int(sum(self.timing_histogram))
+        print >> fd, '%d frames were drawn.'%int(sum(self.timing_histogram)+1)
         print >> fd, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
             average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
         
