@@ -182,7 +182,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                 ve_types.Real),
         'phase_at_t0':(0.0,  # degrees
                        ve_types.Real),
-        'orientation':(0.0,  # 0=right, 90=down
+        'orientation':(0.0,  # 0=right, 90=up
                        ve_types.Real),
         'grating_center_azimuth':(0.0, # 0=right, 90=down
                                   ve_types.Real),
@@ -365,7 +365,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
 
             # do the orientation
-            gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+            gl.glRotatef(p.orientation,0.0,0.0,1.0)
 
             gl.glCallList(self.cached_display_list_id)
 
@@ -636,7 +636,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            # do the orientation
+            # window location
             gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
             gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 

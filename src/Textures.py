@@ -1335,7 +1335,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                                ve_types.Real), 
         'drum_center_elevation':(0.0,
                                  ve_types.Real), # changes orientation of drum in space
-        'orientation':(0.0, # 0=right, 90=down
+        'orientation':(0.0, # 0=right, 90=up
                        ve_types.Real)
         }
     
@@ -1397,7 +1397,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 lowerleft = lowerleft[0], lowerleft[1], p.position[2]
                 
                 # do the orientation
-                gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+                gl.glRotatef(p.orientation,0.0,0.0,1.0)
                 gl.glTranslate(lowerleft[0],lowerleft[1],lowerleft[2])
                 
                 if p.flip_image:
@@ -1472,7 +1472,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 gl.glRotatef(p.drum_center_elevation,1.0,0.0,0.0)
 
                 # do the orientation
-                gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+                gl.glRotatef(p.orientation,0.0,0.0,1.0)
                 
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
