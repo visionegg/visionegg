@@ -4,7 +4,6 @@
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
-from VisionEgg.AppHelper import *
 
 # Initialize OpenGL graphics screen.
 screen = get_default_screen()

@@ -5,7 +5,6 @@ import math
 
 import VisionEgg
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.Textures import *
 
 from OpenGL.GL import *
@@ -59,7 +58,7 @@ viewport2 = Viewport(screen=screen,
 
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
 
-p.add_realtime_time_controller(stimulus,'angular_position', angle_as_function_of_time)
-p.add_realtime_time_controller(projection2,'matrix', projection_matrix_f)
+p.add_controller(stimulus,'angular_position', FunctionController(during_go_func=angle_as_function_of_time))
+p.add_controller(projection2,'matrix', FunctionController(during_go_func=projection_matrix_f))
 
 p.go()

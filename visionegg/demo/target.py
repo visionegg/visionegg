@@ -7,7 +7,6 @@
 ############################
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
 from math import *
 from types import *
@@ -38,35 +37,19 @@ p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
 #  Define controller  #
 #######################
 
-# Here is a bit of object-oriented programming.  The class Controller
-# is an abstract interface for anything that controls
-# parameters. Below is the definition of TargetPositionController,
-# which we make a subclass of Controller. Later, we will create an
-# instance of TargetPositionController to control the position of the
-# target.
+# calculate a few variables we need
+mid_x = screen.size[0]/2.0
+mid_y = screen.size[1]/2.0
+max_vel = min(screen.size[0],screen.size[1]) * 0.4
 
-class TargetPositionController( Controller ):
-    def __init__(self):
-        Controller.__init__(self,
-                            return_type=TupleType,
-                            temporal_variable_type=Controller.TIME_SEC_SINCE_GO,
-                            eval_frequency=Controller.EVERY_FRAME)
-                           
-        # A few variables used to calculate postion based on screen size
-        self.mid_x = screen.size[0]/2.0
-        self.mid_y = screen.size[1]/2.0
-        if screen.size[0] < screen.size[1]:
-            self.max_vel = screen.size[0] * 0.4
-        else:
-            self.max_vel = screen.size[1] * 0.4
+# define position as a function of time
+def get_target_position(t):
+    global mid_x, mid_y, max_vel
+    return ( max_vel*sin(0.1*2.0*pi*t) + mid_x , # x
+             max_vel*sin(0.1*2.0*pi*t) + mid_y ) # y
 
-    def during_go_eval(self):
-        t = self.temporal_variable
-        return ( self.max_vel*sin(0.1*2.0*pi*t) + self.mid_x , # x
-                 self.max_vel*sin(0.1*2.0*pi*t) + self.mid_y ) # y
-
-# Create an instance of the class we just defined
-target_position_controller = TargetPositionController()
+# Create an instance of the Controller class
+target_position_controller = FunctionController(during_go_func=get_target_position)
 
 #############################################################
 #  Connect the controllers with the variables they control  #
