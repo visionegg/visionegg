@@ -209,7 +209,7 @@ class Loop(VisionEgg.ClassWithParameters):
 class LoopContainedObject(ContainedObjectBase):
     """Contrainer for Loop class"""
     contained_class = Loop
-    header = "     variable    rest values"
+    header = "     variable    rest   N  values"
     def __init__(self,contained=None):
         self.contained = contained
     def get_str_30(self):
@@ -220,7 +220,7 @@ class LoopContainedObject(ContainedObjectBase):
         name_str = p.variable
         if len(name_str) > 15:
             name_str = name_str[:15]
-        return "% 15s % 4s  %s"%(name_str, str(p.rest_duration_sec), seq_str)
+        return "% 15s % 4s % 4d  %s"%(name_str, str(p.rest_duration_sec), len(p.sequence), seq_str)
 
 class LoopParamDialog(tkSimpleDialog.Dialog):
     def __init__(self,*args,**kw):
@@ -360,14 +360,10 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                              variable=self.shuffle_tk_var).grid(row=2,column=0,columnspan=2)
                              
         if self.orig_values is not None:
-            print "Setting original values"
-            print self.orig_values.parameters.variable
             self.var_name.set( self.orig_values.parameters.variable )
             
-            print self.orig_values.parameters.sequence
             self.sequence_manual_string.set( str(self.orig_values.parameters.sequence) )
             
-            print self.orig_values.parameters.rest_duration_sec
             self.rest_dur.set( self.orig_values.parameters.rest_duration_sec )
             
 
@@ -398,9 +394,14 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
             incr = (stop-start)/float(n-1)
             seq = []
             value = start
-            while value <= stop:
-                seq.append(value)
-                value += incr
+            if incr > 0.0:
+                while value <= stop:
+                    seq.append(value)
+                    value += incr
+            else:
+                while value >= stop:
+                    seq.append(value)
+                    value += incr
         elif self.sequence_type.get() == "log":
             start = self.log_start_tk.get()
             stop = self.log_stop_tk.get()
@@ -414,9 +415,14 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
             incr = (stop-start)/float(n-1)
             seq = []
             value = start
-            while value <= stop:
-                seq.append(value)
-                value += incr
+            if incr > 0.0:
+                while value <= stop:
+                    seq.append(value)
+                    value += incr
+            else:
+                while value >= stop:
+                    seq.append(value)
+                    value += incr
             for i in range(len(seq)):
                 seq[i] = 10.0**seq[i]
         else:
