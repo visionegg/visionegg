@@ -2,6 +2,7 @@
 """Sinusoidal grating under network control."""
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, Controller, ConstantController, EvalStringController
 from VisionEgg.Gratings import *
 from VisionEgg.TCPController import *
 import sys
@@ -79,16 +80,20 @@ orientation_controller = tcp_listener.create_tcp_controller(
     tcp_name="orient",
     initial_controller=EvalStringController(during_go_eval_string="0.0",
                                             between_go_eval_string="fmod(t_abs,360.0/5.0)*5.0",
-                                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME,
-                                            temporal_variables=VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE)
+                                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME,
+                                            temporal_variables=VisionEgg.FlowControl.Controller.TIME_SEC_ABSOLUTE)
     )
 num_samples_controller = tcp_listener.create_tcp_controller(
     tcp_name="num_samples",
-    initial_controller=ConstantController(during_go_value=512)
+    initial_controller=ConstantController(during_go_value=512,
+                                          return_type=ve_types.UnsignedInteger),
+    require_type=ve_types.UnsignedInteger,
     )
 bit_depth_controller = tcp_listener.create_tcp_controller(
     tcp_name="bit_depth",
-    initial_controller=ConstantController(during_go_value=8)
+    initial_controller=ConstantController(during_go_value=8,
+                                          return_type=ve_types.UnsignedInteger),
+    require_type=ve_types.UnsignedInteger,
     )
 go_duration_controller = tcp_listener.create_tcp_controller(
     tcp_name="go_duration",
