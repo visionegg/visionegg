@@ -1,8 +1,8 @@
 """VisionEgg Core Library
 """
 
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms
-# of the GNU General Public License (GPL).
+# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
 
 ####################################################################
 #
@@ -10,24 +10,28 @@
 #
 ####################################################################
 
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-from VisionEgg import *                         # Vision Egg package
+import sys,types,string
+import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
-
-import types
 			                        # from PyOpenGL:
-from OpenGL.GL import *                         #   main package
-from OpenGL.GLU import *                        #   utility routines
+import OpenGL.GL                                #   main package
+import OpenGL.GLU                               #   utility package
+gl = OpenGL.GL                                  # shorthand
+glu = OpenGL.GLU                                # shorthand
 
-from Numeric import * 				# Numeric Python package
-from MLab import *                              # Matlab function imitation from Numeric Python
+import Numeric  				# Numeric Python package
+import MLab                                     # Matlab function imitation from Numeric Python
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+__all__ = ['Screen','Viewport','Projection','OrthographicProjection',
+           'SimplePerspectiveProjection','PerspectiveProjection',
+           'Stimulus','FixationSpot','Presentation','EggError']
 
 ####################################################################
 #
@@ -35,7 +39,7 @@ from MLab import *                              # Matlab function imitation from
 #
 ####################################################################
 
-class Screen(ClassWithParameters):
+class Screen(VisionEgg.ClassWithParameters):
     """An OpenGL window for use by Vision Egg.
 
     An easy way to make an instance of screen is to use a helper
@@ -63,17 +67,17 @@ class Screen(ClassWithParameters):
     # List of stuff to be improved in this class:
     # Better configurability of number of bits per pixel, including alpha.
     
-    parameters_and_defaults = {'bgcolor':config.VISIONEGG_SCREEN_BGCOLOR}
+    parameters_and_defaults = {'bgcolor':VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR}
 
     def __init__(self,
-                 size=(config.VISIONEGG_SCREEN_W,
-                       config.VISIONEGG_SCREEN_H),
-                 fullscreen=config.VISIONEGG_FULLSCREEN,
-                 preferred_bpp=config.VISIONEGG_PREFERRED_BPP,
-                 maxpriority=config.VISIONEGG_MAXPRIORITY,
+                 size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                       VisionEgg.config.VISIONEGG_SCREEN_H),
+                 fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                 preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                 maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
                  **kw):
         
-        apply(ClassWithParameters.__init__,(self,),kw)
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
         
         self.size = size
         self.fullscreen = fullscreen 
@@ -184,9 +188,9 @@ class Screen(ClassWithParameters):
 
         Gets called every frame."""
         c = self.parameters.bgcolor # Shorthand
-        glClearColor(c[0],c[1],c[2],c[3])
-        glClear(GL_COLOR_BUFFER_BIT)
-        glClear(GL_DEPTH_BUFFER_BIT)
+        gl.glClearColor(c[0],c[1],c[2],c[3])
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
 
     def make_current(self):
         """Makes screen active for drawing.
@@ -206,7 +210,7 @@ class Screen(ClassWithParameters):
 #
 ####################################################################
 
-class Viewport(ClassWithParameters):
+class Viewport(VisionEgg.ClassWithParameters):
     """A portion of a screen which shows stimuli.
 
     A screen may have multiple viewports.  The viewports may be
@@ -227,7 +231,7 @@ class Viewport(ClassWithParameters):
                                'projection':None} # instance of VisionEgg.Core.Projection
 
     def __init__(self,screen,**kw):
-        apply(ClassWithParameters.__init__,(self,),kw)
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
         
         self.screen = screen
         self.stimuli = []
@@ -257,7 +261,7 @@ class Viewport(ClassWithParameters):
     def draw(self):
         """Set the viewport and draw stimuli."""
         self.screen.make_current()
-        glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
+        gl.glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
 
         self.parameters.projection.set_gl_projection()
         
@@ -270,64 +274,65 @@ class Viewport(ClassWithParameters):
 #
 ####################################################################
 
-class Projection(ClassWithParameters):
+class Projection(VisionEgg.ClassWithParameters):
     """Abstract base class to define interface for OpenGL projection matrices"""
-    parameters_and_defaults = {'matrix':array([[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
-                                               [0.0, 1.0, 0.0, 0.0],
-                                               [0.0, 0.0, 1.0, 0.0],
-                                               [0.0, 0.0, 0.0, 1.0]]) }
+    parameters_and_defaults = {'matrix':Numeric.array(
+        [[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
+         [0.0, 1.0, 0.0, 0.0],
+         [0.0, 0.0, 1.0, 0.0],
+         [0.0, 0.0, 0.0, 1.0]]) }
                                
     def __init__(self,**kw):
-        apply(ClassWithParameters.__init__,(self,),kw)
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadMatrixf(self.parameters.matrix)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadMatrixf(self.parameters.matrix)
 
     def push_and_set_gl_projection(self):
         """Set the OpenGL projection matrix, pushing current projection matrix to stack."""
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glPushMatrix()
-        glLoadMatrixf(self.parameters.matrix)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix()
+        gl.glLoadMatrixf(self.parameters.matrix)
 
     def translate(self,x,y,z):
         """Compose a translation and set the OpenGL projection matrix."""
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadMatrixf(self.parameters.matrix)
-        glTranslatef(x,y,z)
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glTranslatef(x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
 
     def stateless_translate(self,x,y,z):
         """Compose a translation without changing OpenGL state."""
-        matrix_mode = glGetInteger(GL_MATRIX_MODE)
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glPushMatrix()
-        glLoadMatrixf(self.parameters.matrix)
-        glTranslatef(x,y,z)
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        glPopMatrix()
+        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix()
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glTranslatef(x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        gl.glPopMatrix()
         if matrix_mode is not None:
-            glMatrixMode(matrix_mode)
+            gl.glMatrixMode(matrix_mode)
 
     def rotate(self,angle_degrees,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadMatrixf(self.parameters.matrix)
-        glRotatef(angle_degrees,x,y,z)
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glRotatef(angle_degrees,x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
 
     def stateless_rotate(self,angle_degrees,x,y,z):
         """Compose a rotation without changing OpenGL state."""
-        matrix_mode = glGetInteger(GL_MATRIX_MODE)
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glPushMatrix()
-        glLoadMatrixf(self.parameters.matrix)
-        glRotatef(angle_degrees,x,y,z)
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        glPopMatrix()
+        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix()
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glRotatef(angle_degrees,x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        gl.glPopMatrix()
         if matrix_mode is not None:
-            glMatrixMode(matrix_mode)
+            gl.glMatrixMode(matrix_mode)
 
 class OrthographicProjection(Projection):
     """An orthographic projection"""
@@ -338,10 +343,10 @@ class OrthographicProjection(Projection):
         coordinates in the range [0,1] and y eye coordinates [0,480]
         -> [0,1].  Therefore, if the viewport is 640 x 480, eye
         coordinates correspond 1:1 with window (pixel) coordinates."""
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadIdentity() # Clear the projection matrix
-        glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
-        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadIdentity() # Clear the projection matrix
+        gl.glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
+        matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
@@ -351,10 +356,10 @@ class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
         fov_y = fov_x / aspect_ratio
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadIdentity() # Clear the projection matrix
-        gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
-        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadIdentity() # Clear the projection matrix
+        glu.gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
+        matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
@@ -363,10 +368,10 @@ class SimplePerspectiveProjection(Projection):
 class PerspectiveProjection(Projection):
     """A perspective projection"""
     def __init__(self,left,right,bottom,top,near,far):
-        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        glLoadIdentity() # Clear the projection matrix
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadIdentity() # Clear the projection matrix
         glFrustum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
-        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
@@ -378,7 +383,7 @@ class PerspectiveProjection(Projection):
 #
 ####################################################################
 
-class Stimulus(ClassWithParameters):
+class Stimulus(VisionEgg.ClassWithParameters):
     """Base class for a stimulus.
 
     Any stimulus element should be a subclass of this Stimulus class.
@@ -463,7 +468,7 @@ class Stimulus(ClassWithParameters):
         In this base class, nothing needs to be done other than set
         parameter values.
         """
-        apply(ClassWithParameters.__init__,(self,),kw)
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
         
     def draw(self):
     	"""Draw the stimulus.  This method is called every frame.
@@ -479,6 +484,7 @@ class Stimulus(ClassWithParameters):
 ####################################################################
 
 class FixationSpot(Stimulus):
+    """A rectangle stimulus, typically used as a fixation spot."""
     parameters_and_defaults = {'on':1,
                                'color':(1.0,1.0,1.0,1.0),
                                'center':(320.0,240.0), # place in center of 640x480 viewport
@@ -491,12 +497,12 @@ class FixationSpot(Stimulus):
 
     def draw(self):
         if self.parameters.on:
-            glDisable(GL_DEPTH_TEST)
-            glDisable(GL_TEXTURE_2D)
-            glDisable(GL_BLEND)
+            gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glDisable(gl.GL_TEXTURE_2D)
+            gl.glDisable(gl.GL_BLEND)
 
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
 
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
@@ -509,12 +515,12 @@ class FixationSpot(Stimulus):
             x,y = self.parameters.center[0],self.parameters.center[1]
             x1 = x-x_size; x2 = x+x_size
             y1 = y-y_size; y2 = y+y_size
-            glBegin(GL_QUADS)
-            glVertex2f(x1,y1)
-            glVertex2f(x2,y1)
-            glVertex2f(x2,y2)
-            glVertex2f(x1,y2)
-            glEnd() # GL_QUADS
+            gl.glBegin(gl.GL_QUADS)
+            gl.glVertex2f(x1,y1)
+            gl.glVertex2f(x2,y1)
+            gl.glVertex2f(x2,y2)
+            gl.glVertex2f(x1,y2)
+            gl.glEnd() # GL_QUADS
 
 ####################################################################
 #
@@ -522,7 +528,7 @@ class FixationSpot(Stimulus):
 #
 ####################################################################
 
-class Presentation(ClassWithParameters):
+class Presentation(VisionEgg.ClassWithParameters):
     """Handles the timing and coordination of stimulus presentation.
 
     This class is the key to the real-time operation of the Vision
@@ -567,7 +573,7 @@ class Presentation(ClassWithParameters):
                                'duration' : (5.0,'seconds') }
 
     def __init__(self,**kw):
-        apply(ClassWithParameters.__init__,(self,),kw)
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
         # These next three lists contain all the parameters under control
         self.realtime_time_controllers = []
@@ -584,10 +590,10 @@ class Presentation(ClassWithParameters):
             # Allow controllers not to control anything.  (Allows user
             # to define functions that get called like controllers.)
             return
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not isinstance(class_with_parameters,VisionEgg.ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,VisionEgg.ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,VisionEgg.Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,VisionEgg.Parameters))
         if not hasattr(class_with_parameters.parameters,parameter_name):
             raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
 
@@ -686,7 +692,7 @@ class Presentation(ClassWithParameters):
         # Still need to add DAQ hooks here...
 
         # Do the main loop
-        start_time_absolute = timing_func()
+        start_time_absolute = VisionEgg.timing_func()
         current_time = 0.0
         current_frame = 0
         if duration_units == 'seconds':
@@ -706,12 +712,12 @@ class Presentation(ClassWithParameters):
             for viewport in viewports:
                 viewport.draw()
             # Swap the buffers
-            swap_buffers()
+            VisionEgg.swap_buffers()
             # If wanted, save time this frame was drawn for
             if collect_timing_info:
                 self.frame_draw_times.append(current_time)
             # Get the time for the next frame
-            current_time_absolute = timing_func()
+            current_time_absolute = VisionEgg.timing_func()
             current_time = current_time_absolute-start_time_absolute
             current_frame = current_frame + 1
             # Make sure we use the right value to check if we're done
@@ -788,7 +794,7 @@ class Presentation(ClassWithParameters):
         # Draw each viewport
         for viewport in viewports:
             viewport.draw()
-        swap_buffers()
+        VisionEgg.swap_buffers()
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
@@ -832,11 +838,11 @@ class Presentation(ClassWithParameters):
             # Draw each viewport
             for viewport in viewports:
                 viewport.draw()
-            swap_buffers()
+            VisionEgg.swap_buffers()
 
             # Now save the contents of the framebuffer
-            glPixelStorei(GL_PACK_ALIGNMENT, 1)
-            framebuffer = glReadPixels(0,0,screen.size[0],screen.size[1],GL_RGB,GL_UNSIGNED_BYTE)
+            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+            framebuffer = gl.glReadPixels(0,0,screen.size[0],screen.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
             fb_image = Image.fromstring('RGB',screen.size,framebuffer)
             fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
@@ -857,11 +863,11 @@ class Presentation(ClassWithParameters):
         """Print a histogram of the last recorded frame drawing times.
         """
         if len(self.frame_draw_times) > 1:
-            frame_draw_times = array(self.frame_draw_times)
+            frame_draw_times = Numeric.array(self.frame_draw_times)
             self.frame_draw_times = [] # clear the list
             frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
             print (len(frame_draw_times)+1), "frames drawn."
-            mean_sec = mean(frame_draw_times)
+            mean_sec = MLab.mean(frame_draw_times)
             print "mean frame to frame time: %.1f (usec) == mean fps: %.2f, max: %.1f"%(mean_sec*1.0e6,1.0/mean_sec,max(frame_draw_times)*1.0e6)
             bins = arange(0.0,15.0,1.0) # msec
             bins = bins*1.0e-3 # sec
@@ -930,11 +936,11 @@ def check_gl_assumptions():
     for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
         if string.upper(gl_variable) == "GL_VENDOR":
-            value = string.split(string.lower(glGetString(GL_VENDOR)))[0]
+            value = string.split(string.lower(gl.glGetString(gl.GL_VENDOR)))[0]
             if value != required_value:
                 raise EggError(gl_variable + " not equal " + required_value + ": " + failure_string)
         elif string.upper(gl_variable) == "GL_VERSION":
-            value_str = string.split(glGetString(GL_VERSION))[0]
+            value_str = string.split(gl.glGetString(gl.GL_VERSION))[0]
             value_ints = map(int,string.split(value_str,'.'))
             value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
             if value < required_value:
