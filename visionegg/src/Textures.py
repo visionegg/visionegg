@@ -3,6 +3,11 @@
 # Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
+all = [ 'FixationCross', 'Mask2D', 'SpinningDrum', 'Texture',
+        'TextureFromFile', 'TextureObject', 'TextureStimulus',
+        'TextureStimulus3D', 'TextureStimulusBaseClass',
+        'TextureTooLargeError']
+
 ####################################################################
 #
 #        Import all the necessary packages
@@ -11,6 +16,8 @@
 
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.ParameterTypes as ve_types
+
 import Image, ImageDraw                         # Python Imaging Library packages
 import pygame.surface, pygame.image             # pygame
 import math, types, os
@@ -42,6 +49,13 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
 
 def __no_clamp_to_edge_callback():
     # Error callback automatically called if OpenGL version < 1.2
@@ -927,7 +941,7 @@ class TextureObject:
                                 width,
                                 height,
                                 border)
-        
+
 ####################################################################
 #
 #        Stimulus - TextureStimulus
@@ -938,17 +952,27 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
     Don't instantiate this class directly."""
-    parameters_and_defaults = {'texture':(None,Texture), # instance of Texture class
-                               'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
-                               'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,types.IntType),
-                               'texture_wrap_s':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
-                               'texture_wrap_t':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
-                               }
+    parameters_and_defaults = {
+        'texture':(None,
+                   ve_types.Instance(Texture)), 
+        'texture_mag_filter':(gl.GL_LINEAR,
+                              ve_types.Integer),
+        'texture_min_filter':(None, # defaults to gl.GL_LINEAR_MIPMAP_LINEAR (unless mipmaps_enabled False, then gl.GL_LINEAR)
+                              ve_types.Integer), 
+        'texture_wrap_s':(None, # set to gl.GL_CLAMP_TO_EDGE below
+                          ve_types.Integer), 
+        'texture_wrap_t':(None, # set to gl.GL_CLAMP_TO_EDGE below
+                          ve_types.Integer),
+        }
                                
-    constant_parameters_and_defaults = {'internal_format':(gl.GL_RGB,types.IntType),
-                                        'mipmaps_enabled':(1,types.IntType), # boolean
-                                        'shrink_texture_ok':(0,types.IntType), # boolean
-                                        }
+    constant_parameters_and_defaults = {
+        'internal_format':(gl.GL_RGB,
+                           ve_types.Integer),
+        'mipmaps_enabled':(True,
+                           ve_types.Boolean),
+        'shrink_texture_ok':(False,
+                             ve_types.Boolean),
+        }
                                         
     _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
@@ -960,6 +984,13 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
             # generate default texture
             self.parameters.texture = Texture()
 
+        if self.parameters.texture_min_filter is None:
+            # generate default texture minimization filter
+            if self.constant_parameters.mipmaps_enabled:
+                self.parameters.texture_min_filter = gl.GL_LINEAR_MIPMAP_LINEAR
+            else:
+                self.parameters.texture_min_filter = gl.GL_LINEAR
+                    
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
@@ -1017,10 +1048,14 @@ class Mask2D(VisionEgg.ClassWithParameters):
     PsychoPy package from which the idea to do this came."""
 
     # All of these parameters are constant -- if you need a new mask, create a new instance
-    constant_parameters_and_defaults = {'function':('gaussian',types.StringType), # can be 'gaussian' or 'circle'
-                                        'radius_parameter':(25.0,types.FloatType), # radius for circle, sigma for gaussian, same units as num_samples
-                                        'num_samples':((256,256),types.TupleType), # size of mask data in texels
-                                        }
+    constant_parameters_and_defaults = {
+        'function':('gaussian', # can be 'gaussian' or 'circle'
+                    ve_types.String),
+        'radius_parameter':(25.0, # radius for circle, sigma for gaussian, same units as num_samples
+                            ve_types.Real),
+        'num_samples':((256,256), # size of mask data in texels
+                       ve_types.Sequence2(ve_types.Real)),
+        }
     def __init__(self,**kw):
         def next_power_of_2(f):
             return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
@@ -1120,15 +1155,25 @@ class Mask2D(VisionEgg.ClassWithParameters):
 
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'mask':(None, Mask2D), # masks texture before application
-                               'position':((0.0,0.0),types.TupleType), # in eye coordinates
-                               'anchor':('lowerleft',types.StringType),
-                               'lowerleft':(None,types.TupleType), # DEPRECATED
-                               'size':((640.0,480.0),types.TupleType), # in eye coordinates
-                               'max_alpha':(1.0,types.FloatType), # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
-                               'color':((1.0,1.0,1.0,1.0), types.TupleType), # texture environment color. alpha is ignored for max_alpha parameter
-                               }
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'mask':(None, # texture mask
+                ve_types.Instance(Mask2D)),
+        'position':((0.0,0.0), # in eye coordinates
+                    ve_types.Sequence2(ve_types.Real)),
+        'anchor':('lowerleft',
+                  ve_types.String),
+        'lowerleft':(None,  # DEPRECATED -- don't use
+                     ve_types.Sequence2(ve_types.Real)),
+        'size':((640.0,480.0), # in eye coordinates
+                ve_types.Sequence2(ve_types.Real)),
+        'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
+                     ve_types.Real),
+        'color':((1.0,1.0,1.0), # texture environment color. alpha is ignored (if given) -- use max_alpha parameter
+                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                ve_types.Sequence4(ve_types.Real))),
+        }
     
     def __init__(self,**kw):
         if 'mask' in kw.keys():
@@ -1201,16 +1246,18 @@ class TextureStimulus(TextureStimulusBaseClass):
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'lowerleft':(Numeric.array((0.0,0.0,-1.0)),
-                                            Numeric.ArrayType), # in eye coordinates
-                               'lowerright':(Numeric.array((1.0,0.0,-1.0)),
-                                             Numeric.ArrayType), # in eye coordinates
-                               'upperleft':(Numeric.array((0.0,1.0,-1.0)),
-                                            Numeric.ArrayType), # in eye coordinates
-                               'upperright':(Numeric.array((1.0,1.0,-1.0)),
-                                             Numeric.ArrayType), # in eye coordinates
-                               'depth_test':(1,types.IntType),
+    parameters_and_defaults = {'on':(True,
+                                     ve_types.Boolean),
+                               'lowerleft':((0.0,0.0,-1.0),
+                                            ve_types.Sequence3(ve_types.Real)), # in eye coordinates
+                               'lowerright':((1.0,0.0,-1.0),
+                                             ve_types.Sequence3(ve_types.Real)), # in eye coordinates
+                               'upperleft':((0.0,1.0,-1.0),
+                                            ve_types.Sequence3(ve_types.Real)), # in eye coordinates
+                               'uppperright':((1.0,1.0,-1.0),
+                                              ve_types.Sequence3(ve_types.Real)), # in eye coordinates
+                               'depth_test':(True,
+                                             ve_types.Boolean),
                                }
                                                                                 
     def draw(self):
@@ -1264,19 +1311,33 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
-    parameters_and_defaults = {'num_sides':(50,types.IntType),
-                               'angular_position':(0.0,types.FloatType),
-                               'contrast':(1.0,types.FloatType),
-                               'on':(1,types.IntType),
-                               'flat':(0,types.IntType), # toggles flat vs. cylinder
-                               'flip_image':(0,types.IntType), # toggles normal vs. horizonally flipped image
-                               'radius':(1.0,types.FloatType), # radius if cylinder, z distance if flat
-                               'position':( (0.0,0.0,0.0), types.TupleType), # (3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus)
-                               'anchor':( 'lowerleft', types.StringType), # only in flat: same as anchor parameter of TextureStimulus
-                               'drum_center_azimuth':(0.0,types.FloatType), # changes orientation of drum in space
-                               'drum_center_elevation':(0.0,types.FloatType), # changes orientation of drum in space
-                               'orientation':(0.0,types.FloatType) # 0=right, 90=down
-                               }
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'num_sides':(50,
+                     ve_types.UnsignedInteger),
+        'angular_position':(0.0, # may be best to clamp [0.0,360.0]
+                            ve_types.Real),
+        'contrast':(1.0,
+                    ve_types.Real),
+        'flat':(False, # toggles flat vs. cylinder
+                ve_types.Boolean), 
+        'flip_image':(False,
+                      ve_types.Boolean), # toggles normal vs. horizonally flipped image
+        'radius':(1.0, # radius if cylinder, z distance if flat
+                  ve_types.Real),
+        'position':( (0.0,0.0,0.0), # (3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus)
+                     ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
+                                    ve_types.Sequence3(ve_types.Real))),
+        'anchor':( 'lowerleft',# only used when flat: same as anchor parameter of TextureStimulus
+                   ve_types.String), 
+        'drum_center_azimuth':(0.0, # changes orientation of drum in space
+                               ve_types.Real), 
+        'drum_center_elevation':(0.0,
+                                 ve_types.Real), # changes orientation of drum in space
+        'orientation':(0.0, # 0=right, 90=down
+                       ve_types.Real)
+        }
     
     def __init__(self,**kw):
         TextureStimulusBaseClass.__init__(self,**kw)
@@ -1484,10 +1545,18 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glEndList()
 
 class FixationCross(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'on':(1,types.IntType),# boolean
-                               'position':((320,240),types.TupleType),
-                               'size':((64,64),types.TupleType)}
-    constant_parameters_and_defaults = {'texture_size':((64,64),types.TupleType)}
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'position':((320,240),
+                    ve_types.Sequence2(ve_types.Real)),
+        'size':((64,64),
+                ve_types.Sequence2(ve_types.Real)),
+        }
+    constant_parameters_and_defaults = {
+        'texture_size':((64,64),
+                        ve_types.Sequence2(ve_types.Real)),
+        }
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         s = self.constant_parameters.texture_size

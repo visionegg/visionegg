@@ -1,6 +1,6 @@
 """Text stimuli"""
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
 ####################################################################
@@ -12,6 +12,7 @@
 import string, types
 import VisionEgg.Core
 import VisionEgg.Textures
+import VisionEgg.ParameterTypes as ve_types
 
 import OpenGL.GL
 gl = OpenGL.GL
@@ -26,12 +27,29 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
 
 class Text(VisionEgg.Textures.TextureStimulus):
-    parameters_and_defaults = {'text':('the string to display',types.StringType), #changing this redraws texture, may cause slowdown
-                               'ignore_size_parameter':(1,types.IntType)} # boolean
-    constant_parameters_and_defaults = {'font_size':(30,types.IntType),
-                                        'font_name':(None,types.StringType)} # None = use default font
+    
+    parameters_and_defaults = {
+        'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
+                  ve_types.String),
+        'ignore_size_parameter':(True, # when true, draws text at 100% size
+                                 ve_types.Boolean),
+        }
+    
+    constant_parameters_and_defaults = {
+        'font_size':(30,
+                     ve_types.UnsignedInteger),
+        'font_name':(None, # None = use default font
+                     ve_types.String),
+        }
+    
     def __init__(self,**kw):
         if not pygame.font:
             raise RuntimeError("no pygame font module")
@@ -77,20 +95,31 @@ class GlutTextBase(VisionEgg.Core.Stimulus):
 
     It's a base class that defines the common interface between the
     other glut-based text stimuli."""
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'color':((1.0,1.0,1.0,1.0),types.TupleType),
-                               'lowerleft':((320.0,240.),types.TupleType),
-                               'text':('the string to display',types.StringType)}
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'color':((1.0,1.0,1.0,1.0),
+                 ve_types.Sequence4(ve_types.Real)),
+        'lowerleft':((320.0,240.),
+                     ve_types.Sequence2(ve_types.Real)),
+        'text':('the string to display',
+                ve_types.String)}
+    
     def __init__(self,**kw):
         if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
-            VisionEgg.Core.message.add("Using GlutTextBase class.  This will be removed in a future release.",
-                                       level=VisionEgg.Core.Message.DEPRECATION)
+            VisionEgg.Core.message.add(
+                """Using GlutTextBase class.  This will be removed in
+                a future release. Use VisionEgg.Text.Text instead.""",
+                level=VisionEgg.Core.Message.DEPRECATION)
             VisionEgg.config._GAVE_GLUT_TEXT_DEPRECATION = 1
-        VisionEgg.Core.Stimulus.__init__(*(self,),**kw)
+            VisionEgg.Core.Stimulus.__init__(*(self,),**kw)
 
 class BitmapText(GlutTextBase):
     """This class is deprecated.  Don't use it anymore."""
-    parameters_and_defaults = {'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,types.IntType)}
+    parameters_and_defaults = {
+        'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
+                ve_types.Integer),
+        }
     def __init__(self,**kw):
         GlutTextBase.__init__(*(self,),**kw)
 
@@ -113,10 +142,16 @@ class BitmapText(GlutTextBase):
                 glut.glutBitmapCharacter(self.parameters.font,ord(char))
 
 class StrokeText(GlutTextBase):
-    parameters_and_defaults = {'font':(glut.GLUT_STROKE_ROMAN,types.IntType),
-                               'orientation':(0.0,types.FloatType),
-                               'linewidth':(3.0,types.FloatType), # in pixels
-                               'anti_aliasing':(1,types.IntType)}
+    parameters_and_defaults = {
+        'font':(glut.GLUT_STROKE_ROMAN,
+                ve_types.Integer),
+        'orientation':(0.0,
+                       ve_types.Real),
+        'linewidth':(3.0, # pixels
+                     ve_types.Real),
+        'anti_aliasing':(True,
+                         ve_types.Boolean),
+        }
     def __init__(self,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
         GlutTextBase.__init__(*(self,),**kw)

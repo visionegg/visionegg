@@ -3,6 +3,8 @@
 # Copyright (c) 2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
+all = ['DotArea2D', 'draw_dots',]
+
 ####################################################################
 #
 #        Import all the necessary packages
@@ -11,6 +13,8 @@
 
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.ParameterTypes as ve_types
+
 import Numeric, RandomArray
 import math, types, string
 import OpenGL.GL as gl
@@ -43,6 +47,13 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 class DotArea2D(VisionEgg.Core.Stimulus):
     """Random dots of constant velocity
 
@@ -50,19 +61,34 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     move in the one direction, while the rest move in random
     directions. Dots wrap around edges. Each dot has a lifespan.
     """
-    parameters_and_defaults = {'center' : ( ( 320.0, 240.0 ), types.TupleType ),
-                               'size' :   ( ( 300.0, 300.0 ), types.TupleType ),
-                               'signal_fraction' : ( 0.5, types.FloatType ),
-                               'signal_direction_deg' : ( 90.0, types.FloatType ),
-                               'velocity_pixels_per_sec' : ( 10.0, types.FloatType ),
-                               'dot_lifespan_sec' : ( 5.0, types.FloatType ),
-                               'color' : ((1.0,1.0,1.0,1.0), types.TupleType),
-                               'dot_size' : (4.0, types.FloatType),
-                               'on' : ( 1, types.IntType ), # boolean
-                               'anti_aliasing' : ( 1, types.IntType ), # boolean
-                               'depth' : ( None, types.FloatType ), # set to float for depth testing
-                               }
-    constant_parameters_and_defaults = {'num_dots' : ( 100, types.IntType )}
+    parameters_and_defaults = {
+        'on' : ( True,
+                 ve_types.Boolean ),
+        'center' : ( ( 320.0, 240.0 ),
+                     ve_types.Sequence2(ve_types.Real) ),
+        'size' :   ( ( 300.0, 300.0 ),
+                     ve_types.Sequence2(ve_types.Real) ),
+        'signal_fraction' : ( 0.5,
+                              ve_types.Real ),
+        'signal_direction_deg' : ( 90.0,
+                                   ve_types.Real ),
+        'velocity_pixels_per_sec' : ( 10.0,
+                                      ve_types.Real ),
+        'dot_lifespan_sec' : ( 5.0,
+                               ve_types.Real ),
+        'color' : ((1.0,1.0,1.0,1.0),
+                   ve_types.Sequence4(ve_types.Real)),
+        'dot_size' : (4.0, # pixels
+                      ve_types.Real),
+        'anti_aliasing' : ( True,
+                            ve_types.Boolean ),
+        'depth' : ( None, # set for depth testing
+                    ve_types.Real ),
+        }
+    constant_parameters_and_defaults = {
+        'num_dots' : ( 100,
+                       ve_types.UnsignedInteger ),
+        }
 
     def __init__(self, **kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
@@ -88,7 +114,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                             """The parameter anti_aliasing is set to
                             true in the DotArea2D stimulus class, but
                             the color parameter specifies an alpha
-                            value other than 1.0.  To acheive
+                            value other than 1.0.  To acheive the best
                             anti-aliasing, ensure that the alpha value
                             for the color parameter is 1.0.""",
                             level=VisionEgg.Core.Message.WARNING)
