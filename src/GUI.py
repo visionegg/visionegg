@@ -102,12 +102,13 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             topframe_row += 1
 
         try:
+            import _imaging
             import Image,ImageTk
             im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp'))
             self.tk_im=ImageTk.PhotoImage(im)
             Tkinter.Label(topframe,image=self.tk_im).grid(row=0,rowspan=topframe_row,column=0)
         except Exception,x:
-            VisionEgg.Core.message.add("Error while trying to display image in GUI.GraphicsConfigurationWindow: %s: %s"%(str(x.__class__),str(x)))
+		VisionEgg.Core.message.add("No Vision Egg logo :( because of error while trying to display image in GUI.GraphicsConfigurationWindow: %s: %s"%(str(x.__class__),str(x)))
 
         ################## end topframe ##############################
 
@@ -122,6 +123,17 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         file_row = 0
         Tkinter.Label(file_frame,
                       text="This script:").grid(row=file_row,column=0,sticky=Tkinter.E)
+#	self.keeper = Tkinter.StringVar()
+#	self.keeper.set("%s"%(os.path.abspath(sys.argv[0]),))
+#        k2 = Tkinter.Entry(file_frame,textvar=self.keeper)
+#	k2.grid(row=file_row,column=1,sticky=Tkinter.W+Tkinter.E)
+#	print k2.focusmodel()
+#	def reset(dummy_arg=None):
+#		self.keeper.set("%s"%(os.path.abspath(sys.argv[0]),))
+#	k2.bind('',reset)
+#	k2.bind('<Leave>',reset)
+#	k2.bind('<Key>',reset)
+#	k2.protocol('WM_TAKE_FOCUS',0)
         Tkinter.Label(file_frame,
                       text="%s"%(os.path.abspath(sys.argv[0]),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         file_row += 1
