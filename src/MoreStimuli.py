@@ -40,7 +40,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                  ve_types.Sequence4(ve_types.Real)),
         'anti_aliasing':(True,
                          ve_types.Boolean),
-        'orientation':(0.0,
+        'orientation':(0.0, # 0.0 degrees = right, 90.0 degrees = up
                        ve_types.Real),
         'center':((320.0,240.0),
                   ve_types.Sequence2(ve_types.Real)),
@@ -57,7 +57,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
             gl.glTranslate(self.parameters.center[0],self.parameters.center[1],0.0)
-            gl.glRotate(self.parameters.orientation,0.0,0.0,-1.0)
+            gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
             c = self.parameters.color
             gl.glColor(c[0],c[1],c[2],c[3])
