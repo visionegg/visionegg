@@ -14,6 +14,7 @@ import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
 import math, types, os
 import Numeric, MLab
+
 import OpenGL.GL as gl
 
 try:
@@ -570,7 +571,7 @@ class TextureObject:
                                 border,
                                 data_format,
                                 data_type,
-                                raw_data)
+                                raw_data)    
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
                     raise TextureTooLargeError("image_data is too wide for your video system.")
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
@@ -715,7 +716,7 @@ class TextureObject:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
         if self.dimensions == 1:
-            if not offset_tuple:
+            if offset_tuple is None:
                 offset_tuple = (0,)
             if (offset_tuple[0] + data.shape[0]) > previous_mipmap_array['width']:
                 raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
@@ -733,7 +734,7 @@ class TextureObject:
             else:
                 target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
                 target = getattr(gl,target_name)
-            if not offset_tuple:
+            if offset_tuple is None:
                 offset_tuple = (0,0)
             if type(data) == Numeric.ArrayType:
                 width = data.shape[1]
@@ -800,7 +801,6 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         self.texture_object = TextureObject(dimensions=2)
 
         self._reload_texture()
-        gl.glEnable(gl.GL_TEXTURE_2D)
 
     def _reload_texture(self):
         """(Re)load texture to OpenGL"""
@@ -937,7 +937,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
         gl.glVertex3f(le,te,depth)
         
         gl.glEnd() # GL_QUADS
-        gl.glEnable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
+        gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # return to 1st texture unit
         
 
@@ -967,6 +967,8 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glLoadIdentity()
             
             gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glEnable( gl.GL_TEXTURE_2D )
+            
             # allow max_alpha value to control blending
             gl.glEnable( gl.GL_BLEND )
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
