@@ -107,8 +107,8 @@ class Screen(VisionEgg.ClassWithParameters):
     """An OpenGL window, possibly displayed on 2 monitors.
 
     An easy way to make an instance of screen is to use a special
-    static class method of Screen as an alternative construtor.  This
-    gets all parameters from the VISIONEGG parameters specified in the
+    static method of Screen as an alternative construtor.  This gets
+    all parameters from the VISIONEGG parameters specified in the
     config file and as environment variables.
     
     >>> import VisionEgg.Core
@@ -225,46 +225,24 @@ class Screen(VisionEgg.ClassWithParameters):
         if self.constant_parameters.frameless:
             flags = flags | pygame.locals.NOFRAME
 
-        # Choose an appropriate framebuffer pixel representation
-        # set bits per pixel (32 = 8 bits R, 8 G, 8 B, 8 Alpha, 0 = any)
-        try_bpps = [32,24,0]
+        try_bpps = [self.constant_parameters.preferred_bpp]
         
-        # try the preferred size first
-        try_bpps.insert(0,self.constant_parameters.preferred_bpp)
-
-        if sys.platform[:5]=='linux' or sys.platform[:4]=='irix':
-            # SDL doesn't like to give a 32 bpp depth, even if it works
-            try:
-                while 1:
-                    try_bpps.remove(32)
-            except:
-                pass
-        
-        found_mode = 0
+        found_mode = False
         for bpp in try_bpps: # try_bpps is ordered by preference
             modeList = pygame.display.list_modes( bpp, flags )
             if modeList == -1: # equal to -1 if any resolution will work
-                found_mode = 1
+                found_mode = True
+                try_bpp = bpp
+                break
             else:
                 if len(modeList) == 0: # any resolution is OK
-                    found_mode = 1
+                    found_mode = False
                 else:
                     if self.constant_parameters.size in modeList:
-                        found_mode = 1
-##                    else:
-##                        self.constant_parameters.size = modeList[0]
-##                        message.add(
-##                            """Using Screen size %dx%d instead of
-##                            requested size at %d bpp."""%
-##                            (self.constant_parameters.size[0],
-##                             self.constant_parameters.size[1],
-##                             bpp),
-##                            level=Message.WARNING)
-                            
-            if found_mode: # found the color depth to tell pygame
-                try_bpp = bpp 
-                break
-        if found_mode == 0:
+                        found_mode = True
+                        try_bpp = bpp
+                        break
+        if not found_mode:
             message.add(
                 """WARNING: Could not find acceptable video mode!
                 Trying anyway with bpp=0...""",
@@ -2594,7 +2572,7 @@ def check_gl_assumptions():
                 # Test for nVidia
                 if "nvidia" == string.lower(string.split(vendor)[0]):
                     ok = 1 # yes it is
-                if renderer[:15] == "Mesa DRI Radeon":
+                if renderer.startswith('Mesa DRI Radeon'):
                     date = string.split(renderer)[3]
                     if date > "20021216": # not sure about exact date
                         ok=1
