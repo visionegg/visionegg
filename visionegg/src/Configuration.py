@@ -1,4 +1,16 @@
-"""Load config values from environment, config file, or defaults.
+# The Vision Egg: Configuration
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Load config values from environment, config file, or defaults.
 
 Applications should not import this module directly.  Instead, 'import
 VisionEgg' will result in an attribute 'VisionEgg.config', which has
@@ -28,9 +40,6 @@ the environment variable VISIONEGG_CONFIG_FILE.
 """
 
 # Warning: This code is a bit of a hack
-
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg
 import re, os, errno, sys                  # standard python packages
@@ -86,8 +95,9 @@ extra_darwin_defaults = {
 }
 
 class Config:
+    """Holds global Vision Egg configuration information."""
     def __init__(self):
-        
+        """Load global Vision Egg configuration information."""
         cfg = ConfigParser.ConfigParser()
         
         if sys.executable == sys.argv[0]: # Windows binary
@@ -151,8 +161,6 @@ class Config:
                     "While reading %s: The variable \"%s\" is not (anymore) a Vision Egg variable."%(os.path.abspath(configFile),option))            
                 continue
             value = cfg.get('General',option)
-            if name == 'VISIONEGG_ALWAYS_START_LOGGING':
-                print os.environ.keys()
             if name in os.environ.keys():
                 value = os.environ[name]
             if type(defaults[name]) == type(42): # int
