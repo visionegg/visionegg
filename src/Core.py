@@ -2260,13 +2260,27 @@ def check_gl_assumptions():
     """Called by Screen instance. Requires OpenGL context to be created."""
     for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
-        if string.upper(gl_variable) == "GL_VENDOR":
-            value = string.split(string.lower(gl.glGetString(gl.GL_VENDOR)))[0]
-            if value != required_value:
-                failure_callback()
+        if gl_variable == "__SPECIAL__":
+            if value == "linux_nvidia_or_new_ATI":
+                ok = 0
+                vendor = gl.glGetString(gl.GL_VENDOR)
+                renderer = gl.glGetString(gl.GL_RENDERER)
+                # Test for nVidia
+                if "nvidia" == string.lower(string.split(vendor)[0]):
+                    ok = 1 # yes it is
+                if renderer[:15] == "Mesa DRI Radeon":
+                    date = string.split(renderer)[3]
+                    if date > "20021216": # not sure about exact date
+                        ok=1
+                if not ok:
+                    failure_callback()
+            else:
+                raise RuntimeError("Unknown gl_assumption: %s == %s"%(gl_variable,required_value))
         elif string.upper(gl_variable) == "GL_VERSION":
             value_str = string.split(gl.glGetString(gl.GL_VERSION))[0]
             value_ints = map(int,string.split(value_str,'.'))
             value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
             if value < required_value:
                 failure_callback()
+        else:
+            raise RuntimeError("Unknown gl_assumption")
