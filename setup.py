@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
 if build_sdl:
     print "Attempting to build with SDL. If you get compilation errors"
     print "such as 'SDL/SDL.h: No such file or directory', edit setup.py"
-    print "and change set build_sdl = 0."
+    print "and set build_sdl = 0."
 else:
     print "WARNING: Building without SDL.  Some graphics functionality"
     print "may be lost."
