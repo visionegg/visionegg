@@ -1,7 +1,14 @@
 """Graphical user interface classes and functions"""
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
+
+import VisionEgg
+
+__version__ = VisionEgg.release_name
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 ####################################################################
 #
@@ -11,14 +18,30 @@
 
 import VisionEgg
 import os
-import Tkinter, tkMessageBox, tkFileDialog
 import string
 import sys
 
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+class _delay_import_error:
+    """Defer import errors until they cause problems."""
+    def __init__(self,orig_traceback):
+        self.orig_traceback = orig_traceback
+    def __getattr__(self,name):
+        raise self.orig_traceback # ImportError deferred from earlier failure
+    
+try:
+    import Tkinter
+except ImportError, x: # don't fail on this until it becomes a problem...
+    Tkinter = _delay_import_error(x)
+    
+try:
+    import tkMessageBox
+except ImportError, x: # don't fail on this until it becomes a problem...
+    tkMessageBox = _delay_import_error(x)
+    
+try:
+    import tkFileDialog
+except ImportError, x: # don't fail on this until it becomes a problem...
+    tkFileDialog = _delay_import_error(x)
 
 def showexception(exc_type, exc_value, traceback_str):
     # private subclass of Tkinter.Frame
@@ -67,7 +90,7 @@ class AppWindow(Tkinter.Frame):
     """A GUI Window that can be subclassed for a main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
         VisionEgg.config._Tkinter_used = True
-        Tkinter.Frame.__init__(*(self,master),**cnf)
+        Tkinter.Frame.__init__(self,master,**cnf)
         self.winfo_toplevel().title('Vision Egg')
 
         self.info_frame = InfoFrame(self)
@@ -87,7 +110,7 @@ class ProgressBar(Tkinter.Frame):
                  labelColor="black", labelFont="Helvetica",
                  labelText="", labelFormat="%d%%",
                  value=50, **cnf):
-        Tkinter.Frame.__init__(*(self,master) )
+        Tkinter.Frame.__init__(self,master)
         # preserve various values
         self.master=master
         self.orientation=orientation
@@ -160,7 +183,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
         VisionEgg.config._Tkinter_used = True        
-        Tkinter.Frame.__init__(*(self,master),**cnf)
+        Tkinter.Frame.__init__(self,master,**cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
         
@@ -551,7 +574,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         class DarwinFineTuneDialog(ToplevelDialog):
             def __init__(self,parent,**cnf):
                 # Bugs in Tk 8.4a4 for Darwin seem to prevent use of "grid" in this dialog
-                ToplevelDialog.__init__(*(self,),**cnf)
+                ToplevelDialog.__init__(self,**cnf)
                 self.title("Fine tune maximum priority")
                 f = Tkinter.Frame(self)
                 f.pack(expand=1,fill=Tkinter.BOTH,ipadx=2,ipady=2)
@@ -671,7 +694,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
         VisionEgg.config._Tkinter_used = True
-        Tkinter.Frame.__init__(*(self,master),**cnf)
+        Tkinter.Frame.__init__(self,master,**cnf)
 
         Tkinter.Label(self,text="Vision Egg information:").pack()
         self.sub_frame = Tkinter.Frame(self,relief=Tkinter.GROOVE)
@@ -696,7 +719,7 @@ class ToplevelDialog(Tkinter.Toplevel):
     """Base class for a dialog that runs on the top level."""
     def __init__(self,**kw):
         VisionEgg.config._Tkinter_used = True        
-        Tkinter.Toplevel.__init__(*(self,),**kw)
+        Tkinter.Toplevel.__init__(self,**kw)
         self.transient(self)
 
     def destroy(self):
@@ -724,7 +747,7 @@ class GetKeypressDialog(ToplevelDialog):
                  key_list=[],
                  **kw):
         
-        ToplevelDialog.__init__(*(self,),**kw)
+        ToplevelDialog.__init__(self,**kw)
         self.title(title)
         self.result = None
 
