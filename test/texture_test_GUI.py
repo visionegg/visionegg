@@ -100,7 +100,6 @@ class TextureTestFrame(Tkinter.Frame):
         tex_buf.free()
 
     def do_resident_textures(self):
-        print "Not implemented yet!"
         glEnable( GL_TEXTURE_2D )
         print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
         VisionEgg.video_info.tex_compress = self.tex_compression.get()
@@ -118,16 +117,18 @@ class TextureTestFrame(Tkinter.Frame):
             tex_bufs.append( orig.get_texture_buffer() )
 
             answers = glAreTexturesResident( tex_ids )
-            if type(answers) != type([1,2]):
-                answers = list([answers])
-            for answer in answers:
-                if answer == 0:
-                    done = 1 # loop until one of the textuers isn't resident
-            max_within_reason = 50
+            if type(answers) != type([1,2]): # in the case of 1 tex_id, result is a scalar
+                answers = [answers] # make a list of len(1)
+            answers = array(answers) # make NumPy array
+            num_res = sum(sum(answers))
+            if num_res < (len(tex_ids)-1): # For some reason, one texture always reported non-resident
+                done = 1 
+            max_within_reason = 51
             if counter > max_within_reason:
                 print "Stopping glAreTexturesResident() test -- Over %d textures are reported resident!"%max_within_reason
                 done = 1
-        print "%d textures were reported resident, but %d were not."%(counter-1,counter)
+        if not counter > max_within_reason:
+            print "%d textures were reported resident, but %d were not."%(counter-1,counter)
         for buf in tex_bufs:
             buf.free()
 
