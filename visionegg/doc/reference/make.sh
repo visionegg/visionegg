@@ -15,11 +15,15 @@ $python pydoc.py -w VisionEgg.ParameterTypes
 $python pydoc.py -w VisionEgg.PlatformDependent
 $python pydoc.py -w VisionEgg.PyroClient
 $python pydoc.py -w VisionEgg.PyroHelpers
+$python pydoc.py -w VisionEgg.QuickTime
 $python pydoc.py -w VisionEgg.SphereMap
 $python pydoc.py -w VisionEgg.TCPController
 $python pydoc.py -w VisionEgg.Text
 $python pydoc.py -w VisionEgg.Textures
+$python pydoc.py -w VisionEgg.ThreeDeeMath
 $python pydoc.py -w VisionEgg.darwin_app_stuff
 $python pydoc.py -w VisionEgg.darwin_maxpriority
+$python pydoc.py -w VisionEgg.gl_qt
 $python pydoc.py -w VisionEgg.posix_maxpriority
+$python pydoc.py -w VisionEgg.win32_getrefresh.py
 $python pydoc.py -w VisionEgg.win32_maxpriority
