@@ -38,30 +38,17 @@ from math import *
 ####################################################################
 
 class SinGrating(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'projection':None, # set in __init__
-                               'on':1,
+    parameters_and_defaults = {'on':1,
                                'contrast':1.0,
-                               'left':0.0, # In eye coords (clip/window coords depend on projection)
-                               'bottom':0.0,
-                               'width':1.0,
-                               'height':1.0,
-                               'wavelength':0.2, # in eye coord units
+                               'lowerleft':(0.0,0.0),
+                               'size':(640.0,480.0),
+                               'wavelength':128.0, # in eye coord units
                                'phase':0.0, # degrees
                                'orientation':0.0, # 0=right, 90=down
                                'num_samples':256 # number of spatial samples, should be a power of 2
                                }
     def __init__(self,projection = None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
-
-        # Make sure the projection is set
-        if projection is not None:
-            # Use the user-supplied projection
-            self.parameters.projection = projection
-        else:
-            # No user-supplied projection, use the default. (Which is probably None.)
-            if self.parameters.projection is None:
-                # Since the default projection is None, set it to something useful.
-                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
 
         self.texture_object = glGenTextures(1)
         glBindTexture(GL_TEXTURE_1D,self.texture_object)
@@ -71,9 +58,9 @@ class SinGrating(VisionEgg.Core.Stimulus):
         if self.parameters.num_samples > max_dim:
             raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
-        l = self.parameters.left
-        r = self.parameters.left+self.parameters.width
-        inc = self.parameters.width/float(self.parameters.num_samples)
+        l = self.parameters.lowerleft[0]
+        r = l + self.parameters.size[0]
+        inc = self.parameters.size[0]/float(self.parameters.num_samples)
         floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')+(self.parameters.phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
         texel_data = (floating_point_sin*255.0).astype('b').tostring()
 
@@ -107,7 +94,7 @@ class SinGrating(VisionEgg.Core.Stimulus):
         glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
         glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
 
-        if self.parameters.width != self.parameters.height:
+        if self.parameters.size[0] != self.parameters.size[1]:
             self.give_size_warning()
         else:
             self.gave_size_warning = 0
@@ -119,7 +106,7 @@ class SinGrating(VisionEgg.Core.Stimulus):
 
     def draw(self):
         if self.parameters.on:
-            if self.parameters.width != self.parameters.height:
+            if self.parameters.size[0] != self.parameters.size[1]:
                 if not self.gave_size_warning:
                     self.give_size_warning()
                     
@@ -127,18 +114,15 @@ class SinGrating(VisionEgg.Core.Stimulus):
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
 
-            # Save then set the projection matrix
-            self.parameters.projection.push_and_set_gl_projection()
-            
             glDisable(GL_DEPTH_TEST)
             glDisable(GL_BLEND)
             glDisable(GL_TEXTURE_2D)
             glEnable(GL_TEXTURE_1D)
             glBindTexture(GL_TEXTURE_1D,self.texture_object)
 
-            l = self.parameters.left
-            r = self.parameters.left+self.parameters.width
-            inc = self.parameters.width/float(self.parameters.num_samples)
+            l = self.parameters.lowerleft[0]
+            r = l + self.parameters.size[0]
+            inc = self.parameters.size[0]/float(self.parameters.num_samples)
             floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')+self.parameters.phase)*0.5*self.parameters.contrast+0.5
             texel_data = (floating_point_sin*255.0).astype('b').tostring()
         
@@ -152,8 +136,10 @@ class SinGrating(VisionEgg.Core.Stimulus):
             
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
-            b = self.parameters.bottom
-            t = b + self.parameters.height
+            l = self.parameters.lowerleft[0]
+            r = l + self.parameters.size[0]
+            b = self.parameters.lowerleft[1]
+            t = b + self.parameters.size[1]
 
             # Get a matrix used to rotate the texture coordinates
             glMatrixMode(GL_TEXTURE)
@@ -177,6 +163,4 @@ class SinGrating(VisionEgg.Core.Stimulus):
             
             glLoadIdentity() # clear the texture matrix
             
-            glMatrixMode(GL_PROJECTION)
-            glPopMatrix() # restore projection matrix
             glDisable(GL_TEXTURE_1D)
