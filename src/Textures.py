@@ -25,7 +25,7 @@ import pygame.surface, pygame.image             # pygame
 import math, types, os
 import Numeric, MLab
 
-gl = VisionEgg.Core.gl # get (modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
@@ -86,7 +86,7 @@ def next_power_of_2(f):
 def is_power_of_2(f):
     return f == next_power_of_2(f)
 
-class Texture:
+class Texture(object):
     """A 2 dimensional texture.
 
     The pixel data can come from an image file, an image file stream,
@@ -108,6 +108,21 @@ class Texture:
     used to remove the data from OpenGL.
 
     A reference to the original image data is maintained."""
+
+    __slots__ = ('texels',
+                 'texture_object',
+                 'size',
+                 '_filename',
+                 '_file_stream',
+                 'buf_lf',
+                 'buf_rf',
+                 'buf_bf',
+                 'buf_tf',
+                 '_buf_l',
+                 '_buf_r',
+                 '_buf_b',
+                 '_buf_t',
+                 )
     
     def __init__(self,texels=None,size=None):
         """Creates instance of Texture object.
@@ -337,16 +352,32 @@ class Texture:
         return self.texture_object
 
 class TextureFromFile( Texture ):
+    __slots__ = Texture.__slots__
     def __init__(self, filename ):
         VisionEgg.Core.message.add("class TextureFromFile outdated, use class Texture instead.",
                                    VisionEgg.Core.Message.DEPRECATION)
         Texture.__init__(self, filename)
 
-class TextureObject:
+class TextureObject(object):
     """Texture data in OpenGL. Potentially resident in video texture memory.
 
     This class encapsulates the state variables in OpenGL texture objects.  Do not
     change attribute values directly.  Use the methods provided instead."""
+
+    __slots__ = (
+        'min_filter',
+        'mag_filter',
+        'wrap_mode_r', # if dimensions > 2
+        'wrap_mode_s',
+        'wrap_mode_t', # if dimensions > 1
+        'border_color',
+        'mipmap_arrays', # if dimensions != 'cube'
+        'cube_mipmap_arrays', # if dimensions == 'cube'
+        'target',
+        'dimensions',
+        'gl_id',
+        '__gl_module__',
+        )
 
     _cube_map_side_names = ['positive_x', 'negative_x',
                             'positive_y', 'negative_y',
@@ -385,10 +416,10 @@ class TextureObject:
 
         self.dimensions = dimensions
         self.gl_id = gl.glGenTextures(1)
-        self.gl_module = gl # keep so we there's no error in __del__
+        self.__gl_module__ = gl # keep so we there's no error in __del__
 
     def __del__(self):
-        self.gl_module.glDeleteTextures(self.gl_id)
+        self.__gl_module__.glDeleteTextures(self.gl_id)
 
     def set_min_filter(self, filter):
         gl.glBindTexture(self.target, self.gl_id)
@@ -970,6 +1001,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
     Don't instantiate this class directly."""
+
     parameters_and_defaults = {
         'texture':(None,
                    ve_types.Instance(Texture)),
@@ -992,6 +1024,11 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                              ve_types.Boolean),
         }
                                         
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        'texture_object',
+        '_using_texture',
+        )
+    
     _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
 
@@ -1169,6 +1206,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     coordinated fixed to 1.0 if not given).
 
     """
+    
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -1194,6 +1232,8 @@ class TextureStimulus(TextureStimulusBaseClass):
         'depth_test':(False,
                       ve_types.Boolean),
         }
+    
+    __slots__ = TextureStimulusBaseClass.__slots__
     
     def __init__(self,**kw):
         TextureStimulusBaseClass.__init__(self,**kw)
@@ -1278,6 +1318,7 @@ class TextureStimulus(TextureStimulusBaseClass):
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
+
     parameters_and_defaults = {'on':(True,
                                      ve_types.Boolean),                               
                                'lowerleft':((0.0,0.0,-1.0), # in eye coordinates
@@ -1296,6 +1337,8 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                              ve_types.Boolean),
                                }
                                                                                 
+    __slots__ = TextureStimulusBaseClass.__slots__
+    
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -1348,6 +1391,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -1375,6 +1419,13 @@ class SpinningDrum(TextureStimulusBaseClass):
         'orientation':(0.0, # 0=right, 90=up
                        ve_types.Real)
         }
+    
+    __slots__ = TextureStimulusBaseClass.__slots__ + (
+        'cached_display_list_normal',
+        'cached_display_list_mirror',
+        'cached_display_list_num_sides',
+        'texture_stimulus',
+        )
     
     def __init__(self,**kw):
         TextureStimulusBaseClass.__init__(self,**kw)

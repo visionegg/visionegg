@@ -18,7 +18,7 @@ import VisionEgg.ParameterTypes as ve_types
 import Numeric, RandomArray
 import math, types, string
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 ##try:
 ##    import VisionEgg._draw_in_c
@@ -63,6 +63,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     move in the one direction, while the rest move in random
     directions. Dots wrap around edges. Each dot has a lifespan.
     """
+    
     parameters_and_defaults = {
         'on' : ( True,
                  ve_types.Boolean ),
@@ -92,11 +93,21 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         'center' : (None,  # DEPRECATED -- don't use
                     ve_types.Sequence2(ve_types.Real)),        
         }
+    
     constant_parameters_and_defaults = {
         'num_dots' : ( 100,
                        ve_types.UnsignedInteger ),
         }
 
+    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+        'x_positions',
+        'y_positions',
+        'random_directions_radians',
+        'last_time_sec',
+        'start_times_sec',
+        '_gave_alpha_warning',
+        )
+    
     def __init__(self, **kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         # store positions normalized between 0 and 1 so that re-sizing is ok

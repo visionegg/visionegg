@@ -14,7 +14,7 @@ import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import OpenGL.GLUT
 glut = OpenGL.GLUT
@@ -34,7 +34,7 @@ except NameError:
     False = 1==0
 
 class Text(VisionEgg.Textures.TextureStimulus):
-    
+
     parameters_and_defaults = {
         'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
                   ve_types.String),
@@ -48,6 +48,11 @@ class Text(VisionEgg.Textures.TextureStimulus):
         'font_name':(None, # None = use default font
                      ve_types.String),
         }
+    
+    __slots__ = VisionEgg.Textures.TextureStimulus.__slots__ + (
+        'font',
+        '_text',
+        )
     
     def __init__(self,**kw):
         if not pygame.font:
@@ -92,17 +97,21 @@ class Text(VisionEgg.Textures.TextureStimulus):
 class GlutTextBase(VisionEgg.Core.Stimulus):
     """Deprecated base class. Don't instantiate this class directly.
 
-    It's a base class that defines the common interface between the
+    Base class that defines the common interface between the
     other glut-based text stimuli."""
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
-        'color':((1.0,1.0,1.0,1.0),
-                 ve_types.Sequence4(ve_types.Real)),
-        'lowerleft':((320.0,240.),
+        'color':((1.0,1.0,1.0),
+                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                ve_types.Sequence4(ve_types.Real))),
+        'lowerleft':((320,240),
                      ve_types.Sequence2(ve_types.Real)),
         'text':('the string to display',
                 ve_types.String)}
+    
+    __slots__ = VisionEgg.Core.Stimulus.__slots__
     
     def __init__(self,**kw):
         if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
@@ -111,16 +120,20 @@ class GlutTextBase(VisionEgg.Core.Stimulus):
                 a future release. Use VisionEgg.Text.Text instead.""",
                 level=VisionEgg.Core.Message.DEPRECATION)
             VisionEgg.config._GAVE_GLUT_TEXT_DEPRECATION = 1
-            VisionEgg.Core.Stimulus.__init__(*(self,),**kw)
+            VisionEgg.Core.Stimulus.__init__(self,**kw)
 
 class BitmapText(GlutTextBase):
     """This class is deprecated.  Don't use it anymore."""
+
     parameters_and_defaults = {
         'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
                 ve_types.Integer),
         }
+    
+    __slots__ = GlutTextBase.__slots__
+    
     def __init__(self,**kw):
-        GlutTextBase.__init__(*(self,),**kw)
+        GlutTextBase.__init__(self,**kw)
 
     def draw(self):
         if self.parameters.on:
@@ -133,7 +146,7 @@ class BitmapText(GlutTextBase):
             gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
 
             c = self.parameters.color
-            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glColorf(*c)
             gl.glDisable(gl.GL_TEXTURE_2D)
 
             gl.glRasterPos3f(0.0,0.0,0.0)
@@ -141,6 +154,7 @@ class BitmapText(GlutTextBase):
                 glut.glutBitmapCharacter(self.parameters.font,ord(char))
 
 class StrokeText(GlutTextBase):
+
     parameters_and_defaults = {
         'font':(glut.GLUT_STROKE_ROMAN,
                 ve_types.Integer),
@@ -151,9 +165,12 @@ class StrokeText(GlutTextBase):
         'anti_aliasing':(True,
                          ve_types.Boolean),
         }
+    
+    __slots__ = GlutTextBase.__slots__
+    
     def __init__(self,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
-        GlutTextBase.__init__(*(self,),**kw)
+        GlutTextBase.__init__(self,**kw)
 
     def draw(self):
         if self.parameters.on:
@@ -166,7 +183,7 @@ class StrokeText(GlutTextBase):
             gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
             c = self.parameters.color
-            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glColorf(*c)
 
             gl.glLineWidth(self.parameters.linewidth)
 
