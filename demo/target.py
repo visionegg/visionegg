@@ -53,7 +53,7 @@ target_position_controller = FunctionController(during_go_func=get_target_positi
 #  Connect the controllers with the variables they control  #
 #############################################################
 
-p.add_controller(target,'center', target_position_controller )
+p.add_controller(target,'position', target_position_controller )
 
 #######################
 #  Run the stimulus!  #
