@@ -8,6 +8,12 @@ all = ['AnyOf', 'Boolean', 'Callable', 'AnyClass', 'Instance',
        'Sequence2', 'Sequence3', 'Sequence4', 'Sequence4x4', 'String',
        'UnsignedInteger', 'assert_type', 'get_type', 'is_parameter_type_def']
 
+import VisionEgg
+__version__ = VisionEgg.release_name
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
 import types, warnings
 
 # Use Python's bool constants if available, make aliases if not
@@ -19,7 +25,6 @@ except NameError:
 
 class ParameterTypeDef(object):
     """Base class for all parameter type definitions"""
-    
     def verify(value):
         # override this method with type-checking code
         raise RuntimeError('must override base class method verify')
@@ -57,6 +62,8 @@ class AnyOf(ParameterTypeDef):
             if not is_parameter_type_def(item_type):
                 raise TypeError("%s is not a valid type definition")
         self.item_types = item_types
+    def __str__(self):
+        return 'AnyOf(%s)'%(','.join(map(str,self.item_types)))
     def verify(self,is_any_of):
         for item_type in self.item_types:
             if item_type.verify(is_any_of):
@@ -128,7 +135,7 @@ class Real(ParameterTypeDef):
         else:
             return False
     verify = staticmethod(verify)
-
+    
 class Sequence(ParameterTypeDef):
     """A tuple, list or Numeric array"""
     def __init__(self,item_type):
@@ -248,9 +255,22 @@ def get_type(value):
                     except TypeError:
                         is_sequence4x4 = False
                 if is_sequence4x4:
-                    sequence4x4_type = get_type(value[0][0]) # assume all same types
+                    sequence4x4_type = get_type(value[0][0]) # XXX assume all same types
                     return Sequence4x4(sequence4x4_type)
-            sequence_type = get_type(value[0]) # assume all same types
+            if type(value) == str:
+                return String
+            lcd_type = get_type(value[0]) # lowest common denominator type
+            for i in range(len(value)):
+                this_type = get_type(value[i])
+                if lcd_type != this_type:
+                    # find lowest common denominator type
+                    if lcd_type.verify( this_type ):
+                        continue # covered by lowest common denominator
+                    elif this_type.verify( lcd_type ):
+                        lcd_type = this_type # new lowest common denominator
+                    else:
+                        lcd_type = AnyOf( lcd_type, this_type ) # make new lowest common denominator
+            sequence_type = lcd_type
             if len(value) == 2:
                 return Sequence2(sequence_type)
             elif len(value) == 3:
