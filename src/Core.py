@@ -54,7 +54,7 @@ message -- Instance of Message class
 #
 ####################################################################
 
-import sys,types,string, math, time             # standard Python modules
+import sys, types, string, math, time, os       # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
@@ -231,6 +231,11 @@ class Screen(VisionEgg.ClassWithParameters):
             message.add("Failed execution of pygame.display.set_mode():%s"%x,
                         level=Message.FATAL)
 
+        try:
+            pygame.display.set_icon(pygame.transform.scale(pygame.image.load(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp')).convert(),(32,32)))
+        except Exception,x:
+            message.add("Error while trying to set_icon: %s: %s"%(str(x.__class__),str(x)))
+        
         self.red_bits = None
         self.green_bits = None
         self.blue_bits = None
