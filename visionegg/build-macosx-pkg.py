@@ -15,7 +15,7 @@ Author: Andrew Straw <astraw@users.sourceforge.net>
 import os, string, shutil, copy, tempfile
 import setup # from local directory
 
-pkg_name = "%s-%s.macosx.py22"%(setup.name,setup.version,)
+pkg_name = "visionegg" # Must be short to deal with Stuffit Expander braindead-ness
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
 bdist_dumb_results = "/Users/astraw/src/visionegg/visionegg-devel/dist/visionegg-%s.darwin-5.5-Power_Macintosh.tar.gz"%(setup.version,)
 
@@ -226,19 +226,19 @@ print "Writing %s"%(install_sh_file,)
 f = open(install_sh_file, "w")
 f.write(install_sh)
 f.close()
-os.chmod(install_sh_file,0555) # a+rw
+os.chmod(install_sh_file,0755)
 
 print "Writing %s"%(post_install_file,)
 f = open(post_install_file, "w")
 f.write(post_install)
 f.close()
-os.chmod(post_install_file,0555) # a+rw
+os.chmod(post_install_file,0755)
 
 print "Writing %s"%(post_upgrade_file,)
 f = open(post_upgrade_file, "w")
 f.write(post_upgrade)
 f.close()
-os.chmod(post_upgrade_file,0555) # a+rw
+os.chmod(post_upgrade_file,0755)
 
 ##os.chdir(bdist_dumb_dir)
 ##cmd = "sudo chown -R astraw *"
