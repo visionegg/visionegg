@@ -161,11 +161,19 @@ def recursive_base_class_finder(klass):
             result2.append(r)
     return result2
     
-############# What is the best timing function? #############
-if sys.platform == 'win32':
-    timing_func = time.clock
+############# Setup timing functions #############
+if sys.platform == "win32":
+    # on win32, time.clock() theoretically has better resolution than time.time()
+    real_timing_func = time.clock 
 else:
-    timing_func = time.time    
+    real_timing_func = time.time
+
+config._FRAMECOUNT_ABSOLUTE = 0 # initialize global variable
+def timing_func():
+    if config.VISIONEGG_LOCK_TIME_TO_FRAMES:
+        return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
+    else:
+        return real_timing_func()
 
 ####################################################################
 #
@@ -296,7 +304,7 @@ class ClassWithParameters:
                     if type(value) != types.NoneType:
                         # Check anything other than None
                         if not isinstance(value,tipe):
-                            if not (type(value) == int and tipe == types.FloatType): # allow ints to pass as floats
+                            if not (type(value) == types.IntType and tipe == types.FloatType): # allow ints to pass as floats
                                 raise TypeError("Constant parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
                     setattr(self.constant_parameters,parameter_name,value)
                 done_constant_parameters_and_defaults.append(klass.constant_parameters_and_defaults)
