@@ -882,7 +882,6 @@ class TextureObject(object):
                             size = None,
                             internal_format = gl.GL_RGB,
                             cube_side = None,
-                            check_opengl_errors = True,
                             ):
 
         """Replace texture object with the framebuffer contents.
@@ -896,8 +895,8 @@ class TextureObject(object):
         For an explanation of most parameters, see the
         put_new_image() method."""
         
-        if self.dimensions not in [1,2,'cube']:
-            raise RuntimeError("put_new_framebuffer only supported for 1D, 2D, and cube map textures.")
+        if self.dimensions != 2:
+            raise RuntimeError("put_new_framebuffer only supported for 2D textures.")
 
         if buffer == 'front':
             gl.glReadBuffer( gl.GL_FRONT )
@@ -929,67 +928,21 @@ class TextureObject(object):
             raise ValueError("Must specify size for put_new_framebuffer(): cannot guess")
 
         # determine size and make sure its power of 2
-        if self.dimensions == 1:
-            width = size[0]
-            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
-            new_mipmap_array['width'] = width
-        else:
-            width, height = size
-            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
-            if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
-            new_mipmap_array['width'] = width
-            new_mipmap_array['height'] = height
+        width, height = size
+        if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
+        if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
+        new_mipmap_array['width'] = width
+        new_mipmap_array['height'] = height
 
-        if self.dimensions == 1:
-            if check_opengl_errors:
-                target = gl.GL_PROXY_TEXTURE_1D
-                gl.glCopyTexImage1D(target,
-                                    mipmap_level,
-                                    internal_format,
-                                    x,
-                                    y,
-                                    width,
-                                    border)
-                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
-                    raise TextureTooLargeError("texel_data is too wide for your video system.")
-            gl.glCopyTexImage1D(gl.GL_TEXTURE_1D,
-                                mipmap_level,
-                                internal_format,
-                                x,
-                                y,
-                                width,
-                                border)
-        else: # self.dimensions in [2,'cube']
-            if check_opengl_errors:
-                if self.dimensions == 2:
-                    target = gl.GL_PROXY_TEXTURE_2D
-                else:
-                    target = gl.GL_PROXY_CUBE_MAP
-                gl.glCopyTexImage2D(target,
-                                    mipmap_level,
-                                    internal_format,
-                                    x,
-                                    y,
-                                    width,
-                                    height,
-                                    border)
-                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
-                    raise TextureTooLargeError("texel_data is too wide for your video system.")
-                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
-                    raise TextureTooLargeError("texel_data is too tall for your video system.")
-            if self.dimensions == 2:
-                target = gl.GL_TEXTURE_2D
-            else:
-                target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
-                target = getattr(gl,target_name)
-            gl.glCopyTexImage2D(target,
-                                mipmap_level,
-                                internal_format,
-                                x,
-                                y,
-                                width,
-                                height,
-                                border)
+        target = gl.GL_TEXTURE_2D
+        gl.glCopyTexImage2D(target,
+                            mipmap_level,
+                            internal_format,
+                            x,
+                            y,
+                            width,
+                            height,
+                            border)
 
 ####################################################################
 #
