@@ -59,9 +59,11 @@ from distutils import dir_util
 import sys, os.path, glob, traceback
 
 package_dir      = {'VisionEgg'          : 'src',
-                    'VisionEgg.PyroApps' : os.path.join('src','PyroApps')}
+                    'VisionEgg.PyroApps' : os.path.join('src','PyroApps'),
+                    }
 packages         = [ 'VisionEgg',
-                     'VisionEgg.PyroApps' ]
+                     'VisionEgg.PyroApps',
+                     ]
 ext_package      = 'VisionEgg'
 ext_modules      = []  # filled in later
 
