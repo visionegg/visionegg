@@ -88,25 +88,31 @@ class ClassWithParameters:
 
     Any class that uses parameters potentially modifiable in realtime
     should be a subclass of ClassWithParameters.  This class enforces
-    a standard system of parameter specification and default value
-    setting.  See classes Screen, Viewport, or any daughter class of
-    Stimulus for examples."""
+    a standard system of parameter specification with type checking
+    and default value setting.  See classes Screen, Viewport, or any
+    daughter class of Stimulus for examples."""
     
+    constant_parameters_and_defaults = {} # empty for base class
     parameters_and_defaults = {} # empty for base class
 
     def __init__(self,**kw):
         """Create self.parameters and set values."""
         
+        self.constant_parameters = Parameters() # create self.constant_parameters
         self.parameters = Parameters() # create self.parameters
         
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
 
+        done_constant_parameters_and_defaults = []
         done_parameters_and_defaults = []
         done_kw = []
         
         # Fill self.parameters with parameter names and set to default values
         for klass in classes:
+            # Create self.parameters and set values to keyword argument if found,
+            # otherwise to default value.
+            #
             # If a class didn't override base class's parameters_and_defaults dictionary, don't deal with it twice
             if klass.parameters_and_defaults not in done_parameters_and_defaults:
                 for parameter_name in klass.parameters_and_defaults.keys():
@@ -129,14 +135,53 @@ class ClassWithParameters:
                     if type(value) != types.NoneType:
                         # Check anything other than None
                         if not isinstance(value,tipe):
-                            raise TypeError("Parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
+                            raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
                     setattr(self.parameters,parameter_name,value)
                 done_parameters_and_defaults.append(klass.parameters_and_defaults)
+            # Create self.constant_parameters and set values to keyword argument if found,
+            # otherwise to default value.
+            #
+            # If a class didn't override base class's parameters_and_defaults dictionary, don't deal with it twice
+            if klass.constant_parameters_and_defaults not in done_constant_parameters_and_defaults:
+                for parameter_name in klass.constant_parameters_and_defaults.keys():
+                    # Make sure this parameter key/value pair doesn't exist already
+                    if hasattr(self.parameters,parameter_name):
+                        raise ValueError("Definition of '%s' as variable parameter and constant parameter."%parameter_name)
+                    if hasattr(self.constant_parameters,parameter_name):
+                        raise ValueError("More than one definition of constant parameter '%s'"%parameter_name)
+                    # Get default value and the type
+                    if type(klass.constant_parameters_and_defaults[parameter_name]) != types.TupleType:
+                        raise ValueError("Definition of constant parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
+                    if len(klass.constant_parameters_and_defaults[parameter_name]) != 2:
+                        raise ValueError("Definition of constant parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
+                    value,tipe = klass.constant_parameters_and_defaults[parameter_name]
+                    if type(tipe) not in [types.TypeType,types.ClassType]:
+                        raise ValueError("In definition of constant parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
+                    # Was a non-default value passed for this parameter?
+                    if parameter_name in kw.keys(): 
+                        value = kw[parameter_name]
+                        done_kw.append(parameter_name)
+                    # Allow None to pass as acceptable value -- lets __init__ set own default
+                    if type(value) != types.NoneType:
+                        # Check anything other than None
+                        if not isinstance(value,tipe):
+                            raise TypeError("Constant parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
+                    setattr(self.constant_parameters,parameter_name,value)
+                done_constant_parameters_and_defaults.append(klass.constant_parameters_and_defaults)
 
         # Set self.parameters to the value in "kw"
         for kw_parameter_name in kw.keys():
             if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
+
+    def is_constant_parameter(self,parameter_name):
+        # Get a list of all classes this instance is derived from
+        classes = recursive_base_class_finder(self.__class__)
+        for klass in classes:
+            if parameter_name in klass.constant_parameters_and_defaults.keys():
+                return 1
+        # The for loop only completes if parameter_name is not in any subclass
+        return 0
 
     def get_specified_type(self,parameter_name):
         # Get a list of all classes this instance is derived from
