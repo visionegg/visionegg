@@ -5,8 +5,28 @@
 # GNU General Public License (GPL).
 
 from distutils.core import setup, Extension
+import os, sys
 
-build_sdl = 1
+find_SDL_command = 'sdl-config'
+print "Attempting to find SDL by executing '%s'." % find_SDL_command
+No_SDL_On_Path = os.system( find_SDL_command )
+
+if No_SDL_On_Path:
+    build_sdl = 0
+else:
+    build_sdl = 1
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'sdist':
+        build_sdl = 1 # Always include in a source distribution
+
+if build_sdl:
+    print "Attempting to build with SDL. If you get compilation errors"
+    print "such as 'SDL/SDL.h: No such file or directory', edit setup.py"
+    print "and change set build_sdl = 0."
+else:
+    print "WARNING: Building without SDL.  Some graphics functionality"
+    print "may be lost."
 
 # Base packages and extension modules
 pkgs = [ 'VisionEgg' ]
@@ -22,7 +42,7 @@ if build_sdl:
 
 # Normal distutils stuff
 setup(name="VisionEgg",
-      version = "0.5.0",
+      version = "0.5.1",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",

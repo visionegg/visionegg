@@ -1,5 +1,4 @@
 #include "Python.h"
-#include <SDL/SDL.h>
 
 /*
  * This is the C source code for various bits of the Vision Egg library.
