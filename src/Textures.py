@@ -57,6 +57,11 @@ except NameError:
     True = 1==1
     False = 1==0
 
+try:
+    shrink_filter = Image.ANTIALIAS # Added in PIL 1.1.3
+except:
+    shrink_filter = Image.BICUBIC # Fallback filtering
+
 ####################################################################
 #
 #        Textures
@@ -126,7 +131,7 @@ class Texture:
         if isinstance(self.texels,Image.Image):
             w = self.size[0]/2
             h = self.size[1]/2
-            small_texels = self.texels.resize((w,h),Image.BICUBIC)
+            small_texels = self.texels.resize((w,h),shrink_filter)
             self.texels = small_texels
             self.size = (w,h)
         else:
@@ -231,7 +236,7 @@ class Texture:
                     self._buf_t = 0
                     self._buf_b = height_pow2
                     
-                    buffer = self.texels.resize((width_pow2,height_pow2),Image.BICUBIC)
+                    buffer = self.texels.resize((width_pow2,height_pow2),shrink_filter)
 
                     self.size = (width_pow2, height_pow2)
                 else:
@@ -267,7 +272,7 @@ class Texture:
                 
                 width_pix = int(math.ceil(this_width))
                 height_pix = int(math.ceil(this_height))
-                shrunk = self.texels.resize((width_pix,height_pix),Image.BICUBIC)
+                shrunk = self.texels.resize((width_pix,height_pix),shrink_filter)
                 
                 width_pow2  = int(next_power_of_2(width_pix))
                 height_pow2  = int(next_power_of_2(height_pix))
