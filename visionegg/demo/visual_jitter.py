@@ -53,7 +53,7 @@ dynamic_checkerboard = TextureStimulus(texture=temp_texture,
                                        )
 
 # allocate static texture
-static_data = RandomArray.uniform(0.0,1.0,static_checkerboard_size)
+static_data = RandomArray.randint(0,2,static_checkerboard_size)
 static_texture = TextureFromNumpyArray(static_data)
     
 # create TextureStimulus for static stimulus
@@ -86,7 +86,7 @@ p = Presentation(go_duration=(dynamic_time+static_time,'seconds'),
 dynamic_texture_buffer = dynamic_checkerboard.texture.get_texture_buffer()
 def control_dynamic(t):
     if t <= dynamic_time:
-        random_data = RandomArray.uniform(0.0,1.0,dynamic_checkerboard_size)
+        random_data = RandomArray.randint(0,2,dynamic_checkerboard_size)
         dynamic_texture_buffer.put_sub_image_numpy( random_data )
 p.add_controller(None,None,FunctionController(during_go_func=control_dynamic))
 
