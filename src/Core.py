@@ -97,18 +97,23 @@ class Screen(VisionEgg.ClassWithParameters):
             pygame.init()
         pygame.display.init()
 
-        # Request alpha in the framebuffer
+        # Request framebuffer depths
+        r = VisionEgg.config.VISIONEGG_REQUEST_RED_BITS
+        g = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
+        b = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
+        a = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
         if hasattr(pygame.display,"gl_set_attribute"):
-            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,8)
-            requested_alpha = 1
+            pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE,r)
+            pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE,g)
+            pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,b)
+            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,a)
         else:
-            requested_alpha = 0
             message.add(
-                """Could not request alpha in framebuffer because you
-                need pygame release 1.4.9 or greater. This is only of
-                concern if you use a stimulus that needs this
-                feature. In that case, the stimulus should verify the
-                presence of alpha.""",level=Message.NAG)
+                """Could not request exact bit depths or alpha in
+                framebuffer because you need pygame release 1.4.9 or
+                greater. This is only of concern if you use a stimulus
+                that needs this. In that case, the stimulus should
+                check for the desired feature(s).""",level=Message.NAG)
             
         if not hasattr(pygame.display,"set_gamma_ramp"):
             message.add(
@@ -126,9 +131,8 @@ class Screen(VisionEgg.ClassWithParameters):
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,self.constant_parameters.preferred_bpp) # try the preferred size first
 
-        if sys.platform=='linux2':
-            # linux (at least nVidia drivers) doesn't like to give a
-            # 32 bpp depth.
+        if sys.platform[:4]=='linux' or sys.platform[:3]=='irix':
+            # SDL doesn't like to give a 32 bpp depth, even if it works
             try:
                 while 1:
                     try_bpps.remove(32)
@@ -163,7 +167,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 level=Message.WARNING)
             try_bpp = 0 # At least try something!
 
-        message.add("Initializing graphics at %d x %d ( %d bpp )."%(self.constant_parameters.size[0],self.constant_parameters.size[1],try_bpp))
+        message.add("Initializing graphics at %d x %d, %d bpp (%d %d %d %d RGBA)."%(self.constant_parameters.size[0],self.constant_parameters.size[1],try_bpp,r,g,b,a))
 
         try:
             pygame.display.set_mode(self.constant_parameters.size, flags, try_bpp )
@@ -172,7 +176,11 @@ class Screen(VisionEgg.ClassWithParameters):
                         level=Message.FATAL)
 
         self.bpp = pygame.display.Info().bitsize
-        message.add("Video system reports %d bpp"%self.bpp)
+        r = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
+        g = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
+        b = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
+        a = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
+        message.add("Video system reports %d bpp (%d %d %d %d RGBA)"%(self.bpp,r,g,b,a))
         if self.bpp < try_bpp:
             message.add(
                 """Video system reports %d bits per pixel, while your program
@@ -1211,13 +1219,13 @@ class ConstantController(Controller):
                  between_go_value = None,
                  **kw
                  ):
-        if during_go_value is None:
-            raise ValueError("Must specify during_go_value")
-        if between_go_value is None:
-            between_go_value = during_go_value
         if 'return_type' not in kw.keys():
             kw['return_type'] = type(during_go_value)
         apply(Controller.__init__,(self,),kw)
+        if self.return_type is not types.NoneType and during_go_value is None:
+            raise ValueError("Must specify during_go_value")
+        if between_go_value is None:
+            between_go_value = during_go_value
         if type(during_go_value) is not self.return_type:
             raise TypeError("going_value must be of type %s"%return_type)
         if type(between_go_value) is not self.return_type:
@@ -1300,6 +1308,7 @@ class ExecStringController(Controller):
     def __init__(self,
                  during_go_exec_string = None,
                  between_go_exec_string = None,
+                 restricted_namespace = 1,
                  **kw
                  ):
         # Create a namespace for eval_strings to use
@@ -1309,15 +1318,18 @@ class ExecStringController(Controller):
             raise ValueError("'during_go_exec_string' is a required argument")
         if between_go_exec_string is None:
             between_go_exec_string = during_go_exec_string
-        
-        # Make Numeric and math modules available
-        self.eval_globals['Numeric'] = Numeric
-        self.eval_globals['math'] = math
-        # Make Numeric and math modules available without module name
-        for key in dir(Numeric):
-            self.eval_globals[key] = getattr(Numeric,key)
-        for key in dir(math):
-            self.eval_globals[key] = getattr(math,key)
+
+        self.restricted_namespace = restricted_namespace
+
+        if self.restricted_namespace:
+            # Make Numeric and math modules available
+            self.eval_globals['Numeric'] = Numeric
+            self.eval_globals['math'] = math
+            # Make Numeric and math modules available without module name
+            for key in dir(Numeric):
+                self.eval_globals[key] = getattr(Numeric,key)
+            for key in dir(math):
+                self.eval_globals[key] = getattr(math,key)
 
         # Check to make sure return_type is set
         if 'return_type' not in kw.keys():
@@ -1336,9 +1348,13 @@ class ExecStringController(Controller):
                     initial_value = 0
                 else:
                     raise ValueError("Unknown value for temporal_variable_type")
-            eval_locals = {temporal_variable_name:initial_value}
-            exec during_go_exec_string in self.eval_globals,eval_locals
-            test_result = eval_locals['x']
+            if self.restricted_namespace:
+                eval_locals = {temporal_variable_name:initial_value}
+                exec during_go_exec_string in self.eval_globals,eval_locals
+                test_result = eval_locals['x']
+            else:
+                exec during_go_exec_string in self.eval_globals,eval_locals
+                test_result = x
             kw['return_type'] = type(test_result)
         
         # Call base class __init__ and copy eval_strings
@@ -1355,14 +1371,22 @@ class ExecStringController(Controller):
         self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
 
     def during_go_eval(self):
-        eval_locals = {self.temporal_variable_name:self.temporal_variable}
-        exec self.during_go_exec_code in self.eval_globals,eval_locals        
-        return eval_locals['x']
+        if self.restricted_namespace:
+            eval_locals = {self.temporal_variable_name:self.temporal_variable}
+            exec self.during_go_exec_code in self.eval_globals,eval_locals        
+            return eval_locals['x']
+        else:
+            exec self.during_go_exec_code
+            return x
 
     def between_go_eval(self):
-        eval_locals = {self.temporal_variable_name:self.temporal_variable}
-        exec self.between_go_exec_code in self.eval_globals,eval_locals
-        return eval_locals['x']
+        if self.restricted_namespace:
+            eval_locals = {self.temporal_variable_name:self.temporal_variable}
+            exec self.between_go_exec_code in self.eval_globals,eval_locals
+            return eval_locals['x']
+        else:
+            exec self.between_go_exec_code
+            return x
     
 class FunctionController(Controller):
     def __init__(self,
