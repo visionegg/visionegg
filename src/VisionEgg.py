@@ -161,18 +161,69 @@ class TextureBuffer:
             raise EggError("Unknown image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
         return self.gl_id
+    
+####################################################################
+#
+#        Projection classes - use OrthographicProjection, Perspective Projection
+#
+####################################################################
+
+class Projection:
+    """Abstract base class that defines how to set the OpenGL projection matrix"""
+    def __init__(self):
+        raise RuntimeError("Must use a subclass of Projection")
+    def set_current_GL_matrix(self):
+        raise RuntimeError("Must use a subclass of Projection")
+
+class OrthographicProjection(Projection):
+    """An orthographic projection"""
+    def __init__(self,left=-1.0,right=1.0,bottom=-1.0,top=1.0,z_clip_near=0.1,z_clip_far=100.0):
+        self.left = left
+        self.right = right
+        self.bottom = bottom
+        self.top = top
+        self.z_clip_near = z_clip_near
+        self.z_clip_far = z_clip_far
+
+    def set_current_GL_matrix(self):
+        """Set the OpenGL projection matrix and then put OpenGL into modelview mode"""
+        
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glLoadIdentity() # Clear the projection matrix
+        glOrtho(self.left,self.right,self.bottom,self.top,self.z_clip_near,self.z_clip_far) # Let GL create a matrix and compose it
+        glMatrixMode(GL_MODELVIEW) # Set the matrix mode to modelview (probably what the user will do next)
+
+class PerspectiveProjection(Projection):
+    """A perspective projection"""
+    def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0):
+        self.fov_x = fov_x
+        self.z_clip_near = z_clip_near
+        self.z_clip_far = z_clip_far
+
+    def set_current_GL_matrix(self):
+        """Set the OpenGL projection matrix and then put OpenGL into modelview mode"""
+        
+        global screen_width,screen_height
+        
+        self.fov_y = self.fov_x / screen_width * screen_height       # Wish that this could be done in __init__, but
+        self.aspect_ratio = float(screen_width)/float(screen_height) # screen_width and screen_heigh may not be defined.
+
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glLoadIdentity() # Clear the projection matrix
+        gluPerspective(self.fov_y,self.aspect_ratio,self.z_clip_near,self.z_clip_far) # Let GLU create a matrix and compose it
+        glMatrixMode(GL_MODELVIEW) # Set the matrix mode to modelview (probably what the user will do next)
 
 ####################################################################
 #
-#        Stimulus - Static teapot (Base class)
+#        Stimulus - Base class (Static teapot, just to show something)
 #
 ####################################################################
 
 class Stimulus:
     """Base class that provides timing routines and core functionality for any stimulus."""
-    def __init__(self,durationSec=1.0,fovx=45.0):
+    def __init__(self,durationSec=1.0,projection=PerspectiveProjection()):
         self.durationSec = durationSec
-        self.fovx = fovx        # horizontal field of view in degrees
+        self.projection = projection
         self.spotOn = 0
         self.drawTimes = [] # List of times the frame was drawn
         self.drawTimes2 = [] # List of times the frame was drawn
@@ -237,15 +288,7 @@ class Stimulus:
         
         # Initialize OpenGL viewport
         glViewport(0,0,screen_width,screen_height)
-        
-        # Now setup projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-
-        fovy = self.fovx / screen_width * screen_height
-        gluPerspective(fovy,float(screen_width)/float(screen_height),0.1,100.0)
-        glMatrixMode(GL_MODELVIEW)
-
+        self.projection.set_current_GL_matrix()
         glClearColor(0.5, 0.5, 0.5, 0.0)
 
     def histogram(self,a, bins):  # straight from NumDoc.pdf
@@ -333,12 +376,7 @@ class Stimulus:
         glViewport(0,0,screen_width,screen_height)
         
         # Now setup projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-
-        fovy = self.fovx / screen_width * screen_height
-        gluPerspective(fovy,float(screen_width)/float(screen_height),0.1,100.0)
-        glMatrixMode(GL_MODELVIEW)
+        self.projection.set_current_GL_matrix()
 
         glClearColor(0.5, 0.5, 0.5, 0.0)
         glClear(GL_COLOR_BUFFER_BIT)
@@ -354,7 +392,7 @@ class Stimulus:
 ####################################################################
 
 class SpinningDrum(Stimulus):
-    def __init__(self,durationSec,texture,posDegFunc,contrastFunc,numSides=30,radius=3.0,fovx=45.0):
+    def __init__(self,durationSec,texture,posDegFunc,contrastFunc,numSides=30,radius=3.0,projection=PerspectiveProjection()):
         self.tex = texture
         self.posFunc = posDegFunc
         self.cFunc = contrastFunc
@@ -363,7 +401,7 @@ class SpinningDrum(Stimulus):
         circum = 2.0*math.pi*self.radius
         self.height = circum*float(self.tex.orig.size[1])/float(self.tex.orig.size[0])
         self.texId = texture.load()
-        Stimulus.__init__(self,durationSec,fovx)
+        Stimulus.__init__(self,durationSec,projection)
 
     def drawGLScene(self):
     	"""Redraw the scene on every frame.
@@ -412,12 +450,7 @@ class SpinningDrum(Stimulus):
         glViewport(0,0,screen_width,screen_height)
         
         # Now setup projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-
-        fovy = self.fovx / screen_width * screen_height
-        gluPerspective(fovy,float(screen_width)/float(screen_height),0.1,100.0)
-        glMatrixMode(GL_MODELVIEW)
+        self.projection.set_current_GL_matrix()
 
         glClearColor(0.5, 0.5, 0.5, 0.0 )
         glClear(GL_COLOR_BUFFER_BIT)
