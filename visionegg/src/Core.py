@@ -16,6 +16,7 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 from VisionEgg import *                         # Vision Egg package
+import PlatformDependent                        # platform dependent Vision Egg C code
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
@@ -47,7 +48,8 @@ class Screen:
                        config.VISIONEGG_SCREEN_H),
                  fullscreen=config.VISIONEGG_FULLSCREEN,
                  preferred_bpp=config.VISIONEGG_PREFERRED_BPP,
-                 bgcolor=config.VISIONEGG_SCREEN_BGCOLOR):
+                 bgcolor=config.VISIONEGG_SCREEN_BGCOLOR,
+                 maxpriority=config.VISIONEGG_MAXPRIORITY):
         self.size = size
         self.fullscreen = fullscreen 
 
@@ -61,7 +63,10 @@ class Screen:
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
 
-        if sys.platform=='linux2': # linux will report it can do 32 bpp, but fails on init
+        # Confirmed on 2xAthlon, Mandrake Linux 2.4.17, nVidia geForce 2, 640x480x180
+        # linux will report it can do 32 bpp, but fails on init
+        # (But then reports 32 bpp!)
+        if sys.platform=='linux2': 
             try:
                 while 1:
                     try_bpps.remove(32)
@@ -93,13 +98,22 @@ class Screen:
         except pygame.error, x:
             print "FATAL VISION EGG ERROR:",x
             sys.exit(1)
+
         self.bpp = pygame.display.Info().bitsize
+        print "Video system reports %d bpp"%self.bpp
         self.cursor_visible_func = pygame.mouse.set_visible
         if self.fullscreen:
             self.cursor_visible_func(0)
 
         self.parameters = Parameters()
         self.parameters.bgcolor = bgcolor
+
+        # Attempt to set maximum priority
+        # (This may not be the best place in the code to do it,
+        # because it's an application-level thing, not a screen-level
+        # thing, but it fits reasonably well here for now.)
+        if maxpriority: 
+            PlatformDependent.set_realtime()
 
     def clear(self):
         c = self.parameters.bgcolor # Shorthand
@@ -261,6 +275,11 @@ class Parameters:
 class Stimulus:
     """Base class for a stimulus.
 
+    Any stimulus element should be a subclass of this Stimulus class.
+    For example, if your experiment displays two spots simultaneously,
+    you could either have two subclasses of Stimulus, each which draws
+    a single spot, or one subclass of Stimulus which draws two spots.
+
     Note that for many stimuli, you will want the stimulus to set its
     own projection.  Most 2D objects should probably define their own
     projection, which will specify where, in relation to the viewport,
@@ -367,55 +386,90 @@ class Presentation:
     """Handles the timing and coordination of stimulus presentation.
 
     This class is the key to the real-time operation of the Vision
-    Egg. It associates controllers with the parameters they control
-    and updates the parameters.  A controller can be either realtime,
-    which means it will be called once every frame, or transitional,
-    which will be called before and after any stimulus presentations.
-    A transitional controller is also called as frequently as possible
-    between stimuli.
+    Egg. It contains the mainloop, and maintains the association
+    between 'controllers' and the parameters they control.  During the
+    mainloop, the parameters are updated via function calls to the
+    controllers.  A controller can be called once every frame (the
+    realtime controllers) or called before and after any stimulus
+    presentations (the transitional_controllers).  All controllers are
+    called as frequently as possible between stimulus presentations.
 
     There is no class named Controller that must be subclassed.
-    Instead, any function which takes a single argument (the time
-    elapsed since the start of a stimulus presentation) can be used as
+    Instead, any function which takes a single argument can be used as
     a controller.  (However, for a controller which can be used from a
     remote computer, see the PyroController class of the PyroHelpers
     module.)
 
-    Please note that the term realtime here is a bit hopeful at this
-    stage, because no OpenGL environment I know of can guarantee that
-    a new frame is drawn and the double buffers swapped before the
-    monitor's next vertical retrace sync pulse.  Still, although one
-    can worry endlessly about this problem, it works.  In other words,
-    on a fast computer with a fast graphics card running even a
-    pre-emptive multi-tasking operating system (insert name of your
-    favorite operating system here), a new frame is drawn before every
-    vertical retrace sync pulse.
+    There are two types of realtime controllers and one transitional
+    controller.
+
+    All contollers are passed a negative value when a stimulus is not
+    being displayed and a non-negative value when the stimulus is
+    being displayed.  realtime_time_controllers are passed the current
+    time (in seconds) since the beginning of a stimulus, while
+    realtime_frame_controllers are passed the current frame number
+    since the beginning of a stimulus.  Immediately prior to drawing
+    the first frame of a stimulus presentation, all controllers are
+    passed a value of zero.
+
+    The realtime_time and realtime_frame controllers are meant to be
+    'realtime', but the term realtime here is a bit hopeful at this
+    stage. This is because no OpenGL environment I know of can
+    guarantee that a new frame is drawn and the double buffers swapped
+    before the monitor's next vertical retrace sync pulse.  Still,
+    although one can worry endlessly about this problem, it works.  In
+    other words, on a fast computer with a fast graphics card running
+    even a pre-emptive multi-tasking operating system (insert name of
+    your favorite operating system here), a new frame is drawn before
+    every vertical retrace sync pulse.
     """
-    def __init__(self,viewports=[],duration_sec=5.0):
+    
+    def __init__(self,viewports=[],duration=(5.0,'seconds')):
         self.parameters = Parameters()
         self.parameters.viewports = viewports
-        self.parameters.duration_sec = duration_sec
-        self.realtime_controllers = []
+        self.parameters.duration = duration
+        self.realtime_time_controllers = []
+        self.realtime_frame_controllers = []
         self.transitional_controllers = []
         self.frame_draw_times = []
 
-    def add_realtime_controller(self, parameters, name, controller):
+    def add_realtime_time_controller(self, parameters, name, controller):
         if not isinstance(parameters,Parameters):
             raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
         if not hasattr(parameters,name):
             raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
-        self.realtime_controllers.append((parameters,name,controller))
+        self.realtime_time_controllers.append((parameters,name,controller))
 
-    def remove_realtime_controller(self, parameters, name):
+    def remove_realtime_time_controller(self, parameters, name):
         if not isinstance(parameters,Parameters):
             raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
         if not hasattr(parameters,name):
             raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
         i = 0
-        while i < len(self.realtime_controllers):
-            orig_parameters,orig_name,orig_controller = self.realtime_controllers[i]
+        while i < len(self.realtime_time_controllers):
+            orig_parameters,orig_name,orig_controller = self.realtime_time_controllers[i]
             if orig_parameters == parameters and orig_name == name:
-                del self.realtime_controllers[i]
+                del self.realtime_time_controllers[i]
+            else:
+                i = i + 1
+
+    def add_realtime_frame_controller(self, parameters, name, controller):
+        if not isinstance(parameters,Parameters):
+            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
+        if not hasattr(parameters,name):
+            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+        self.realtime_frame_controllers.append((parameters,name,controller))
+
+    def remove_realtime_frame_controller(self, parameters, name):
+        if not isinstance(parameters,Parameters):
+            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
+        if not hasattr(parameters,name):
+            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+        i = 0
+        while i < len(self.realtime_frame_controllers):
+            orig_parameters,orig_name,orig_controller = self.realtime_frame_controllers[i]
+            if orig_parameters == parameters and orig_name == name:
+                del self.realtime_frame_controllers[i]
             else:
                 i = i + 1
 
@@ -462,7 +516,8 @@ class Presentation:
         """
         # Create a few shorthand notations, which speeds
         # the main loop by not performing name lookup each time.
-        duration_sec = self.parameters.duration_sec 
+        duration_value = self.parameters.duration[0]
+        duration_units = self.parameters.duration[1]
         viewports = self.parameters.viewports
 
         # Get list of screens
@@ -471,9 +526,7 @@ class Presentation:
             if viewport.screen not in screens:
                 screens.append(viewport.screen)
 
-        # Make sure I have the most up to date parameters
-        for parameters,name,controller in self.realtime_controllers:
-            setattr(parameters,name,controller(0.0))
+        # Tell transitional controllers a presentation is starting
         for parameters,name,controller in self.transitional_controllers:
             setattr(parameters,name,controller(0.0))
 
@@ -485,11 +538,20 @@ class Presentation:
 
         # Do the main loop
         start_time_absolute = timing_func()
-        cur_time = 0.0
-        while (cur_time <= duration_sec):
+        current_time = 0.0
+        current_frame = 0
+        if duration_units == 'seconds':
+            current_duration_value = current_time
+        elif duration_units == 'frames':
+            current_duration_value = current_frame
+        else:
+            raise RuntimeError("Unknown duration unit '%s'"%duration_units)
+        while (current_duration_value <= duration_value):
             # Update all the realtime parameters
-            for parameters,name,controller in self.realtime_controllers:
-                setattr(parameters,name,controller(cur_time))
+            for parameters,name,controller in self.realtime_time_controllers:
+                setattr(parameters,name,controller(current_time))
+            for parameters,name,controller in self.realtime_frame_controllers:
+                setattr(parameters,name,controller(current_frame))
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -500,12 +562,35 @@ class Presentation:
             swap_buffers()
             # If wanted, save time this frame was drawn for
             if collect_timing_info:
-                self.frame_draw_times.append(cur_time)
+                self.frame_draw_times.append(current_time)
             # Get the time for the next frame
-            cur_time_absolute = timing_func()
-            cur_time = cur_time_absolute-start_time_absolute
+            current_time_absolute = timing_func()
+            current_time = current_time_absolute-start_time_absolute
+            current_frame = current_frame + 1
+            # Make sure we use the right value to check if we're done
+            if duration_units == 'seconds':
+                current_duration_value = current_time
+            elif duration_units == 'frames':
+                current_duration_value = current_frame
+            else:
+                raise RuntimeError("Unknown duration unit '%s'"%duration_units)
             
         self.between_presentations() # Call at end of stimulus to reset values
+
+        # Check to see if frame by frame control was desired
+        # but OpenGL not syncing to vertical retrace
+        if len(self.realtime_frame_controllers) > 0: # Frame by frame control desired
+            impossibly_fast_frame_rate = 205.0
+            if current_frame / current_time > impossibly_fast_frame_rate: # Let's assume no monitor exceeds 200 Hz
+                print
+                print "**************************************************************"
+                print
+                print "PROBABLE VISION EGG ERROR: Frame by frame control desired, but"
+                print "average frame rate was %f frames per second-- set your drivers"%(current_frame / current_time)
+                print "to sync buffer swapping to vertical retrace. (platform/driver dependent)"
+                print
+                print "**************************************************************"
+                print
         if collect_timing_info:
             self.print_frame_timing_stats()
 
@@ -537,8 +622,10 @@ class Presentation:
         # putting the results in parameters.name.
         # It's like "parameters.name = controller(-1.0)", but name is
         # a string, so it must be called this way.
-        for parameters,name,controller in self.realtime_controllers:
+        for parameters,name,controller in self.realtime_time_controllers:
             setattr(parameters,name,controller(-1.0))
+        for parameters,name,controller in self.realtime_frame_controllers:
+            setattr(parameters,name,controller(-1))
         for parameters,name,controller in self.transitional_controllers:
             setattr(parameters,name,controller(-1.0))
 
@@ -561,16 +648,19 @@ class Presentation:
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
         """
-        import Image # Would be nice to import this above, but it breaks stuff!
+        import Image # Could import this above, but it breaks stuff!
         
-        for parameters,name,controller in self.realtime_controllers:
+        for parameters,name,controller in self.realtime_time_controllers:
             setattr(parameters,name,controller(0.0))
+        for parameters,name,controller in self.realtime_frame_controllers:
+            setattr(parameters,name,controller(0))
         for parameters,name,controller in self.transitional_controllers:
             setattr(parameters,name,controller(0.0))
 
         # Create a few shorthand notations, which speeds
         # the main loop by not performing name lookup each time.
-        duration_sec = self.parameters.duration_sec 
+        duration_value = self.parameters.duration[0]
+        duration_units = self.parameters.duration[1]
         viewports = self.parameters.viewports
 
         # Get list of screens
@@ -582,12 +672,21 @@ class Presentation:
         if len(screens) > 1:
             raise EggError("Can only export movie of one screen")
 
-        cur_time = 0.0
+        current_time = 0.0
+        current_frame = 0
         image_no = 1
-        while (cur_time <= duration_sec):
+        if duration_units == 'seconds':
+            current_duration_value = current_time
+        elif duration_units == 'frames':
+            current_duration_value = current_frame
+        else:
+            raise RuntimeError("Unknown duration unit '%s'"%duration_units)
+        while (current_duration_value <= duration_value):
             # Update all the realtime parameters
-            for parameters,name,controller in self.realtime_controllers:
-                setattr(parameters,name,controller(cur_time))
+            for parameters,name,controller in self.realtime_time_controllers:
+                setattr(parameters,name,controller(current_time))
+            for parameters,name,controller in self.realtime_frame_controllers:
+                setattr(parameters,name,controller(current_frame))
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -606,7 +705,14 @@ class Presentation:
             print "Saving '%s'"%filename
             fb_image.save( savepath )
             image_no = image_no + 1
-            cur_time = cur_time + 1.0/frames_per_sec
+            current_time = current_time + 1.0/frames_per_sec
+            current_frame = current_frame + 1
+            if duration_units == 'seconds':
+                current_duration_value = current_time
+            elif duration_units == 'frames':
+                current_duration_value = current_frame
+            else:
+                raise RuntimeError("Unknown duration unit '%s'"%duration_units)
 
     def print_frame_timing_stats(self):
         """Print a histogram of the last recorded frame drawing times.
@@ -623,6 +729,7 @@ class Presentation:
             bins = bins*1.0e-3 # sec
             print "Frame to frame"
             self.print_hist(frame_draw_times,bins)
+            print
 
     def histogram(self,a, bins):  
         """Create a histogram from data
@@ -652,11 +759,9 @@ class Presentation:
                 print "%5s"%(s,),
             print
         print " Time:",
-##        for bin in bins:
-##            print "%5d"%(int(bin*1.0e3),),
-##        print "(msec)"
         for bin in bins:
             print "%5.2f"%(bin*1.0e3,),
+        print "+",
         print "(msec)"
         print "Total:",
         for hi in h:
@@ -670,8 +775,7 @@ class Presentation:
 ####################################################################
     
 class EggError(Exception):
-    """Created whenever an exception happens in the Vision Egg package
-    """
+    """Created whenever a Vision Egg specific error occurs"""
     def __init__(self,str):
         Exception.__init__(self,str)
 
