@@ -42,11 +42,12 @@ temp_texture = Texture(temp_grayscale_image)
 # create TextureStimulus for dynamic stimulus
 scaled_dynamic_size = (scale*dynamic_checkerboard_size[0],scale*dynamic_checkerboard_size[1])
 
-# find lowerleft to center stimulus
-x = round(screen.size[0]/2.0 - scaled_dynamic_size[0]/2.0)
-y = round(screen.size[1]/2.0 - scaled_dynamic_size[1]/2.0)
+# find center of screen
+x = screen.size[0]/2.0
+y = screen.size[1]/2.0
 dynamic_checkerboard = TextureStimulus(texture=temp_texture,
-                                       lowerleft=(x,y),
+                                       position=(x,y),
+                                       anchor="center",
                                        mipmaps_enabled=0,
                                        size=scaled_dynamic_size,
                                        texture_min_filter=gl.GL_NEAREST,
@@ -59,11 +60,9 @@ static_texture = Texture(static_data)
     
 # create TextureStimulus for static stimulus
 scaled_static_size = (scale*static_checkerboard_size[0],scale*static_checkerboard_size[1])
-# find lowerleft to center stimulus
-x = round(screen.size[0]/2.0 - scaled_static_size[0]/2.0)
-y = round(screen.size[1]/2.0 - scaled_static_size[1]/2.0)
 static_checkerboard = TextureStimulus(texture=static_texture,
-                                      lowerleft=(x,y),
+                                      position=(x,y),
+                                      anchor="center",
                                       mipmaps_enabled=0,
                                       size=scaled_static_size,
                                       texture_min_filter=gl.GL_NEAREST,

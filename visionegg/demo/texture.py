@@ -13,6 +13,8 @@ screen = get_default_screen()
 
 # Create the instance of TextureStimulus
 stimulus = TextureStimulus(texture = texture,
+                           position = (screen.size[0]/2.0,screen.size[1]/2.0),
+                           anchor = 'center',
                            size    = texture.size,
                            shrink_texture_ok=1)
 

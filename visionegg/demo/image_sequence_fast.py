@@ -36,13 +36,12 @@ for i in range(num_images):
 screen = get_default_screen()
 
 # create a TextureStimulus to allocate memory in OpenGL
-x = screen.size[0]/2.0 - image_size[0]/2.0
-y = screen.size[1]/2.0 - image_size[1]/2.0
 stimulus = TextureStimulus(mipmaps_enabled=0,
                            texture=Texture(image_list[0]),
                            size=image_size,
                            texture_min_filter=gl.GL_LINEAR,
-                           lowerleft=(x,y))
+                           position=(screen.size[0]/2.0,screen.size[1]/2.0),
+                           anchor='center')
 
 viewport = Viewport(screen=screen,
                     stimuli=[stimulus])
