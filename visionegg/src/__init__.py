@@ -28,6 +28,7 @@ Text -- Text stimuli
 MoreStimuli -- Assorted stimuli
 GUI -- Graphical user interface classes and functions
 PyroHelpers -- Python Remote Objects support
+__init__ -- Loaded with "import VisionEgg"
 
 Classes:
 
@@ -39,7 +40,7 @@ Functions:
 recursive_base_class_finder -- A function to find all base classes
 timing_func -- Most accurate timing function available on a platform
 get_type -- Get the type or class of argument
-assert_type -- Assert that argument 1 is of the type argument 2
+assert_type -- Verify the type of an instance
 
 Public variables:
 
@@ -50,7 +51,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.1'
+release_name = '0.9.2a0'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
@@ -160,10 +161,35 @@ class ClassWithParameters:
     should be a subclass of ClassWithParameters.  This class enforces
     a standard system of parameter specification with type checking
     and default value setting.  See classes Screen, Viewport, or any
-    daughter class of Stimulus for examples."""
+    daughter class of Stimulus for examples.
+
+    Any subclass of ClassWithParameters can define two class (not
+    instance) attributes, "parameters_and_defaults" and
+    "constant_parameters_and_defaults". These are dictionaries where
+    the key is a string containing the name of the parameter and the
+    the value is a tuple of length 2 containing the default value and
+    the type.  For example, an acceptable dictionary would be
+    {"parameter1" : (1.0, types.FloatType)}
     
-    constant_parameters_and_defaults = {} # empty for base class
+    The name "constant_parameters_and_defaults" is slightly
+    misleading. Although the distinction is fine, a more precise name
+    would be "immutable" rather than "constant".  The Vision Egg does
+    no checking to see if applications follow these rules, but to
+    violate them risks undefined behavior.  Here's a quote from the
+    Python Reference Manual that describes immutable containers, such
+    as a tuple:
+
+        The value of an immutable container object that contains a
+        reference to a mutable object can change when the latter's
+        value is changed; however the container is still considered
+        immutable, because the collection of objects it contains
+        cannot be changed. So, immutability is not strictly the same
+        as having an unchangeable value, it is more subtle.
+
+    """
+    
     parameters_and_defaults = {} # empty for base class
+    constant_parameters_and_defaults = {} # empty for base class
 
     def __init__(self,**kw):
         """Create self.parameters and set values."""
@@ -263,14 +289,25 @@ class ClassWithParameters:
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
 
 def get_type(value):
-    """Return the type if it's not an instance, return the class if it is."""
+    """Get the type of a value.
+
+    This implements a Vision Egg specific version of "type" used for
+    type checking by the VisionEgg.Core.Controller class. Return the
+    type if it the value is not an instance of a class, return the
+    class if it is."""
+    
     my_type = type(value)
     if my_type == types.InstanceType:
         my_type = value.__class__
     return my_type
 
 def assert_type(check_type,require_type):
-    """Perform type check for the Vision Egg."""
+    """Perform type check for the Vision Egg.
+
+    All type checking done to verify that a parameter is set to the
+    type defined in its class's "parameters_and_defaults" attribute
+    should call use method."""
+    
     if check_type != require_type:
         type_error = 0
         if type(require_type) == types.ClassType:
