@@ -18,7 +18,12 @@ import setup # from local directory
 if not sys.version.startswith("2.2"):
     raise RuntimeError("Build this with Python 2.2")
 
-pkg_name = "visionegg" # Must be short to deal with Stuffit Expander braindead-ness
+import VisionEgg # get release no
+
+# pkg_name must be short to deal with Stuffit Expander braindead-ness.
+# The final number is a "build number" in case the packaging doesn't work.
+pkg_name = "visionegg-%s-py%s-1"%(VisionEgg.release_name,sys.version.split()[0])
+
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
 bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-Power_Macintosh.tar.gz"%(setup.version,)
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
