@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+multiple stimulus demo
+
+"""
 
 ############################
 #  Import various modules  #

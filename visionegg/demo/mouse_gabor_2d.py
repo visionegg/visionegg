@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Perspective-distorted sinusoidal grating in gaussian window"""
+"""sinusoidal grating in gaussian window"""
 
 from VisionEgg import *
 start_default_logging(); watch_exceptions()
