@@ -28,8 +28,7 @@ swig_src_dir = os.path.split(sys.argv[0])[0]
 if swig_src_dir: # the above returns '' if we're in it on Python2.1
     os.chdir(swig_src_dir)
 
-interfaces = ["darwin_app_stuff",
-              "darwin_getrefresh",
+interfaces = ["darwin_getrefresh",
               "darwin_maxpriority",
               "gl_qt",
               "posix_maxpriority",
