@@ -15,13 +15,11 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import sys, os, os.path, math                   # standard python packages
-import time
+import sys, os, os.path, math, sys, time        # standard python packages
 import Image, ImageDraw                         # Python Imaging Library packages
 
 import pygame                                   # pygame handles OpenGL window setup
 from pygame.locals import *
-
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
@@ -37,9 +35,10 @@ from MLab import *                              # Matlab function imitation from
 use_texture_compression = 0
 try:
     from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
-    if glInitTextureCompressionARB():
-        use_texture_compression = 1
-        print "Using texture compression"
+    if sys.platform != 'darwin':
+        if glInitTextureCompressionARB(): # dies on my PowerBook G4
+            use_texture_compression = 1
+            print "Using texture compression"
 except:
     pass
 
@@ -62,6 +61,17 @@ except:
         """Fake function definition.  Your system doesn't support the real function.
         """
         pass
+
+### Video information holder #######################################
+
+class VideoInfo:
+    """A class which gets filled with information about the video system.
+
+    This class has no methods; it is the equivalent of a C struct."""
+    pass
+
+video_info = VideoInfo() # Make an instance for the Vision Egg
+video_info.initialized = 0
 
 ####################################################################
 #
@@ -168,6 +178,13 @@ class Texture:
     	"""Private method - logarithm base 2"""
         return math.log(f)/math.log(2)
 
+    def get_pil_image(self):
+        """Returns a PIL Image of the texture."""
+        return self.orig
+
+    def get_texture_buffer(self):
+        return self.buf
+
 class TextureFromFile(Texture):
     """A Texture that is loaded from a graphics file"""
     def __init__(self,filename):
@@ -261,6 +278,34 @@ class TextureBuffer:
             raise EggError("Unknown image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
         return self.gl_id
+
+    def put_sub_image(self,pil_image,lower_left, size):
+        glBindTexture(GL_TEXTURE_2D, self.gl_id)
+        print "bound texture"
+        data = pil_image.tostring("raw","RGB",0,-1)
+        print "converted data"
+        if use_texture_compression:
+            print "trying to put compressed image data"
+            glCompressedTexSubImage2DARB(GL_TEXTURE_2D, # target
+                                         0, # level
+                                         lower_left[0], # x offset
+                                         lower_left[1], # y offset
+                                         size[0], # width
+                                         size[1], # height
+                                         GL_RGB,
+                                         GL_UNSIGNED_INT,
+                                         data)
+        else:
+            print "trying to put non-compressed image data"
+            glTexSubImage2D(GL_TEXTURE_2D, # target
+                            0, # level
+                            lower_left[0], # x offset
+                            lower_left[1], # y offset
+                            size[0], # width
+                            size[1], # height
+                            GL_RGB,
+                            GL_UNSIGNED_INT,
+                            data)
     
 ####################################################################
 #
@@ -304,10 +349,8 @@ class PerspectiveProjection(Projection):
     def set_GL_projection_matrix(self):
         """Set the OpenGL projection matrix and then put OpenGL into modelview mode"""
         
-        global screen_width,screen_height
-        
-        self.fov_y = self.fov_x / screen_width * screen_height       # Wish that this could be done in __init__, but
-        self.aspect_ratio = float(screen_width)/float(screen_height) # screen_width and screen_heigh may not be defined.
+        self.fov_y = self.fov_x / video_info.width * video_info.height # Wish that this could be done in __init__, but
+        self.aspect_ratio = float(video_info.width)/float(video_info.height) # width and height may not be defined.
 
         matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
@@ -364,10 +407,9 @@ class Stimulus:
         self.fixation_spot_on = fixation_spot_on
         if self.fixation_spot_on:
             # setup an orthographic projection so the fixation spot is always square
-            global screen_width,screen_height
 
             x = 100.0
-            y = x * screen_height / screen_width
+            y = x * video_info.height / video_info.width
             self.fixation_spot_projection = OrthographicProjection(left=-0.5*x,right=0.5*x,bottom=-0.5*y,top=0.5*y,z_clip_near=-1.0,z_clip_far=1.0)
 
     def add_daq(self,daq):
@@ -829,12 +871,11 @@ class MovingTarget(Stimulus):
 #
 ####################################################################            
 
-def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
-    global screen_width,screen_height
+def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,preferred_bpp=24):
     global graphicsKeeper
 
-    screen_width = width
-    screen_height = height
+    video_info.width = width
+    video_info.height = height
     
     if vsync: # There is no cross-platform way to do this
         os.environ["__GL_SYNC_TO_VBLANK"] = "1" # This works for nVidia drivers on linux
@@ -845,46 +886,52 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
     caption = "Vision Egg"
 
     pygame.init()
+    
     pygame.display.set_caption(caption)
     flags = OPENGL | DOUBLEBUF
     if fullscreen:
         flags = flags | FULLSCREEN
+        video_info.fullscreen = 1
+    else:
+        video_info.fullscreen = 0
 
     try_bpps = [24,32,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
+    try_bpps.insert(0,preferred_bpp)
+    
     found_mode = 0
     for bpp in try_bpps:
         modeList = pygame.display.list_modes( bpp, flags )
-        print bpp
-        print modeList
         if modeList == -1: # equal to -1 if any resolution will work - confirmed TiBook OSX
             found_mode = 1
         else:
             if len(modeList) == 0: # any resolution is OK
                 found_mode = 1
             else:
-                if (screen_width,screen_height) in modeList:
+                if (video_info.width,video_info.height) in modeList:
                     found_mode = 1
                 else:
-                    screen_width = modeList[0][0]
-                    screen_height = modeList[0][1]
+                    video_info.width = modeList[0][0]
+                    video_info.height = modeList[0][1]
                     print "WARNING: Using %dx%d video mode instead of requested size."%(width,height)
         if found_mode:
             break
     if found_mode == 0:
         print "WARNING: Could not find acceptable video mode! Trying anyway..."
 
-    print "Initializing graphics at %d x %d ( %d bpp )."%(screen_width,screen_height,bpp)
-    pygame.display.set_mode((screen_width,screen_height), flags, bpp )
+    print "Initializing graphics at %d x %d ( %d bpp )."%(video_info.width,video_info.height,bpp)
+    pygame.display.set_mode((video_info.width,video_info.height), flags, bpp )
+    video_info.bpp = pygame.display.Info().bitsize
+    video_info.initialized = 1
     if fullscreen:
         pygame.mouse.set_visible(0)
-    
+
     # Initialize OpenGL viewport
-    glViewport(0,0,screen_width,screen_height)
+    glViewport(0,0,video_info.width,video_info.height)
 
     # Initialize digital output to 0 (if supported)
     set_dout(0)
     
-    # the next line close the graphics when done
+    # the next line closes the graphics when done
     graphicsKeeper = __GraphicsKeeper__()
 
 class __GraphicsKeeper__:
