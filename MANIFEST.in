@@ -7,6 +7,8 @@ include src/*.m
 include src/*.h
 include doc/*.pdf
 include doc/*.html
+include doc/reference/pydoc.py
+include doc/reference/make.sh
 include demo/*.py
 include demo/README.txt
 include demo/calibrate/*.py
@@ -24,4 +26,5 @@ exclude demo/*_movie.py
 include test/*.py
 exclude test/texture_test_GUI.py
 include data/panorama.jpg
+include data/visionegg.bmp
 include check-config.py
