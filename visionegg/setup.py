@@ -77,7 +77,9 @@ if not skip_c_compilation:
                                               os.path.join('src','win32_maxpriority_wrap.c')]))
         ext_modules.append(Extension(name='_win32_getrefresh',
                                      sources=[os.path.join('src','win32_getrefresh.c'),
-                                              os.path.join('src','win32_getrefresh_wrap.c')]))
+                                              os.path.join('src','win32_getrefresh_wrap.c')],
+                                     libraries=['User32'],
+                                     ))
     elif sys.platform[:4] == 'irix' or sys.platform[:5] in ['linux','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
