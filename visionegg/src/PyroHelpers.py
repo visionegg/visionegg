@@ -92,6 +92,8 @@ class EvalStringPyroController(PyroController):
         except:
             print "ERROR when t=",t
             print "self.eval_string =", self.eval_string
+            import traceback
+            traceback.print_exc()
             raise
         return result
     
