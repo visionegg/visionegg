@@ -15,7 +15,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gui_ok = 1
 
-print "check-config.py for Vision Egg 0.9.5a1."
+print "check-config.py for Vision Egg 0.9.5a2."
 print "[%s CVS revision %s]"%(__date__,__cvs__)
 print "Beginning configuration check."
 
@@ -230,10 +230,10 @@ print "Version checklist:"
 print
 
 print "Python version %s"%(string.split(sys.version)[0],),
-if sys.version >= '2.1':
+if sys.version >= '2.2':
     print "(OK)"
 else:
-    print "(Untested)"
+    print "(Unsupported, probably won't work)"
 print "extra Python info:",string.join(string.split(sys.version)[1:])
 
 try:
