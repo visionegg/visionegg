@@ -57,7 +57,7 @@ The files will be installed to %s/lib/python%s/site-packages/VisionEgg (python p
 
 This package has the following dependencies:
 
-Mac OS X (built with %s, probably works with earlier versions)
+Mac OS X (built with %s, probably works back to 10.2)
 Python %s framework build with Tkinter modules
 PyOpenGL (Python module)
 pygame (Python module)
