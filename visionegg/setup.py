@@ -14,15 +14,35 @@ from distutils.core import setup, Extension
 import sys
 import os.path
 
-extensions = []
+# Normal distutils stuff
+name="visionegg"
+version = "0.9.2a1"
+description = "Vision Egg"
+url = 'http://www.visionegg.org/'
+author = "Andrew Straw"
+author_email = "astraw@users.sourceforge.net"
+license = "LGPL"
+package_dir={'VisionEgg' : 'src',
+             #'VisionEgg.test' : 'test',
+             #'VisionEgg.demo' : 'demo',
+             }
+packages=[ 'VisionEgg',
+           #'VisionEgg.test',
+           #'VisionEgg.demo',
+           #'VisionEgg.demo.GUI',
+           #'VisionEgg.demo.Pyro',
+           ]
+ext_package='VisionEgg'
+
+ext_modules = []
 
 if sys.platform not in ['cygwin','mac','win32'] and (sys.platform != 'darwin' or not skip_macosx_c_compilation):
     # The maximum priority stuff should work on most versions of Unix.
     # (It depends on the system call sched_setscheduler.)
-    extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
+    ext_modules.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
 if sys.platform == "darwin" and not skip_macosx_c_compilation:
-    extensions.append(Extension(name='_darwin_sync_swap',
+    ext_modules.append(Extension(name='_darwin_sync_swap',
                                 sources=['src/_darwin_sync_swap.m'],
                                 include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
                                               '/System/Library/Frameworks/Cocoa.framework/Headers',
@@ -31,10 +51,10 @@ if sys.platform == "darwin" and not skip_macosx_c_compilation:
                                 ))
 
 if sys.platform == 'linux2':
-    extensions.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
+    ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
 if sys.platform[:4] == 'irix':
-    extensions.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
+    ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
@@ -74,31 +94,28 @@ applications) that uses standard, inexpensive computer graphics
 cards to produce visual stimuli for vision research
 experiments."""
 
-# Normal distutils stuff
-setup(name="visionegg",
-      version = "0.9.2a1",
-      description = "Vision Egg",
-      url = 'http://www.visionegg.org/',
-      author = "Andrew Straw",
-      author_email = "astraw@users.sourceforge.net",
-      license = "LGPL",
-      package_dir={'VisionEgg' : 'src',
-                   #'VisionEgg.test' : 'test',
-                   #'VisionEgg.demo' : 'demo',
-                   },
-      packages=[ 'VisionEgg',
-                 #'VisionEgg.test',
-                 #'VisionEgg.demo',
-                 #'VisionEgg.demo.GUI',
-                 #'VisionEgg.demo.Pyro',
-                 ],
-      ext_package='VisionEgg',
-      ext_modules=extensions,
-      data_files = data_files,
-      long_description = long_description 
-)
 
+def main():
+    # Normal distutils stuff
+    setup(name=name,
+          version = version,
+          description = description,
+          url = url,
+          author = author,
+          author_email = author_email,
+          license = license,
+          package_dir=package_dir,
+          packages=packages,
+          ext_package=ext_package,
+          ext_modules=ext_modules,
+          data_files = data_files,
+          long_description = long_description 
+          )
+    
+    
 
+if __name__ == "__main__":
+    main()
 
 
 
