@@ -107,6 +107,8 @@ class TCPServer:
                     apply(Tkinter.Frame.__init__,(self,),kw)
                     self.winfo_toplevel().title('Vision Egg TCP Server')
                     self.server_socket = server_socket
+                    host,port = self.server_socket.getsockname()
+                    fqdn = socket.getfqdn(host)
                     spacer = Tkinter.Frame(self,borderwidth=30)
                     spacer.pack()
                     Tkinter.Label(spacer,text=
