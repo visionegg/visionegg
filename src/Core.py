@@ -361,19 +361,24 @@ def get_default_screen():
     GUI panel is opened and allows manual settings of the screen
     parameters.  """
 
-    global VisionEgg # module is in global namespace, not local
+    global VisionEgg # Allow "VisionEgg.config" instead of just "config"
+    if VisionEgg.config.VISIONEGG_GUI_INIT:
+        import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+        window = VisionEgg.GUI.GraphicsConfigurationWindow()
+        window.mainloop() # All this does is adjust VisionEgg.config
+        if not window.clicked_ok:
+            sys.exit() # User wants to quit
     screen = None
     try:
-        if not VisionEgg.config.VISIONEGG_GUI_INIT:
-            screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                                  VisionEgg.config.VISIONEGG_SCREEN_H),
-                            fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                            preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP)
-        else:
-            import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
-            screen = VisionEgg.GUI.get_screen_via_GUI()
+        screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                              VisionEgg.config.VISIONEGG_SCREEN_H),
+                        fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                        preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                        bgcolor=(0.5,0.5,0.5,0.0),
+                        maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
     finally:
         if screen is None:
+            # Hmm, opening a screen failed.  Let's do any cleanup that Screen.__init__ missed.
             try:
                 pygame.mouse.set_visible(1) # make sure mouse is visible
                 pygame.quit() # close screen
