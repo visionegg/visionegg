@@ -1,14 +1,19 @@
 """Python Remote Objects support - Client side"""
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
 
-import string, socket
+import socket
 import VisionEgg
 
+try:
+    import logging                              # available in Python 2.3
+except ImportError:
+    import VisionEgg.py_logging as logging      # use local copy otherwise
+
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import Pyro.core
@@ -22,12 +27,15 @@ except NameError:
 
 class PyroClient:
     """Simplifies getting PyroControllers from a remote computer."""
-    def __init__(self,server_hostname='',server_port=7766,lookup_fqdn=False):
+    def __init__(self,server_hostname='',server_port=7766):
         """Initialize Pyro client."""
         Pyro.core.initClient()
-        if lookup_fqdn:
+        try:
             self.server_hostname = socket.getfqdn(server_hostname)
-        else:
+        except Exception, x:
+            logger = logging.getLogger('VisionEgg.PyroClient')
+            logger.warning("while getting fully qualified domain name: %s: %s"%
+                           (str(x.__class__),str(x)))
             self.server_hostname = server_hostname
         self.server_port = server_port
 

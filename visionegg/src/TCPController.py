@@ -51,6 +51,11 @@ try:
 except:
     pass
 
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
@@ -150,9 +155,8 @@ class TCPServer:
             eval_frequency = VisionEgg.FlowControl.Controller.EVERY_FRAME | VisionEgg.FlowControl.Controller.NOT_DURING_GO
         host,port = self.server_socket.getsockname()
         fqdn = socket.getfqdn(host)
-        VisionEgg.Core.message.add(
-            """Awaiting connection to TCP Server at "%s", port %d"""%(fqdn,port),
-            level=VisionEgg.Core.Message.INFO)
+        logger = logging.getLogger('VisionEgg.TCPController')
+        logger.info("Awaiting connection to TCP Server at '%s', port %d"%(fqdn,port))
         self.server_socket.listen(1)
         if self.dialog_ok:
             # Make a Tkinter dialog box
@@ -329,10 +333,8 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
             pass
         self.server_socket = server_socket
         
-        VisionEgg.Core.message.add(
-            "Handling connection from %s"%(self.socket.getsockname(),),
-            level=VisionEgg.Core.Message.INFO)
-        
+        logger = logging.getLogger('VisionEgg.TCPController')
+        logger.info("Handling connection from %s"%(self.socket.getsockname(),))
         self.socket.setblocking(0) # don't block on this socket
         
         self.socket.send("Hello. This is %s version %s.\n"%(self.__class__,__version__))
@@ -436,9 +438,9 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
             self.socket.send(text+"="+str(controller)+"\n")
             return ""
         self.socket.send("Error: Invalid command line \""+text+"\"\n")
-        VisionEgg.Core.message.add("Invalid command line: \""+text+'"',
-                                   level=VisionEgg.Core.Message.INFO)
-        return ""
+        logger = logging.getLogger('VisionEgg.TCPController')
+        logger.warning('Invalid command line: "%s"'%(text,))
+        return ''
 
     def create_tcp_controller(self,
                               tcp_name=None,
@@ -542,8 +544,8 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                 import traceback
                 traceback.print_exc()
                 self.socket.send("Error %s parsing const for %s: %s\n"%(x.__class__,tcp_name,x))
-                VisionEgg.Core.message.add("%s parsing const for %s: %s"%(x.__class__,tcp_name,x),
-                                           level=VisionEgg.Core.Message.INFO)
+                logger = logging.getLogger('VisionEgg.TCPController')
+                logger.info("%s parsing const for %s: %s"%(x.__class__,tcp_name,x))
         else:
             match = SocketListenController._re_eval_str.match(command)
             if match is not None:
@@ -557,20 +559,20 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                     kw_args.setdefault('return_type',require_type)
                     new_contained_controller = VisionEgg.FlowControl.EvalStringController(**kw_args)
                     if not (new_contained_controller.eval_frequency & VisionEgg.FlowControl.Controller.NOT_DURING_GO):
-                        VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_eval_string'],),
-                                    VisionEgg.Core.Message.TRIVIAL)
+                        logger = logging.getLogger('VisionEgg.TCPController')
+                        logger.debug('Executing "%s" as safety check.'%(kw_args['during_go_eval_string'],))
                         new_contained_controller._test_self(1)
                     if not (new_contained_controller.eval_frequency & VisionEgg.FlowControl.Controller.NOT_BETWEEN_GO):
-                        VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['between_go_eval_string'],),
-                                    VisionEgg.Core.Message.TRIVIAL)
+                        logger = logging.getLogger('VisionEgg.TCPController')
+                        logger.debug('Executing "%s" as safety check.'%(kw_args['between_go_eval_string'],))
                         new_contained_controller._test_self(0)
                     new_type = new_contained_controller.returns_type()
                     ve_types.assert_type( new_type, require_type)
                 except Exception, x:
                     new_contained_controller = None
                     self.socket.send("Error %s parsing eval_str for %s: %s\n"%(x.__class__,tcp_name,x))
-                    VisionEgg.Core.message.add("%s parsing eval_str for %s: %s"%(x.__class__,tcp_name,x),
-                                               level=VisionEgg.Core.Message.INFO)
+                    logger = logging.getLogger('VisionEgg.TCPController')
+                    logger.info("%s parsing eval_str for %s: %s"%(x.__class__,tcp_name,x))
             else:
                 match = SocketListenController._re_exec_str.match(command)
                 if match is not None:
@@ -595,27 +597,24 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                         kw_args.setdefault('return_type',require_type)
                         new_contained_controller = VisionEgg.FlowControl.ExecStringController(**kw_args)
                         if not (new_contained_controller.eval_frequency & VisionEgg.FlowControl.Controller.NOT_DURING_GO):
-                            VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_exec_string'],),
-                                        VisionEgg.Core.Message.TRIVIAL)
+                            logger = logging.getLogger('VisionEgg.TCPController')
+                            logger.debug('Executing "%s" as safety check.'%(kw_args['during_go_exec_string'],))
                             new_contained_controller._test_self(1)
                         if not (new_contained_controller.eval_frequency & VisionEgg.FlowControl.Controller.NOT_BETWEEN_GO):
-                            VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['between_go_exec_string'],),
-                                        VisionEgg.Core.Message.TRIVIAL)
+                            logger = logging.getLogger('VisionEgg.TCPController')
+                            logger.debug('Executing "%s" as safety check.'%(kw_args['between_go_exec_string'],))
                             new_contained_controller._test_self(0)
                         new_type = new_contained_controller.returns_type()
                         ve_types.assert_type( new_type, require_type)
-##                        if new_type != require_type:
-##                            if not issubclass( new_type, require_type):
-##                                raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
                     except Exception, x:
                         new_contained_controller = None
                         self.socket.send("Error %s parsing exec_str for %s: %s\n"%(x.__class__,tcp_name,x))
-                        VisionEgg.Core.message.add("%s parsing exec_str for %s: %s"%(x.__class__,tcp_name,x),
-                                                   level=VisionEgg.Core.Message.INFO)
+                        logger = logging.getLogger('VisionEgg.TCPController')
+                        logger.debug("%s parsing exec_str for %s: %s"%(x.__class__,tcp_name,x))
                 else:
                     self.socket.send("Error: Invalid assignment command for %s: %s\n"%(tcp_name,command))
-                    VisionEgg.Core.message.add("Invalid assignment command for %s: %s"%(tcp_name,command),
-                                               level=VisionEgg.Core.Message.INFO)
+                    logger = logging.getLogger('VisionEgg.TCPController')
+                    logger.info("Invalid assignment command for %s: %s"%(tcp_name,command))
         # create controller based on last command_queue
         if new_contained_controller is not None:
             (controller, name_re_str, parser, require_type) = self.names[tcp_name]
