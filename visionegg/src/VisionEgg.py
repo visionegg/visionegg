@@ -453,6 +453,7 @@ class Stimulus:
             glPixelStorei(GL_PACK_ALIGNMENT, 1)
             framebuffer = glReadPixels(0,0,640,480,GL_RGB,GL_UNSIGNED_BYTE)
             fb_image = Image.fromstring('RGB',(640,480),framebuffer)
+            fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM ) # I think the Vision Egg has OpenGL's coordinate system flipped vertically, so this is the fix for now
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
             savepath = os.path.join( path, filename )
             print "Saving '%s'"%filename
