@@ -11,13 +11,17 @@ default_max_speed = 1000.0
 pyro_server = PyroServer()
 
 screen = get_default_screen()
-projection = SimplePerspectiveProjection(fov_x=90.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
 
 try:
     texture = TextureFromFile("orig.bmp")
 except:
     texture = Texture(size=(256,32))
+
+perspective_proj = SimplePerspectiveProjection(fov_x=98.0) 
+ortho_proj = OrthographicProjection(left=0.0,right=float(screen.size[0]),
+                                    bottom=-float(screen.size[1])/2.0,top=float(screen.size[1])/2.0,
+                                    z_clip_near=0.0001,z_clip_far=1000.0)
+viewport = Viewport(screen,(0,0),screen.size,perspective_proj)
 
 drum = BlurredDrum(max_speed=default_max_speed,texture=texture)
 drum.init_gl()
@@ -63,7 +67,19 @@ p.add_realtime_controller(drum.parameters,'contrast',contrast_controller.eval)
 # local only controller -- current time
 p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
 
-######### done with controllers
+# tricky -- projection controller -- must also serve references to projections
+# this allows remote object to set the projection
+projection_controller = LocalDictPyroController({'perspective_proj':perspective_proj,
+                                                 'ortho_proj':ortho_proj})
+pyro_server.connect(projection_controller,'projection_controller')
+p.add_transitional_controller(viewport.parameters,'projection',projection_controller.eval)
+
+# drum flat/cylinder controller
+drum_flat_controller = ConstantPyroController(0)
+pyro_server.connect(drum_flat_controller,'drum_flat_controller')
+p.add_transitional_controller(drum.parameters,'flat',drum_flat_controller.eval)
+
+################### done with controllers
 
 # initialize graphics to between presentations state
 p.between_presentations() 
