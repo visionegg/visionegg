@@ -25,7 +25,7 @@ For demos, see the 'demo' directory.
 
 CURRENT STATUS
 
-This is release 0.9.0. We're homing in on a 1.0 release, and at this
+This is release 0.9.1. We're homing in on a 1.0 release, and at this
 time, I am quite happy that all of the core functionality planned for
 the Vision Egg is now working. Also, the existing interface has
 stabilized, with a vast majority of changes being bugfixes and
@@ -41,16 +41,18 @@ it yourself and send me the patch! :)
 
 DOCUMENTATION
 
-In the rush to get release 0.9.0 out the door, the beginnings of a
-true manual are available in the 'doc' directory if the source code.
-Because of the preliminary nature, this is left unbuilt, but is still
-available to read.  Please recognize this is still a work in progress!
+I highly recommend the pydoc tool.  If you have Python installed, you
+can probably run pydoc by typing ``pydoc -p 1234'', which opens a
+pydoc web server on port 1234 of your computer.  Just point your
+favorite brower to http://localhost:1234/, click on ``VisionEgg'' (in
+the site-packages directory), and read away.
 
-Also, I highly recommend the pydoc tool.  If you have Python
-installed, you can probably run pydoc by typing ``pydoc -p 1234'',
-which opens a pydoc web server on port 1234 of your computer.  Just
-point your favorite brower to http://localhost:1234/, click on
-``VisionEgg'' (in the site-packages directory), and read away.
+Because of the rush to this release out the door, a true manual is not
+yet included.  In the CVS repository (see our SourceForge project
+webpage for access details), the beginnings of a true manual are
+available in the 'doc' directory.  Because of its preliminary nature,
+it is left unbuilt (not compiled to HTML or other pretty format), but
+is still available to read.
 
 WRITING YOUR OWN APPLICATION
 
