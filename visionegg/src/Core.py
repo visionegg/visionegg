@@ -112,6 +112,10 @@ class Screen(VisionEgg.ClassWithParameters):
     Public variables:
 
     size -- Tuple of 2 integers specifying width and height
+    red_bits -- Integer (or None if not supported) specifying framebuffer depth
+    green_bits -- Integer (or None if not supported) specifying framebuffer depth
+    blue_bits -- Integer (or None if not supported) specifying framebuffer depth
+    alpha_bits -- Integer (or None if not supported) specifying framebuffer depth
 
     """
     constant_parameters_and_defaults = {'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
@@ -223,14 +227,18 @@ class Screen(VisionEgg.ClassWithParameters):
             message.add("Failed execution of pygame.display.set_mode():%s"%x,
                         level=Message.FATAL)
 
+        self.red_bits = None
+        self.green_bits = None
+        self.blue_bits = None
+        self.alpha_bits = None
         got_bpp = pygame.display.Info().bitsize
         append_str = ""
         if hasattr(pygame.display,"gl_get_attribute"):
-            r = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
-            g = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
-            b = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
-            a = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
-            append_str = " (%d %d %d %d RGBA)"%(got_bpp,r,g,b,a)
+            self.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
+            self.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
+            self.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
+            self.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
+            append_str = " (%d %d %d %d RGBA)"%(self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits)
         message.add("Video system reports %d bpp%s"%(got_bpp,append_str))
         if got_bpp < try_bpp:
             message.add(
@@ -1080,7 +1088,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Swap the buffers
             swap_buffers()
             
-             # Now save the contents of the framebuffer
+            # Now save the contents of the framebuffer
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
             framebuffer = gl.glReadPixels(0,0,screen.size[0],screen.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
             fb_image = Image.fromstring('RGB',screen.size,framebuffer)
@@ -1114,6 +1122,24 @@ class Presentation(VisionEgg.ClassWithParameters):
             go_started=0,
             doing_transition=1)
 
+        if len(screens) > 1:
+            message.add(
+                """Only saved movie from last screen.""", level=Message.INFO)
+
+        if screen.red_bits is not None:
+            warn_about_movie_depth = 0
+            if screen.red_bits > 8:
+                warn_about_movie_depth = 1
+            elif screen.green_bits > 8:
+                warn_about_movie_depth = 1
+            elif screen.blue_bits > 8:
+                warn_about_movie_depth = 1
+            if warn_about_movie_depth:
+                message.add(
+                    """Only saved 8 bit per pixel movie, even
+                    though your framebuffer supports more!""",
+                    level=Message.WARNING)
+                    
         VisionEgg.timing_func = real_timing_func
 
     def run_forever(self):
