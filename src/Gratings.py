@@ -95,7 +95,7 @@ class SinGrating2D(LuminanceGratingCommon):
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
-            raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+            raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         if self.parameters.t0_time_sec_absolute is None:
             self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
@@ -120,7 +120,7 @@ class SinGrating2D(LuminanceGratingCommon):
                      self.gl_type,               # type of image data
                      texel_data)                     # texel data
         if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
-            raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
+            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
@@ -241,7 +241,7 @@ class SinGrating2DSquareSidesFast(LuminanceGratingCommon):
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
-            raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+            raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         if self.parameters.t0_time_sec_absolute is None:
             self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
@@ -266,7 +266,7 @@ class SinGrating2DSquareSidesFast(LuminanceGratingCommon):
                      self.gl_type,               # type of image data
                      texel_data)                     # texel data
         if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
-            raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
+            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
@@ -387,7 +387,7 @@ class SinGrating2DSquareSidesSlow(LuminanceGratingCommon):
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
-            raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+            raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         if self.parameters.t0_time_sec_absolute is None:
             self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
@@ -412,7 +412,7 @@ class SinGrating2DSquareSidesSlow(LuminanceGratingCommon):
                      self.gl_type,               # type of image data
                      texel_data)                     # texel data
         if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_WIDTH) == 0:
-            raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
+            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage2D(gl.GL_TEXTURE_2D,            # target
@@ -532,7 +532,7 @@ class SinGrating3D(LuminanceGratingCommon):
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
-            raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+            raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         self.calculate_bit_depth_dependencies()
         
@@ -558,7 +558,7 @@ class SinGrating3D(LuminanceGratingCommon):
                      self.gl_type,               # type of image data
                      texel_data)                     # texel data
         if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
-            raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
+            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
@@ -667,3 +667,7 @@ class SinGrating3D(LuminanceGratingCommon):
             gl.glVertex4f( x1,  h, z1, 1.0 )
         gl.glEnd()
         gl.glEndList()
+
+class NumSamplesTooLargeError( VisionEgg.Core.EggError ):
+    """Overrides VisionEgg.Core.EggError"""
+    pass
