@@ -98,7 +98,8 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
         min_bits = min( (red_bits,green_bits,blue_bits) )
         if min_bits < p.bit_depth:
             logger = logging.getLogger('VisionEgg.Gratings')
-            logger.warning("Requested bit depth of %d, which is "
+            logger.warning("Requested bit depth of %d in "
+                           "LuminanceGratingCommon, which is "
                            "greater than your current OpenGL context "
                            "supports (%d)."% (p.bit_depth,min_bits))
         self.gl_internal_format = gl.GL_LUMINANCE
@@ -293,7 +294,9 @@ class SinGrating2D(LuminanceGratingCommon):
                         self.format,                       # format of texel data
                         self.gl_type,                      # type of texel data
                         texel_data)                        # texel data (irrelevant for proxy)
-        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
+        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D, # Need PyOpenGL >= 2.0
+                                       0,
+                                       gl.GL_TEXTURE_WIDTH) == 0:
             raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.

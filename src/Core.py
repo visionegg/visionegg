@@ -726,18 +726,18 @@ class Projection(VisionEgg.ClassWithParameters):
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0 for this to work!
 
     def push_and_set_gl_projection(self):
         """Set the OpenGL projection matrix, pushing current projection matrix to stack."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix()
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
 
     def translate(self,x,y,z):
         """Compose a translation and set the OpenGL projection matrix."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glTranslatef(x,y,z)
         self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
 
@@ -750,7 +750,7 @@ class Projection(VisionEgg.ClassWithParameters):
     def rotate(self,angle_degrees,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glRotatef(angle_degrees,x,y,z)
         self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
 
@@ -763,7 +763,7 @@ class Projection(VisionEgg.ClassWithParameters):
     def scale(self,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glScalef(x,y,z)
         self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
 
@@ -800,7 +800,7 @@ class Projection(VisionEgg.ClassWithParameters):
                            [    0.0,       0.0,         0.0, 1.0]])
         # XXX This should get optimized -- don't do it in OpenGL
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glMultMatrixf(m)
         gl.glTranslatef(-eye[0],-eye[1],-eye[2])
         self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)

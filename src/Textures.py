@@ -653,7 +653,9 @@ class TextureObject(object):
                                 data_format,
                                 data_type,
                                 raw_data)
-                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                if gl.glGetTexLevelParameteriv(target, # Need PyOpenGL >= 2.0
+                                               mipmap_level,
+                                               gl.GL_TEXTURE_WIDTH) == 0: 
                     raise TextureTooLargeError("texel_data is too wide for your video system.")
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
                     raise TextureTooLargeError("texel_data is too tall for your video system.")
@@ -1191,7 +1193,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
         if height != next_power_of_2(height):
             raise RuntimeError("Mask must have height num_samples power of 2")
         
-        gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB)
+        gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB) # Need PyOpenGL >= 2.0
         self.texture_object = TextureObject(dimensions=2)
         
         if cp.function == "gaussian":
