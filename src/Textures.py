@@ -161,7 +161,7 @@ class Texture:
                 return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
             else:
                 raise NotImplementedError("Currently only luminance data can be converted to images")
-        elif isinstance(texels, Image.Image):
+        elif isinstance(self.texels, Image.Image):
             return self.texels
         else:
             raise NotImplementedError("Don't know how to convert texel data to PIL image")
@@ -280,7 +280,11 @@ class Texture:
                 im = Image.new(shrunk.mode,(width_pow2,height_pow2))
                 im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
                 
-                texture_object.put_new_image( im, mipmap_level=mipmap_level, internal_format = internal_format)
+                texture_object.put_new_image( im,
+                                              mipmap_level=mipmap_level,
+                                              internal_format = internal_format,
+                                              check_opengl_errors = False, # no point -- we've already seen biggest texture work, we're just making mipmap
+                                              )
 
                 mipmap_level += 1
                 biggest_dim = max(this_width,this_height)
@@ -406,7 +410,7 @@ class TextureObject:
                       texel_data,
                       mipmap_level = 0,
                       border = 0,
-                      check_opengl_errors = 1,
+                      check_opengl_errors = True,
                       internal_format = gl.GL_RGB,
                       data_format = None, # automatic guess unless set explicitly
                       data_type = None, # automatic guess unless set explicitly
