@@ -70,7 +70,7 @@ save_directory = os.path.join(base_dir,'movie')
 if not os.path.isdir(save_directory):
     os.mkdir(save_directory)
     if not os.path.isdir(save_directory):
-        message.add( "Error: cannot make movie directory '%s'."%(save_directory,)
+        message.add( "Error: cannot make movie directory '%s'."%(save_directory,),
                      level=Message.ERROR )
 message.add( "Saving movie to directory '%s'."%(save_directory,),
              level=Message.INFO )
