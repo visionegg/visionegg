@@ -123,9 +123,7 @@ class _ExceptionHookKeeper:
             if sys.platform == "linux2": # doesn't affect linux for some reason
                 pygame_bug_workaround = 0
             if not pygame_bug_workaround:
-                frame = GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
-                frame.mainloop()
-                frame.winfo_toplevel().destroy()
+                GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
 
         # continue on with normal exception processing:
         self.orig_hook(exc_type, exc_value, exc_traceback)
