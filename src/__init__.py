@@ -81,10 +81,13 @@ import os, sys, time, types # standard python modules
 import Numeric
 import warnings
 import traceback
+import StringIO
+
 try:
-    import cStringIO as StringIO
-except:
-    import StringIO
+    import logging
+    import logging.handlers
+except ImportError:
+    import VisionEgg.py_logging as logging
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -107,6 +110,26 @@ else:
 ############# Get config defaults #############
 config = VisionEgg.Configuration.Config()
 
+############# Logging #############
+
+logger = logging.getLogger('VisionEgg')
+logger.setLevel( logging.INFO )
+log_formatter = logging.Formatter('%(asctime)s (%(process)d) %(levelname)s: %(message)s')
+
+if config.VISIONEGG_LOG_TO_STDERR:
+    log_handler_stderr = logging.StreamHandler()
+    log_handler_stderr.setFormatter( log_formatter )
+    logger.addHandler( log_handler_stderr )
+    
+if config.VISIONEGG_LOG_FILE:
+    if hasattr(logging, 'handlers'):
+        log_handler_logfile = logging.handlers.RotatingFileHandler( config.VISIONEGG_LOG_FILE,
+                                                                    maxBytes=100000 )
+    else:
+        log_handler_logfile = logging.FileHandler( config.VISIONEGG_LOG_FILE )
+    log_handler_logfile.setFormatter( log_formatter )
+    logger.addHandler( log_handler_logfile )
+
 ############# Default exception handler #############
 
 if not sys.argv[0]: # Interactive mode
@@ -115,17 +138,38 @@ if not sys.argv[0]: # Interactive mode
 class _ExceptionHookKeeper:
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         global config
+
+        traceback_stream = StringIO.StringIO()
+        traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
+        traceback_stream.seek(0)
+
+        try:
+            # don't send to stderr here (original exception handler does it)
+            logger.removeHandler( log_handler_stderr ) 
+            removed_stderr = True
+        except:
+            removed_stderr = False
+            
+        logger.critical(traceback_stream.read())
+        
+        if removed_stderr:
+            logger.addHandler( log_handler_stderr )
+        
+##        config._message.add(traceback_stream.read(),
+##                            level=config._message.WARNING,
+##                            preserve_formatting=1,
+##                            no_sys_stderr=1) # prevent exception from going to console twice
         
         if config is not None:
-            if hasattr(config,"_message"): # send exception to log file (if it's open yet)
-                traceback_stream = StringIO.StringIO()
-                traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
-                traceback_stream.seek(0)
+##            if hasattr(config,"_message"): # send exception to log file (if it's open yet)
+##                traceback_stream = StringIO.StringIO()
+##                traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
+##                traceback_stream.seek(0)
 
-                config._message.add(traceback_stream.read(),
-                                    level=config._message.WARNING,
-                                    preserve_formatting=1,
-                                    no_sys_stderr=1) # prevent exception from going to console twice
+##                config._message.add(traceback_stream.read(),
+##                                    level=config._message.WARNING,
+##                                    preserve_formatting=1,
+##                                    no_sys_stderr=1) # prevent exception from going to console twice
 
             if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
                 # Should really check if any GUI windows are open and only do this then
@@ -160,6 +204,7 @@ class _ExceptionHookKeeper:
         self._sys = sys # preserve ref to sys module
         self.orig_hook = self._sys.excepthook # keep copy
         sys.excepthook = self.handle_exception
+        
     def __del__(self):
         self._sys.excepthook = self.orig_hook # restore original
 

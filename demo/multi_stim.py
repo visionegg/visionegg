@@ -334,5 +334,5 @@ while not pygame.event.peek((pygame.locals.QUIT,
     swap_buffers() # display the frame we've drawn in back buffer
     frame_timer.tick()
 
-frame_timer.print_histogram()
+frame_timer.log_histogram()
     

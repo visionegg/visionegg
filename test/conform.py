@@ -30,16 +30,29 @@ except NameError:
     True = 1==1
     False = 1==0
 
+# Define "sum" if it's not available as Python function
+try:
+    sum
+except NameError:
+    import operator
+    def sum( values ):
+        return reduce(operator.add, values )
+    
 class VETestCase(unittest.TestCase):
     def setUp(self):
-        self.screen = VisionEgg.Core.Screen( size          = (512,512),
-                                             fullscreen    = False,
-                                             preferred_bpp = 32,
-                                             maxpriority   = False,
-                                             hide_mouse    = False,
-                                             frameless     = False,
-                                             bgcolor       = (0,0,1), # Blue (RGB)
-                                             )
+        kw_params = {'size'          : (512,512),
+                     'fullscreen'    : False,
+                     'preferred_bpp' : 32,
+                     'maxpriority'   : False,
+                     'hide_mouse'    : False,
+                     'frameless'     : False,
+                     'bgcolor'       : (0.0, 0.0, 1.0),
+                     }
+        try:
+            self.screen = VisionEgg.Core.Screen( **kw_params )
+        except Exception, x:
+            kw_params['preferred_bpp'] = 24
+            self.screen = VisionEgg.Core.Screen( **kw_params )
         self.screen.clear()
         VisionEgg.Core.swap_buffers()
         self.ortho_viewport = VisionEgg.Core.Viewport( screen = self.screen )
