@@ -462,14 +462,14 @@ class SinGrating2DSquareSidesSlow(LuminanceGratingCommon):
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         
             gl.glTexSubImage2D(gl.GL_TEXTURE_2D, # target
-                            0, # level
-                            0, # x offset
-                            0, # y offset
-                            self.parameters.num_samples, # width
-                            self.parameters.num_samples, # height
-                            self.format, # data format
-                            self.gl_type, # data type
-                            texel_data)
+                               0, # level
+                               0, # x offset
+                               0, # y offset
+                               self.parameters.num_samples, # width
+                               self.parameters.num_samples, # height
+                               self.format, # data format
+                               self.gl_type, # data type
+                               texel_data)
             
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
