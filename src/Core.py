@@ -1594,7 +1594,7 @@ def post_gl_init():
         if gl_version >= '1.2':
             # If OpenGL version >= 1.2, this should be defined
             # It seems to be a PyOpenGL bug that it's not.
-            logger.warning("You do not have GL_CLAMP_TO_EDGE defined. "
+            logger.warning("GL_CLAMP_TO_EDGE is not defined. "
                            "Because you have OpenGL version 1.2 or "
                            "greater, this is probably a bug in "
                            "PyOpenGL.  Assigning GL_CLAMP_TO_EDGE to "
@@ -1606,12 +1606,12 @@ def post_gl_init():
                 gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP_TO_EDGE_SGIS
             except:
                 
-                logger.warning("You do not have GL_CLAMP_TO_EDGE "
-                               "available.  Your OpenGL version is "
+                logger.warning("GL_CLAMP_TO_EDGE is not "
+                               "available.  OpenGL version is "
                                "less than 1.2, and the "
                                "texture_edge_clamp_SGIS extension "
                                "failed to load. It may be impossible to "
-                               "get exact 1:1 reproduction of your "
+                               "get exact 1:1 reproduction of "
                                "textures.  Using GL_CLAMP instead of "
                                "GL_CLAMP_TO_EDGE.")
                 gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
