@@ -38,6 +38,8 @@ Functions:
 
 recursive_base_class_finder -- A function to find all base classes
 timing_func -- Most accurate timing function available on a platform
+get_type -- Get the type or class of argument
+assert_type -- Assert that argument 1 is of the type argument 2
 
 Public variables:
 
@@ -69,6 +71,13 @@ except ImportError:
 
 ############# Get config defaults #############
 config = Configuration.Config()
+
+############# Default exception handler #############
+
+# Mac OS X weirdness test:
+if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
+    # When run directly from commandline, no GUIs!
+    config.VISIONEGG_TKINTER_OK = 0
 
 ############ A base class finder utility function ###########
 
@@ -223,3 +232,21 @@ class ClassWithParameters:
         # The for loop only completes if parameter_name is not in any subclass
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
 
+def get_type(value):
+    """Return the type if it's not an instance, return the class if it is."""
+    my_type = type(value)
+    if my_type == types.InstanceType:
+        my_type = value.__class__
+    return my_type
+
+def assert_type(check_type,require_type):
+    """Perform type check for the Vision Egg."""
+    if check_type != require_type:
+        type_error = 0
+        if type(require_type) == types.ClassType:
+            if not issubclass( check_type, require_type ):
+                type_error = 1
+        else:
+            type_error = 1
+        if type_error:
+            raise TypeError("%s is not of type %s"%(check_type,require_type))
