@@ -9,10 +9,10 @@ import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.Gratings
 
-import OpenGL.GL as gl                          #   main package
-
 import Numeric  				# Numeric Python package
 import Image
+
+import OpenGL.GL as gl
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -340,7 +340,13 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glDisable( gl.GL_TEXTURE_1D )
 
 class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
+    """This draws an opaque sphere with a single window in it.
 
+    This is useful when you need to have a viewport on a 3D scene.
+
+    Note that the bit depth of the alpha component of the framebuffer
+    is important for producing smooth transitions in color."""
+    
     parameters_and_defaults = {'on':(1,types.IntType),
                                'window_center_elevation':(0.0,types.FloatType),
                                'window_center_azimuth':(0.0,types.FloatType),
