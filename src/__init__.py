@@ -130,7 +130,7 @@ class _ExceptionHookKeeper:
             if hasattr(config,"_pygame_started"):
                 if config._pygame_started:
                     pygame_bug_workaround = 1
-            if sys.platform == "linux2": # doesn't affect linux for some reason
+            if sys.platform[:5] == "linux": # doesn't affect linux for some reason
                 pygame_bug_workaround = 0
             if not pygame_bug_workaround:
                 GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())

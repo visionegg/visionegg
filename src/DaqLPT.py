@@ -30,7 +30,7 @@ import sys, types, string
 
 if sys.platform == 'win32':
     import winioport as raw_lpt_module
-elif sys.platform == 'linux2':
+elif sys.platform[:5] == 'linux':
     import VisionEgg._raw_lpt_linux as raw_lpt_module
 elif sys.platform[:4] == 'irix':
 ### IRIX implementation not done, but possible
