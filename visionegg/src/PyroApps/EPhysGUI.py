@@ -11,10 +11,10 @@
 #
 # $Id$
 
-import VisionEgg, string
+import VisionEgg
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -258,6 +258,10 @@ class Loop(VisionEgg.ClassWithParameters):
                                            ve_types.Sequence(ve_types.Real)),
                                'rest_duration_sec':(1.0,
                                                     ve_types.Real)}
+    __slots__ = (
+        'num_done',
+        )
+    
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.num_done = 0
@@ -271,7 +275,7 @@ class Loop(VisionEgg.ClassWithParameters):
         self.num_done = 0
 
 class LoopContainedObject(ContainedObjectBase):
-    """Contrainer for Loop class"""
+    """Container for Loop class"""
     contained_class = Loop
     header = "     variable    rest   N  values"
     def __init__(self,contained=None):
