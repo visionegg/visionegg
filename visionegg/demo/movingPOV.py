@@ -45,17 +45,17 @@ mid_y = screen.size[1]/2
 projection1 = SimplePerspectiveProjection(fov_x=90.0,
                                           aspect_ratio=(float(mid_x)/screen.size[1]))
 projection2 = SimplePerspectiveProjection() # Parameters set in realtime, so no need to specify here
-viewport1 = Viewport(screen,
+stimulus = SpinningDrum()
+viewport1 = Viewport(screen=screen,
                      lowerleft=(0,0),
                      size=(mid_x,screen.size[1]),
-                     projection=projection1)
-viewport2 = Viewport(screen,
+                     projection=projection1,
+                     stimuli=[stimulus])
+viewport2 = Viewport(screen=screen,
                      lowerleft=(mid_x,0),
                      size=(mid_x,screen.size[1]),
-                     projection=projection2)
-stimulus = SpinningDrum()
-viewport1.add_stimulus(stimulus)
-viewport2.add_stimulus(stimulus)
+                     projection=projection2,
+                     stimuli=[stimulus])
 
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
 

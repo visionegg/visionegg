@@ -18,12 +18,14 @@ def on_during_experiment(t):
 screen = get_default_screen()
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white (RGBA)
 projection = OrthographicProjection(right=1.0,top=1.0) # normalized coordinates
-viewport = Viewport(screen,
-                    size=screen.size,
-                    projection=projection)
+
 text = BitmapText(text="Hello world!")
 text.parameters.color = (0.0,0.0,0.0,1.0) # black text (RGBA)
-viewport.add_stimulus(text)
+
+viewport = Viewport(screen=screen,
+                    size=screen.size,
+                    projection=projection,
+                    stimuli=[text])
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
 p.add_realtime_time_controller(text,'lowerleft', lowerleft_as_function_of_time)
 p.add_transitional_controller(text,'on', on_during_experiment)
