@@ -106,20 +106,20 @@ class Screen(VisionEgg.ClassWithParameters):
 
     Constant Parameters
     ===================
-    frameless     -- remove standard window frame? (Boolean)
-                     Default: 0
-    fullscreen    -- use full screen? (Boolean)
-                     Default: 0
-    hide_mouse    -- hide the mouse cursor? (Boolean)
-                     Default: 1
-    maxpriority   -- raise priority? (platform dependent) (Boolean)
-                     Default: 0
-    preferred_bpp -- preferred bits per pixel (bit depth) (UnsignedInteger)
-                     Default: 0
-    size          -- size (units: pixels) (Sequence2 of Real)
-                     Default: (640, 480)
-    sync_swap     -- synchronize buffer swaps to vertical sync? (Boolean)
-                     Default: 1
+    frameless     -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
+                     Default: (determined at instantiation)
+    fullscreen    -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
+                     Default: (determined at instantiation)
+    hide_mouse    -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
+                     Default: (determined at instantiation)
+    maxpriority   -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
+                     Default: (determined at instantiation)
+    preferred_bpp -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
+                     Default: (determined at instantiation)
+    size          -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
+                     Default: (determined at instantiation)
+    sync_swap     -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
+                     Default: (determined at instantiation)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
@@ -130,28 +130,27 @@ class Screen(VisionEgg.ClassWithParameters):
         })
     
     constant_parameters_and_defaults = VisionEgg.ParameterDefinition({
-        'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
-                 VisionEgg.config.VISIONEGG_SCREEN_H),
+        'size':(None,
                 ve_types.Sequence2(ve_types.Real),
-                'size (units: pixels)'),
-        'fullscreen':(VisionEgg.config.VISIONEGG_FULLSCREEN,
+                'size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H'),
+        'fullscreen':(None,
                       ve_types.Boolean,
-                      'use full screen?'),
-        'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                      'use full screen? Can be set with VISIONEGG_FULLSCREEN'),
+        'preferred_bpp':(None,
                          ve_types.UnsignedInteger,
-                         'preferred bits per pixel (bit depth)'),
-        'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                         'preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP'),
+        'maxpriority':(None,
                        ve_types.Boolean,
-                       'raise priority? (platform dependent)'),
-        'hide_mouse':(VisionEgg.config.VISIONEGG_HIDE_MOUSE,
+                       'raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY'),
+        'hide_mouse':(None,
                       ve_types.Boolean,
-                      'hide the mouse cursor?'),
-        'frameless':(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                      'hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE'),
+        'frameless':(None,
                      ve_types.Boolean,
-                     'remove standard window frame?'),
-        'sync_swap':(VisionEgg.config.VISIONEGG_SYNC_SWAP,
+                     'remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW'),
+        'sync_swap':(None,
                      ve_types.Boolean,
-                     'synchronize buffer swaps to vertical sync?'),
+                     'synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP'),
         })
     
     __slots__ = (
@@ -170,6 +169,23 @@ class Screen(VisionEgg.ClassWithParameters):
         
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
+        cp = self.constant_parameters # shorthand
+        if cp.size is None:
+            cp.size = (VisionEgg.config.VISIONEGG_SCREEN_W,
+                       VisionEgg.config.VISIONEGG_SCREEN_H)
+        if cp.fullscreen is None:
+            cp.fullscreen = VisionEgg.config.VISIONEGG_FULLSCREEN
+        if cp.preferred_bpp is None:
+            cp.preferred_bpp = VisionEgg.config.VISIONEGG_PREFERRED_BPP
+        if cp.maxpriority is None:
+            cp.maxpriority = VisionEgg.config.VISIONEGG_MAXPRIORITY
+        if cp.hide_mouse is None:
+            cp.hide_mouse = VisionEgg.config.VISIONEGG_HIDE_MOUSE
+        if cp.frameless is None:
+            cp.frameless = VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW
+        if cp.sync_swap is None:
+            cp.sync_swap = VisionEgg.config.VISIONEGG_SYNC_SWAP
+            
         if VisionEgg.config.SYNCLYNC_PRESENT:
             global synclync # import into global namespace
             import synclync
