@@ -68,7 +68,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5a2'
+release_name = '0.9.5a3'
 
 import VisionEgg.Configuration
 import VisionEgg.ParameterTypes as ve_types
@@ -276,7 +276,7 @@ class ClassWithParameters:
                     if len(klass.parameters_and_defaults[parameter_name]) != 2:
                         raise ValueError("Definition of parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
                     value,tipe = klass.parameters_and_defaults[parameter_name]
-
+                    # Check tipe is valid
                     if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
