@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
 from VisionEgg.PyroClient import *
-from VisionEgg.Core import *
-import time
+
+import time, sys
+
+if len(sys.argv) >= 2:
+    server_hostname = sys.argv[1]
+else:
+    server_hostname = ''
+
+print "using server hostname '%s'"%server_hostname
 
 # Get the controllers
-
-client = PyroClient()
-
+client = PyroClient(server_hostname=server_hostname)
 tf_controller = client.get('tf_controller')
 quit_controller = client.get('quit_controller')
 

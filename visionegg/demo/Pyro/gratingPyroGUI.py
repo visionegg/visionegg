@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """GUI panel for control of gratingPyroServer"""
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
 import sys, os
@@ -36,10 +36,18 @@ class StimulusControlFrame(Tkinter.Frame):
         connected_frame.columnconfigure(1,weight=1)
         connected_frame.columnconfigure(2,weight=1)
 
+        Tkinter.Label(connected_frame,text="Server hostname:").grid(row=0,column=0,sticky=Tkinter.E)
+        self.server_hostname = Tkinter.StringVar()
+        self.server_hostname.set( '' )
+        Tkinter.Entry(connected_frame,textvariable=self.server_hostname).grid(row=0,
+                                                                              column=1,
+                                                                              columnspan=2,
+                                                                              sticky=Tkinter.W+Tkinter.E)
+
         self.connected_label = Tkinter.Label(connected_frame,text="Server status: Not connected")
-        self.connected_label.grid(row=0,column=0)
-        Tkinter.Button(connected_frame,text="Connect",command=self.connect).grid(row=0,column=1)
-        Tkinter.Button(connected_frame,text="Quit server",command=self.quit_server).grid(row=0,column=2)
+        self.connected_label.grid(row=1,column=0)
+        Tkinter.Button(connected_frame,text="Connect",command=self.connect).grid(row=1,column=1)
+        Tkinter.Button(connected_frame,text="Quit server",command=self.quit_server).grid(row=1,column=2)
 
         row += 1
         between_go_frame = Tkinter.Frame(self)
@@ -144,7 +152,8 @@ class StimulusControlFrame(Tkinter.Frame):
             self.orient_controller.evaluate_now()
             
     def connect(self,dummy=None):
-        client = VisionEgg.PyroClient.PyroClient()
+        client = VisionEgg.PyroClient.PyroClient(server_hostname=self.server_hostname.get(),
+                                                 server_port=7766)
 
         self.tf_controller = client.get('tf_controller')
         self.sf_controller = client.get('sf_controller')
