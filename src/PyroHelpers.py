@@ -13,6 +13,7 @@ import Pyro.naming
 import Pyro.core
 from Pyro.errors import PyroError,NamingError
 
+import sys
 from math import *
 
 Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
@@ -23,13 +24,17 @@ class PyroGoClass(Pyro.core.ObjBase):
     Used to allow a remote computer to tell a stimulus presentation to
     go.
     """
-    def __init__(self,go_func):
+    def __init__(self, go_func, quit_func=lambda:None):
         """Create and instance with appropriate go function."""
         self.go_func = go_func
+        self.quit_func = quit_func
         Pyro.core.ObjBase.__init__(self)
     def go(self):
         """Call the go function."""
         self.go_func()
+    def quit(self):
+        """Quit the server."""
+        self.quit_func()
 
 class PyroController(Pyro.core.ObjBase):
     """Abstract base class for remote controllers"""
@@ -81,6 +86,8 @@ class PyroServer:
         self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
         print 'Pyro Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
         self.daemon.useNameServer(self.ns)
+        self.ok_to_run = 1
+        
     def connect(self,object,name):
         """Serve an object under a name"""
         try:
@@ -88,12 +95,16 @@ class PyroServer:
         except NamingError:
             pass
         self.daemon.connect(object,name)
+        
     def mainloop(self, idle_func=lambda: None, time_out=3.0):
         """Handle requests for objects."""
         print "VisionEgg.PyroHelpers.PyroServer handling requests..."
-        while 1:
+        while self.ok_to_run:
             self.daemon.handleRequests(time_out)
             idle_func()
+
+    def quit_mainloop(self):
+        self.ok_to_run = 0
 
 class PyroClient:
     """A client for calling a Pyro server."""

@@ -21,10 +21,12 @@ go_object = client.get('go_object')
 
 class BlurDrumGui(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
-
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Motion blurred drum')
         self.pack(expand=1,fill=Tkinter.BOTH)
+
+        # Close server button
+        Tkinter.Button(self,text="Close server",command=self.quit).pack()
 
         # Position formula
         Tkinter.Label(self,text="Position as a function of time:").pack()
@@ -104,6 +106,10 @@ class BlurDrumGui(Tkinter.Frame):
     def go(self):
         self.push_values()
         go_object.go()
+
+    def quit(self):
+        go_object.quit()
+        sys.exit()
 
 gui_window = BlurDrumGui()
 

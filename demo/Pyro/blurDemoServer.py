@@ -64,7 +64,8 @@ p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
 p.between_presentations() 
 
 # register the go function and serve it with pyro
-go_object = PyroGoClass(p.go)
+go_object = PyroGoClass( go_func = p.go,
+                         quit_func = pyro_server.quit_mainloop )
 pyro_server.connect(go_object,'go_object')
 
 # wait for commands and do them!
