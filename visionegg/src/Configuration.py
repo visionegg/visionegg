@@ -122,7 +122,7 @@ class Config:
         for option in general_options:
             name = string.upper(option)
             if name not in defaults.keys():
-                raise KeyError("No Vision Egg configuration variable \"%s\""%option)
+                raise KeyError("Error while reading %s: The variable \"%s\" is not a Vision Egg variable."%(os.path.abspath(configFile),option))
             value = cfg.get('General',option)
             if name in os.environ.keys():
                 value = os.environ[name]
