@@ -68,7 +68,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         t_adjusted = t - self.meta_params.pre_stim_sec
         distance = self.meta_params.velocity_pps * t_adjusted
         x_offset = math.cos(self.meta_params.direction_deg / 180.0 * math.pi)*distance
-        y_offset = -math.sin(self.meta_params.direction_deg / 180.0 * math.pi)*distance
+        y_offset = math.sin(self.meta_params.direction_deg / 180.0 * math.pi)*distance
         
         return (self.meta_params.start_x + x_offset,
                 self.meta_params.start_y + y_offset)
