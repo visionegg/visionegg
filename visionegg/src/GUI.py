@@ -23,13 +23,13 @@ class showexception(Tkinter.Frame):
     """A window that shows a string and has a quit button."""
     def __init__(self,exc_type, exc_value, traceback_str):
         title="Vision Egg: exception caught"
-
+        self.winfo_toplevel().title(title)
+        self.winfo_toplevel().protocol("WM_DELETE_WINDOW",self.close_window)
         first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
         
         type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
         Tkinter.Frame.__init__(self,borderwidth=20)
         self.pack()
-        self.winfo_toplevel().title(title)
         
         Tkinter.Label(self,text=first_str).pack()
         Tkinter.Label(self,text=type_value_str).pack()
