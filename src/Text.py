@@ -10,7 +10,7 @@
 #
 ####################################################################
 
-import string
+import string, types
 import VisionEgg.Core
 
 import OpenGL.GL
@@ -29,15 +29,15 @@ class TextStimulus(VisionEgg.Core.Stimulus):
 
     It's a base class that defines the common interface between the
     other text stimuli."""
-    parameters_and_defaults = {'on':1,
-                               'color':(1.0,1.0,1.0,1.0),
-                               'lowerleft':(320.0,240.),
-                               'text':'the string to display'}
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'color':((1.0,1.0,1.0,1.0),types.TupleType),
+                               'lowerleft':((320.0,240.),types.TupleType),
+                               'text':('the string to display',types.StringType)}
     def __init__(self,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
 
 class BitmapText(TextStimulus):
-    parameters_and_defaults = {'font':glut.GLUT_BITMAP_TIMES_ROMAN_24}
+    parameters_and_defaults = {'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,types.IntType)}
     def __init__(self,**kw):
         apply(TextStimulus.__init__,(self,),kw)
 
@@ -60,10 +60,10 @@ class BitmapText(TextStimulus):
                 glut.glutBitmapCharacter(self.parameters.font,ord(char))
 
 class StrokeText(TextStimulus):
-    parameters_and_defaults = {'font':glut.GLUT_STROKE_ROMAN,
-                               'orientation':0.0,
-                               'linewidth':3.0, # in pixels
-                               'anti_aliasing':1}
+    parameters_and_defaults = {'font':(glut.GLUT_STROKE_ROMAN,types.IntType),
+                               'orientation':(0.0,types.FloatType),
+                               'linewidth':(3.0,types.FloatType), # in pixels
+                               'anti_aliasing':(1,types.IntType)}
     def __init__(self,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
         apply(TextStimulus.__init__,(self,),kw)

@@ -10,6 +10,7 @@
 #
 ####################################################################
 
+import types
 import VisionEgg.Core
 import OpenGL.GL
 gl = OpenGL.GL
@@ -28,8 +29,8 @@ __all__ = ['Teapot','Target2D']
 
 class Teapot(VisionEgg.Core.Stimulus):
     """A very simple stimulus because GLUT can draw a teapot"""
-    parameters_and_defaults = {'angular_position':0.0,
-                               'on':1}
+    parameters_and_defaults = {'angular_position':(0.0,types.FloatType),
+                               'on':(1,types.IntType)}
 
     def __init__(self,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
@@ -47,12 +48,18 @@ class Teapot(VisionEgg.Core.Stimulus):
             glut.glutSolidTeapot(0.5)
         
 class Target2D(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'on':1,
-                               'color':(1.0,1.0,1.0,1.0),
-                               'anti_aliasing':1,
-                               'orientation':135.0,
-                               'center':(320.0,240.0),
-                               'size':(64.0,16.0)}
+    parameters_and_defaults = {'on':(1,
+                                     types.IntType),
+                               'color':((1.0,1.0,1.0,1.0),
+                                        types.TupleType),
+                               'anti_aliasing':(1,
+                                                types.IntType),
+                               'orientation':(135.0,
+                                              types.FloatType),
+                               'center':((320.0,240.0),
+                                         types.TupleType),
+                               'size':((64.0,16.0),
+                                       types.TupleType)}
                         
     def __init__(self,projection=None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
