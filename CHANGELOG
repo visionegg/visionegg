@@ -22,7 +22,7 @@ Added automatic detection of all extensions in tests/opengl_info.py.
 Removed data acquisition stuff from distribution until I get time to
 get it working again.
 
-Re-incorporated linux (and other unix?) kernel scheduler minimum
+Re-incorporated linux (and other unix?) kernel scheduler maximum
 priority stuff.
 
 Re-incorporated collection and printing of frame-timing
