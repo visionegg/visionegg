@@ -58,6 +58,8 @@ import sys, types, string, math, time, os       # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
+import Image                                    # Python Imaging Library (PIL)
+
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
 import pygame.display
@@ -355,6 +357,13 @@ class Screen(VisionEgg.ClassWithParameters):
             VisionEgg.config._open_screens.append(self)
         else:
             VisionEgg.config._open_screens = [self]
+
+    def get_framebuffer_as_image(self):
+        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
+        fb_image = Image.fromstring('RGB',self.size,framebuffer_pixels)
+        fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
+        return fb_image
 
     def set_gamma_ramp(self, red, green, blue):
         return pygame.display.set_gamma_ramp(red,green,blue)
@@ -1478,10 +1487,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             swap_buffers()
             
             # Now save the contents of the framebuffer
-            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            framebuffer = gl.glReadPixels(0,0,screen.size[0],screen.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
-            fb_image = Image.fromstring('RGB',screen.size,framebuffer)
-            fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
+            fb_image = screen.get_framebuffer_as_image()
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
             savepath = os.path.join( path, filename )
             message.add("Saving '%s'"%filename)
