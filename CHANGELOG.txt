@@ -1,3 +1,17 @@
+Changes for 0.9.3:
+------------------
+
+MAJOR: Added .3ds file support to load 3D models.
+
+MAJOR: Added Labview code to control gratings in a new "contrib"
+package. Thanks Jamie Theobald!
+
+Fixed texture-resizing bug.
+
+Added Rectangle3D stimulus class.
+
+Further refined log printing and other small enhancements.
+
 Changes for 0.9.2:
 ------------------
 
