@@ -131,6 +131,19 @@ class Texture(object):
                  '_buf_b',
                  '_buf_t',
                  )
+
+    def __getstate__(self,*args,**kw):
+        """support for being pickled"""
+        result = {}
+        for attr in self.__slots__:
+            if hasattr(self,attr):
+                result[attr] = getattr(self,attr)
+        return result
+
+    def __setstate__(self,dict):
+        """support for being unpickled"""
+        for attr in dict.keys():
+            setattr(self,attr,dict[attr])   
     
     def __init__(self,texels=None,size=None):
         """Creates instance of Texture object.
@@ -362,7 +375,6 @@ class Texture(object):
 
 class TextureFromFile( Texture ):
     """DEPRECATED."""
-    __slots__ = Texture.__slots__
     def __init__(self, filename ):
         logger = logging.getLogger('VisionEgg.Textures')
         logger.warning("class TextureFromFile deprecated, use class "
@@ -389,7 +401,20 @@ class TextureObject(object):
         'gl_id',
         '__gl_module__',
         )
+    
+    def __getstate__(self,*args,**kw):
+        """support for being pickled"""
+        result = {}
+        for attr in self.__slots__:
+            if hasattr(self,attr):
+                result[attr] = getattr(self,attr)
+        return result
 
+    def __setstate__(self,dict):
+        """support for being unpickled"""
+        for attr in dict.keys():
+            setattr(self,attr,dict[attr])   
+    
     _cube_map_side_names = ['positive_x', 'negative_x',
                             'positive_y', 'negative_y',
                             'positive_z', 'negative_z']
@@ -1028,11 +1053,11 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                              "Allow automatic shrinking of texture if too big?"),
         }
                                         
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         'texture_object',
         '_using_texture',
         )
-    
+
     _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
 
@@ -1306,8 +1331,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                       "perform depth test?"),
         }
     
-    __slots__ = TextureStimulusBaseClass.__slots__
-    
     def __init__(self,**kw):
         TextureStimulusBaseClass.__init__(self,**kw)
         if self.parameters.size is None:
@@ -1459,8 +1482,6 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                              "perform depth test?"),
                                }
                                                                                 
-    __slots__ = TextureStimulusBaseClass.__slots__
-    
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -1607,7 +1628,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                        '0=right, 90=up'),
         }
     
-    __slots__ = TextureStimulusBaseClass.__slots__ + (
+    __slots__ = (
         'cached_display_list_normal',
         'cached_display_list_mirror',
         'cached_display_list_num_sides',
@@ -1854,6 +1875,11 @@ class FixationCross(VisionEgg.Core.Stimulus):
         'texture_size':((64,64),
                         ve_types.Sequence2(ve_types.Real)),
         }
+
+    __slots__ = (
+        'texture_stimulus',
+        )
+    
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         s = self.constant_parameters.texture_size
