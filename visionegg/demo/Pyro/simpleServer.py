@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Run a simple VisionEgg Pyro server (old).
+"""Run a simple VisionEgg Pyro server.
 
 You will need to have a Pyro Name Server running on your network for
 this to work.  It comes with the Pyro distribution as a script in the
