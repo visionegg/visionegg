@@ -114,39 +114,42 @@ if not sys.argv[0]: # Interactive mode
 
 class _ExceptionHookKeeper:
     def handle_exception(self, exc_type, exc_value, exc_traceback):
-        global config # XXX hmm -- I don't know why this is necessary.  (Because we're in an exception?)
-        # send exception to log file (if it's open yet)
-        if hasattr(config,"_message"):
-            traceback_stream = StringIO.StringIO()
-            traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
-            traceback_stream.seek(0)
+        global config
+        
+        if config is not None:
+            if hasattr(config,"_message"): # send exception to log file (if it's open yet)
+                traceback_stream = StringIO.StringIO()
+                traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
+                traceback_stream.seek(0)
 
-            config._message.add(traceback_stream.read(),
-                                level=config._message.WARNING,
-                                preserve_formatting=1,
-                                no_sys_stderr=1) # prevent exception from going to console twice
+                config._message.add(traceback_stream.read(),
+                                    level=config._message.WARNING,
+                                    preserve_formatting=1,
+                                    no_sys_stderr=1) # prevent exception from going to console twice
 
-        if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
-            # Should really check if any GUI windows are open and only do this then
+            if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
+                # Should really check if any GUI windows are open and only do this then
 
-            # close any open screens
-            if hasattr(config,'_open_screens'):
-                for screen in config._open_screens:
-                    screen.close()
+                # close any open screens
+                if hasattr(config,'_open_screens'):
+                    for screen in config._open_screens:
+                        screen.close()
 
-            traceback_stream = StringIO.StringIO()
-            traceback.print_tb(exc_traceback,None,traceback_stream)
-            traceback_stream.seek(0)
+                traceback_stream = StringIO.StringIO()
+                traceback.print_tb(exc_traceback,None,traceback_stream)
+                traceback_stream.seek(0)
 
-            import GUI
-            pygame_bug_workaround = 0 # do we need to workaround pygame bug?
-            if hasattr(config,"_pygame_started"):
-                if config._pygame_started:
-                    pygame_bug_workaround = 1
-            if sys.platform[:5] == "linux": # doesn't affect linux for some reason
-                pygame_bug_workaround = 0
-            if not pygame_bug_workaround:
-                GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
+                pygame_bug_workaround = False # do we need to workaround pygame bug?
+                if hasattr(config,"_pygame_started"):
+                    if config._pygame_started:
+                        pygame_bug_workaround = True
+                if sys.platform.startswith('linux'): # doesn't affect linux for some reason
+                    pygame_bug_workaround = False
+                if not pygame_bug_workaround:
+                    if hasattr(config,'_Tkinter_used'):
+                        if config._Tkinter_used:
+                            import GUI
+                            GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
 
         # continue on with normal exception processing:
         __keep_config__ = config # bizarre that the exception handler changes our values...
@@ -377,48 +380,62 @@ def _get_lowerleft(position,anchor,size):
     """Private helper function"""
     if anchor == 'lowerleft':
         lowerleft = position
-    elif anchor == 'center':
-        lowerleft = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
-    elif anchor == 'lowerright':
-        lowerleft = (position[0] - size[0],position[1])
-    elif anchor == 'upperright':
-        lowerleft = (position[0] - size[0],position[1] - size[1])
-    elif anchor == 'upperleft':
-        lowerleft = (position[0],position[1] - size[1])
-    elif anchor == 'left':
-        lowerleft = (position[0],position[1] - size[1]/2.0)
-    elif anchor == 'right':
-        lowerleft = (position[0] - size[0],position[1] - size[1]/2.0)
-    elif anchor == 'bottom':
-        lowerleft = (position[0] - size[0]/2.0,position[1])
-    elif anchor == 'top':
-        lowerleft = (position[0] - size[0]/2.0,position[1] - size[1])
     else:
-        raise ValueError("No anchor position %s"%anchor)
+        if len(position) > 2: z = position[2]
+        else: z = 0.0
+        if len(position) > 3: w = position[3]
+        else: w = 1.0
+        if z != 0.0: raise ValueError("z coordinate (other than 0.0) specificed where anchor not 'lowerleft' -- cannot compute")
+        if w != 1.0: raise ValueError("w coordinate (other than 1.0) specificed where anchor not 'lowerleft' -- cannot compute")
+        if anchor == 'center':
+            lowerleft = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
+        elif anchor == 'lowerright':
+            lowerleft = (position[0] - size[0],position[1])
+        elif anchor == 'upperright':
+            lowerleft = (position[0] - size[0],position[1] - size[1])
+        elif anchor == 'upperleft':
+            lowerleft = (position[0],position[1] - size[1])
+        elif anchor == 'left':
+            lowerleft = (position[0],position[1] - size[1]/2.0)
+        elif anchor == 'right':
+            lowerleft = (position[0] - size[0],position[1] - size[1]/2.0)
+        elif anchor == 'bottom':
+            lowerleft = (position[0] - size[0]/2.0,position[1])
+        elif anchor == 'top':
+            lowerleft = (position[0] - size[0]/2.0,position[1] - size[1])
+        else:
+            raise ValueError("No anchor position %s"%anchor)
     return lowerleft
 
 def _get_center(position,anchor,size):
     """Private helper function"""
-    if anchor == 'lowerleft':
-        center = (position[0] + size[0]/2.0, position[1] + size[1]/2.0)
-    elif anchor == 'center':
+    if anchor == 'center':
         center = position
-    elif anchor == 'lowerright':
-        center = (position[0] - size[0]/2.0, position[1] + size[1]/2.0)
-    elif anchor == 'upperright':
-        center = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
-    elif anchor == 'upperleft':
-        center = (position[0] + size[0]/2.0, position[1] - size[1]/2.0)
-    elif anchor == 'left':
-        center = (position[0] + size[0]/2.0, position[1])
-    elif anchor == 'right':
-        center = (position[0] - size[0]/2.0, position[1])
-    elif anchor == 'bottom':
-        center = (position[0],position[1] + size[1]/2.0)
-    elif anchor == 'top':
-        center = (position[0],position[1] - size[1]/2.0)
     else:
-        raise ValueError("No anchor position %s"%anchor)
+        if len(position) > 2: z = position[2]
+        else: z = 0.0
+        if len(position) > 3: w = position[3]
+        else: w = 1.0
+        if z != 0.0: raise ValueError("z coordinate (other than 0.0) specificed where anchor not 'center' -- cannot compute")
+        if w != 1.0: raise ValueError("w coordinate (other than 1.0) specificed where anchor not 'center' -- cannot compute")
+        if anchor == 'lowerleft':
+            center = (position[0] + size[0]/2.0, position[1] + size[1]/2.0)
+        elif anchor == 'lowerright':
+            center = (position[0] - size[0]/2.0, position[1] + size[1]/2.0)
+        elif anchor == 'upperright':
+            center = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
+        elif anchor == 'upperleft':
+            center = (position[0] + size[0]/2.0, position[1] - size[1]/2.0)
+        elif anchor == 'left':
+            center = (position[0] + size[0]/2.0, position[1])
+        elif anchor == 'right':
+            center = (position[0] - size[0]/2.0, position[1])
+        elif anchor == 'bottom':
+            center = (position[0],position[1] + size[1]/2.0)
+        elif anchor == 'top':
+            center = (position[0],position[1] - size[1]/2.0)
+        else:
+            raise ValueError("No anchor position %s"%anchor)
     return center
 
 
