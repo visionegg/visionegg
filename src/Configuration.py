@@ -152,6 +152,10 @@ class Config:
             if name in os.environ.keys():
                 value = os.environ[name]
             if type(defaults[name]) == type(42): # int
+		if value == 'False':
+		    value = 0
+		elif value == 'True':
+		    value = 1
                 setattr(self,name,int(value))
             elif type(defaults[name]) == type(42.0): # float
                 setattr(self,name,float(value))
@@ -182,6 +186,10 @@ class Config:
                 if name in os.environ.keys():
                     value = os.environ[name]
                 if type(extra_defaults[name]) == type(42): # int
+		    if value == 'False':
+		        value = 0
+    		    elif value == 'True':
+		        value = 1
                     setattr(self,name,int(value))
                 elif type(extra_defaults[name]) == type(42.0): # float
                     setattr(self,name,float(value))
