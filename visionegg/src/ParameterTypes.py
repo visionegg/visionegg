@@ -59,6 +59,8 @@ class AnyOf(ParameterTypeDef):
             if item_type.verify(is_any_of):
                 return True
         return False
+    def get_item_types(self):
+        return self.item_types
 
 class NoneType(ParameterTypeDef):
     def verify(is_none):
@@ -263,7 +265,16 @@ def assert_type(check_type,require_type):
             check_class = check_type
 
         if isinstance(require_type,ParameterTypeDef):
-            require_class = require_type.__class__
+            if isinstance(require_type,AnyOf):
+                passed = False
+                for ok_type in require_type.get_item_types():
+                    try:
+                        assert_type(check_type, ok_type )
+                        return # it's ok
+                    except:
+                        pass
+            else:
+                require_class = require_type.__class__
         else:
             require_class = require_type
 
