@@ -52,7 +52,7 @@ except NameError:
     True = 1==1
     False = 1==0
    
-bpps = [32, 24, 0]
+bpps = [32, 24, 16, 0]
 sizes = [ (640,480), (800,600), (1024,768), (1280,1024) ]
 for bpp in bpps:
     success = False
