@@ -15,7 +15,7 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import math, cPickle, os
+import math, cPickle, os, types
 
 from VisionEgg import *
 from VisionEgg.Textures import *
@@ -210,6 +210,7 @@ class BlurredDrum(SpinningDrum):
         self.parameters.blur_assumes_fps = target_fps
         
         self.parameters.motion_blur_on = 1
+        self.parameters.find_blur_texture_method = 'automatic'
         self.parameters.cur_time = 0.0 # have to know the time to calculate amount of blur
 
         self.last_time = 0.0
@@ -241,19 +242,32 @@ class BlurredDrum(SpinningDrum):
 
     def get_texture_object(self,delta_pos,delta_t):
         """Finds the appropriate texture object for the current velocity."""
-        if self.parameters.motion_blur_on: # Find the appropriate texture 
-            if delta_t < 1.0e-6: # less than 1 microsecond (this should be less than a frame could possibly take to draw)
-                vel_dps = 0
-                speedIndex = 0
-            else:
-                #vel_dps = abs(delta_pos/delta_t) + 2.0e-9 # add a tiny bit to account for floating point innacuracies
-                vel_dps = abs(delta_pos/delta_t)
-                #vel_dps = abs(delta_pos/delta_t) + 1.0e-5
-                # Get the highest cached velocity less than or equal to the current velocity
+        if self.parameters.motion_blur_on: # Find the appropriate texture
+            if self.parameters.find_blur_texture_method == 'automatic':   
+                if delta_t < 1.0e-6: # less than 1 microsecond (this should be less than a frame could possibly take to draw)
+                    vel_dps = 0
+                    speedIndex = 0
+                else:
+                    #vel_dps = abs(delta_pos/delta_t) + 2.0e-9 # add a tiny bit to account for floating point innacuracies
+                    vel_dps = abs(delta_pos/delta_t)
+                    #vel_dps = abs(delta_pos/delta_t) + 1.0e-5
+                    # Get the highest cached velocity less than or equal to the current velocity
+                    speedIndex = nonzero(less_equal(self.texs.texGLSpeedsDps,vel_dps))[-1]
+                    #print speedIndex
+                    #print vel_dps - self.texs.texGLSpeedsDps
+                    #speedIndex = -1
+            elif type(self.parameters.find_blur_texture_method) == types.TupleType:
+                vel = self.parameters.find_blur_texture_method[0]
+                units = self.parameters.find_blur_texture_method[1]
+                if units == 'dps':
+                    vel_dps = vel
+                elif units == 'dpf':
+                    vel_dps = vel * self.parameters.blur_assumes_fps
+                elif units == 'ppf':
+                    vel_dps = vel / self.texture.orig.size[0] * 360.0 * self.parameters.blur_assumes_fps
+                else:
+                    raise RuntimeError("Don't understand units of '%s'"%units)
                 speedIndex = nonzero(less_equal(self.texs.texGLSpeedsDps,vel_dps))[-1]
-                #print speedIndex
-                #print vel_dps - self.texs.texGLSpeedsDps
-                #speedIndex = -1
         else: # In case motion blur is turned off
             speedIndex = 0
         return self.texs.texGLIdList[speedIndex]
