@@ -1,6 +1,6 @@
 """Stimuli drawn as texture maps on inside of sphere"""
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
 import math, types, string
@@ -188,6 +188,12 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                   ve_types.Real),
         'grating_center_elevation':(0.0, # 0=right, 90=down
                                     ve_types.Real),
+        'check_texture_size':(True, # slows down drawing but catches errors
+                              ve_types.Boolean),
+        'lowpass_cutoff_cycles_per_texel':(0.15,
+                                           ve_types.Real),
+        'min_filter':(gl.GL_LINEAR,
+                      ve_types.Integer),
         # changing this parameters causes re-drawing of the texture object and may cause frame skipping
         'num_samples':(1024,  # number of spatial samples, should be a power of 2
                        ve_types.UnsignedInteger),
@@ -222,43 +228,62 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             raise VisionEgg.Gratings.NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         self.calculate_bit_depth_dependencies()
-            
+
         l = 0.0
         r = 360.0
-        inc = 360.0/float(p.num_samples)
-        phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
-        floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
-        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-        texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
-        # Because the MAX_TEXTURE_SIZE method is insensitive to the current
-        # state of the video system, another check must be done using
-        # "proxy textures".
-        gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,            # target
-                     0,                              # level
-                     self.gl_internal_format,                   # video RAM internal format: RGB
-                     p.num_samples,    # width
-                     0,                              # border
-                     self.format,                   # format of image data
-                     self.gl_type,               # type of image data
-                     texel_data)                     # texel data
-        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
-            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
-        
-        # If we got here, it worked and we can load the texture for real.
-        gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
-                     0,                              # level
-                     self.gl_internal_format,                   # video RAM internal format: RGB
-                     p.num_samples,    # width
-                     0,                              # border
-                     self.format,                   # format of image data
-                     self.gl_type,               # type of image data
-                     texel_data)                     # texel data
+        mipmap_level = 0
+        this_mipmap_level_num_samples = p.num_samples
+        while this_mipmap_level_num_samples >= 1:
+            inc = 360.0/float(this_mipmap_level_num_samples) # degrees per pixel
+            cycles_per_texel = p.spatial_freq_cpd * inc
+            if cycles_per_texel < p.lowpass_cutoff_cycles_per_texel: # sharp cutoff lowpass filter
+                # below cutoff frequency - draw sine wave
+                phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
+                floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+            else:
+                # above cutoff frequency - blank
+                texel_data = (self.max_int_val*0.5)*Numeric.ones((this_mipmap_level_num_samples,),self.numeric_type)
+
+            if p.check_texture_size:
+                # Because the MAX_TEXTURE_SIZE method is insensitive to the current
+                # state of the video system, another check must be done using
+                # "proxy textures".
+                gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,  # target
+                                mipmap_level,            # level
+                                self.gl_internal_format, # video RAM internal format: RGB
+                                this_mipmap_level_num_samples,        # width
+                                0,                       # border
+                                self.format,             # format of image data
+                                self.gl_type,            # type of image data
+                                texel_data)              # texel data
+                if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
+
+            # If we got here, it worked and we can load the texture for real.
+            gl.glTexImage1D(gl.GL_TEXTURE_1D,        # target
+                            mipmap_level,            # level
+                            self.gl_internal_format, # video RAM internal format: RGB
+                            this_mipmap_level_num_samples,        # width
+                            0,                       # border
+                            self.format,             # format of image data
+                            self.gl_type,            # type of image data
+                            texel_data)              # texel data
+
+            # prepare for next mipmap level
+            this_mipmap_level_num_samples = this_mipmap_level_num_samples/2 # integer division
+            mipmap_level += 1
+
         # Set some texture object defaults
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
+#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR_MIPMAP_LINEAR)
+#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_NEAREST_MIPMAP_NEAREST)
+#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR_MIPMAP_NEAREST)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,p.min_filter)
         self._cached_num_samples = p.num_samples
 
     def __rebuild_display_list(self):
@@ -337,23 +362,37 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glDisable( gl.GL_BLEND )
 
             gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object_id)
+            gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,p.min_filter)
 
             l = 0.0
             r = 360.0
-            inc = 360.0/float(p.num_samples)
-            phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
-            floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
-            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-            texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
-        
-            gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
-                            0, # level
-                            0, # x offset
-                            p.num_samples, # width
-                            self.format, # data format
-                            self.gl_type, # data type
-                            texel_data)
             
+            mipmap_level = 0
+            this_mipmap_level_num_samples = p.num_samples
+            while this_mipmap_level_num_samples >= 1:
+                inc = 360.0/float(this_mipmap_level_num_samples)# degrees per pixel
+                cycles_per_texel = p.spatial_freq_cpd * inc
+                if cycles_per_texel < p.lowpass_cutoff_cycles_per_texel: # sharp cutoff lowpass filter
+                    phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+                    floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
+                    floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                    texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+                else:
+                    blank = 0.5*Numeric.ones((this_mipmap_level_num_samples,),'d')
+                    texel_data = (blank*self.max_int_val).astype(self.numeric_type).tostring()
+                        
+                gl.glTexSubImage1D(gl.GL_TEXTURE_1D,           # target
+                                mipmap_level,                  # level
+                                0,                             # x offset
+                                this_mipmap_level_num_samples, # width
+                                self.format,                   # data format
+                                self.gl_type,                  # data type
+                                texel_data)
+                
+                # prepare for next mipmap level
+                this_mipmap_level_num_samples = this_mipmap_level_num_samples/2 # integer division
+                mipmap_level += 1
+                
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             # clear modelview matrix
@@ -636,7 +675,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            # window location
+            # do the window position
             gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
             gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 
