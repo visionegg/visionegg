@@ -29,19 +29,6 @@ from OpenGL.GLUT import *			#   only used for glutSolidTeapot
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-############ Import texture compression stuff and use it, if possible ##############
-# This may mess up image statistics! Check the output before using in an experiment!
-
-use_texture_compression = 0
-try:
-    from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
-    if sys.platform != 'darwin':
-        if glInitTextureCompressionARB(): # dies on my PowerBook G4
-            use_texture_compression = 1
-            print "Using texture compression"
-except:
-    pass
-
 ############# Import Vision Egg C routines, if they exist #############
 try:
     from _maxpriority import *                  # pickup set_realtime() function
@@ -72,6 +59,18 @@ class VideoInfo:
 
 video_info = VideoInfo() # Make an instance for the Vision Egg
 video_info.initialized = 0
+
+############ Import texture compression stuff and use it, if possible ##############
+# This may mess up image statistics! Check the output before using in an experiment!
+
+video_info.tex_compress = 0
+try:
+    from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
+    if sys.platform != 'darwin':
+        ## if glInitTextureCompressionARB(): # This function doesn't seem to return any useful info
+        video_info.tex_compress = 1 # texture compression doesn't work on my PowerBook G4
+except:
+    pass
 
 ####################################################################
 #
@@ -227,7 +226,7 @@ class TextureBuffer:
             # Because the MAX_TEXTURE_SIZE method is insensitive to the current
             # state of the video system, another check must be done using
             # "proxy textures".
-            if use_texture_compression:
+            if video_info.tex_compress:
                 glTexImage2D(GL_PROXY_TEXTURE_2D,            # target
                              0,                              # level
                              GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
@@ -253,7 +252,7 @@ class TextureBuffer:
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) == 0:
                 raise EggError("Texture is too tall for your video system!")
 
-            if use_texture_compression:
+            if video_info.tex_compress:
                 glTexImage2D(GL_TEXTURE_2D,                  # target
                              0,                              # level
                              GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
@@ -284,7 +283,7 @@ class TextureBuffer:
         print "bound texture"
         data = pil_image.tostring("raw","RGB",0,-1)
         print "converted data"
-        if use_texture_compression:
+        if video_info.tex_compress:
             print "trying to put compressed image data"
             glCompressedTexSubImage2DARB(GL_TEXTURE_2D, # target
                                          0, # level
