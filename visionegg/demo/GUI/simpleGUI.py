@@ -14,7 +14,7 @@ stimulus = Stimulus()
 stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 p = Presentation(duration_sec=5.0,viewports=[viewport])
-p.add_parameter_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
+p.add_realtime_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
 p.go()
 
 
