@@ -21,10 +21,10 @@ stimulus = BlurredDrum(max_speed=max_speed,texture=texture)
 stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 
-p = Presentation(duration_sec=10.0,viewports=[viewport])
+p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
 
-p.add_realtime_controller(stimulus.parameters,'angle', angle_as_function_of_time)
-p.add_realtime_controller(stimulus.parameters,'cur_time', lambda t: t)
+p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of_time)
+p.add_realtime_time_controller(stimulus.parameters,'cur_time', lambda t: t)
 
 p.go()
 

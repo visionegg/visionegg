@@ -52,22 +52,22 @@ pyro_server.connect(motion_blur_on_controller,'motion_blur_on_controller')
 p.add_transitional_controller(drum.parameters,'motion_blur_on',motion_blur_on_controller.eval)
 
 # duration constant
-duration_controller = ConstantPyroController(10.0) # always on
+duration_controller = ConstantPyroController((10.0,'seconds'))
 pyro_server.connect(duration_controller,'duration_controller')
-p.add_transitional_controller(p.parameters,'duration_sec',duration_controller.eval)
+p.add_transitional_controller(p.parameters,'duration',duration_controller.eval)
 
 # angular position eval string
 angle_controller = EvalStringPyroController('%f*cos(t)'%default_max_speed)
 pyro_server.connect(angle_controller,'angle_controller')
-p.add_realtime_controller(drum.parameters,'angle',angle_controller.eval)
+p.add_realtime_time_controller(drum.parameters,'angle',angle_controller.eval)
 
 # contrast eval string
 contrast_controller = EvalStringPyroController('1.0')
 pyro_server.connect(contrast_controller,'contrast_controller')
-p.add_realtime_controller(drum.parameters,'contrast',contrast_controller.eval)
+p.add_realtime_time_controller(drum.parameters,'contrast',contrast_controller.eval)
 
 # local only controller -- current time
-p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
+p.add_realtime_time_controller(drum.parameters,'cur_time', lambda t: t)
 
 # projection controller --  allows remote object to set the projection
 projection_controller = LocalDictPyroController({'perspective_proj':perspective_proj,

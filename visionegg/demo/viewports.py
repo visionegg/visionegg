@@ -18,8 +18,8 @@ stimulus = Teapot()
 stimulus.init_gl()
 viewport1.add_stimulus(stimulus)
 viewport2.add_stimulus(stimulus)
-p = Presentation(duration_sec=5.0,viewports=[viewport1,viewport2])
-p.add_realtime_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
+p = Presentation(duration=(5.0,'seconds'),viewports=[viewport1,viewport2])
+p.add_realtime_time_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
 p.go()
 
 

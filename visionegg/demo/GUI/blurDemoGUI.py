@@ -128,9 +128,12 @@ screen = get_default_screen() # initialize graphics
 projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
 
-drum = BlurredDrum(max_speed=default_max_speed)
-#drum = BlurredDrum(max_speed=default_max_speed,
-#                   texture=TextureFromFile("orig.bmp"))
+try:
+    texture = TextureFromFile("orig.bmp") # try to open a texture file
+except:
+    texture = Texture(size=(256,16)) # otherwise, generate one
+
+drum = BlurredDrum(max_speed=default_max_speed,texture=texture)
 drum.init_gl()
 
 fixation_spot = FixationSpot()
@@ -144,10 +147,10 @@ gui_window = BlurDrumGui(idle_func=p.between_presentations)
 
 p.add_transitional_controller(fixation_spot.parameters,'on',lambda t: gui_window.fixation_spot.get())
 p.add_transitional_controller(drum.parameters,'motion_blur_on',lambda t: gui_window.blur_on.get())
-p.add_transitional_controller(p.parameters,'duration_sec',lambda t: gui_window.duration.get())
-p.add_realtime_controller(drum.parameters,'angle',gui_window.positionFunction)
-p.add_realtime_controller(drum.parameters,'contrast',gui_window.contrastFunction)
-p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
+p.add_transitional_controller(p.parameters,'duration',lambda t: (gui_window.duration.get(),'seconds'))
+p.add_realtime_time_controller(drum.parameters,'angle',gui_window.positionFunction)
+p.add_realtime_time_controller(drum.parameters,'contrast',gui_window.contrastFunction)
+p.add_realtime_time_controller(drum.parameters,'cur_time', lambda t: t)
 
 gui_window.mainloop()
 

@@ -130,7 +130,7 @@ class BlurDrumGui(Tkinter.Frame):
         drum_on_controller.set_value(1,self.isi_on.get())
         fixation_spot_on_controller.set_value(gui_window.fixation_spot.get())
         motion_blur_on_controller.set_value(gui_window.blur_on.get())
-        duration_controller.set_value(gui_window.duration.get())
+        duration_controller.set_value((gui_window.duration.get(),'seconds'))
         angle_controller.set_value(self.validated_pos_string)
         contrast_controller.set_value(self.validated_c_string)
         interpolation_controller.set_value(self.linear_interp.get())
