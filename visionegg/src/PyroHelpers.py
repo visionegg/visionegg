@@ -80,6 +80,23 @@ class EvalStringPyroController(PyroController):
         self.eval_string = eval_string
     def eval(self,t):
         return eval(self.eval_string)
+    
+class LocalDictPyroController(PyroController):
+    """A remote controller set by key.
+
+    LocalDictPyroController(dict) where dict is a dictionary.  This
+    allows local objects to be set from a remote location.  For example:
+    LocalDictPyroController({'a':a,'b':b}) would allow a remote Pyro client
+    to set a controller to value a without having to touch object a, only
+    using a name for it, such as the string 'a'."""
+    def __init__(self,dict):
+        PyroController.__init__(self)
+        self.dict = dict
+        self.set_value(self.dict.keys()[0]) # use first key as default
+    def set_value(self,key):
+        self.value = self.dict[key]
+    def eval(self,t):
+        return self.value
 
 class PyroServer:
     """Set up a Pyro server for your PyroControllers and PyroGoClass"""
