@@ -30,7 +30,6 @@ from metaPyroGUI import GratingMetaParameters
 class GratingExperimentMetaController( Pyro.core.ObjBase ):
     """Encapsulates all parameters controlling a grating"""
     def __init__(self,presentation,grating_stimulus):
-        self.server_close_callback = None
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = GratingMetaParameters()
         if not isinstance(presentation,VisionEgg.Core.Presentation):
@@ -41,9 +40,6 @@ class GratingExperimentMetaController( Pyro.core.ObjBase ):
         self.stim = grating_stimulus
 
         self.p.add_controller(self.stim,'on',VisionEgg.Core.FunctionController(during_go_func=self.on_function))
-
-    def set_server_closed_instance(self,instance):
-        self.server_closed_instance = instance
 
     def get_parameters(self):
         return self.meta_params
