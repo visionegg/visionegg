@@ -233,6 +233,7 @@ class Screen(VisionEgg.ClassWithParameters):
 
         try:
             pygame.display.set_mode(self.size, flags, try_bpp )
+            VisionEgg.config._pygame_started = 1 # set a global variable so we know workaround avoid pygame bug
         except pygame.error, x:
             message.add("Failed execution of pygame.display.set_mode():%s"%x,
                         level=Message.FATAL)
@@ -363,48 +364,60 @@ class Screen(VisionEgg.ClassWithParameters):
             except pygame.error, x:
                 if str(x) != 'video system not initialized':
                     raise
+
+    def create_default():
+        """Alternative constructor using configuration variables.
+
+        Most of the time you can create and instance of Screen using
+        this method.  If your script needs explicit control of the
+        Screen parameters, initialize with the normal constructor.
+
+        Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
+        default screen parameters should are determined.  If this
+        value is 0, the values from VisionEgg.cfg are used.  If this
+        value is 1, a GUI panel is opened and allows manual settings
+        of the screen parameters.  """
+
+        global VisionEgg # Allow "VisionEgg.config" instead of just "config"
+        if VisionEgg.config.VISIONEGG_GUI_INIT:
+            import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+            window = VisionEgg.GUI.GraphicsConfigurationWindow()
+            window.mainloop() # All this does is adjust VisionEgg.config
+            if not window.clicked_ok:
+                sys.exit() # User wants to quit
+        screen = None
+        try:
+            screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                  VisionEgg.config.VISIONEGG_SCREEN_H),
+                            fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                            preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                            bgcolor=(0.5,0.5,0.5,0.0),
+                            maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                            frameless=VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                            hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
+        finally:
+            if screen is None:
+                # Hmm, opening a screen failed.  Let's do any cleanup that Screen.__init__ missed.
+                try:
+                    pygame.mouse.set_visible(1) # make sure mouse is visible
+                    pygame.quit() # close screen
+                except pygame.error, x:
+                    if str(x) != 'video system not initialized':
+                        raise
+
+        if screen is None:
+            raise RuntimeError("Screen open failed. Check your error log for a traceback.")
+
+        return screen
+    create_default = VisionEgg.StaticClassMethod(create_default)
             
 def get_default_screen():
-    """Return an instance of screen opened with to default values.
+    """DEPRECATED: Use Screen.create_default() instead."""
+    message.add(message="Called VisionEgg.Core.get_default_screen(). Use VisionEgg.Core.Screen.create_default() instead",
+                level=Message.DEPRECATION)
+    return Screen.create_default()
 
-    Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
-    default screen parameters should are determined.  If this value is
-    0, the values from VisionEgg.cfg are used.  If this value is 1, a
-    GUI panel is opened and allows manual settings of the screen
-    parameters.  """
 
-    global VisionEgg # Allow "VisionEgg.config" instead of just "config"
-    if VisionEgg.config.VISIONEGG_GUI_INIT:
-        import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
-        window = VisionEgg.GUI.GraphicsConfigurationWindow()
-        window.mainloop() # All this does is adjust VisionEgg.config
-        if not window.clicked_ok:
-            sys.exit() # User wants to quit
-    screen = None
-    try:
-        screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                              VisionEgg.config.VISIONEGG_SCREEN_H),
-                        fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                        preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                        bgcolor=(0.5,0.5,0.5,0.0),
-                        maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                        frameless=VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
-                        hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
-    finally:
-        if screen is None:
-            # Hmm, opening a screen failed.  Let's do any cleanup that Screen.__init__ missed.
-            try:
-                pygame.mouse.set_visible(1) # make sure mouse is visible
-                pygame.quit() # close screen
-            except pygame.error, x:
-                if str(x) != 'video system not initialized':
-                    raise
-
-    if screen is None:
-        raise RuntimeError("Screen open failed. Check your error log for a traceback.")
-    
-    return screen
-    
 ####################################################################
 #
 #        Projection and derived classes
@@ -2080,7 +2093,7 @@ class Message:
                 elif level == Message.NAG:
                     my_str=my_str+" nag"
                 elif level == Message.DEPRECATION:
-                    my_str=my_str+" deprecation"
+                    my_str=my_str+" DEPRECATION WARNING"
                 elif level == Message.WARNING:
                     my_str=my_str+" WARNING"
                 elif level == Message.ERROR:
