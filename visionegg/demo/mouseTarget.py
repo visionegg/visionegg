@@ -11,6 +11,7 @@ last_mouse_position = (0.0,0.0)
 
 from VisionEgg.Core import *
 from VisionEgg.MoreStimuli import *
+from VisionEgg.Text import *
 from math import *
 import pygame
 
@@ -28,8 +29,10 @@ screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 target = Target2D(size  = (25.0,10.0),
                   color      = (0.0,0.0,0.0,1.0)) # Set the target color (RGBA) black
 
+text = BitmapText( text = "Press Esc to quit, arrow keys to change size of target.", lowerleft = (0,5), color = (0.0,0.0,0.0,0.0))
+
 # Create a Viewport instance
-viewport = Viewport(screen=screen, stimuli=[target])
+viewport = Viewport(screen=screen, stimuli=[target,text])
 
 ########################
 #  Define controllers  #
