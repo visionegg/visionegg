@@ -37,7 +37,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                                        types.TupleType)}
                         
     def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
         self._gave_alpha_warning = 0
 
     def draw(self):
@@ -101,6 +101,7 @@ class Target2D(VisionEgg.Core.Stimulus):
 
                 # Set the polygon mode back to fill mode
                 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL)
+                gl.glDisable(gl.GL_LINE_SMOOTH)
 
 class Rectangle3D(VisionEgg.Core.Stimulus):
     parameters_and_defaults = {'on':(1,
@@ -113,7 +114,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                                'vertex4':(Numeric.array((  10.0, 0.0, -10.0)),Numeric.ArrayType),
                                }
     def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
 
     def draw(self):
         if self.parameters.on:
