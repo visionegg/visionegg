@@ -53,8 +53,11 @@ handle_event_callbacks = [(pygame.locals.QUIT, quit),
 screen = get_default_screen()
 
 projection = SimplePerspectiveProjection(fov_x=130.0)
-stimulus = SphereGrating(radius=1.0,temporal_freq_hz=0.5)
-mask = SphereWindow(radius=1.0-0.01)
+stimulus = SphereGrating(radius=1.0,
+                         spatial_freq_cpd=1.0/9.0,
+                         temporal_freq_hz=1.0)
+mask = SphereWindow(radius=1.0*0.95,
+                    window_shape_radius_parameter=20.0)
 text = BitmapText(text="Mouse moves window, press Esc to quit",lowerleft=(0,0))
 viewport = Viewport(screen=screen,
                     size=screen.size,
@@ -65,8 +68,12 @@ text_viewport = Viewport(screen=screen, # default (orthographic) viewport
 p = Presentation(viewports=[viewport,text_viewport],
                  handle_event_callbacks=handle_event_callbacks)
 p.add_controller(None, None, MousePositionController() )
-p.add_controller(mask,'window_center_elevation', FunctionController(during_go_func=elevation_func,
-                                                                    between_go_func=elevation_func))
-p.add_controller(mask,'window_center_azimuth', FunctionController(during_go_func=azimuth_func,
-                                                                  between_go_func=azimuth_func))
+elevation_controller = FunctionController(during_go_func=elevation_func,
+                                          between_go_func=elevation_func)
+azimuth_controller = FunctionController(during_go_func=azimuth_func,
+                                        between_go_func=azimuth_func)
+p.add_controller(mask,'window_center_elevation', elevation_controller)
+p.add_controller(stimulus,'grating_center_elevation', elevation_controller)
+p.add_controller(mask,'window_center_azimuth', azimuth_controller)
+p.add_controller(stimulus,'grating_center_azimuth', azimuth_controller)
 p.run_forever()
