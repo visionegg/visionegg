@@ -20,11 +20,13 @@ import Pyro, Pyro.core
 
 # Add your stimulus modules here
 import VisionEgg.PyroApps.TargetServer
+import VisionEgg.PyroApps.MouseTargetServer
 import VisionEgg.PyroApps.FlatGratingServer
 import VisionEgg.PyroApps.SphereGratingServer
 import VisionEgg.PyroApps.SpinningDrumServer
 import VisionEgg.PyroApps.GridServer
 server_modules = [ VisionEgg.PyroApps.TargetServer,
+                   VisionEgg.PyroApps.MouseTargetServer,
                    VisionEgg.PyroApps.FlatGratingServer,
                    VisionEgg.PyroApps.SphereGratingServer,
                    VisionEgg.PyroApps.SpinningDrumServer,
