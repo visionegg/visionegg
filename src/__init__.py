@@ -1,6 +1,8 @@
 # The Vision Egg
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -57,6 +59,11 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+if not hasattr(Numeric,'UInt8'):
+    Numeric.UInt8 = 'b'
+if not hasattr(Numeric,'Float32'):
+    Numeric.UInt8 = 'f'
 
 # Make sure we don't have an old version of the VisionEgg installed.
 # (There used to be a module named VisionEgg.VisionEgg.  If it still
