@@ -14,6 +14,7 @@ Allow use of pygame Surfaces as source of texture data
 Mipmaps of sphere-mapped sinusoidal grating to prevent spatial aliasing
 De-emphasis on Presentation and Controller classes
 Changed orientations such that 0 degrees is right and 90 degrees is up.
+Bugfix in SphereMap module -- gaussian formula produced windows too wide by 2/sqrt(2)
 Allow conversion of 3D vertices into 2D screen coordinates
 Added wireframe azimuth/elevation grid with text labels
 Allow arbitrary orientation of textures and text with angle parameter
@@ -28,6 +29,8 @@ incomplete DC restoration test for displays (Brainard et al., 2002)
 unit-test suite: among many other things, pixel accuracy of textures
 
 New demos:
+mpeg.py plays MPEG movies
+quicktime.py plays QuickTime movies (currently Mac OS X only)
 convert3d_to_2d.py converts 3D positions to 2D positions
 dots_simple_loop.py uses own loop rather than Presentation class
 makeMovie2.py makes a movie with get_framebuffer_as_image() function

@@ -73,7 +73,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5b3'
+release_name = '0.9.5b4'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]
