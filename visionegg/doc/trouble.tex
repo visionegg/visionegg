@@ -1,5 +1,17 @@
 \subsection{Frame skipping}
 
+\subsubsection{How to tell if you're skipping frames}
+
+Look for automatically generated warnings in your log file.
+
+Call the go() method of Presentation with its argument
+collect_timing_info set to a non-zero value. This will send a
+histogram of all the frames drawn in the go loop to the log.  (Storing
+this infomation log takes time and resources, and therefore may have a
+negative impact on performance, which is why it is not enabled by
+default.)
+
+\subsubsection{Overview}
 On a modern graphics card such as an nVidia GeForce 3, simple
 stimuli such as sinusoidal gratings can be drawn thousands of times
 per second. Considering that the fastest consumer displays update 200
