@@ -1,11 +1,11 @@
-"""Attempt to isolate platform dependencies in one place
+"""Set priority and other functions
 
 Functions:
 
-set_realtime -- Raise the Vision Egg to maximum priority
-linux_but_unknown_drivers -- Warn that platform is linux, but drivers unknown
-sync_swap_with_vbl_pre_gl_init -- Try to synchronize buffer swapping and vertical retrace before starting OpenGL
-sync_swap_with_vbl_post_gl_init -- Try to synchronize buffer swapping and vertical retrace after starting OpenGL
+set_priority() -- Change the Vision Egg priority
+linux_but_unknown_drivers() -- Warn that platform is linux, but drivers unknown
+sync_swap_with_vbl_pre_gl_init() -- Try to synchronize buffer swapping and vertical retrace before starting OpenGL
+sync_swap_with_vbl_post_gl_init() -- Try to synchronize buffer swapping and vertical retrace after starting OpenGL
 """
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
@@ -81,25 +81,7 @@ def set_priority(*args,**kw):
                 VisionEgg.Core.Message.INFO)
                 
             # set the priority of the current process
-            try:
-                old_priority = darwin_maxpriority.getpriority(process,0)
-                darwin_maxpriority.setpriority(process,0,params['darwin_conventional_priority'])
-            except OSError, x:
-                import errno
-                
-                if x.errno == errno.EACCES:
-                    new_priority = darwin_maxpriority.getpriority(process,0)
-                    VisionEgg.Core.message.add(
-                        """OSError: [errno 13] Permission denied when
-                        attempting setpriority.  However, I have found
-                        attempting to set priority in this manner
-                        still succeeds in making the program run more
-                        smoothly, so the OSError is being ignored.
-                        Mac OS X reports priority was %d, now
-                        %d."""%(old_priority,new_priority),
-                        VisionEgg.Core.Message.WARNING)
-                else:
-                    raise
+            darwin_maxpriority.setpriority(process,0,params['darwin_conventional_priority'])
 
             # This sets the pthread priority, which only prioritizes
             # threads in the process.  Might as well do it, but it
