@@ -30,6 +30,7 @@ class Teapot(Stimulus):
         
     def draw(self):
         if self.parameters.on:
+            glBlendFunc(GL_ONE,GL_ZERO) # If blending enabled, draw over everything            
             glLoadIdentity() # clear (hopefully the) modelview matrix
             glTranslatef(0.0, 0.0, -6.0)
             glRotatef(self.parameters.yrot,0.0,1.0,0.0)
@@ -103,7 +104,7 @@ class Target2D(Stimulus):
                 # so we'll first draw a filled polygon (aliased)
                 # then draw the outline of the polygon (with anti-aliasing)
 
-                # Calculate coverage value for each pixel of outline and corners
+                # Calculate coverage value for each pixel of outline
                 # and store as alpha
                 glEnable(GL_LINE_SMOOTH)
                 # Now specify how to use the alpha value
