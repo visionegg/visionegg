@@ -1,9 +1,175 @@
-#!/usr/bin/env python2.2
+#!/usr/bin/env python
 
 import sys, socket, re, time, string
-import Numeric
+import Numeric, MLab
 import Tkinter, tkMessageBox, tkSimpleDialog
 import VisionEgg.Daq, VisionEgg.DaqOverTCP
+
+class DataCanvas(Tkinter.Canvas):
+    color_order = ['red','green','blue']
+    axis_inset = 40
+    def __init__(self,master=None,**kw):
+        apply(Tkinter.Canvas.__init__,(self,master),kw)
+        
+        tk = self.winfo_toplevel()
+        width, height = tk.getint(self['width']), tk.getint(self['height'])
+
+        self.data_box = DataCanvas.axis_inset, height-DataCanvas.axis_inset, width-DataCanvas.axis_inset, DataCanvas.axis_inset
+        x1,y1,x2,y2 = self.data_box
+        
+        self.xaxis = self.create_line(x1,y1,x2,y1,
+                                      fill='black')
+        self.yaxis = self.create_line(x1,y1,x1,y2,
+                                      fill='black')
+
+        self.xmin_tag = self.create_text( x1,y1,
+                                          anchor="n")
+        self.xmax_tag = self.create_text( x2,y1,
+                                          anchor="n")
+        self.ymin_tag = self.create_text( x1,y1,
+                                          anchor="e")
+        self.ymax_tag = self.create_text( x1,y2,
+                                          anchor="e")
+
+        self.xmin = None
+        self.xmax = None
+        self.ymin = None
+        self.ymax = None
+        self.sync_axis_tags()
+        self.waves = {}
+
+    def sync_axis_tags(self):
+        fmt = "%.1f"
+        if self.xmin is None:
+            self.itemconfigure(self.xmin_tag,text='')
+        else:
+            self.itemconfigure(self.xmin_tag,text=fmt%(self.xmin,))
+        if self.xmax is None:
+            self.itemconfigure(self.xmax_tag,text='')
+        else:
+            self.itemconfigure(self.xmax_tag,text=fmt%(self.xmax,))
+        if self.ymin is None:
+            self.itemconfigure(self.ymin_tag,text='')
+        else:
+            self.itemconfigure(self.ymin_tag,text=fmt%(self.ymin,))
+            
+        if self.ymax is None:
+            self.itemconfigure(self.ymax_tag,text='')
+        else:
+            self.itemconfigure(self.ymax_tag,text=fmt%(self.ymax,))
+            
+    def add_channel(self,channel):
+        gain = channel.constant_parameters.signal_type.constant_parameters.gain
+        #print "gain",gain
+        tmax = channel.constant_parameters.daq_mode.parameters.duration_sec
+        tsamp = 1.0/channel.constant_parameters.daq_mode.parameters.sample_rate_hz
+        times = Numeric.arange(0.0,tmax,tsamp)
+        data = gain*channel.constant_parameters.functionality.get_data()
+
+        data_max = MLab.max(data)
+        data_min = MLab.min(data)
+
+        tk = self.winfo_toplevel()
+        width, height = tk.getint(self['width']), tk.getint(self['height'])
+        self.data_box = DataCanvas.axis_inset, height-DataCanvas.axis_inset, width-DataCanvas.axis_inset, DataCanvas.axis_inset
+        x1,y1,x2,y2 = self.data_box
+
+        self.xmin = 0.0
+        self.xmax = tmax
+
+        self.ymin = data_min
+        self.ymax = data_max
+        for wave in self.waves.keys():
+            old_channel,old_ymin,old_ymax,old_color = self.waves[wave]
+            self.ymin = min(self.ymin,old_ymin)
+            self.ymax = max(self.ymax,old_ymax)
+
+        scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
+        offset = float(x1), -self.ymax*scale[1]+float(y2)
+
+        #print "scale",scale
+        #print "offset",offset
+        x = times*scale[0] + offset[0]
+        y = data *scale[1] + offset[1]
+
+        args = []
+        for i in xrange(times.shape[0]):
+            args.append(x[i])
+            args.append(y[i])
+        color = DataCanvas.color_order[ len(self.waves.keys()) % len(DataCanvas.color_order) ]
+        new_waves = [ (apply(self.create_line,args,{'fill':color}),channel,color) ]
+            
+        # re-evaluate old waves here
+        for wave in self.waves.keys():
+            old_channel,ymin,ymax,old_color = self.waves[wave]
+            gain = old_channel.constant_parameters.signal_type.constant_parameters.gain
+            #print "gain",gain
+            tmax = old_channel.constant_parameters.daq_mode.parameters.duration_sec
+            tsamp = 1.0/old_channel.constant_parameters.daq_mode.parameters.sample_rate_hz
+            times = Numeric.arange(0.0,tmax,tsamp)
+            data = gain*old_channel.constant_parameters.functionality.get_data()
+            
+            scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
+            offset = float(x1), -self.ymax*scale[1]+float(y2)
+
+            x = times*scale[0] + offset[0]
+            y = data *scale[1] + offset[1]
+
+            args = []
+            for i in xrange(times.shape[0]):
+                args.append(x[i])
+                args.append(y[i])
+            new_waves.append( (apply(self.create_line,args,{'fill':old_color}),old_channel,old_color) )
+            # delete original wave
+            self.delete(wave)
+            del self.waves[wave]
+
+        for new_wave,channel,color in new_waves:
+            self.waves[ new_wave ] = (channel,self.ymin,self.ymax,color)
+        self.sync_axis_tags()
+
+    def redraw(self):
+        tk = self.winfo_toplevel()
+        width, height = tk.getint(self['width']), tk.getint(self['height'])
+        self.data_box = DataCanvas.axis_inset, height-DataCanvas.axis_inset, width-DataCanvas.axis_inset, DataCanvas.axis_inset
+        x1,y1,x2,y2 = self.data_box
+        for wave in self.waves.keys():
+            old_channel,ymin,ymax,old_color = self.waves[wave]
+            gain = old_channel.constant_parameters.signal_type.constant_parameters.gain
+            #print "gain",gain
+            tmax = old_channel.constant_parameters.daq_mode.parameters.duration_sec
+            tsamp = 1.0/old_channel.constant_parameters.daq_mode.parameters.sample_rate_hz
+            times = Numeric.arange(0.0,tmax,tsamp)
+            data = gain*old_channel.constant_parameters.functionality.get_data()
+            
+            scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
+            offset = float(x1), -self.ymax*scale[1]+float(y2)
+
+            x = times*scale[0] + offset[0]
+            y = data *scale[1] + offset[1]
+
+            args = []
+            for i in xrange(times.shape[0]):
+                args.append(x[i])
+                args.append(y[i])
+            new_waves.append( (apply(self.create_line,args,{'fill':old_color}),old_channel,old_color) )
+            # delete original wave
+            self.delete(wave)
+            del self.waves[wave]
+
+        for new_wave,channel,color in new_waves:
+            self.waves[ new_wave ] = (channel,self.ymin,self.ymax,color)
+            
+    def clear(self):
+        for wave in self.waves.keys():
+            self.delete(wave)
+        self.waves = {}
+        
+        self.xmin = None
+        self.xmax = None
+        self.ymin = None
+        self.ymax = None
+        self.sync_axis_tags()
 
 class AppWindow(Tkinter.Frame):
     def __init__(self,master=None,
@@ -20,6 +186,9 @@ class AppWindow(Tkinter.Frame):
 
         self.daq_port = Tkinter.IntVar()
         self.daq_port.set(port)
+
+        # server's trigger
+        self.trigger=VisionEgg.DaqOverTCP.DaqServerTrigger()
 
         # create a menu bar
         self.bar = Tkinter.Frame(self, name='bar',
@@ -42,7 +211,10 @@ class AppWindow(Tkinter.Frame):
         
         self.bar.tk_menuBar(self.bar.file, self.bar.daq_server, self.bar.channel_settings)
 
-        self.go = Tkinter.Button(self, text='Arm trigger', command=self.arm)
+        self.data_canvas = DataCanvas(self,bg='white')
+        self.data_canvas.pack(expand=1,fill=Tkinter.BOTH)
+
+        self.go = Tkinter.Button(self, text='Arm trigger/Go', command=self.arm)
         self.go.pack()
 
         self.tcp_daq_device = None
@@ -53,13 +225,15 @@ class AppWindow(Tkinter.Frame):
         print "Using default channel parameters, fix later..."
         channel = VisionEgg.DaqOverTCP.DaqServerChannel(
             channel_number=len(self.channels),
-            daq_mode=VisionEgg.Daq.Buffered(trigger=VisionEgg.DaqOverTCP.DaqServerTrigger()),
+            daq_mode=VisionEgg.Daq.Buffered(trigger=self.trigger,
+                                            sample_rate_hz=1000.0,
+                                            duration_sec=0.1),
             signal_type=VisionEgg.Daq.Analog(gain=self.gain),
             functionality=VisionEgg.DaqOverTCP.DaqServerInputChannel()
             )
         self.channels.append(channel)
         if self.tcp_daq_device is not None:
-            channel.set_my_device(self.tcp_daq_device)
+            #channel.set_my_device(self.tcp_daq_device)
             self.tcp_daq_device.add_channel(channel)
         
     def arm(self):
@@ -68,6 +242,11 @@ class AppWindow(Tkinter.Frame):
         if len(self.channels) < 1:
             raise RuntimeError("Must have 1 or more channels.")
         self.channels[0].arm_trigger()
+
+        self.data_canvas.clear()
+        for channel in self.channels:
+            data = channel.constant_parameters.functionality.get_data()
+            self.data_canvas.add_channel(channel)
 
     def set_gain(self):
         self.gain = tkSimpleDialog.askfloat("Gain","Gain",initialvalue=self.gain)
@@ -274,6 +453,6 @@ if __name__ == '__main__':
         app = AppWindow(None,hostname=sys.argv[1],borderwidth=5)
     else:
         app = AppWindow(None,borderwidth=5)
-    app.winfo_toplevel().title("Andrew's Lab")
+    app.winfo_toplevel().title("Vision Egg DAQ")
     app.winfo_toplevel().minsize(1,1)
     app.mainloop()
