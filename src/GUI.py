@@ -25,7 +25,23 @@ import VisionEgg
 #
 ####################################################################
 
-class OpenScreenFrame(Tkinter.Frame):
+class AppWindow(Tkinter.Frame):
+    """A GUI Window to be subclassed for your main application window"""
+    def __init__(self,master=None,idle_func=lambda: None,**cnf):
+        apply(Tkinter.Frame.__init__,(self,master),cnf)
+        self.winfo_toplevel().title('Vision Egg')
+
+        info_frame = InfoFrame(self)
+        info_frame.pack()
+        
+        self.idle_func = idle_func
+        self.after(1,self.idle) # register idle function with Tkinter
+
+    def idle(self):
+        self.idle_func()
+        self.after(1,self.idle) # (re)register idle function with Tkinter
+
+class OpenScreenDialog(Tkinter.Frame):
     """A GUI window to open an instance of Screen"""
     def __init__(self,master=None,set_screen_callback=lambda s: None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
@@ -85,12 +101,11 @@ class OpenScreenFrame(Tkinter.Frame):
         self.set_screen_callback(screen)
         Tkinter.Tk.destroy(self.master) # OK, now close myself
 
-class VideoInfoFrame(Tkinter.Frame):
+class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
-        self.pack()
 
-        Tkinter.Label(self,text="Video information:").pack()
+        Tkinter.Label(self,text="Vision Egg information:").pack()
         self.sub_frame = Tkinter.Frame(self,relief=Tkinter.GROOVE)
         self.sub_frame.pack()
         self.update()
@@ -98,26 +113,23 @@ class VideoInfoFrame(Tkinter.Frame):
     def update(self):
         for child in self.sub_frame.children.values():
             child.destroy()
-        if VisionEgg.video_info.initialized:
-            if VisionEgg.video_info.fullscreen:
-                Tkinter.Label(self.sub_frame,text="fullscreen: %d x %d, %d bpp"%(VisionEgg.video_info.width,VisionEgg.video_info.height,VisionEgg.video_info.bpp)).pack()
-            else:
-                Tkinter.Label(self.sub_frame,text="window: %d x %d, %d bpp"%(VisionEgg.video_info.width,VisionEgg.video_info.height,VisionEgg.video_info.bpp)).pack()
-            if VisionEgg.video_info.tex_compress:
-                Tkinter.Label(self.sub_frame,text="Texture compression: On").pack()
-            else:
-                Tkinter.Label(self.sub_frame,text="Texture compression: Off").pack()
+        if VisionEgg.config.VISIONEGG_FULLSCREEN:
+            Tkinter.Label(self.sub_frame,text="fullscreen mode").pack()
         else:
-            Tkinter.Label(self.sub_frame,text="Video system not initialized").pack()
+            Tkinter.Label(self.sub_frame,text="window mode").pack()
+        if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
+            Tkinter.Label(self.sub_frame,text="Texture compression on").pack()
+        else:
+            Tkinter.Label(self.sub_frame,text="Texture compression off").pack()
 
-#        Tkinter.Button(self.sub_frame,text="Update video info",command=self.update).pack()
+        #Tkinter.Button(self.sub_frame,text="Update information",command=self.update).pack()
 
 def get_screen_via_GUI():
     def callback(screen):
         global opened_screen # Python doesn't support nested namespace, so this is a trick
         opened_screen = screen
     global opened_screen
-    window = OpenScreenFrame(set_screen_callback=callback)
+    window = OpenScreenWindow(set_screen_callback=callback)
     window.mainloop()
     local_screen = opened_screen
     del opened_screen # Get rid of evil global variables!
