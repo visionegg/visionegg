@@ -40,7 +40,7 @@ p = Presentation(go_duration=(num_images*duration_per_image,'seconds'),viewports
 
 # Use a controller to hook into go loop, but control texture buffer
 # through direct manipulation.
-texture_object = stimulus.texture.get_texture_object()
+texture_object = stimulus.parameters.texture.get_texture_object()
 def put_image(t):
     i = int(t/duration_per_image) # choose image
     texture_object.put_sub_image( image_list[i] )
