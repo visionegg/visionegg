@@ -45,7 +45,7 @@ class DaqServerTrigger(VisionEgg.Daq.Trigger):
 
 class DaqServerInputChannel(VisionEgg.Daq.Input):
     def get_data(self):
-        return self.channel.device.get_data_for_channel(self.my_channel.constant_parameter.channel_number)
+        return self.channel.device.get_data_for_channel(self.channel.constant_parameters.channel_number)
 
 class DaqServerChannel(VisionEgg.Daq.Channel):
     constant_parameters_and_defaults = {'channel_number':(0,types.IntType)}
@@ -58,7 +58,7 @@ class DaqServerChannel(VisionEgg.Daq.Channel):
             raise NotImplementedError("Only analog channels implemented.")
         if analog.constant_parameters.gain not in [0.2048,2.048,20.48]:
             raise ValueError("Gain not right!")
-        self.constant_parameters.functionality.set_my_channel(self)
+        #self.constant_parameters.functionality.set_my_channel(self)
 
     def arm_trigger(self):
         # For MacAdios/DaqServ, only one trigger for everything
@@ -96,9 +96,9 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
                     if existing_channel.constant_parameters.channel_number == num:
                         raise ValueError("Can only have channels with unique numbers.")
                 analog = channel.constant_parameters.signal_type
-                if analog.parameters.gain != self.channels[0].constant_parameters.signal_type.parameters.gain:
+                if analog.constant_parameters.gain != self.channels[0].constant_parameters.signal_type.constant_parameters.gain:
                     raise ValueError("gain for each channel must be equal.")
-                if analog.parameters.offset != 0.0:
+                if analog.constant_parameters.offset != 0.0:
                     raise ValueError("offset must be 0.0.")
                 must_be_same = ['sample_rate_hz','duration_sec','trigger']
                 for p_name in must_be_same:
@@ -109,6 +109,9 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
             channel.device = self
         else:
             raise NotImplementedError("Only analog channels currently supported.")
+
+    def get_data_for_channel(self, channel_number):
+        return self.connection.current_data_array[channel_number,:]
 
 ###### The following methods are specific to tcp daq device ########
 
@@ -138,15 +141,17 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
         else:
             raise RuntimeError("Must have at least 1 channel")
 
-class DebugSocket(socket.socket):
-    def send(self,string):
-        #print "SEND",string
-        apply(socket.socket.send,(self,string))
+##class DebugSocket(socket.socket):
+##    def send(self,string):
+##        #print "SEND",string
+##        apply(socket.socket.send,(self,string))
 
-    def recv(self,bufsize):
-        results = apply(socket.socket.recv,(self,bufsize))
-        #print "RECV",results
-        return results
+##    def recv(self,bufsize):
+##        results = apply(socket.socket.recv,(self,bufsize))
+##        #print "RECV",results
+##        return results
+
+DebugSocket = socket.socket
 
 class DaqConnection:
     # values for self.remote_state
@@ -218,7 +223,7 @@ class DaqConnection:
                                                    sample_rate_hz,
                                                    duration_sec,
                                                    trigger_num)
-        self.current_data_array = Numeric.zeros((0,num_channels),'f')
+        self.current_data_array = Numeric.zeros((0,num_channels),'int')
         self.socket.send(digitize_string + DaqConnection.CRLF)
 
         # I should go into non-blocking mode and wait
@@ -242,7 +247,6 @@ class DaqConnection:
 
         ##################################################
 
-        print "parsing..."
         self.parse_data()
 
     def parse_data(self):
@@ -253,55 +257,38 @@ class DaqConnection:
         done = 0
         getting_waves = 0
         leftover_data = ""
-        #print "a"
         while not done:
-            #print "b"
             data = self.socket.recv(DaqConnection.BUFSIZE)
-            #print "c"
             lines = string.split(data,DaqConnection.CRLF)
-
-            #print "lines",lines
 
             # due to buffering not being lined up with lines:
             lines[0] = leftover_data + lines[0] # use last incomplete line
             leftover_data = lines.pop() # incomplete last line
-
-            #print "leftover_data",leftover_data
 
             # because the command prompt doesn't end with CRLF, check for it:
             if self.command_prompt.search(leftover_data):
                 done = 1
 
             for line in lines:
-                #print line
                 if line == "": # Nothing in this line, do the next
                     continue 
                 if not getting_waves:
                     if DaqConnection.begin_data_prompt.search(line):
                         #print "START!"
                         getting_waves = 1
+                        waves = []
                     else:
                         raise ValueError("Unexpected string from daq server when parsing output: '%s'"%line)
                 else: # getting_waves 
                     if DaqConnection.end_data_prompt.search(line):
-#                        print "DONE!"
-                        #self.current_data_array = Numeric.array(waves)
-                        #waves = []
+                        self.current_data_array = Numeric.array(waves)
+                        waves = []
                         getting_waves = 0
                     else: # The data!
                         this_row = map(int,string.split(line))
-##                        samples = string.split(line)
-##                        for sample in samples:
-##                            this_row.append(int(sample))
-#                        print this_row
                         if len(this_row) > 0:
-                            this_row = Numeric.array(this_row)
-                            #waves.append(this_row)
-                            ## Could speed next line up with concatenate?
-                            # (Also would have to save waves...)
-                            #self.current_data_array = Numeric.array(waves)
-                            Numeric.concatenate(self.current_data_array,this_row)
-#        print self.current_data_array
+                            waves.append(this_row)
+        self.current_data_array = Numeric.transpose(self.current_data_array)
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
     def close_socket(self,command='exit'):
