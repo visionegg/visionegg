@@ -1,16 +1,10 @@
 Changes for 0.9.1:
 ------------------
 
-Todo:
-
 Windows demos now distributed in standalone directory that does not
 require python installation.
 
-gratingGUI.py created for gratingTCP.py server.
-
-TCPServer mode can print current state, prints command summary.
-
-Done:
+TCPServer mode can print current state, prints command summary, has help.
 
 Lots of little GUI adjustments, including automatic pop-up of
 exception dialog box.
