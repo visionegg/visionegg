@@ -12,6 +12,7 @@
 import types
 import VisionEgg.Core
 import OpenGL.GL
+import Numeric
 gl = OpenGL.GL
 
 import string
@@ -82,3 +83,34 @@ class Target2D(VisionEgg.Core.Stimulus):
 
                 # Set the polygon mode back to fill mode
                 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL)
+
+class Rectangle3D(VisionEgg.Core.Stimulus):
+    parameters_and_defaults = {'on':(1,
+                                     types.IntType),
+                               'color':((1.0,1.0,1.0,1.0),
+                                        types.TupleType),
+                               'vertex1':(Numeric.array(( -10.0, 0.0, -10.0)),Numeric.ArrayType),
+                               'vertex2':(Numeric.array(( -10.0, 0.0,  10.0)),Numeric.ArrayType),
+                               'vertex3':(Numeric.array((  10.0, 0.0,  10.0)),Numeric.ArrayType),
+                               'vertex4':(Numeric.array((  10.0, 0.0, -10.0)),Numeric.ArrayType),
+                               }
+    def __init__(self,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+
+    def draw(self):
+        if self.parameters.on:
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
+
+            p = self.parameters
+            c = p.color
+            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glDisable(gl.GL_TEXTURE_2D)
+            gl.glDisable(gl.GL_BLEND)
+
+            gl.glBegin(gl.GL_QUADS)
+            gl.glVertex3fv(p.vertex1);
+            gl.glVertex3fv(p.vertex2);
+            gl.glVertex3fv(p.vertex3);
+            gl.glVertex3fv(p.vertex4);
+            gl.glEnd() # GL_QUADS
