@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, shutil, sys
+import os, shutil, sys, stat
 
 # This works on swig == 1.3.17 (And not on swig == 1.3.13).
 # Check for swig version if possible
@@ -49,8 +49,10 @@ for i in interfaces:
         os.system(sys_string)
     for end_name in end_names:
         filename = i + end_name
+        new_filename =  "../src/"+filename
         try:
-            shutil.copyfile(filename,"../src/"+filename)
-            print "copied %s to ../src/"%filename
+#            if os.stat(filename)[stat.ST_MTIME] > os.stat(new_filename)[stat.ST_MTIME]:
+             shutil.copyfile(filename,new_filename)
+             print "copied %s to ../src/"%filename
         except:
             pass
