@@ -10,6 +10,8 @@ with
 import VisionEgg.GLTrace as gl
 
 in your code.
+
+This module also imports everything in OpenGL.GL.ARB.multitexture.
 """
 
 # Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
