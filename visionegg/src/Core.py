@@ -16,7 +16,10 @@ import PlatformDependent                        # platform dependent Vision Egg 
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
-			                        # from PyOpenGL:
+import pygame.display
+swap_buffers = pygame.display.flip              # make shortcut name
+
+                                                # from PyOpenGL:
 import OpenGL.GL                                #   main package
 import OpenGL.GLU                               #   utility package
 gl = OpenGL.GL                                  # shorthand
@@ -67,8 +70,11 @@ class Screen(VisionEgg.ClassWithParameters):
     # List of stuff to be improved in this class:
     # Better configurability of number of bits per pixel, including alpha.
     
-    parameters_and_defaults = {'bgcolor':VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR}
-
+    parameters_and_defaults = {'bgcolor':(VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR,
+                                          types.TupleType),
+                               'gamma_ramps':(None,
+                                              Numeric.ArrayType)}
+    
     def __init__(self,
                  size=(VisionEgg.config.VISIONEGG_SCREEN_W,
                        VisionEgg.config.VISIONEGG_SCREEN_H),
@@ -78,9 +84,12 @@ class Screen(VisionEgg.ClassWithParameters):
                  **kw):
         
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+
+        if self.parameters.gamma_ramps != None:
+            raise NotImplementedError()
         
         self.size = size
-        self.fullscreen = fullscreen 
+        self.fullscreen = fullscreen
 
         # Attempt to synchronize buffer swapping with vertical sync
         sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
@@ -96,12 +105,18 @@ class Screen(VisionEgg.ClassWithParameters):
             requested_alpha = 1
         else:
             requested_alpha = 0
-            pygame_nag = """Could not request alpha in framebuffer because you need
-            pygame release 1.4.9 or greater. This is only of concern
-            if you use a stimulus that needs this feature. In that
-            case, the stimulus should verify the presence of alpha."""
-
-            message.add(text=pygame_nag,level=Message.NAG)
+            message.add(
+                """Could not request alpha in framebuffer because you
+                need pygame release 1.4.9 or greater. This is only of
+                concern if you use a stimulus that needs this
+                feature. In that case, the stimulus should verify the
+                presence of alpha.""",level=Message.NAG)
+            
+        if not hasattr(pygame.display,"set_gamma_ramp"):
+            message.add(
+                """set_gamma_ramp function not available because you
+                need pygame release 1.5 or greater. This is only of
+                concern if you need this feature.""",level=Message.NAG)
             
         pygame.display.set_caption("Vision Egg")
         
@@ -135,12 +150,19 @@ class Screen(VisionEgg.ClassWithParameters):
                         found_mode = 1
                     else:
                         self.size = modeList[0]
-                        print "WARNING: Using %dx%d video mode instead of requested size."%(self.size[0],self.size[1])
+                        message.add(
+                            """WARNING: Using %dx%d video mode instead
+                            of requested size."""%(self.size[0],self.size[1]),
+                            level=Message.WARNING)
+                            
             if found_mode: # found the color depth to tell pygame
                 try_bpp = bpp 
                 break
         if found_mode == 0:
-            print "WARNING: Could not find acceptable video mode! Trying anyway with bpp=0..."
+            message.add(
+                """WARNING: Could not find acceptable video mode!
+                Trying anyway with bpp=0...""",
+                level=Message.WARNING)
             try_bpp = 0 # At least try something!
 
         message.add("Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],try_bpp))
@@ -148,8 +170,8 @@ class Screen(VisionEgg.ClassWithParameters):
         try:
             pygame.display.set_mode(self.size, flags, try_bpp )
         except pygame.error, x:
-            print "FATAL VISION EGG ERROR:",x
-            sys.exit(1)
+            message.add("Failed execution of pygame.display.set_mode():%s"%x,
+                        level=Message.FATAL)
 
         self.bpp = pygame.display.Info().bitsize
         message.add("Video system reports %d bpp"%self.bpp)
@@ -168,10 +190,13 @@ class Screen(VisionEgg.ClassWithParameters):
         if not sync_success:
             if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
                 message.add(
-                    """Unable to synchronize buffer swapping with vertical
-                    retrace. May be possible by manually adjusting video
-                    drivers. (Try "Enable Vertical Sync" or similar.)""",
-                    level=Message.WARNING)
+                    """Unable to detect or automatically synchronize
+                    buffer swapping with vertical retrace. May be
+                    possible by manually adjusting video
+                    drivers. (Look for "Enable Vertical Sync" or
+                    similar.)  If buffer swapping is not synchronized,
+                    frame by frame control will not be possible.""",
+                    level=Message.INFO)
 
         # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
@@ -209,81 +234,18 @@ class Screen(VisionEgg.ClassWithParameters):
         
 ####################################################################
 #
-#        Viewport
-#
-####################################################################
-
-class Viewport(VisionEgg.ClassWithParameters):
-    """A portion of a screen which shows stimuli.
-
-    A screen may have multiple viewports.  The viewports may be
-    overlapping.
-
-    By default, a viewport has a projection which maps eye coordinates
-    to viewport coordinates in 1:1 manner.  In other words, eye
-    coordinates specify pixel location in the viewport.
-
-    A different projection is desired for stimuli whose eye
-    coordinates it is most convenient not be equal to viewport
-    coordinates. In this case, the application must change the
-    viewport's projection from the default.  This is typically the
-    case for 3D stimuli.    
-    """
-    parameters_and_defaults = {'lowerleft':(0,0), # tuple of length 2
-                               'size':None,       # tuple of length 2, will use screen.size if not specified
-                               'projection':None} # instance of VisionEgg.Core.Projection
-
-    def __init__(self,screen,**kw):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
-        
-        self.screen = screen
-        self.stimuli = []
-        if self.parameters.size is None:
-            self.parameters.size = self.screen.size
-        if self.parameters.projection is None:
-            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
-            self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
-                                                                bottom=0,top=self.parameters.size[1],
-                                                                z_clip_near=0.0,
-                                                                z_clip_far=1.0)
-
-    def add_stimulus(self,stimulus,draw_order=-1):
-        """Add a stimulus to the list of those drawn in the viewport
-
-        By default, the stimulus is drawn last, but this behavior
-        can be changed with the draw_order argument.
-        """
-        if draw_order == -1:
-            self.stimuli.append(stimulus)
-        else:
-            self.stimuli.insert(draw_order,stimulus)
-
-    def remove_stimulus(self,stimulus):
-        self.stimuli.remove(stimulus)
-
-    def draw(self):
-        """Set the viewport and draw stimuli."""
-        self.screen.make_current()
-        gl.glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
-
-        self.parameters.projection.set_gl_projection()
-        
-        for stimulus in self.stimuli:
-            stimulus.draw()
-
-####################################################################
-#
 #        Projection and derived classes
 #
 ####################################################################
 
 class Projection(VisionEgg.ClassWithParameters):
     """Abstract base class to define interface for OpenGL projection matrices"""
-    parameters_and_defaults = {'matrix':Numeric.array(
+    parameters_and_defaults = {'matrix':(Numeric.array(
         [[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
          [0.0, 1.0, 0.0, 0.0],
          [0.0, 0.0, 1.0, 0.0],
-         [0.0, 0.0, 0.0, 1.0]]) }
+         [0.0, 0.0, 0.0, 1.0]]),
+                                         Numeric.ArrayType) }
                                
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
@@ -379,6 +341,73 @@ class PerspectiveProjection(Projection):
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
         apply(Projection.__init__,(self,),{'matrix':matrix})
+
+####################################################################
+#
+#        Viewport
+#
+####################################################################
+
+class Viewport(VisionEgg.ClassWithParameters):
+    """A portion of a screen which shows stimuli.
+
+    A screen may have multiple viewports.  The viewports may be
+    overlapping.
+
+    By default, a viewport has a projection which maps eye coordinates
+    to viewport coordinates in 1:1 manner.  In other words, eye
+    coordinates specify pixel location in the viewport.
+
+    A different projection is desired for stimuli whose eye
+    coordinates it is most convenient not be equal to viewport
+    coordinates. In this case, the application must change the
+    viewport's projection from the default.  This is typically the
+    case for 3D stimuli.    
+    """
+    parameters_and_defaults = {'lowerleft':((0,0), # tuple of length 2
+                                            types.TupleType), 
+                               'size':(None,       # tuple of length 2, will use screen.size if not specified
+                                       types.TupleType),
+                               'projection':(None, # instance of VisionEgg.Core.Projection
+                                             Projection)} 
+
+    def __init__(self,screen,**kw):
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        
+        self.screen = screen
+        self.stimuli = []
+        if self.parameters.size is None:
+            self.parameters.size = self.screen.size
+        if self.parameters.projection is None:
+            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
+            self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
+                                                                bottom=0,top=self.parameters.size[1],
+                                                                z_clip_near=0.0,
+                                                                z_clip_far=1.0)
+
+    def add_stimulus(self,stimulus,draw_order=-1):
+        """Add a stimulus to the list of those drawn in the viewport
+
+        By default, the stimulus is drawn last, but this behavior
+        can be changed with the draw_order argument.
+        """
+        if draw_order == -1:
+            self.stimuli.append(stimulus)
+        else:
+            self.stimuli.insert(draw_order,stimulus)
+
+    def remove_stimulus(self,stimulus):
+        self.stimuli.remove(stimulus)
+
+    def draw(self):
+        """Set the viewport and draw stimuli."""
+        self.screen.make_current()
+        gl.glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
+
+        self.parameters.projection.set_gl_projection()
+        
+        for stimulus in self.stimuli:
+            stimulus.draw()
 
 ####################################################################
 #
@@ -488,10 +517,14 @@ class Stimulus(VisionEgg.ClassWithParameters):
 
 class FixationSpot(Stimulus):
     """A rectangle stimulus, typically used as a fixation spot."""
-    parameters_and_defaults = {'on':1,
-                               'color':(1.0,1.0,1.0,1.0),
-                               'center':(320.0,240.0), # place in center of 640x480 viewport
-                               'size':(4.0,4.0)} # horiz and vertical size
+    parameters_and_defaults = {'on':(1,
+                                     types.IntType),
+                               'color':((1.0,1.0,1.0,1.0),
+                                        types.TupleType),
+                               'center':((320.0,240.0), # center if in 640x480 viewport
+                                         types.TupleType),
+                               'size':((4.0,4.0), # horiz and vertical size
+                                       types.TupleType)} 
     
     def __init__(self,**kw):
         """Create a fixation spot.
@@ -572,86 +605,179 @@ class Presentation(VisionEgg.ClassWithParameters):
     your favorite operating system here), a new frame is drawn before
     every vertical retrace sync pulse.
     """
-    parameters_and_defaults = {'viewports' : [],
-                               'duration' : (5.0,'seconds') }
-
+    parameters_and_defaults = {'viewports' : ([],
+                                              types.ListType),
+                               'duration' : ((5.0,'seconds'),
+                                             types.TupleType) }
+    
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
-        # These next three lists contain all the parameters under control
-        self.realtime_time_controllers = []
-        self.realtime_frame_controllers = []
-        self.transitional_controllers = []
+        self.controllers = []
+        self.num_frame_controllers = 0 # reference counter
 
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
 
-    def __check_controller_args(self,class_with_parameters,parameter_name):
-        # Raise an Exception if the user tries to add/remove a controller
-        # to an unknown parameter.
-        if class_with_parameters is None and parameter_name is None:
-            # Allow controllers not to control anything.  (Allows user
-            # to define functions that get called like controllers.)
-            return
-        if not isinstance(class_with_parameters,VisionEgg.ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,VisionEgg.ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,VisionEgg.Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,VisionEgg.Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
+    def remove_controller( self, class_with_parameters, parameter_name, controller ):
+        """Remove one (or more--see below) controller(s).
 
-    def __add_controller( self, controller_list, class_with_parameters, parameter_name, controller_function):
-        self.__check_controller_args(class_with_parameters,parameter_name)
-        if class_with_parameters is not None:
-            controller_list.append((class_with_parameters.parameters,parameter_name,controller_function))
-        else:
-            controller_list.append((None,None,controller_function))
-
-    def __remove_controllers(self,controller_list,class_with_parameters,parameter_name, controller_function):
-        self.__check_controller_args(class_with_parameters,parameter_name)
-        i = 0
-        if controller_function is None:
+        If controller is None, all controllers affecting the
+        specified parameter are removed."""
+        
+        if controller is None:
             # The controller function is not specified:
             # Delete all controllers that control the parameter specified.
             if class_with_parameters is None or parameter_name is None:
                 raise ValueError("Must specify parameter from which controller should be removed.")
-            while i < len(controller_list):
-                orig_parameters,orig_parameter_name,orig_controller_function = controller_list[i]
+            while i < len(self.controllers):
+                orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
-                    del controller_list[i]
+                    del self.controllers[i]
                 else:
                     i = i + 1
-        else: # controller_function is specified
+        else: # controller is specified
             # Delete only that specific controller
-            while i < len(controller_list):
-                orig_parameters,orig_parameter_name,orig_controller_function = controller_list[i]
-                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller_function == controller_function:
-                    del controller_list[i]
+            while i < len(self.controllers):
+                orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
+                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
+                            del controller_list[i]
                 else:
                     i = i + 1
 
-    def __call_controllers(self,controller_list,arg):
-        for parameters,parameter_name,controller_function in controller_list:
-            if parameters is None and parameter_name is None:
-                # Nothing under control- user utilizing controller to call other function
-                controller_function(arg)
-            else:
-                # Set the parameters under controller
-                setattr(parameters,parameter_name,controller_function(arg))
-        
-    def add_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
-        self.__add_controller( self.realtime_time_controllers, class_with_parameters, parameter_name, controller_function)
-    def remove_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function=None):
-        self.__remove_controller(self.realtime_time_controllers,class_with_parameters,parameter_name, controller_function)
-    def add_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
-        self.__add_controller( self.realtime_frame_controllers, class_with_parameters, parameter_name, controller_function)
-    def remove_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function=None):
-        self.__remove_controller(self.realtime_frame_controllers,class_with_parameters,parameter_name, controller_function)
-    def add_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
-        self.__add_controller( self.transitional_controllers, class_with_parameters, parameter_name, controller_function)
-    def remove_transitional_controller(self, class_with_parameters, parameter_name, controller_function=None):
-        self.__remove_controller(self.transitional_controllers,class_with_parameters,parameter_name, controller_function)
+    def add_controller( self, class_with_parameters, parameter_name, controller ):
+        # Check if type checking needed
+        if type(class_with_parameters) != types.NoneType or type(parameter_name) != types.NoneType:
+            # Check if return type of controller eval is same as parameter type
+            if controller.get_controlled_type() != class_with_parameters.get_specified_type(parameter_name):
+                raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
+                    parameter_name,
+                    class_with_parameters.get_specified_type(parameter_name),
+                    controller.get_controlled_type()))
+            if not hasattr(class_with_parameters.parameters,parameter_name):
+                raise AttributeError("%s has no instance '%s'"%parameter_name)
+            self.controllers.append( (class_with_parameters.parameters,parameter_name, controller) )
+        else: # At least one of class_with_parameters or parameter_name is None.
+            # Make sure they both are None.
+            if not (type(class_with_parameters) == types.NoneType and type(parameter_name) == types.NoneType):
+                raise ValueError("Neither or both of class_with_parameters and parameter_name must be None.")
+            self.controllers.append( (None,None,controller) )
+        if controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+            self.num_frame_controllers = self.num_frame_controllers + 1
 
+    def call_controllers(self,
+                         time_sec_absolute=None,
+                         time_sec_since_go=None,
+                         frames_since_go=None,
+                         go_started=None,
+                         doing_transition=None):
+        for (parameters_instance, parameter_name, controller) in self.controllers:
+            if doing_transition:
+                if controller.eval_frequency == Controller.TRANSITIONS:
+                    if go_started:
+                        result = controller.during_go_eval()
+                        if parameter_name is not None:
+                            setattr(parameters_instance, parameter_name, result)
+                    else:
+                        result = controller.between_go_eval()
+                        if parameter_name is not None:
+                            setattr(parameters_instance, parameter_name, result)
+            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.EVERY_FRAME_NOT_IN_GO:
+                if controller.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
+                    controller.temporal_variable = time_sec_since_go
+                elif controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+                    controller.temporal_variable = frames_since_go
+                elif controller.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
+                    controller.temporal_variable = time_sec_absolute
+                    
+                if go_started:
+                    result = controller.during_go_eval()
+                    if parameter_name is not None:
+                        if not controller.eval_frequency == Controller.EVERY_FRAME_NOT_IN_GO:
+                            setattr(parameters_instance, parameter_name, result)
+                else:
+                    result = controller.between_go_eval()
+                    if parameter_name is not None:
+                        setattr(parameters_instance, parameter_name, result)
+
+    # The next functions (those with "realtime" and "transitional" in
+    # their names) are deprecated, so there's a deprecation warning.
+    
+    __DEPRECATION_WARNING_SENT = 0
+    def add_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        if not Presentation.__DEPRECATION_WARNING_SENT:
+            message.add(
+                """Presentation method add_realtime_time_controller()
+                and possibly other deprecated Presentation class
+                methods called.  These methods will be removed from
+                future releases.  They also create instances of
+                CompatibilityController class, which is also
+                deprecated.""",
+                level=Message.DEPRECATION)
+            Presentation.__DEPRECATION_WARNING_SENT = 1
+        cc = CompatibilityController(eval_func=controller_function,
+                                     temporal_variable_type=Controller.TIME_SEC_SINCE_GO)
+        self.add_controller(class_with_parameters,parameter_name,cc)
+    def remove_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        i=0
+        while i < len(self.controllers):
+            orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
+            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+                self.remove_controller(class_with_parameters,parameter_name,orig_controller)
+                break
+            i = i + 1
+    def add_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        if not Presentation.__DEPRECATION_WARNING_SENT:
+            message.add(
+                """Presentation method add_realtime_frame_controller()
+                and possibly other deprecated Presentation class
+                methods called.  These methods will be removed from
+                future releases.  They also create instances of
+                CompatibilityController class, which is also
+                deprecated.""",
+                level=Message.DEPRECATION)
+            Presentation.__DEPRECATION_WARNING_SENT = 1
+        cc = CompatibilityController(eval_func=controller_function,
+                                     temporal_variable_type=Controller.FRAMES_SINCE_GO)
+        self.add_controller(class_with_parameters,parameter_name,cc)
+    def remove_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        i=0
+        while i < len(self.controllers):
+            orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
+            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+                self.remove_controller(class_with_parameters,parameter_name,orig_controller)
+                break
+            i = i + 1
+    def add_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        if not Presentation.__DEPRECATION_WARNING_SENT:
+            message.add(
+                """Presentation method add_transitional_controller()
+                and possibly other deprecated Presentation class
+                methods called.  These methods will be removed from
+                future releases.  They also create instances of
+                CompatibilityController class, which is also
+                deprecated.""",
+                level=Message.DEPRECATION)
+            Presentation.__DEPRECATION_WARNING_SENT = 1
+        cc = CompatibilityController(eval_func=controller_function,
+                                     temporal_variable_type=Controller.TIME_SEC_SINCE_GO,
+                                     eval_frequency=Controller.EVERY_FRAME_NOT_IN_GO)
+        self.add_controller(class_with_parameters,parameter_name,cc)
+    def remove_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
+        """DEPRECATED"""
+        i=0
+        while i < len(self.controllers):
+            orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
+            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+                self.remove_controller(class_with_parameters,parameter_name,orig_controller)
+                break
+            i = i + 1
+        
     def go(self,collect_timing_info=0):
         """Main control loop during stimulus presentation.
 
@@ -686,7 +812,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 screens.append(viewport.screen)
 
         # Tell transitional controllers a presentation is starting
-        self.__call_controllers(self.transitional_controllers,0.0)
+        self.call_controllers(go_started=1,doing_transition=1)
 
         # Clear any previous timing info if necessary
         if collect_timing_info:
@@ -696,6 +822,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # Do the main loop
         start_time_absolute = VisionEgg.timing_func()
+        current_time_absolute = start_time_absolute
         current_time = 0.0
         current_frame = 0
         if duration_units == 'seconds':
@@ -706,8 +833,12 @@ class Presentation(VisionEgg.ClassWithParameters):
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
-            self.__call_controllers(self.realtime_time_controllers,current_time)
-            self.__call_controllers(self.realtime_frame_controllers,current_frame)
+            self.call_controllers(
+                time_sec_absolute=current_time_absolute,
+                time_sec_since_go=current_time,
+                frames_since_go=current_frame,
+                go_started=1,
+                doing_transition=0)
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -715,7 +846,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             for viewport in viewports:
                 viewport.draw()
             # Swap the buffers
-            VisionEgg.swap_buffers()
+            swap_buffers()
             # If wanted, save time this frame was drawn for
             if collect_timing_info:
                 self.frame_draw_times.append(current_time)
@@ -731,23 +862,23 @@ class Presentation(VisionEgg.ClassWithParameters):
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%duration_units)
 
-        self.between_presentations() # Call at end of stimulus to reset values
-
+        # Tell transitional controllers a presentation is starting
+        self.call_controllers(go_started=0,doing_transition=1)
+        
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        if len(self.realtime_frame_controllers) > 0: # Frame by frame control desired
+        if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
-            if current_frame / current_time > impossibly_fast_frame_rate: # Let's assume no monitor exceeds 200 Hz
-                print
-                print "**************************************************************"
-                print
-                print "PROBABLE VISION EGG ERROR: Frame by frame control desired, but"
-                print "average frame rate was %f frames per second-- faster than any"%(current_frame / current_time)
-                print "display device (that I know of).  Set your drivers"
-                print "to sync buffer swapping to vertical retrace. (platform/driver dependent)"
-                print
-                print "**************************************************************"
-                print
+            if current_frame / current_time > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
+                message.add(
+                    """Frame by frame control desired, but average
+                    frame rate was %f frames per second-- faster than
+                    any display device (that I know of).  Set your
+                    drivers to sync buffer swapping to vertical
+                    retrace. (platform/driver
+                    dependent)"""%(current_frame / current_time),
+                    level=Message.ERROR
+                    )
         if collect_timing_info:
             self.print_frame_timing_stats()
 
@@ -779,9 +910,13 @@ class Presentation(VisionEgg.ClassWithParameters):
         # putting the results in parameters.name.
         # It's like "parameters.name = controller(-1.0)", but name is
         # a string, so it must be called this way.
-        self.__call_controllers(self.realtime_time_controllers,-1.0)
-        self.__call_controllers(self.realtime_frame_controllers,-1)
-        self.__call_controllers(self.transitional_controllers,-1.0)
+        
+        self.call_controllers(
+            time_sec_absolute=VisionEgg.timing_func(),
+            time_sec_since_go=None,
+            frames_since_go=None,
+            go_started=0,
+            doing_transition=0)
 
         viewports = self.parameters.viewports
 
@@ -797,7 +932,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Draw each viewport
         for viewport in viewports:
             viewport.draw()
-        VisionEgg.swap_buffers()
+        swap_buffers()
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
@@ -841,7 +976,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Draw each viewport
             for viewport in viewports:
                 viewport.draw()
-            VisionEgg.swap_buffers()
+            swap_buffers()
 
             # Now save the contents of the framebuffer
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
@@ -850,7 +985,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
             savepath = os.path.join( path, filename )
-            print "Saving '%s'"%filename
+            message.add("Saving '%s'"%filename)
             fb_image.save( savepath )
             image_no = image_no + 1
             current_time = current_time + 1.0/frames_per_sec
@@ -869,52 +1004,169 @@ class Presentation(VisionEgg.ClassWithParameters):
             frame_draw_times = Numeric.array(self.frame_draw_times)
             self.frame_draw_times = [] # clear the list
             frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
-            print (len(frame_draw_times)+1), "frames drawn."
+            timing_string = str((len(frame_draw_times)+1))+" frames drawn.\n"
             mean_sec = MLab.mean(frame_draw_times)
-            print "mean frame to frame time: %.1f (usec) == mean fps: %.2f, max: %.1f"%(mean_sec*1.0e6,1.0/mean_sec,max(frame_draw_times)*1.0e6)
-            bins = arange(0.0,15.0,1.0) # msec
+            timing_string = timing_string + "mean frame to frame time: %.1f (usec) == mean fps: %.2f, max: %.1f\n"%(mean_sec*1.0e6,1.0/mean_sec,max(frame_draw_times)*1.0e6)
+            bins = Numeric.arange(0.0,15.0,1.0) # msec
             bins = bins*1.0e-3 # sec
-            print "Inter-frame interval",
-            self.print_hist(frame_draw_times,bins)
-            print
+            timing_string = timing_string + "Inter-frame interval\n"
+            timing_string = self.print_hist(frame_draw_times,bins,timing_string)
+            timing_string = timing_string + "\n"
+            message.add(timing_string,level=Message.INFO)
 
     def histogram(self,a, bins):  
         """Create a histogram from data
 
         This function is taken straight from NumDoc.pdf, the Numeric Python
         documentation."""
-        n = searchsorted(sort(a),bins)
-        n = concatenate([n, [len(a)]])
+        n = Numeric.searchsorted(Numeric.sort(a),bins)
+        n = Numeric.concatenate([n, [len(a)]])
         return n[1:]-n[:-1]
         
-    def print_hist(self,a, bins):
+    def print_hist(self,a, bins, timing_string):
         """Print a pretty histogram"""
         hist = self.histogram(a,bins)
         lines = 10
         maxhist = float(max(hist))
         h = hist # copy
         hist = hist.astype('f')/maxhist*float(lines) # normalize to 10
-        print "histogram:"
+        timing_string = timing_string + "histogram:\n"
         for line in range(lines):
             val = float(lines)-1.0-float(line)
-            print "%6d"%(round(maxhist*val/10.0),),
-            q = greater(hist,val)
+            timing_string = timing_string + "%6d "%(round(maxhist*val/10.0),)
+            q = Numeric.greater(hist,val)
             for qi in q:
                 s = ' '
                 if qi:
                     s = '*'
-                print "%3s"%(s,),
-            print
-        print " Time:",
+                timing_string = timing_string + "%3s "%(s,)
+            timing_string = timing_string + "\n"
+        timing_string = timing_string + " Time: "
         for bin in bins:
-            print "%3d"%(int(bin*1.0e3),),
-        print "+",
-        print "(msec)"
-        print "Total:",
+            timing_string = timing_string + "%3d "%(int(bin*1.0e3),)
+        timing_string = timing_string + "+(msec)\n"
+        timing_string = timing_string + "Total: "
         for hi in h:
-            print "%3d"%(hi,),
-        print
+            timing_string = timing_string + "%3d "%(hi,)
+        timing_string = timing_string+"\n"
+        return timing_string
         
+####################################################################
+#
+#        Controller
+#
+####################################################################
+
+class Controller:
+    """Abstract base class that defines interface to any controller."""
+    # Possible temporal variable class:
+    TIME_SEC_ABSOLUTE = 1
+    TIME_SEC_SINCE_GO = 2
+    FRAMES_SINCE_GO = 3
+
+    # Possible eval frequency:
+    EVERY_FRAME = 1
+    TRANSITIONS = 2
+    EVERY_FRAME_NOT_IN_GO = 3 # only for deprecated behavior, don't use!
+    
+    def __init__(self,
+                 parameter_type = types.NoneType,
+                 temporal_variable_type = TIME_SEC_SINCE_GO,
+                 eval_frequency = EVERY_FRAME):
+        if type(parameter_type) not in [types.TypeType,types.ClassType]:
+            raise TypeError("argument 'parameter_type' must specify a type or class.")
+        self.parameter_type = parameter_type
+        
+        self.temporal_variable = None
+        self.temporal_variable_type = temporal_variable_type
+        self.eval_frequency = eval_frequency
+
+    def get_controlled_type(self):
+        return self.parameter_type
+    
+    def during_go_eval(self):
+        raise NotImplementedError("Definition in abstract base class Contoller must be overriden.")
+
+    def between_go_eval(self):
+        raise NotImplementedError("Definition in abstract base class Controller must be overriden.")
+    
+class ConstantController(Controller):
+    def __init__(self,
+                 during_go_value = 1,
+                 between_go_value = 0,
+                 **kw
+                 ):
+        apply(Controller.__init__,(self,),kw)
+        if type(going_value) is not self.parameter_type:
+            raise TypeError("going_value must be of type parameter_type.")
+        if type(between_go_value) is not self.parameter_type:
+            raise TypeError("between_go_value must be of type parameter_type.")
+        self.during_go_value = during_go_value
+        self.between_go_value = between_go_value
+        
+    def during_go_eval(self):
+        return self.during_go_value
+
+    def between_go_eval(self):
+        return self.between_go_value
+
+class EvalStringController(Controller):
+    # Todo: restrict namespace available to avoid clashes
+    def __init__(self,
+                 during_go_eval_string = "",
+                 between_go_eval_string = "",
+                 **kw
+                 ):
+        apply(Controller.__init__,(self,),kw)
+        self.during_go_eval_string = during_go_eval_string
+        self.between_go_eval_string = between_go_eval_string
+
+    def during_go_eval(self):
+        # a shortcut until namespace stuff worked out
+        t = self.temporal_variable
+        return eval(self.during_go_eval_string)
+
+    def between_go_eval(self):
+        # a shortcut until namespace stuff worked out
+        t = self.temporal_variable
+        return eval(self.between_go_eval_string)
+
+class CompatibilityController(Controller):
+    """DEPRECATED. Allows emulation of purely function-based controllers."""
+    __DEPRECATION_WARNING_SENT = 0
+    def __init__(self,
+                 eval_func = lambda t: t,
+                 **kw
+                 ):
+
+        if type(eval_func) != types.FunctionType:
+            raise TypeError("Must pass function to CompatibilityController.")
+
+        if 'eval_frequency' not in kw.keys():
+            kw['eval_frequency'] = Controller.EVERY_FRAME
+
+        my_type = type(eval_func(-1))
+        
+        if 'parameter_type' in kw.keys():
+            if kw['parameter_type'] != my_type:
+                raise ValueError("parameter_type for CompatibilityController must be type(eval_func(-1))")
+        else:
+            kw['parameter_type'] = my_type
+
+        apply(Controller.__init__,(self,),kw)
+        self.eval_func = eval_func
+        if not CompatibilityController.__DEPRECATION_WARNING_SENT:
+            message.add(
+                """Deprecated class use: CompatibilityController.
+                This class will be removed in a future release.""",
+                level=Message.DEPRECATION)
+            
+    def during_go_eval(self):
+        return self.eval_func(self.temporal_variable)
+
+    def between_go_eval(self):
+        return self.eval_func(-1)
+
 ####################################################################
 #
 #        Error handling and assumption checking
@@ -928,20 +1180,21 @@ class Message:
     TRIVIAL = 0
     INFO = 1
     NAG = 2
-    WARNING = 3
-    ERROR = 4
-    FATAL = 5
+    DEPRECATION = 3
+    WARNING = 4
+    ERROR = 5
+    FATAL = 6
     
     def __init__(self,
                  prefix="VisionEgg",
                  exception_level=ERROR,
                  print_level=INFO,
-                 print_stream=sys.stderr):
+                 output_stream=sys.stderr):
         self.prefix = prefix
         self.message_queue = []
         self.exception_level = exception_level
         self.print_level = print_level
-        self.print_stream = print_stream
+        self.output_stream = output_stream
         
     def add(self,text,level=INFO):
         self.message_queue.append((level,text))
@@ -951,21 +1204,23 @@ class Message:
         while len(self.message_queue) > 0:
             level, text = self.message_queue.pop(0)
             if level >= self.print_level:
-                self.print_stream.write(self.prefix)
+                self.output_stream.write(self.prefix)
                 if level == Message.TRIVIAL:
-                    self.print_stream.write(" trivial")
+                    self.output_stream.write(" trivial")
                 elif level == Message.INFO:
-                    self.print_stream.write(" info")
+                    self.output_stream.write(" info")
                 elif level == Message.NAG:
-                    self.print_stream.write(" nag")
+                    self.output_stream.write(" nag")
+                elif level == Message.DEPRECATION:
+                    self.output_stream.write(" deprecation")
                 elif level == Message.WARNING:
-                    self.print_stream.write(" WARNING")
+                    self.output_stream.write(" WARNING")
                 elif level == Message.ERROR:
-                    self.print_stream.write(" ERROR")
+                    self.output_stream.write(" ERROR")
                 elif level == Message.FATAL:
-                    self.print_stream.write(" FATAL")
-                self.print_stream.write(" message: "+text+"\n")
-                self.print_stream.flush()
+                    self.output_stream.write(" FATAL")
+                self.output_stream.write(" message: "+text+"\n")
+                self.output_stream.flush()
             if level >= self.exception_level:
                 raise EggError(text)
             if level == Message.FATAL:
