@@ -32,7 +32,7 @@ class Parser:
 
 class Handler:
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
-    re_const = re.compile(r'const\(\s?(.*)\s?,\s?(.*)\s?,\s?(.*)\s?\,\s?(.*)\s?,\s?(.*)\s?\)',re.MULTILINE)
+    re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.MULTILINE)
     re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\,\s?(.*)\s?,\s?(.*)\s?\)',re.MULTILINE)
     def __init__(self,request,client_address):
         self.request = request
@@ -102,13 +102,25 @@ class Handler:
             match = Handler.re_const.match(params)
             if match is not None:
                 try:
+                    print match.groups()
                     go_val = eval(match.group(1))
                     #print "go_str",go_str
-                    not_go_val = eval(match.group(2))
-                    namespace = {'types':types}
-                    return_type = eval(match.group(3),namespace)
-                    temporal_variable_type = eval("VisionEgg.Core.Controller.%s"%match.group(4))
-                    eval_frequency = eval("VisionEgg.Core.Controller.%s"%match.group(5))
+                    if match.group(2) is not None:
+                        not_go_val = eval(match.group(2))
+                    else:
+                        not_go_val = go_val
+                    if match.group(3) is not None:
+                        return_type = eval(match.group(3))
+                    else:
+                        return_type = type(go_val)
+                    if match.group(4) is not None:
+                        temporal_variable_type = eval("VisionEgg.Core.Controller.%s"%match.group(4))
+                    else:
+                        temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE
+                    if match.group(5) is not None:
+                        eval_frequency = eval("VisionEgg.Core.Controller.%s"%match.group(5))
+                    else:
+                        eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME
                     #eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME
                     #temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE
                     return_value = VisionEgg.Core.ConstantController(
@@ -118,7 +130,7 @@ class Handler:
                         temporal_variable_type = temporal_variable_type,
                         eval_frequency = eval_frequency)
                 except Exception, x:
-                    self.request.send("Error parsing eval_str for %s: %s\n"%(tcp_name,x))
+                    self.request.send("Error parsing const for %s: %s\n"%(tcp_name,x))
             else:
                 match = Handler.re_eval_str.match(params)
                 if match is not None:
