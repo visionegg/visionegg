@@ -94,6 +94,13 @@ if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
             for screen in config._open_screens:
                 screen.close()
         # print exception to sys.stderr
+
+        if hasattr(config,"_orig_stderr"):
+            # We've saved the original sys.stderr, which means we're now intercepting it.
+            # Print a warning on the console:
+            config._orig_stderr.write("WARNING: Exception written to logfile\n")
+            config._orig_stderr.flush()
+
         traceback.print_exception(exc_type,exc_value,exc_traceback)
         # print exception to dialog
         traceback_stream = StringIO.StringIO()
