@@ -5,9 +5,9 @@
 \author{Andrew Straw}
 
 \date{\today}			% update before release!
-\release{0.9.4}			% software release, not documentation
+\release{0.9.5a0}		% software release, not documentation
 \setreleaseinfo{}		% empty for final release
-\setshortversion{0.9.4}		% major.minor only for software
+\setshortversion{0.9.5a0}	% major.minor only for software
 
 \makeindex                      % tell \index to actually write the
                                 % .idx file
@@ -165,7 +165,8 @@ controller is called at pre-defined intervals and updates the value of
 some stimulus parameter.  For example, in the ``target'' demo script,
 the ``center'' parameter of a \class{Target2D} stimulus is updated on
 every frame by a function which computes position based upon the
-current time.
+current time.  You can also control parameters without using
+controllers by simply changing the values as your program executes.
 
 Instances of \class{Controller} are called by instances of the
 \class{Presentation} class.  After creating an instance of
