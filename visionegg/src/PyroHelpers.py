@@ -15,7 +15,7 @@ controllers to be changed from a computer running PyroClient. To
 listen to the network PyroListenerController must be instantiated by
 the PyroServer -- this checks for any requests coming over the
 network, but only at times specified because it is a subclass of
-VisionEgg.Core.Controller.
+VisionEgg.FlowControl.Controller.
 
 Just like TCPControllers, don't use this class for realtime control
 unless you think your network is that fast and reliable.  It's great
@@ -28,6 +28,7 @@ though!"""
 import string
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.ParameterTypes as ve_types
 
 __version__ = VisionEgg.release_name
@@ -61,13 +62,6 @@ class PyroServer:
         return URI
 
     def disconnect(self,object):
-##        # Should do this:
-##        # self.daemon.disconnect(object)
-##        # But there's a bug in Pyro 3.0 and 3.1 (at least)
-##        #
-##        # Anyhow, here's what daemon.disconnect should do:
-##        del self.daemon.implementations[object.GUID()]
-##        object.setDaemon(None)
         if Pyro.core.constants.VERSION >= '3.2':
             self.daemon.disconnect(object)
         else:
@@ -87,39 +81,39 @@ class PyroServer:
         A timeout of 0 specifies return immediately."""
         self.daemon.handleRequests(timeout)
 
-class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
+class PyroConstantController(VisionEgg.FlowControl.ConstantController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        VisionEgg.Core.ConstantController.__init__(self,**kw)
+        VisionEgg.FlowControl.ConstantController.__init__(self,**kw)
         Pyro.core.ObjBase.__init__(self)
 
-class PyroEvalStringController(VisionEgg.Core.EvalStringController,Pyro.core.ObjBase):
+class PyroEvalStringController(VisionEgg.FlowControl.EvalStringController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        VisionEgg.Core.EvalStringController.__init__(self,**kw)
+        VisionEgg.FlowControl.EvalStringController.__init__(self,**kw)
         Pyro.core.ObjBase.__init__(self)
 
-class PyroExecStringController(VisionEgg.Core.ExecStringController,Pyro.core.ObjBase):
+class PyroExecStringController(VisionEgg.FlowControl.ExecStringController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        VisionEgg.Core.ExecStringController.__init__(self,**kw)
+        VisionEgg.FlowControl.ExecStringController.__init__(self,**kw)
         Pyro.core.ObjBase.__init__(self)
 
-class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+class PyroEncapsulatedController(VisionEgg.FlowControl.EncapsulatedController,Pyro.core.ObjBase):
     """Create the instance of Controller on client, and send it to server.
 
     This class is analagous to VisionEgg.TCPController.TCPController.
     """
     def __init__(self,initial_controller=None,**kw):
-        VisionEgg.Core.EncapsulatedController.__init__(self,initial_controller)
+        VisionEgg.FlowControl.EncapsulatedController.__init__(self,initial_controller)
         Pyro.core.ObjBase.__init__(self)
 
-class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+class PyroLocalDictController(VisionEgg.FlowControl.EncapsulatedController,Pyro.core.ObjBase):
     """Contain several dictionary entries, set controller accordingly.
     """
     def __init__(self, dict=None, key=None, **kw):
         if dict is None:
             self.dict = {}
-            initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+            initial_controller = VisionEgg.FlowControl.ConstantController(during_go_value=0,
                                                                    between_go_value=0,
-                                                                   eval_frequency=VisionEgg.Core.Controller.NEVER)
+                                                                   eval_frequency=VisionEgg.FlowControl.Controller.NEVER)
         else:
             self.dict = dict
         if key is None:
@@ -127,19 +121,19 @@ class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.Ob
                 key = self.dict.keys()[0]
                 initial_controller = self.dict[key]
             else:
-                initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+                initial_controller = VisionEgg.FlowControl.ConstantController(during_go_value=0,
                                                                        between_go_value=0,
-                                                                       eval_frequency=VisionEgg.Core.Controller.NEVER)
+                                                                       eval_frequency=VisionEgg.FlowControl.Controller.NEVER)
         else:
             initial_controller = dict[key]
-        VisionEgg.Core.EncapsulatedController.__init__(self,initial_controller)
+        VisionEgg.FlowControl.EncapsulatedController.__init__(self,initial_controller)
         Pyro.core.ObjBase.__init__(self)
     def use_controller(self,key):
         self.set_new_controller(self.dict[key])
     def add_controller(self,key,new_controller):
         self.dict[key] = new_controller
 
-class PyroListenController(VisionEgg.Core.Controller):
+class PyroListenController(VisionEgg.FlowControl.Controller):
     """Handle connection from remote machine, control PyroControllers.
 
     This meta controller handles a Pyro daemon, which checks the TCP
@@ -154,10 +148,10 @@ class PyroListenController(VisionEgg.Core.Controller):
         if not isinstance(server,PyroServer):
             raise ValueError("Must specify a Pyro Server.") 
         if 'eval_frequency' not in kw.keys():
-            kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
+            kw['eval_frequency'] = VisionEgg.FlowControl.Controller.EVERY_FRAME
         if 'return_type' not in kw.keys():
             kw['return_type'] = ve_types.get_type(None)
-        VisionEgg.Core.Controller.__init__(self,**kw)
+        VisionEgg.FlowControl.Controller.__init__(self,**kw)
         self.server=server
 
     def during_go_eval(self):

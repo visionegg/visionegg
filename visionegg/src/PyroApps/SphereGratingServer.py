@@ -12,6 +12,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.SphereMap
 import VisionEgg.PyroHelpers
 import Pyro.core
@@ -33,8 +34,8 @@ class SphereGratingExperimentMetaController( Pyro.core.ObjBase ):
         self.meta_params = SphereGratingMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(sphere_grating,VisionEgg.SphereMap.SphereGrating):
             raise ValueError("Expecting instance of VisionEgg.SphereMap.SphereGrating")
         if not isinstance(sphere_window,VisionEgg.SphereMap.SphereWindow):
@@ -45,7 +46,7 @@ class SphereGratingExperimentMetaController( Pyro.core.ObjBase ):
 
         screen.parameters.bgcolor = (0.5, 0.5, 0.5, 0.0)
 
-        self.p.add_controller(self.stim,'on',VisionEgg.Core.FunctionController(
+        self.p.add_controller(self.stim,'on',VisionEgg.FlowControl.FunctionController(
             during_go_func=self.on_function_during_go,
             between_go_func=self.on_function_between_go))
 
@@ -139,7 +140,7 @@ if __name__ == '__main__':
                                                       near,
                                                       far)
     viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stimulus,mask],projection=projection)
-    p = VisionEgg.Core.Presentation(viewports=[viewport])
+    p = VisionEgg.FlowControl.Presentation(viewports=[viewport])
 
     # now hand over control of projection to ScreenPositionMetaController
     projection_controller = ScreenPositionMetaController(p,projection)

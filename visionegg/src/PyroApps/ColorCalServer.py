@@ -12,6 +12,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.PyroHelpers
 import Pyro.core
 import pygame, pygame.locals
@@ -24,8 +25,8 @@ class ColorCalMetaController( Pyro.core.ObjBase ):
         self.meta_params = ColorCalMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         
         self.screen = screen
         self.p = presentation
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     screen = VisionEgg.Core.Screen.create_default()
 
     # get Vision Egg stimulus ready to go
-    p = VisionEgg.Core.Presentation()
+    p = VisionEgg.FlowControl.Presentation()
 
     stimuli = make_stimuli()
     

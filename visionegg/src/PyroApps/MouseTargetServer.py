@@ -14,6 +14,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.MoreStimuli
 import VisionEgg.PyroHelpers
 import Pyro.core
@@ -72,8 +73,8 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         self.meta_params = MouseTargetMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(target,VisionEgg.MoreStimuli.Target2D):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
         
@@ -82,7 +83,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         self.stim = target
 
         self.p.add_controller(target,'center', TargetPositionController())
-        self.p.add_controller(target,'size', VisionEgg.Core.FunctionController(during_go_func=get_target_size,
+        self.p.add_controller(target,'size', VisionEgg.FlowControl.FunctionController(during_go_func=get_target_size,
                                                                 between_go_func=get_target_size) )
         self.p.add_controller(target,'orientation', TargetOrientationController() )
         self.mouse_position_controller = MousePositionController()
@@ -138,12 +139,12 @@ def get_meta_controller_stimkey():
 #  Define controllers  #
 ########################
 
-class MousePositionController( VisionEgg.Core.Controller ):
+class MousePositionController( VisionEgg.FlowControl.Controller ):
     def __init__(self):
         global mouse_position
-        VisionEgg.Core.Controller.__init__(self,
+        VisionEgg.FlowControl.Controller.__init__(self,
                             return_type=ve_types.get_type(None),
-                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
+                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         self.between_go_eval = self.during_go_eval
 
     def during_go_eval(self,t=None):
@@ -157,12 +158,12 @@ class MousePositionController( VisionEgg.Core.Controller ):
             last_mouse_position = just_current_pos
         return None
         
-class TargetPositionController( VisionEgg.Core.Controller ):
+class TargetPositionController( VisionEgg.FlowControl.Controller ):
     def __init__(self):
         global mouse_position
-        VisionEgg.Core.Controller.__init__(self,
+        VisionEgg.FlowControl.Controller.__init__(self,
                             return_type=ve_types.Sequence2(ve_types.Real),
-                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
+                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         self.between_go_eval = self.during_go_eval
 
     def during_go_eval(self,t=None):
@@ -180,11 +181,11 @@ def mag(b):
     """Magnitude of a vector."""
     return b[0]**2.0 + b[1]**2.0 + b[2]**2.0
     
-class TargetOrientationController( VisionEgg.Core.Controller ):
+class TargetOrientationController( VisionEgg.FlowControl.Controller ):
     def __init__(self):
-        VisionEgg.Core.Controller.__init__(self,
+        VisionEgg.FlowControl.Controller.__init__(self,
                             return_type=ve_types.Real,
-                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
+                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         self.c = (0.0,0.0,1.0)
         self.last_orientation = 0.0
         self.between_go_eval = self.during_go_eval
@@ -233,7 +234,7 @@ if __name__ == '__main__':
     stimuli = make_stimuli()
     stimulus = stimuli[0][1]
     viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stimulus])
-    p = VisionEgg.Core.Presentation(viewports=[viewport])
+    p = VisionEgg.FlowControl.Presentation(viewports=[viewport])
 
     # now hand over control of grating and mask to FlatGratingExperimentMetaController
     meta_controller = MouseTargetExperimentMetaController(screen,p,stimuli)

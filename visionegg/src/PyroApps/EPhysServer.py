@@ -13,6 +13,7 @@ import sys, os, math
 import tkMessageBox
 import pygame.display
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.SphereMap
 import VisionEgg.Text
 import VisionEgg.Textures
@@ -56,7 +57,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
                                                            color=(1.0,1.0,1.0,1.0),
                                                            center=(30.0,30.0),
                                                            size=(50.0,50.0))
-        self.presentation.add_controller(self.onset_cal_fg,'on',VisionEgg.Core.ConstantController(during_go_value=1,
+        self.presentation.add_controller(self.onset_cal_fg,'on',VisionEgg.FlowControl.ConstantController(during_go_value=1,
                                                                                                   between_go_value=0))
         # get screen (hack)
         self.onset_cal_screen = self.presentation.parameters.viewports[0].parameters.screen
@@ -168,7 +169,7 @@ def start_server( server_modules, server_class=EPhysServer ):
     perspective_viewport = VisionEgg.Core.Viewport(screen=screen,
                                                       projection=projection)
     overlay2D_viewport = VisionEgg.Core.Viewport(screen=screen)
-    p = VisionEgg.Core.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
+    p = VisionEgg.FlowControl.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
 
     wait_text = VisionEgg.Text.Text(
         text = "Starting up...",
