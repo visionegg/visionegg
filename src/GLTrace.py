@@ -43,8 +43,11 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 gl_constants = {}
 
 # functions which we don't want to map all the arguments of
-special_functions = {'glTexImage2D':[1,3,4,5], # level,width,height,border
-                     }
+special_functions = {
+    'glReadPixels':[0,1,2,3], # x,y,width,height
+    'glTexImage2D':[1,3,4,5], # level,width,height,border
+    'glVertex2f':[0,1], # all arguments
+    }
 
 def arg_to_str( arg ):
     if type(arg) == int:
