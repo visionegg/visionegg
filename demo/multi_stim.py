@@ -10,7 +10,7 @@ from VisionEgg.Dots import DotArea2D
 from VisionEgg.Gratings import SinGrating2D
 from VisionEgg.MoreStimuli import Target2D
 from VisionEgg.Textures import Mask2D, Texture, SpinningDrum
-from VisionEgg.Text import BitmapText
+from VisionEgg.Text import Text
 from math import sin, pi
 import pygame.locals
 
@@ -34,9 +34,10 @@ height = screen.size[1]/3
 #  text                             #
 #####################################
 
-text = BitmapText( text = "Vision Egg multi stimulus demo -- Press Esc to quit",
-                   lowerleft = (0,5),
-                   color = (1.0,1.0,1.0,1.0))
+text = Text( text = "Vision Egg multi stimulus demo - Press Esc to quit",
+             position = (screen.size[0]/2,0),
+             anchor = 'bottom',
+             color = (1.0,1.0,1.0,1.0))
 
 #####################################
 #  Random dots                      #

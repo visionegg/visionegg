@@ -13,10 +13,14 @@ if not hasattr(pygame.display,"set_gamma_ramp"):
 # Initialize OpenGL graphics screen.
 screen = get_default_screen()
 
+center_x = screen.size[0]/2.0
+
 # Create the instance SinGrating with appropriate parameters
 stimulus = SinGrating2D()
-text1 = BitmapText(text="Press - to decrease luminance range, + to increase.",lowerleft=(0,30))
-text2 = BitmapText(text="set_gamma_ramp(r,g,b):",lowerleft=(0,5))
+text2 = Text(text="set_gamma_ramp(r,g,b):",
+             position=(center_x,0),anchor="bottom")
+text1 = Text(text="Press - to decrease luminance range, + to increase.",
+             position=(center_x,text2.parameters.size[1]+5),anchor="bottom")
 
 # Use viewport with pixel coordinate system for projection
 viewport = Viewport(screen=screen,stimuli=[stimulus,text1,text2])
