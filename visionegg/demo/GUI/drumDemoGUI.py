@@ -27,6 +27,7 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.GUI import *
 from VisionEgg.Textures import *
@@ -114,14 +115,17 @@ class DrumGui(AppWindow):
         self.validate_c_string()
         p.go()
 
+config.VISIONEGG_GUI_INIT=1
 screen = get_default_screen() # initialize graphics
+screen.cursor_visible_func(1) # make sure mouse is visible
+if config.VISIONEGG_FULLSCREEN==1:
+    raise RuntimeError("Cannot enter fullscreen mode if you want to see GUI panel!")
 
-try:
-    texture = TextureFromFile("orig.bmp") # try to open a texture file
-except:
-    texture = Texture(size=(256,16)) # otherwise, generate one
+# Get a texture
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+texture = TextureFromFile(filename)
 
-drum = SpinningDrum(texture=texture)
+drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
 fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
 
 perspective = SimplePerspectiveProjection(fov_x=90.0)
