@@ -1306,7 +1306,7 @@ class FrameTimer:
     
     def get_average_ifi_sec(self):
         if self._true_time_last_frame is None:
-            raise RuntimeError("No frames were drawn")
+            raise RuntimeError("No frames were drawn, can't calculate average IFI")
         return (self._true_time_last_frame - self.first_tick_sec) / sum( self.timing_histogram )
 
     def print_histogram(self):
@@ -1318,11 +1318,12 @@ class FrameTimer:
     def log_histogram(self):
         buffer = StringIO.StringIO()
 
-        if self.first_tick_sec is None:
-            print >> buffer, '0 frames were drawn.'
+        n_frames = sum( self.timing_histogram )+1
+        if n_frames < 2:
+            print >> buffer, '%d frames were drawn.'%n_frames
             return
         average_ifi_sec = self.get_average_ifi_sec()
-        print >> buffer, '%d frames were drawn.'%int(sum(self.timing_histogram)+1)
+        print >> buffer, '%d frames were drawn.'%int(n_frames)
         print >> buffer, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
             average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
         
