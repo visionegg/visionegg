@@ -29,13 +29,17 @@ target = Target2D()
 target.init_gl()
 viewport.add_stimulus(target)
 
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
 
 p.add_realtime_time_controller(target.parameters,'x', x_as_function_of_time)
 p.add_realtime_time_controller(target.parameters,'y', y_as_function_of_time)
 p.add_transitional_controller(target.parameters,'orientation', orientation)
 p.add_transitional_controller(target.parameters,'on', one_during_experiment)
 
-p.export_movie_go(frames_per_sec=fps,path=os.path.join(VisionEgg.config.VISIONEGG_STORAGE,'movie'))
+save_directory = os.path.join(VisionEgg.config.VISIONEGG_STORAGE,'movie')
+if not os.path.isdir(save_directory):
+    print "Error: cannot save movie, because directory '%s' does not exist."%save_directory
+else:
+    p.export_movie_go(frames_per_sec=fps,path=save_directory)
 
 
