@@ -102,7 +102,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             topframe_row += 1
 
         try:
-            import _imaging
+            import _imaging, _imagingtk
+            import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin
             import Image,ImageTk
             im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp'))
             self.tk_im=ImageTk.PhotoImage(im)

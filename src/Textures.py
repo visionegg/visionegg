@@ -12,6 +12,8 @@
 import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
+import _imaging
+import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 import math,types
 import OpenGL.GL
 gl = OpenGL.GL
