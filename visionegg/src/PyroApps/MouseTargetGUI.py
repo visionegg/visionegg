@@ -26,11 +26,12 @@ class MouseTargetMetaParameters:
 class MouseTargetControlFrame(client_utils.StimulusControlFrame):
     title = "Mouse Controlled Moving Target"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
-        apply(client_utils.StimulusControlFrame.__init__,(self,
-                                                          master,
-                                                          suppress_go_buttons,
-                                                          MouseTargetControlFrame.title,
-                                                          MouseTargetMetaParameters),kw)
+        client_utils.StimulusControlFrame.__init__(self,
+                                                   master,
+                                                   suppress_go_buttons,
+                                                   MouseTargetControlFrame.title,
+                                                   MouseTargetMetaParameters,
+                                                   **kw)
 
         param_frame = self.param_frame # shorthand for self.param_frame created in base class
 

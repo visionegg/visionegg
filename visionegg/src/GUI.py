@@ -63,7 +63,7 @@ def showexception(exc_type, exc_value, traceback_str):
 class AppWindow(Tkinter.Frame):
     """A GUI Window that can be subclassed for a main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
-        apply(Tkinter.Frame.__init__,(self,master),cnf)
+        Tkinter.Frame.__init__(*(self,master),**cnf)
         self.winfo_toplevel().title('Vision Egg')
 
         self.info_frame = InfoFrame(self)
@@ -83,7 +83,7 @@ class ProgressBar(Tkinter.Frame):
                  labelColor="black", labelFont="Helvetica",
                  labelText="", labelFormat="%d%%",
                  value=50, **cnf):
-        apply( Tkinter.Frame.__init__, (self,master) )
+        Tkinter.Frame.__init__(*(self,master) )
         # preserve various values
         self.master=master
         self.orientation=orientation
@@ -155,7 +155,7 @@ class ProgressBar(Tkinter.Frame):
 class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
-        apply(Tkinter.Frame.__init__,(self,master),cnf)
+        Tkinter.Frame.__init__(*(self,master),**cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
         
@@ -545,7 +545,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         class DarwinFineTuneDialog(ToplevelDialog):
             def __init__(self,parent,**cnf):
                 # Bugs in Tk 8.4a4 for Darwin seem to prevent use of "grid" in this dialog
-                apply(ToplevelDialog.__init__,(self,),cnf)
+                ToplevelDialog.__init__(*(self,),**cnf)
                 self.title("Fine tune maximum priority")
                 f = Tkinter.Frame(self)
                 f.pack(expand=1,fill=Tkinter.BOTH,ipadx=2,ipady=2)
@@ -664,7 +664,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
 class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
-        apply(Tkinter.Frame.__init__,(self,master),cnf)
+        Tkinter.Frame.__init__(*(self,master),**cnf)
 
         Tkinter.Label(self,text="Vision Egg information:").pack()
         self.sub_frame = Tkinter.Frame(self,relief=Tkinter.GROOVE)
@@ -688,7 +688,7 @@ class InfoFrame(Tkinter.Frame):
 class ToplevelDialog(Tkinter.Toplevel):
     """Base class for a dialog that runs on the top level."""
     def __init__(self,**kw):
-        apply(Tkinter.Toplevel.__init__,(self,),kw)
+        Tkinter.Toplevel.__init__(*(self,),**kw)
         self.transient(self)
 
     def destroy(self):
@@ -716,7 +716,7 @@ class GetKeypressDialog(ToplevelDialog):
                  key_list=[],
                  **kw):
         
-        apply(ToplevelDialog.__init__,(self,),kw)
+        ToplevelDialog.__init__(*(self,),**kw)
         self.title(title)
         self.result = None
 

@@ -10,17 +10,10 @@ closely!"""
 # This program displays a spinning drum, with the inside of the drum
 # texture-mapped with a panoramic image.
 #
-# By default, the texture displayed on the drum is loaded from the
-# file "orig.bmp" if possible, otherwise, a white "X" on a blue
-# background is generated.
-#
 # This demo uses the GUI tookit "Tkinter", which may not be available on
 # all platforms. Also, because this code also controls a GUI, it is much
 # more complicated than the minimum needed to create a stimulus with the
 # VisionEgg.
-#
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
 
 import string
 __version__ = string.split('$Revision$')[1]
@@ -42,7 +35,7 @@ default_max_speed = 400.0
 class DrumGui(AppWindow):
     def __init__(self,master=None,**cnf):
 
-        apply(AppWindow.__init__,(self,master),cnf)
+        AppWindow.__init__(self,master,**cnf)
         self.winfo_toplevel().title('Vision Egg - spinning drum')
         self.pack(expand=1,fill=Tkinter.BOTH)
 

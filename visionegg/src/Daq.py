@@ -9,7 +9,7 @@ considered unstable.
 
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
 
 import VisionEgg
@@ -32,7 +32,7 @@ class SignalType(ChannelParameters):
         if self.__class__ == SignalType:
             raise RuntimeError("Trying to instantiate abstract base class.")
         else:
-            apply(ChannelParameters.__init__,(self,),kw)
+            ChannelParameters.__init__(self,**kw)
 
 class Analog(SignalType):
     constant_parameters_and_defaults = {'gain':(1.0,types.FloatType),
@@ -46,7 +46,7 @@ class DaqMode(ChannelParameters):
         if self.__class__ == DaqMode:
             raise RuntimeError("Trying to instantiate abstract base class.")
         else:
-            apply(ChannelParameters.__init__,(self,),kw)
+            ChannelParameters.__init__(self,**kw)
 
 class Buffered(DaqMode):
     parameters_and_defaults = {'sample_rate_hz':(5000.0,types.FloatType),
@@ -61,7 +61,7 @@ class Functionality(ChannelParameters):
         if self.__class__ == Functionality:
             raise RuntimeError("Trying to instantiate abstract base class.")
         else:
-            apply(ChannelParameters.__init__,(self,),kw)
+            ChannelParameters.__init__(self,**kw)
    
 class Input(Functionality):
     def get_data(self):
@@ -76,7 +76,7 @@ class Channel(VisionEgg.ClassWithParameters):
                                          'daq_mode' : (None,DaqMode),
                                          'functionality' : (None,Functionality)}
     def __init__(self,**kw):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.constant_parameters.signal_type.channel = self
         self.constant_parameters.daq_mode.channel = self
         self.constant_parameters.functionality.channel = self

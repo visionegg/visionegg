@@ -10,7 +10,7 @@ ECP or EPP.  You may have to set your computer's BIOS accordingly.
 
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
 
 ####################################################################
@@ -76,7 +76,7 @@ class LPTChannel(VisionEgg.Daq.Channel):
     def __init__(self,**kw):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
-        apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
+        VisionEgg.Daq.Channel.__init__(self,**kw)
         signal_type = self.constant_parameters.signal_type
         if not isinstance(signal_type,VisionEgg.Daq.Digital):
             raise ValueError("Channel must be digital.")
@@ -97,7 +97,7 @@ class LPTDevice(VisionEgg.Daq.Device):
     def __init__(self,base_address=0x378,**kw):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
-        apply(VisionEgg.Daq.Device.__init__,(self,),kw)
+        VisionEgg.Daq.Device.__init__(self,**kw)
         for channel in self.channels:
             if not isinstance(channel,LPTChannel):
                 raise ValueError("LPTDevice only has LPTChannels.")

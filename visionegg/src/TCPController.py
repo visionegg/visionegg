@@ -84,10 +84,10 @@ class TCPServer:
         class GetServerAddressWindow(Tkinter.Frame):
             def __init__(self,server_address,**kw):
                 try:
-                    apply(Tkinter.Frame.__init__,(self),kw)
+                    Tkinter.Frame.__init__(self,**kw)
                 except AttributeError,x:
                     tk=Tkinter.Tk() # restart Tk and see if that helps
-                    apply(Tkinter.Frame.__init__,(self,tk),kw)
+                    Tkinter.Frame.__init__(self,tk,**kw)
                 self.winfo_toplevel().title("Vision Egg: TCP Server get address")
                 self.server_address = server_address
                 hostname,port = self.server_address
@@ -167,7 +167,7 @@ class TCPServer:
             # Make a Tkinter dialog box
             class WaitingDialog(Tkinter.Frame):
                 def __init__(self,server_socket=None,**kw):
-                    apply(Tkinter.Frame.__init__,(self,),kw)
+                    Tkinter.Frame.__init__(self,**kw)
                     self.winfo_toplevel().title('Vision Egg TCP Server')
                     self.server_socket = server_socket
                     host,port = self.server_socket.getsockname()
@@ -541,7 +541,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                 if match_groups[1] is not None:
                     kw_args['between_go_value'] = match_groups[1]
                 self.__process_common_args(kw_args,match_groups)
-                new_contained_controller = apply(VisionEgg.Core.ConstantController,[],kw_args)
+                new_contained_controller = VisionEgg.Core.ConstantController(**kw_args)
                 new_type = new_contained_controller.returns_type()
                 if new_type != require_type:
                     if not require_type==types.ClassType or not issubclass( new_type, require_type):
@@ -561,7 +561,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                     if match_groups[1] is not None:
                         kw_args['between_go_eval_string'] = string.replace(match_groups[1],r"\n","\n")
                     self.__process_common_args(kw_args,match_groups)
-                    new_contained_controller = apply(VisionEgg.Core.EvalStringController,[],kw_args)
+                    new_contained_controller = VisionEgg.Core.EvalStringController(**kw_args)
                     if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_DURING_GO):
                         VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_eval_string'],),
                                     VisionEgg.Core.Message.TRIVIAL)
@@ -600,7 +600,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                                 raise ValueError("x is not defined for between_go_exec_string")
                             kw_args['between_go_exec_string'] = tmp
                         self.__process_common_args(kw_args,match_groups)
-                        new_contained_controller = apply(VisionEgg.Core.ExecStringController,[],kw_args)
+                        new_contained_controller = VisionEgg.Core.ExecStringController(**kw_args)
                         if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_DURING_GO):
                             VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_exec_string'],),
                                         VisionEgg.Core.Message.TRIVIAL)
@@ -655,7 +655,7 @@ class TCPController(VisionEgg.Core.EncapsulatedController):
 
         Users should create instance by using method
         create_tcp_controller of class SocketListenController."""
-        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
+        VisionEgg.Core.EncapsulatedController.__init__(self,initial_controller)
         self.tcp_name = tcp_name
 
     def __str__(self):

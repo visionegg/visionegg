@@ -23,11 +23,12 @@ class GridMetaParameters:
 class GridControlFrame(client_utils.StimulusControlFrame):
     title = "Grid for 3D calibration"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
-        apply(client_utils.StimulusControlFrame.__init__,(self,
-                                                          master,
-                                                          suppress_go_buttons,
-                                                          GridControlFrame.title,
-                                                          GridMetaParameters),kw)
+        client_utils.StimulusControlFrame.__init__(self,
+                                                   master,
+                                                   suppress_go_buttons,
+                                                   GridControlFrame.title,
+                                                   GridMetaParameters,
+                                                   **kw)
         Tkinter.Label( self.param_frame,
                        text="No variables to control" ).grid()
 

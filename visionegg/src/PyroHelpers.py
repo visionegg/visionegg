@@ -22,8 +22,8 @@ unless you think your network is that fast and reliable.  It's great
 for setting up parameters in advance and sending a trigger pulse,
 though!"""
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
 
 import string
 import VisionEgg
@@ -76,18 +76,18 @@ class PyroServer:
 
 class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        apply(VisionEgg.Core.ConstantController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
+        VisionEgg.Core.ConstantController.__init__(self,**kw)
+        Pyro.core.ObjBase.__init__(self)
 
 class PyroEvalStringController(VisionEgg.Core.EvalStringController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        apply(VisionEgg.Core.EvalStringController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
+        VisionEgg.Core.EvalStringController.__init__(self,**kw)
+        Pyro.core.ObjBase.__init__(self)
 
 class PyroExecStringController(VisionEgg.Core.ExecStringController,Pyro.core.ObjBase):
     def __init__(self, **kw):
-        apply(VisionEgg.Core.ExecStringController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
+        VisionEgg.Core.ExecStringController.__init__(self,**kw)
+        Pyro.core.ObjBase.__init__(self)
 
 class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
     """Create the instance of Controller on client, and send it to server.
@@ -95,8 +95,8 @@ class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core
     This class is analagous to VisionEgg.TCPController.TCPController.
     """
     def __init__(self,initial_controller=None,**kw):
-        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
-        apply(Pyro.core.ObjBase.__init__,(self,))
+        VisionEgg.Core.EncapsulatedController.__init__(self,initial_controller)
+        Pyro.core.ObjBase.__init__(self)
 
 class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
     """Contain several dictionary entries, set controller accordingly.
@@ -119,8 +119,8 @@ class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.Ob
                                                                        eval_frequency=VisionEgg.Core.Controller.NEVER)
         else:
             initial_controller = dict[key]
-        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
-        apply(Pyro.core.ObjBase.__init__,(self,))
+        VisionEgg.Core.EncapsulatedController.__init__(self,initial_controller)
+        Pyro.core.ObjBase.__init__(self)
     def use_controller(self,key):
         self.set_new_controller(self.dict[key])
     def add_controller(self,key,new_controller):
@@ -144,7 +144,7 @@ class PyroListenController(VisionEgg.Core.Controller):
             kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
         if 'return_type' not in kw.keys():
             kw['return_type'] = type(None)
-        apply(VisionEgg.Core.Controller.__init__,(self,),kw)
+        VisionEgg.Core.Controller.__init__(self,**kw)
         self.server=server
 
     def during_go_eval(self):
