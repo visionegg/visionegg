@@ -18,13 +18,13 @@ screen = get_default_screen()
 #  Create sinusoidal grating object  #
 ######################################
 
-stimulus = SinGrating2DColor(color1 = (0.0,1.0,0.0,0.0), # RGBA, Alpha ignored
-                             color2 = (1.0,0.0,0.0,0.0), # RGBA, Alpha ignored
+stimulus = SinGrating2DColor(color1 = (0.5, 0.25, 0.5, 0.0), # RGBA, Alpha ignored
+                             color2 = (1.0, 0.5,  0.1, 0.0), # RGBA, Alpha ignored
                              center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                              size             = ( 300.0 , 300.0 ),
-                             spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
+                             spatial_freq     = 20.0 / screen.size[0], # units of cycles/pixel
                              temporal_freq_hz = 1.0,
-                             orientation      = 45.0 )
+                             orientation      = 270.0 )
 
 ###############################################################
 #  Create viewport - intermediary between stimuli and screen  #
