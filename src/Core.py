@@ -244,6 +244,7 @@ class Stimulus:
     def __init__(self):
         self.parameters = Parameters()
         self.parameters.yrot = 0.0
+        self.parameters.on = 1
         
     def draw(self):
     	"""Draw the stimulus.  This method is called every frame.
@@ -254,10 +255,11 @@ class Stimulus:
         good idea, since it looks relatively pretty and takes one line
         of code.
         """
-        glLoadIdentity() # clear (hopefully the) modelview matrix
-        glTranslatef(0.0, 0.0, -6.0)
-        glRotatef(self.parameters.yrot,0.0,1.0,0.0)
-        glutSolidTeapot(0.5)
+        if self.parameters.on:
+            glLoadIdentity() # clear (hopefully the) modelview matrix
+            glTranslatef(0.0, 0.0, -6.0)
+            glRotatef(self.parameters.yrot,0.0,1.0,0.0)
+            glutSolidTeapot(0.5)
         
     def init_gl(self):
         """Get OpenGL ready to do everything in the draw() method.
