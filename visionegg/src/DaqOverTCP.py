@@ -11,7 +11,12 @@ control of a network (TCP) connection.
 Realtime acquisition and display of the sampled signal is not the goal
 of this module. That is the task of the computer actually performing
 the data acquisition (i.e. the MacDaq system). This module gets the
-data after the acquisition has occurred."""
+data after the acquisition has occurred.
+
+This module has not been extensively tested or used, and should be
+considered unstable.
+
+"""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
