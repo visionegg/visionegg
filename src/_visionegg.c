@@ -24,7 +24,7 @@
 #include <sched.h>
 #include <errno.h>
 
-#undef XXX_LPT_DOUT // Very non-portable i386 linux hack
+#define XXX_LPT_DOUT // Very non-portable i386 linux hack
 
 #ifdef XXX_LPT_DOUT
 #include <stdio.h> // for ioperm
@@ -161,12 +161,28 @@ static PyObject *_visionegg_toggleDOut(PyObject * self, PyObject * args)
   return Py_None;
 }
 
+static PyObject *_visionegg_set_dout(PyObject * self, PyObject * args)
+{
+  int i;
+
+#ifdef XXX_LPT_DOUT
+  TRY(PyArg_ParseTuple(args,"i", &i));
+  if (lpt_works) {
+    lpt_state = i; // set the output bit
+    outb(lpt_state,LPT); // send it to LPT
+  }
+#endif
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 static PyMethodDef
 _visionegg_methods[] = {
   { "getTime", _visionegg_getTime, 1},
   { "preciseSleep", _visionegg_preciseSleep, 1},
   { "setRealtime", _visionegg_setRealtime, 1},
   { "toggleDOut", _visionegg_toggleDOut, 1},
+  { "set_dout", _visionegg_set_dout, 1},
   { NULL, NULL} /* sentinel */
 };
 
@@ -181,7 +197,7 @@ init_visionegg(void)
     lpt_works = 1;
   }
   else {
-    fprintf(stderr,"_visionegg: No permission to LPT. (Are you superuser?)");
+    fprintf(stderr,"_visionegg: No permission to LPT. (Are you superuser?)\n");
     //PyErr_SetString(PyExc_RuntimeError,"_visionegg: No permission to LPT. (Are you superuser?)");
     lpt_works = 0;
   }
