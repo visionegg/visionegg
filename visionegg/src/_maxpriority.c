@@ -8,7 +8,7 @@
  * it works on linux and doesn't on Mac OS X 10.1.2 or Windows NT.
  *
  * Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of
- * the GNU General Public License (GPL).
+ * the GNU Lesser General Public License (LGPL).
  *
  * $Revision$
  * $Date$
@@ -23,10 +23,15 @@
 
 #define TRY(E)     if(! (E)) return NULL
 
-static PyObject *_maxpriority_set_realtime(PyObject * self, PyObject * args)
+static char set_realtime__doc__[] = 
+"Raise the Vision Egg to maximum priority.";
+
+static PyObject *set_realtime(PyObject * self, PyObject * args)
 {
   int policy;
   struct sched_param params;
+
+  TRY(PyArg_ParseTuple(args,""));
 
   /* First, tell the scheduler that we want maximum priority! */
   //  policy = SCHED_RR;
@@ -86,7 +91,7 @@ static PyObject *_maxpriority_set_realtime(PyObject * self, PyObject * args)
 
 static PyMethodDef
 _maxpriority_methods[] = {
-  { "set_realtime", _maxpriority_set_realtime, 1},
+  { "set_realtime", set_realtime, METH_VARARGS, set_realtime__doc__},
   { NULL, NULL} /* sentinel */
 };
 
@@ -95,7 +100,5 @@ init_maxpriority(void)
 {
   PyObject *module;
   module = Py_InitModule("_maxpriority", _maxpriority_methods);
-  if (PyErr_Occurred())
-    PyErr_SetString(PyExc_ImportError,"_maxpriority: init failed");
   return;
 }

@@ -1,4 +1,4 @@
-"""Load VisionEgg configuration values.
+"""Load config values from environment, config file, or defaults.
 
 Applications should not import this module directly.  Instead, "import
 VisionEgg" will result in an attribute "VisionEgg.config", which has

@@ -1,4 +1,4 @@
-"""Data acquisition over the parallel port for the Vision Egg.
+"""Data acquisition and triggering over the parallel port.
 
 Only x86 computers seem to have parallel ports.  This module was
 programmed using information from "Interfacing the Standard Parallel

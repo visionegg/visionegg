@@ -1,4 +1,4 @@
-"""GUI bits of the Vision Egg package."""
+"""Graphical user interface classes and functions"""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).

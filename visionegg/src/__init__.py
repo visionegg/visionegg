@@ -12,6 +12,38 @@ graphics programming. Potentially difficult tasks, such as initializing
 graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
+
+Modules:
+
+Core -- Core Vision Egg functionality
+TCPController -- Allows control of parameter values over the network
+PlatformDependent -- Attempt to isolate platform dependencies in one place
+Daq -- Definition of data acquisition and triggering interfaces
+DaqLPT -- Data acquisition and triggering over the parallel port
+DaqOverTCP -- Implements data acquisition over TCP
+Configuration -- Load config values from environment, config file, or defaults
+Gratings -- Grating stimuli
+Textures -- Texture (images mapped onto polygons) stimuli
+Text -- Text stimuli
+MoreStimuli -- Assorted stimuli
+GUI -- Graphical user interface classes and functions
+PyroHelpers -- Python Remote Objects support
+
+Classes:
+
+Parameters -- Parameter container
+ClassWithParameters -- Base class for any class that uses parameters
+
+Functions:
+
+recursive_base_class_finder -- A function to find all base classes
+timing_func -- Most accurate timing function available on a platform
+
+Public variables:
+
+release_name -- Version information
+config -- Instance of Config class from Configuration module
+
 """
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
@@ -66,25 +98,24 @@ else:
 ####################################################################
 
 class Parameters:
-    """Hold stimulus parameters.
+    """Parameter container.
 
-    This abstraction of parameters is useful so that parameters can be
+    This parameter container is useful so that parameters can be
     controlled via any number of means: evaluating a python function,
     acquiring some data with a digital or analog input, etc.
 
+    Any class which has parameters should be subclass of
+    ClassWithParameters, which will create an instance of this
+    (Parameters) class automatically based on the default parameters
+    and arguments.
+
     All parameters (such as contrast, position, etc.) which should be
     modifiable in runtime should be attributes of an instance of this
-    class, which serves as a nameholder for just this purpose.
-
-    Any class which has parameters should be subclass of ParameterUser.
-
-    See the Presentation class for more information about parameters
-    and controllers.
-    """
+    class, which serves as a nameholder for just this purpose."""
     pass
 
 class ClassWithParameters:
-    """Base class for any Vision Egg class that uses parameters.
+    """Base class for any class that uses parameters.
 
     Any class that uses parameters potentially modifiable in realtime
     should be a subclass of ClassWithParameters.  This class enforces
