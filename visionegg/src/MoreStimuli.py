@@ -28,7 +28,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                                         types.TupleType),
                                'anti_aliasing':(1,
                                                 types.IntType),
-                               'orientation':(135.0,
+                               'orientation':(0.0,
                                               types.FloatType),
                                'center':((320.0,240.0),
                                          types.TupleType),
