@@ -13,6 +13,7 @@ import VisionEgg
 import os
 import Tkinter
 import string
+import sys
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -65,31 +66,47 @@ class AppWindow(Tkinter.Frame):
 
 class OpenScreenDialog(Tkinter.Frame):
     """A GUI window to open an instance of Screen"""
-    def __init__(self,master=None,set_screen_callback=lambda s: None,**cnf):
+    def __init__(self,master=None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
-        self.set_screen_callback = set_screen_callback
+
+        row = 0
+        Tkinter.Label(self,
+                      text="Vision Egg - Graphics configuration",
+                      font=("Helvetica",14,"bold")).grid(row=row,columnspan=2)
+        row += 1
 
         Tkinter.Label(self,
-                      text="Vision Egg - Graphics configuration window").pack()
+                      text="The default value for these variables and the\npresence of this dialog window can be\ncontrolled via the Vision Egg config file.",
+                      ).grid(row=row,columnspan=2)
+        row += 1
+        
 
+        file_frame = Tkinter.Frame(self)
+        file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
+        
         # Config file
+        Tkinter.Label(file_frame,
+                      text="Config file location:").grid(row=0,column=0,sticky=Tkinter.E)
         if VisionEgg.config.VISIONEGG_CONFIG_FILE:
-            Tkinter.Label(self,
-                          text="Config file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_CONFIG_FILE),)).pack()
+            Tkinter.Label(file_frame,
+                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_CONFIG_FILE),)).grid(row=0,column=1,sticky=Tkinter.W)
         else:
-            Tkinter.Label(self,
-                          text="Config file location: (None)").pack()
+            Tkinter.Label(file_frame,
+                          text="(None)").grid(row=0,column=1,sticky=Tkinter.W)
 
         # Log file location
         
+        Tkinter.Label(file_frame,
+                      text="Log file location:").grid(row=1,column=0,sticky=Tkinter.E)
         if VisionEgg.config.VISIONEGG_LOG_FILE:
-            Tkinter.Label(self,
-                          text="Log file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).pack()
+            Tkinter.Label(file_frame,
+                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).grid(row=1,column=1,sticky=Tkinter.W)
         else:
-            Tkinter.Label(self,
-                          text="Log file location: (stderr console)").pack()
+            Tkinter.Label(file_frame,
+                          text="(stderr console)").grid(row=1,column=1,sticky=Tkinter.W)
+        row += 1
 
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
@@ -97,15 +114,23 @@ class OpenScreenDialog(Tkinter.Frame):
         Tkinter.Checkbutton(self,
                             text='Fullscreen',
                             variable=self.fullscreen,
-                            relief=Tkinter.FLAT).pack()
+                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
         
         # Maximum priority
         self.maxpriority = Tkinter.BooleanVar()
         self.maxpriority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
-        Tkinter.Checkbutton(self,
-                            text='Maximum priority',
-                            variable=self.maxpriority,
-                            relief=Tkinter.FLAT).pack()
+	try:
+	    import _maxpriority
+	    # Only display checkbutton if we have the module
+	    Tkinter.Checkbutton(self,
+                                text='Maximum priority',
+                                variable=self.maxpriority,
+                                relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
+            row += 1
+	except:
+	    pass
+
 
         # Sync swap
         self.sync_swap = Tkinter.BooleanVar()
@@ -113,7 +138,8 @@ class OpenScreenDialog(Tkinter.Frame):
         Tkinter.Checkbutton(self,
                             text='Synchronize buffer swaps',
                             variable=self.sync_swap,
-                            relief=Tkinter.FLAT).pack()
+                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
         # Record times
         self.record_times = Tkinter.BooleanVar()
@@ -121,7 +147,8 @@ class OpenScreenDialog(Tkinter.Frame):
         Tkinter.Checkbutton(self,
                             text='Record frame timing information',
                             variable=self.record_times,
-                            relief=Tkinter.FLAT).pack()
+                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
 ##        # texture compression
 ##        self.tex_compress = Tkinter.BooleanVar()
@@ -129,56 +156,73 @@ class OpenScreenDialog(Tkinter.Frame):
 ##        Tkinter.Checkbutton(self,
 ##                            text='Texture compression',
 ##                            variable=self.tex_compress,
-##                            relief=Tkinter.FLAT).pack()
+##                            relief=Tkinter.FLAT).grid(row=row,columnspan=2)
+##        row += 1
 
         # frame rate
-        Tkinter.Label(self,text="What will your monitor refresh's rate be (Hz):").pack()
+        Tkinter.Label(self,text="What will your monitor refresh's rate be (Hz):").grid(row=row,column=0,sticky=Tkinter.E)
         self.frame_rate = Tkinter.StringVar()
         self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
-        Tkinter.Entry(self,textvariable=self.frame_rate).pack()
+        Tkinter.Entry(self,textvariable=self.frame_rate).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
         # width
-        Tkinter.Label(self,text="Window width (pixels):").pack()
+        Tkinter.Label(self,text="Window width (pixels):").grid(row=row,column=0,sticky=Tkinter.E)
         self.width = Tkinter.StringVar()
         self.width.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_W))
-        Tkinter.Entry(self,textvariable=self.width).pack()
+        Tkinter.Entry(self,textvariable=self.width).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
         # height
-        Tkinter.Label(self,text="Window height (pixels):").pack()
+        Tkinter.Label(self,text="Window height (pixels):").grid(row=row,column=0,sticky=Tkinter.E)
         self.height = Tkinter.StringVar()
         self.height.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_H))
-        Tkinter.Entry(self,textvariable=self.height).pack()
+        Tkinter.Entry(self,textvariable=self.height).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
         # color depth
-        Tkinter.Label(self,text="Requested total color depth (bits per pixel):").pack()
+        Tkinter.Label(self,text="Requested total color depth (bits per pixel):").grid(row=row,column=0,sticky=Tkinter.E)
         self.color_depth = Tkinter.StringVar()
         self.color_depth.set(str(VisionEgg.config.VISIONEGG_PREFERRED_BPP))
-        Tkinter.Entry(self,textvariable=self.color_depth).pack()
+        Tkinter.Entry(self,textvariable=self.color_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
 
         # red depth
-        Tkinter.Label(self,text="Requested red bits per pixel:").pack()
+        Tkinter.Label(self,text="Requested red bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
         self.red_depth = Tkinter.StringVar()
         self.red_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_RED_BITS))
-        Tkinter.Entry(self,textvariable=self.red_depth).pack()
+        Tkinter.Entry(self,textvariable=self.red_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
+
         # green depth
-        Tkinter.Label(self,text="Requested green bits per pixel:").pack()
+        Tkinter.Label(self,text="Requested green bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
         self.green_depth = Tkinter.StringVar()
         self.green_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS))
-        Tkinter.Entry(self,textvariable=self.green_depth).pack()
+        Tkinter.Entry(self,textvariable=self.green_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
+
         # blue depth
-        Tkinter.Label(self,text="Requested blue bits per pixel:").pack()
+        Tkinter.Label(self,text="Requested blue bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
         self.blue_depth = Tkinter.StringVar()
         self.blue_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS))
-        Tkinter.Entry(self,textvariable=self.blue_depth).pack()
+        Tkinter.Entry(self,textvariable=self.blue_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
+
         # alpha depth
-        Tkinter.Label(self,text="Requested alpha bits per pixel:").pack()
+        Tkinter.Label(self,text="Requested alpha bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
         self.alpha_depth = Tkinter.StringVar()
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
-        Tkinter.Entry(self,textvariable=self.alpha_depth).pack()
+        Tkinter.Entry(self,textvariable=self.alpha_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        row += 1
+
+        if sys.platform == 'darwin':
+            Tkinter.Label(self,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=row,column=0,sticky=Tkinter.E)
+            Tkinter.Button(self,text="PRESS ME FIRST").grid(row=row,column=1,sticky=Tkinter.W)
+            row += 1
 
         # Start button
         b = Tkinter.Button(self,text="start",command=self.start)
-        b.pack()
+        b.grid(row=row,columnspan=2)
         b.focus_force()
         b.bind('<Return>',self.start)
        
@@ -198,18 +242,19 @@ class OpenScreenDialog(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS = int(self.blue_depth.get())
         VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS = int(self.alpha_depth.get())
 
-        screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                                             VisionEgg.config.VISIONEGG_SCREEN_H),
-                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                                       bgcolor=(0.5,0.5,0.5,0.0),
-                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
+        self.opened_screen = None
 
-        for child in self.children.values():
-            child.destroy()
-
-        self.set_screen_callback(screen)
-        Tkinter.Tk.destroy(self.master) # OK, now close myself
+        try:
+            self.opened_screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                                             VisionEgg.config.VISIONEGG_SCREEN_H),
+                                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                                                       bgcolor=(0.5,0.5,0.5,0.0),
+                                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
+        finally:
+            for child in self.children.values():
+                child.destroy()
+            Tkinter.Tk.destroy(self.master) # OK, now close myself
 
 class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
@@ -284,12 +329,10 @@ class GetKeypressDialog(ToplevelDialog):
         self.destroy()
 
 def get_screen_via_GUI():
-    def callback(screen):
-        global opened_screen # Python doesn't support nested namespace, so this is a trick
-        opened_screen = screen
-    global opened_screen
-    window = OpenScreenDialog(set_screen_callback=callback)
+    window = OpenScreenDialog()
     window.mainloop()
-    local_screen = opened_screen
-    del opened_screen # Get rid of evil global variables!
-    return local_screen
+    if hasattr(window,"opened_screen"):
+        return window.opened_screen
+    else:
+        # User trying to quit
+        sys.exit()
