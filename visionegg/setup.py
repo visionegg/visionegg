@@ -5,7 +5,7 @@
 # GNU Lesser General Public License (LGPL).
 
 name             = "visionegg"
-version          = "0.9.5a3"
+version          = "0.9.5b1"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
@@ -66,11 +66,48 @@ ext_modules      = []  # filled in later
 # Fill out ext_modules
 skip_c_compilation = 0
 if not skip_c_compilation:
-    # priority raising/setting C extensions
+    if sys.platform == 'darwin':
+        gl_extra_link_args = ['-framework','OpenGL']
+    else:
+        gl_extra_link_args = []
+        
+    if sys.platform == 'win32':
+        gl_libraries = ['opengl32']
+    elif sys.platform.startswith('linux'):
+        gl_libraries = ['GL']
+    else:
+        gl_libraries = []
+
     if sys.platform == 'darwin':
         ext_modules.append(Extension(name='_darwin_maxpriority',
                                      sources=['src/darwin_maxpriority.c',
                                               'src/darwin_maxpriority_wrap.c']))
+        # VBL synchronization stuff
+        ext_modules.append(Extension(name='_darwin_sync_swap',
+                                     sources=['src/_darwin_sync_swap.m'],
+                                     extra_link_args=['-framework','OpenGL']))
+        # Cocoa application stuff
+        ext_modules.append(Extension(name='_darwin_app_stuff',
+                                     sources=['src/darwin_app_stuff.m',
+                                              'src/darwin_app_stuff_wrap.c'],
+                                     extra_link_args=['-framework','Cocoa']))
+        # getfresh
+        ext_modules.append(Extension(name='_darwin_getrefresh',
+                                     sources=['src/darwin_getrefresh.m',
+                                              'src/darwin_getrefresh_wrap.c'],
+                                     extra_link_args=['-framework','Cocoa']))
+        
+        # QuickTime extras (currently Mac OS X only... should be easy to port to Windows)
+        ext_modules.append(Extension(name='_gl_qt',
+                                     sources=['src/gl_qt.c',
+                                              'src/gl_qt_wrap.c'],
+                                     libraries=gl_libraries,
+                                     extra_link_args=['-framework','QuickTime',
+                                                      '-framework','Carbon',
+                                                      ]+gl_extra_link_args,
+                                     ))
+
+        
     elif sys.platform == 'win32':
         ext_modules.append(Extension(name='_win32_maxpriority',
                                      sources=[os.path.join('src','win32_maxpriority.c'),
@@ -80,24 +117,18 @@ if not skip_c_compilation:
                                               os.path.join('src','win32_getrefresh_wrap.c')],
                                      libraries=['User32'],
                                      ))
-    elif sys.platform.startswith('irix') or sys.platform.startswith('linux'):
+    elif sys.platform.startswith('linux') or sys.platform.startswith('irix'):
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
                                               'src/posix_maxpriority_wrap.c']))
+        if sys.platform.startswith('linux'):
+            ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
+        else: # sys.platform.startswith('irix')
+            ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
     # _lib3ds
     lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
     lib3ds_sources.append(os.path.join('src','_lib3ds.c'))
-    if sys.platform == 'darwin':
-        gl_extra_link_args = ['-framework','OpenGL']
-    else:
-        gl_extra_link_args = []
-    if sys.platform == 'win32':
-        gl_libraries = ['opengl32']
-    elif sys.platform.startswith('linux'):
-        gl_libraries = ['GL']
-    else:
-        gl_libraries = []
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
@@ -115,23 +146,6 @@ if not skip_c_compilation:
                                  extra_link_args=gl_extra_link_args
                                  ))
     
-    if sys.platform == "darwin":
-        # VBL synchronization stuff
-        ext_modules.append(Extension(name='_darwin_sync_swap',
-                                     sources=['src/_darwin_sync_swap.m'],
-                                     extra_link_args=['-framework','OpenGL']))
-        # Cocoa application stuff
-        ext_modules.append(Extension(name='_darwin_app_stuff',
-                                     sources=['src/darwin_app_stuff.m',
-                                              'src/darwin_app_stuff_wrap.c'],
-                                     extra_link_args=['-framework','Cocoa']))
-
-    if sys.platform.startswith('linux'):
-        ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
-
-    if sys.platform.startswith('irix'):
-        ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
-
 # Find the demo scripts
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
@@ -161,6 +175,7 @@ scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
 data_dir = os.path.join('VisionEgg','data')
 demo_dir = os.path.join('VisionEgg','demo')
+data_files.append( (data_dir,[os.path.join('data','water.mov')]) )
 data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
 data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
