@@ -41,7 +41,7 @@ if build_sdl:
                                  libraries=['SDL','GL','GLU']) )
 
 # Normal distutils stuff
-setup(name="VisionEgg",
+setup(name="visionegg",
       version = "0.5.1",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
