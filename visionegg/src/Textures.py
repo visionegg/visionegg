@@ -386,6 +386,16 @@ class SpinningDrum(TextureStimulusBaseClass):
 
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
             
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+            
+            # clear modelview matrix
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+
+            glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
+            glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
+
+            # Make sure texture object parameters set the way we want
             if self.parameters.texture_scale_linear_interp:
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
@@ -400,14 +410,6 @@ class SpinningDrum(TextureStimulusBaseClass):
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
             
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
-            
-            # clear modelview matrix
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
-
-            glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
-            glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
             if self.parameters.flat: # draw as flat texture on a rectange
                 w = self.texture.width
