@@ -20,10 +20,10 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
-
+    """Mercator mapping of rectangular texture onto sphere."""
     parameters_and_defaults = {'contrast':(1.0,types.FloatType),
                                'on':(1,types.IntType),
-                               'center_azimuth':(0.0,types.FloatType), # 0=right, 90=down
+                               'center_azimuth':(0.0,types.FloatType), # 0=right, 90=right
                                'center_elevation':(0.0,types.FloatType), # 0=right, 90=down
                                # Changing these parameters will cause re-computation of display list (may cause frame skip)
                                'radius':(1.0,types.FloatType),
@@ -185,6 +185,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             gl.glCallList(self.cached_display_list)
 
 class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
+    """Map 2D sinusoidal grating onto sphere."""
     parameters_and_defaults = {'on':(1,types.IntType),
                                'contrast':(1.0,types.FloatType),
                                'spatial_freq_cpd':(1.0/36.0,types.FloatType), # cycles/degree
@@ -367,10 +368,6 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
 
             # do the orientation
             gl.glRotatef(p.orientation,0.0,0.0,-1.0)
-
-            # center the grating
-            gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
-            gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
 
             gl.glCallList(self.cached_display_list_id)
 
