@@ -12,9 +12,6 @@ include doc/reference/pydoc.py
 include doc/reference/make.sh
 include demo/*.py
 include demo/README.txt
-include demo/calibrate/*.py
-exclude demo/calibrate/dac_resolution.py
-include demo/calibrate/README.txt
 include demo/daq/*.py
 exclude demo/daq/tcp/*
 include demo/tcp/README.txt
