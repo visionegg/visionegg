@@ -17,16 +17,16 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math                            # standard python packages
 import Image, ImageDraw                         # Python Imaging Library packages
-						                        # from PyOpenGL:
+			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
 from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
 from OpenGL.GLU import *                        #   utility routines
-from OpenGL.GLUT import *						#   only if used if no SDL
-from Numeric import * 							# Numeric Python package
+from OpenGL.GLUT import *			#   only if used if no SDL
+from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-from _visionegg import * # internal C code
+from _visionegg import *                        # internal C code
 
 global use_sdl
 try:
@@ -53,12 +53,39 @@ class EggError(Exception):
 #        Data acquisition
 #
 ####################################################################
+
+class ChannelParams:
+    def __init__(self,channel_number,sample_freq_hz,duration_sec,gain):
+        self.channel_number = channel_number
+        self.sample_freq_hz = sample_freq_hz
+        self.duration_sec = duration_sec
+        self.gain = gain
+
+class TriggerMethod:
+    def __init__(self):
+        pass
+
+class NoTrigger(TriggerMethod):
+    def __init__(self):
+        TriggerMethod.__init__(self)
+
+class TriggerLowToHigh(TriggerMethod):
+    pass
+
+class TriggerHighToLow(TriggerMethod):
+    pass
     
 class Daq:
-    """Base class that defines interface for any data acquisition implementation
+    """Abstract base class that defines interface for any data acquisition implementation
     """
-    def __init__(self,device,channelParamList,triggerMethod):
-        pass # Not implemented yet
+    def __init__(self,channel_params_list,trigger_method):
+        if not isinstance(trigger_method,TriggerMethod):
+            raise RuntimeError("trigger_method must be a subclass of TriggerMethod")
+        for channel_params in channel_params_list:
+            if not isinstance(channel_params, ChannelParams):
+                raise RuntimeError("each element of channel_params_list must be a subclass of ChannelParams")
+        self.channel_params_list = channel_params_list
+        self.trigger_method = trigger_method
 
 ####################################################################
 #
@@ -109,7 +136,7 @@ class Texture:
         self.buf_bf = float(self.orig.size[1])/float(self.buf.im.size[1])
 
         texId = self.buf.load(minFilter,magFilter) # return the OpenGL Texture ID (uses "texture objects")
-        del self.orig # clear Image from system RAM
+#        del self.orig # clear Image from system RAM
         return texId
 
     def __log2(self,f):
@@ -224,33 +251,58 @@ class PerspectiveProjection(Projection):
 
 class Stimulus:
     """Base class that provides timing routines and core functionality for any stimulus."""
-    def __init__(self,durationSec=5.0,bgcolor=(0.5,0.5,0.5,0.0),projection=OrthographicProjection()):
-        self.durationSec = durationSec
-        self.projection = projection
-        self.spotOn = 0
+    def __init__(self,
+                 duration_sec=5.0,
+                 bgcolor=(0.5,0.5,0.5,0.0),
+                 clear_viewport=1,
+                 swap_buffers=1,
+                 **kwargs):
+        self.duration_sec = duration_sec
+        self.fixation_spot_on = 0
         self.bgcolor = bgcolor
 #        self.drawTimes = [] # List of times the frame was drawn
 #        self.drawTimes2 = [] # List of times ?
 #        self.drawTimes3 = [] # List of times ?
-        self.initGL()
+        self.daqs = [] # No daqs to start with, add with add_daq method
+        self.clear_viewport = clear_viewport
+        self.swap_buffers = swap_buffers
 
-    def setDuration(self,durationSec):
-        self.durationSec = durationSec
+        # Check for existance or create a dictionary
+        # of arguments passed to me that I didn't understand
+        if not hasattr(self,'unknown_kwargs'): 
+            self.unknown_kwargs = {}       
+        for key in kwargs.keys():
+            self.unknown_kwargs[key] = kwargs[key]
 
-    def setSpotOn(self,spotOn):
-        self.spotOn = spotOn
-        if self.spotOn:
+    def verify_init_args(self):
+        if not hasattr(self,'already_verified_args'):
+            self.already_verified_args = 1
+            printed_warning = 0
+            for key in self.unknown_kwargs.keys():
+                if key not in self.__dict__.keys():
+                    if not printed_warning:
+                        print "WARNING: The following unrecognized arguments and values were passed to"
+                        print "a subclass of Stimulus:"
+                        printed_warning = 1
+                    print "  %s=%s"%(`key`,`self.unknown_kwargs[key]`)
+
+    def set_duration_sec(self,duration_sec):
+        self.duration_sec = duration_sec
+
+    def set_fixation_spot_on(self,fixation_spot_on):
+        self.fixation_spot_on = fixation_spot_on
+        if self.fixation_spot_on:
             # setup an orthographic projection so the fixation spot is always square
             global screen_width,screen_height
 
             x = 100.0
             y = x * screen_height / screen_width
-            self.spot_projection = OrthographicProjection(left=-0.5*x,right=0.5*x,bottom=-0.5*y,top=0.5*y,z_clip_near=-1.0,z_clip_far=1.0)
+            self.fixation_spot_projection = OrthographicProjection(left=-0.5*x,right=0.5*x,bottom=-0.5*y,top=0.5*y,z_clip_near=-1.0,z_clip_far=1.0)
 
-    def registerDaq(self,daq):
-        self.daq = daq
+    def add_daq(self,daq):
+        self.daqs.append(daq)
         
-    def drawFixationSpot(self):
+    def draw_fixation_spot(self):
         """Draw a fixation spot at the center of the screen"""
         # save current matrix mode
         matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
@@ -265,7 +317,7 @@ class Stimulus:
         glMatrixMode(GL_PROJECTION) 
         glPushMatrix()
         glLoadIdentity()
-        self.spot_projection.set_GL_projection_matrix()
+        self.fixation_spot_projection.set_GL_projection_matrix()
 
         glColor(1.0,1.0,1.0,1.0) # Should cache the color value
         glDisable(GL_TEXTURE_2D)
@@ -288,32 +340,17 @@ class Stimulus:
             glMatrixMode(matrix_mode)   # restore matrix state
 
     def glut_idle(self): # only called if running in GLUT
-#        lastTime = self.curTime # even though it's confusing between these two instructions, this must be done now
-#        lastyrot = self.yrot
-
-#        self.contrast = self.cFunc(self.curTime)
-#        self.yrot = self.posFunc(self.curTime)
-
-#        delta_pos = self.yrot - lastyrot # degrees
-#        delta_t = self.curTime - lastTime # seconds
-
-#        self.texId = self.getTexId(delta_pos,delta_t)
-        
-        self.drawGLScene()
+        self.draw_GL_scene()
         cur_time_absolute = getTime()
         self.cur_time = cur_time_absolute-self.start_time_absolute
-        if self.cur_time > self.durationSec:
+        if self.cur_time > self.duration_sec:
             self.stimulus_done()
-            #graphicsClose() # XXX Wrong! I just want to stop glutMainLoop!
-            #glutDestroyWindow(glut_window) # doesn't quit glutMainLoop
 
     def glut_go(self): # only called if running in GLUT
         self.start_time_absolute = getTime()
         self.cur_time = 0.0
-#        self.yrot = self.posFunc(0.0)
         glutIdleFunc(self.glut_idle)
-#        self.glut_idle() # call glut_idle() at least once before calling drawGLScene
-        glutDisplayFunc(self.drawGLScene)
+        glutDisplayFunc(self.draw_GL_scene)
         glutMainLoop()
         
     def sdl_go(self):
@@ -323,28 +360,13 @@ class Stimulus:
         """
         self.start_time_absolute = getTime()
         self.cur_time = 0.0
-        #self.yrot = self.posFunc(self.curTime)
-        #lastyrot = self.yrot
-        #lastTime = self.curTime
-        while (self.cur_time <= self.durationSec):
-            #self.contrast = self.cFunc(self.curTime)
-            #self.yrot = self.posFunc(self.curTime)
-
-            #delta_pos = self.yrot - lastyrot
-            #delta_t = self.curTime - lastTime
-
-            #lastTime = self.curTime
-
-            #self.drawTimes3.append(getTime())
-            #self.texId = self.getTexId(delta_pos,delta_t)
-            
-            #lastyrot = self.yrot
-            self.drawGLScene()
+        while (self.cur_time <= self.duration_sec):
+            self.draw_GL_scene()
             cur_time_absolute = getTime()
             self.cur_time = cur_time_absolute-self.start_time_absolute
         self.stimulus_done()
 
-    def drawGLScene(self):
+    def draw_GL_scene(self):
     	"""Redraw the scene on every frame.
     
         Since this is just a base class, do something simple.
@@ -352,19 +374,27 @@ class Stimulus:
         relatively pretty and takes one line of code.
         """
         yrot = self.cur_time*90.0 # spin 90 degrees per second
-        glClear(GL_COLOR_BUFFER_BIT)
-        glLoadIdentity()
+        
+        if self.clear_viewport:
+            glClear(GL_COLOR_BUFFER_BIT)
+            
+        glLoadIdentity() # clear modelview matrix
         glTranslatef(0.0, 0.0, -6.0)
         glRotatef(yrot,0.0,1.0,0.0)
         glutSolidTeapot(0.5)
-        swap_buffers()
-
-    def initGL(self):
-        global screen_width,screen_height
         
-        # Initialize OpenGL viewport
-        glViewport(0,0,screen_width,screen_height)
-        self.projection.set_GL_projection_matrix()
+        if self.swap_buffers:
+            swap_buffers()
+
+    def init_GL(self):
+        """Get OpenGL ready to do whatever draw_GL_scene does.
+
+        This method typically loads texture objects and creates
+        display lists.  In this base class, however, it only
+        creates a projection and sets glClearColor to black."""
+        self.verify_init_args()
+        
+        OrthographicProjection().set_GL_projection_matrix()
         glClearColor(0.0, 0.0, 0.0, 0.0)
 
     def histogram(self,a, bins):  # straight from NumDoc.pdf
@@ -427,13 +457,17 @@ class Stimulus:
         
     def go(self):
         global use_sdl
+
+        for daq in self.daqs:
+            daq.prepare_to_go()
+        
+        for daq in self.daqs:
+            daq.go()
+        
         if use_sdl:
             self.sdl_go()
         else:
             self.glut_go()
-
-#    def do_nothing(self):
-#        preciseSleep( 1000 )
 
     def stimulus_done(self):
         global use_sdl
@@ -444,26 +478,13 @@ class Stimulus:
             # I'd really like to break out of the glutMainLoop, but I can't
             glutIdleFunc(self.do_nothing)
             glutDisplayFunc(self.do_nothing)
-        self.clearGL()
+        self.clear_GL()
 #        self.frameStats()
 
-    def clearGL(self):
-        #global screen_width,screen_height
-        #global use_sdl
-        
-        # Initialize OpenGL viewport
-        #glViewport(0,0,screen_width,screen_height)
-        
-        # Now setup projection
-        # self.projection.set_GL_projection_matrix()
-
+    def clear_GL(self):
         glClearColor(self.bgcolor[0],self.bgcolor[1],self.bgcolor[2],self.bgcolor[3])
         glClear(GL_COLOR_BUFFER_BIT)
         swap_buffers()
-        #if use_sdl:
-        #    SDL_GL_SwapBuffers()
-        #else:
-        #    glutSwapBuffers()
         
 ####################################################################
 #
@@ -472,65 +493,69 @@ class Stimulus:
 ####################################################################
 
 class SpinningDrum(Stimulus):
-    def __init__(self,durationSec,texture,position_function,contrast_function,numSides=30,radius=3.0,projection=PerspectiveProjection()):
-        self.tex = texture
-        self.position_function = position_function
-        self.contrast_function = contrast_function
-        self.numSides = numSides
-        self.radius = radius # in OpenGL (arbitrary) units
-        circum = 2.0*math.pi*self.radius
-        self.height = circum*float(self.tex.orig.size[1])/float(self.tex.orig.size[0])
-        self.texId = texture.load()
+    def __init__(self,
+                 drum_texture=Texture(),
+                 drum_rotation_function=lambda t: 20.0*t,
+                 drum_contrast_function=lambda t: 1.0,
+                 drum_num_sides=30,
+                 drum_radius=3.0,
+                 drum_projection=PerspectiveProjection(),
+                 **kwargs):
+        self.drum_texture = drum_texture
+        self.drum_rotation_function = drum_rotation_function
+        self.drum_contrast_function = drum_contrast_function
+        self.drum_num_sides = drum_num_sides
+        self.drum_radius = drum_radius # in OpenGL (arbitrary) units
+        circum = 2.0*math.pi*self.drum_radius
+        self.drum_height = circum*float(self.drum_texture.orig.size[1])/float(self.drum_texture.orig.size[0])
+        self.drum_texture_object = drum_texture.load()
         bgcolor = (0.5,0.5,0.5,0.0) # this is fixed so that contrast 0 is this color
-        Stimulus.__init__(self,durationSec,bgcolor,projection)
+        self.drum_projection = drum_projection
+        apply(Stimulus.__init__,(self,),kwargs)
 
-    def drawGLScene(self):
+    def draw_GL_scene(self):
     	"""Redraw the scene on every frame.
     
         Could put in C to run faster if needed.
         """
-        glClear(GL_COLOR_BUFFER_BIT)
-        glLoadIdentity()
-
-        yrot = self.position_function(self.cur_time)
-        contrast = self.contrast_function(self.cur_time)
         
-        glRotatef(yrot,0.0,1.0,0.0)
-        glColor(0.5,0.5,0.5,contrast) # Fragment color
-        glBindTexture(GL_TEXTURE_2D, self.texId)
-        glCallList(self.displayListId)
+        # Set projection
+        self.drum_projection.set_GL_projection_matrix()
 
-        if self.spotOn: # draw fixation target
-            self.drawFixationSpot()
+        # Make sure textures are drawn
+        glEnable( GL_TEXTURE_2D )
+
+        # Make sure texture colors are combined with the fragment
+        # with the appropriate function
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
+
+        if self.clear_viewport:
+            glClear(GL_COLOR_BUFFER_BIT)
+            
+        glLoadIdentity() # clear modelview matrix
+
+        drum_rotation = self.drum_rotation_function(self.cur_time)
+        drum_contrast = self.drum_contrast_function(self.cur_time)
+
+        glRotatef(drum_rotation,0.0,1.0,0.0)
+        glColor(0.0,0.0,1.0,drum_contrast) # Set the polygons' fragment color
+        glBindTexture(GL_TEXTURE_2D, self.drum_texture_object) # make sure to texture polygon
+        glCallList(self.drum_display_list)
+
+        if self.fixation_spot_on: # draw fixation target
+            self.draw_fixation_spot()
             
         #self.drawTimes.append(getTime())
-        swap_buffers()
+        if self.swap_buffers:
+            swap_buffers()
 
-    def initGL(self):
-        global screen_width,screen_height
+    def init_GL(self):
+        self.verify_init_args()
         
-        # Initialize OpenGL viewport
-        glViewport(0,0,screen_width,screen_height)
-        
-        # Now setup projection
-        self.projection.set_GL_projection_matrix()
+        glClearColor( self.bgcolor[0], self.bgcolor[1], self.bgcolor[2], self.bgcolor[3] )
+        glClear( GL_COLOR_BUFFER_BIT )
 
-        glClearColor(0.5, 0.5, 0.5, 0.0 )
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        if 0:
-            # turn on anti-aliasing
-            glEnable(GL_POLYGON_SMOOTH) # doesn't seem to be supported on nVidia GeForce 2
-            glEnable(GL_LINE_SMOOTH)
-
-            # must configure and enable blending to do anti-aliasing
-            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
-            glEnable(GL_BLEND)
-        if 0:  # only draw lines, not faces
-            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
-            
-        glEnable(GL_TEXTURE_2D) # draw the textures!
-        glBindTexture(GL_TEXTURE_2D, self.tex.buf.gl_id)
+        glEnable( GL_TEXTURE_2D ) # draw the textures!
 
         if 'GL_ARB_texture_env_combine' in glGetString(GL_EXTENSIONS).split():
             contrast_control_enabled = 1
@@ -562,9 +587,9 @@ class SpinningDrum(Stimulus):
 
             glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_MODULATE) # just multiply texture alpha with fragment alpha
 
-        r = self.radius # shorthand
-        h = self.height # shorthand
-        numSides = self.numSides # shorthand
+        r = self.drum_radius # shorthand
+        h = self.drum_height # shorthand
+        numSides = self.drum_num_sides # shorthand
 
         # Build the display list
         #
@@ -575,100 +600,80 @@ class SpinningDrum(Stimulus):
         # The cylinder has "numSides" sides. The following code
         # generates a list of vertices and the texture coordinates
         # to be used by those vertices.
-        self.displayListId = glGenLists(1) # Allocate a new display list
+        self.drum_display_list = glGenLists(1) # Allocate a new display list
         deltaTheta = 2.0*math.pi/numSides
-        glNewList(self.displayListId,GL_COMPILE)
+        glNewList(self.drum_display_list,GL_COMPILE)
         glBegin(GL_QUADS)
         for i in range(numSides):
             theta1 = i*deltaTheta
             theta2 = (i+1)*deltaTheta
-            frac1 = (self.tex.buf_l + (float(i)/numSides*self.tex.width))/float(self.tex.width)
-            frac2 = (self.tex.buf_l + (float(i+1)/numSides*self.tex.width))/float(self.tex.width)
+            frac1 = (self.drum_texture.buf_l + (float(i)/numSides*self.drum_texture.width))/float(self.drum_texture.width)
+            frac2 = (self.drum_texture.buf_l + (float(i+1)/numSides*self.drum_texture.width))/float(self.drum_texture.width)
             
             #Bottom left of quad
-            glTexCoord2f(frac1, self.tex.buf_bf)
+            glTexCoord2f(frac1, self.drum_texture.buf_bf)
             glVertex3f( r*math.cos(theta1), -h, r*math.sin(theta1) )
             #Bottom right of quad
-            glTexCoord2f(frac2, self.tex.buf_bf)
+            glTexCoord2f(frac2, self.drum_texture.buf_bf)
             glVertex3f( r*math.cos(theta2), -h, r*math.sin(theta2) )
             #Top right of quad
-            glTexCoord2f(frac2, self.tex.buf_tf); 
+            glTexCoord2f(frac2, self.drum_texture.buf_tf); 
             glVertex3f( r*math.cos(theta2),  h, r*math.sin(theta2) )
             #Top left of quad
-            glTexCoord2f(frac1, self.tex.buf_tf)
+            glTexCoord2f(frac1, self.drum_texture.buf_tf)
             glVertex3f( r*math.cos(theta1),  h, r*math.sin(theta1) )
         glEnd()
         glEndList()
 
 class MovingTarget(Stimulus):
     def __init__(self,
-                 position_function,
-                 durationSec=10.0,
-                 orientation=0.0,
-                 width=5.0,
-                 height=5.0,
-                 color=(1.0,1.0,1.0,1.0),
-                 bgcolor=(0.0,0.0,0.0,0.0),
-                 anti_aliasing=0,
-                 projection=None):
+                 target_position_function,
+                 target_orientation=0.0,
+                 target_width=5.0,
+                 target_height=5.0,
+                 target_color=(1.0,1.0,1.0,1.0),
+                 target_anti_aliasing=1,
+                 target_projection=OrthographicProjection(left=-100.0,right=100.0,top=75.0,bottom=-75.0), # For square pixels assumes 4:3 aspect ratio
+                 **kwargs
+                 ): 
 
-        if projection == None:
-            # Create an orthogonal projection that where square units
-            # will create square objects on screen
-            global screen_width, screen_height
-
-            projection_width = 200.0
-            projection_height = projection_width * screen_height / screen_width
-            l = -0.5*projection_width
-            r = 0.5*projection_width
-            t = 0.5*projection_height
-            b = -0.5*projection_height
-            projection=OrthographicProjection(left=l,
-                                              right=r,
-                                              top=t,
-                                              bottom=b)
-        self.position_function = position_function
-        self.width = width
-        self.height = height
-        self.color = color
+        self.target_position_function = target_position_function
+        self.target_width = target_width
+        self.target_height = target_height
+        self.target_color = target_color
         #self.background = background # done in base class
-        self.orientation = orientation # degrees, 0 moves rightwards, 90 moves downwards
-        self.anti_aliasing = anti_aliasing
-        Stimulus.__init__(self,durationSec,bgcolor,projection)
+        self.target_orientation = target_orientation # degrees, 0 moves rightwards, 90 moves downwards
+        self.target_anti_aliasing = target_anti_aliasing
+        self.target_projection=target_projection
+        apply(Stimulus.__init__,(self,),kwargs)
     
-    def initGL(self):
-        global screen_width,screen_height
-        
-        # Initialize OpenGL viewport
-        glViewport(0,0,screen_width,screen_height)
-        
-        # Now setup projection
-        self.projection.set_GL_projection_matrix()
+    def init_GL(self):
+        self.verify_init_args()
 
         # Set the background color and clear the GL window
         glClearColor(self.bgcolor[0], self.bgcolor[1], self.bgcolor[2], self.bgcolor[3])
         glClear(GL_COLOR_BUFFER_BIT)
 
         # Set the foreground color
-        glColor(self.color[0], self.color[1], self.color[2], self.color[3])
+        glColor(self.target_color[0], self.target_color[1], self.target_color[2], self.target_color[3])
         
         # Build the display list
-        self.displayListId = glGenLists(1) # Allocate a new display list
+        self.target_display_list = glGenLists(1) # Allocate a new display list
 
-        glNewList(self.displayListId,GL_COMPILE)
+        glNewList(self.target_display_list,GL_COMPILE)
         glBegin(GL_QUADS)
         #Bottom left of quad
-        glVertex2f(-0.5*self.width, -0.5*self.height)
+        glVertex2f(-0.5*self.target_width, -0.5*self.target_height)
         #Bottom right
-        glVertex2f( 0.5*self.width, -0.5*self.height)
+        glVertex2f( 0.5*self.target_width, -0.5*self.target_height)
         #Top right
-        glVertex2f( 0.5*self.width,  0.5*self.height)
+        glVertex2f( 0.5*self.target_width,  0.5*self.target_height)
         #Top left
-        glVertex2f(-0.5*self.width,  0.5*self.height)
+        glVertex2f(-0.5*self.target_width,  0.5*self.target_height)
         glEnd()
         glEndList()
 
-        if self.anti_aliasing:
+        if self.target_anti_aliasing:
             # GL_POLYGON_SMOOTH doesn't seem to work
             # so we'll first draw a filled polygon (aliased)
             # then draw the outline of the polygon (with anti-aliasing)
@@ -683,32 +688,41 @@ class MovingTarget(Stimulus):
             glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
             glEnable(GL_BLEND)
 
-    def drawGLScene(self):
-        glClear(GL_COLOR_BUFFER_BIT) # clear the framebuffer
+    def draw_GL_scene(self):
+        if self.clear_viewport:
+            glClear(GL_COLOR_BUFFER_BIT) # clear the framebuffer
+
+        # set the projection
+        self.target_projection.set_GL_projection_matrix()
+
         glLoadIdentity() # clear the modelview matrix
 
-        position = self.position_function(self.cur_time)
-        glTranslatef(position[0],position[1],-1.0) # center the modelview matrix where we want the target
-        glRotatef(self.orientation,0.0,0.0,-1.0) # rotate the modelview matrix to our orientation
+        glDisable(GL_TEXTURE_2D) # Don't texture the object
 
-        glCallList(self.displayListId) # draw the target (precompiled display list)
+        position = self.target_position_function(self.cur_time)
+        glTranslatef(position[0],position[1],-1.0) # center the modelview matrix where we want the target
+        glRotatef(self.target_orientation,0.0,0.0,-1.0) # rotate the modelview matrix to our orientation
+
+        glColor( self.target_color[0], self.target_color[1], self.target_color[2], self.target_color[3] )
+        glCallList(self.target_display_list) # draw the target (precompiled display list)
         
-        if self.anti_aliasing:
+        if self.target_anti_aliasing:
             # Draw a second polygon in line mode, so the edges are anti-aliased
             glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
-            glCallList(self.displayListId)
+            glCallList(self.target_display_list)
 
             # Draw a third polygon in point mode, so the corners are anti-aliased
             glPolygonMode(GL_FRONT_AND_BACK,GL_POINT)
-            glCallList(self.displayListId) # draw the target (precompiled display list)
+            glCallList(self.target_display_list)
 
             # Set the polygon mode back to fill mode
             glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
 
-        if self.spotOn: # probably never on for a moving target stimulus, but still...
-            self.drawFixationSpot()
+        if self.fixation_spot_on: # probably never on for a moving target stimulus, but still...
+            self.draw_fixation_spot()
 
-        swap_buffers()
+        if self.swap_buffers:
+            swap_buffers()
 
 ####################################################################
 #
@@ -794,6 +808,10 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,t
         glut_window = glutCreateWindow(caption)
         if fullscreen:
             glutFullScreen()
+
+    # Initialize OpenGL viewport
+    glViewport(0,0,screen_width,screen_height)
+
 
 ####################################################################
 #
