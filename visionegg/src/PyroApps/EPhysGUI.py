@@ -102,13 +102,16 @@ class ScrollListFrame(Tkinter.Frame):
             relief=Tkinter.FLAT,
             font=('courier',10,'bold'),
             height=1,
+#            selectbackground='#eed5b7',
+#            selectborderwidth=0,
+#            selectmode=None,
             exportselection=0)
         self.frame.title.insert(Tkinter.END, self.container_class.header)
         self.frame.list = Tkinter.Listbox(
             self.frame,
             relief=Tkinter.SUNKEN,
             font=('courier',10,'normal'),
-            width=40, height=3,
+            width=40, height=10,
             selectbackground='#eed5b7',
             selectborderwidth=0,
             selectmode=Tkinter.BROWSE,
@@ -138,7 +141,34 @@ class ScrollListFrame(Tkinter.Frame):
         self.bar.move_down = Tkinter.Button(self.bar,text='Down',command=self.move_selected_down)
         self.bar.move_down.grid(row=0,column=4,sticky='we')
         self.bar.tk_menuBar(self.bar.add,self.bar.remove)
+        #Lachie- My bar for setting parent
+        self.bar.merge = Tkinter.Button(self.bar,text='Merge/Unmerge',command=self.make_merge)
+        self.bar.merge.grid(row=0,column=5,sticky='we')
+        self.bar.tk_menuBar(self.bar.add,self.bar.remove)
         self.update_now()
+
+    def list2D_coordinates(self, main_index, main_list):
+        # This is a function for finding the 2-d
+        # list coordinates of an element which may be inside a
+        # list-nested-list.
+        # eg. if x = [[e, e, e], [e], [e, e]]
+        # Then the coordinates of the element at index 4 is: (2, 0)
+        #
+        # Initialization:
+        i = -1
+        j = -1
+        element_count = 0
+        # Main body:
+        for nested_list in main_list:
+            j = -1
+            i = i + 1
+            for element in nested_list:
+                j = j + 1
+                element_count = element_count + 1
+                if (element_count - 1) == main_index:
+                    return [i, j]
+        # Unsuccessful exit:
+        return [-1, -1]
 
     def delegate_hscroll(self,*args,**kw):
         self.frame.title.xview(*args,**kw)
@@ -147,60 +177,227 @@ class ScrollListFrame(Tkinter.Frame):
     def get_list_uncontained(self):
         results = []
         for contained_object_item in self.list:
-            results.append( contained_object_item.get_contained() )
+            #results.append( contained_object_item.get_contained() )
+            results.append( contained_object_item )
         return results
 
     def update_now(self):
         self.frame.list.delete(0,Tkinter.END)
         max_len = 0
-        for item in self.list:
-            item_str_30 = item.get_str_30()
-            max_len = max(max_len,len(item_str_30))
-            self.frame.list.insert(Tkinter.END,item_str_30)
-
+        for loop_container in self.list:
+            for loop in loop_container:
+                item_str_30 = loop.get_str_30()
+                max_len = max(max_len,len(item_str_30))
+                self.frame.list.insert(Tkinter.END,item_str_30)
+            self.frame.list.insert(Tkinter.END,"")
         self.frame.title.delete(0,Tkinter.END)
         self.frame.title.insert(Tkinter.END, self.container_class.header.ljust(max_len))
 
     def add_new(self):
         contained_object = self.make_contained_object(self.container_class)
         if contained_object:
-            self.list.append( contained_object )
+            self.list.append( [contained_object] )
         self.update_now()
 
     def edit_selected(self,dummy_arg=None):
         selected = self.get_selected()
+        # Get 2-D list coordinates of selected object of class "LoopContainedObject":
+        loop_coordinates = self.list2D_coordinates(selected, self.list)
+        main_list_index = loop_coordinates[0]
+        loop_list_index = loop_coordinates[1]
         if selected is not None:
-            orig_contained_object = self.list[selected]
-            modified_contained_object = self.edit_contained_object( orig_contained_object )
-            if modified_contained_object is not None: # "Cancel" press results in None
-                self.list[selected] = modified_contained_object
-            self.update_now()
+            if len(self.list[main_list_index]) == 1:
+                orig_contained_object = self.list[main_list_index][loop_list_index]
+                modified_contained_object = self.edit_contained_object( orig_contained_object )
+                if modified_contained_object is not None: # "Cancel" press results in None
+                    self.list[main_list_index][loop_list_index] = modified_contained_object
+                self.update_now()
+            else:
+                tkMessageBox.showerror("Cannot edit this variable", "This variable needs to be isolated/unmerged")
 
     def remove_selected(self):
         selected = self.get_selected()
+        # Get 2-D list coordinates of selected object of class "LoopContainedObject":
+        loop_coordinates = self.list2D_coordinates(selected, self.list)
+        main_list_index = loop_coordinates[0]
+        loop_list_index = loop_coordinates[1]
         if selected is not None:
-            del self.list[selected]
+            del self.list[main_list_index][loop_list_index]
+            if self.list[main_list_index] == []:
+                del self.list[main_list_index]
             self.update_now()
 
     def move_selected_up(self,dummy_arg=None):
         selected = self.get_selected()
+        # Get 2-D list coordinates of selected object of class "LoopContainedObject":
+        loop_coordinates = self.list2D_coordinates(selected, self.list)
+        main_list_index = loop_coordinates[0]
+        loop_list_index = loop_coordinates[1]
+        new_selected_index = selected
         if selected is not None:
-            selected_object = self.list[selected]
-            del self.list[selected]
-            new_index = max(selected-1,0)
-            self.list.insert(new_index, selected_object)
-            self.update_now()
-        self.frame.list.selection_set(new_index)
+            # If the selected variable is first in its "loop_list":
+            if loop_list_index == 0:
+                # If not the first "loop_list":
+                if main_list_index != 0:
+                    # Then we move up the entire "loop_list":
+                    selected_loop_list = self.list[main_list_index]
+                    del self.list[main_list_index]
+                    new_main_list_index = main_list_index - 1
+                    self.list.insert(new_main_list_index, selected_loop_list)
+                    new_selected_index = selected - len(self.list[main_list_index])
+                    self.update_now()
+
+            # Else we just move up a variable within a "loop_list":
+            else:
+                selected_loop_container = self.list[main_list_index][loop_list_index]
+                del self.list[main_list_index][loop_list_index]
+                new_loop_list_index = loop_list_index - 1
+                self.list[main_list_index].insert(new_loop_list_index, selected_loop_container)
+                new_selected_index = selected - 1
+                self.update_now()
+
+            new_selected_index = self.map_to_listbox_index(new_selected_index)
+            self.frame.list.selection_set(new_selected_index)
 
     def move_selected_down(self,dummy_arg=None):
         selected = self.get_selected()
+        # Get 2-D list coordinates of selected object of class "LoopContainedObject":
+        loop_coordinates = self.list2D_coordinates(selected, self.list)
+        main_list_index = loop_coordinates[0]
+        loop_list_index = loop_coordinates[1]
+        new_selected_index = selected
         if selected is not None:
-            selected_object = self.list[selected]
-            del self.list[selected]
-            new_index = min(selected+1,len(self.list))
-            self.list.insert(new_index, selected_object)
+            # If the selected variable is last in its "loop_list":
+            if loop_list_index == (len(self.list[main_list_index]) - 1):
+                # If not the last "loop_list":
+                if main_list_index != (len(self.list) - 1):
+                    # Then we move down the entire "loop_list":
+                    selected_loop_list = self.list[main_list_index]
+                    del self.list[main_list_index]
+                    new_main_list_index = main_list_index + 1
+                    self.list.insert(new_main_list_index, selected_loop_list)
+                    new_selected_index = selected + len(self.list[main_list_index])
+                    self.update_now()
+
+            # Else we just move down a variable within a "loop_list":
+            #elif loop_list_index != (len(self.list[main_list_index]) - 1):
+            else:
+                selected_loop_container = self.list[main_list_index][loop_list_index]
+                del self.list[main_list_index][loop_list_index]
+                new_loop_list_index = loop_list_index + 1
+                self.list[main_list_index].insert(new_loop_list_index, selected_loop_container)
+                new_selected_index = selected + 1
+                self.update_now()
+            #else:
+                #tkMessageBox.showerror("Cannot move this variable down", "Select unmerge instead")
+
+            new_selected_index = self.map_to_listbox_index(new_selected_index)
+            self.frame.list.selection_set(new_selected_index)
+
+
+
+
+
+
+
+    def make_merge(self):
+        # Notes:
+        # "self.list" is a list of lists, each of which, a
+        # "loop_list", contains "LoopContainedObject" class objects:
+        # eg. [[a], [b, c], [d]]
+        selected = self.get_selected()
+
+        merge_error = 0
+        merge_error_msg = ""
+
+        # The purpose of this function is to "merge" selected objects of class
+        # "LoopContainedObject" into a preceding list:
+        # eg. [[a], [b, c], [d]] => [[a], [b, c, d]]]
+        # where selected 'd' was "merged" into preceding list.
+        # Note, this function can also perform the reverse, provided that the
+        # the selected object of class "LoopContainedObject" is the LAST one
+        # in its "loop_list".
+        # Supported cases:
+        # [[a], [b*, c], [d]] => [[a, b, c], [d]] merge
+        # [[a], [b, c*], [d]] => [[a], [b], [c, d]] unmerge
+        # Unsupported cases:
+        # [[a], [b, c*, d], [e]] => cannot unmerge!
+
+        # Get 2-D list coordinates of selected object of class "LoopContainedObject":
+        loop_coordinates = self.list2D_coordinates(selected, self.list)
+        main_list_index = loop_coordinates[0]
+        loop_list_index = loop_coordinates[1]
+
+        # Checking that an item is actually selected:
+        if selected is not None:
+
+            selected_loop_list = self.list[main_list_index]
+            selected_loop_container = selected_loop_list[loop_list_index]
+            preceding_loop_container = self.list[main_list_index - 1][0]
+
+            # Trying to perform merge?
+            if loop_list_index == 0:
+
+                # Ensure selected "LoopContainerObject" is not in first "loop_list":
+                if main_list_index > 0:
+
+                    # Can only carry out merge if "Loop" object sequence lengths are
+                    # the same length within a "loop_list":
+                    if len(selected_loop_container.contained.parameters.sequence) == len(preceding_loop_container.contained.parameters.sequence):
+
+                        # Perform the merge. All variables that are currently merged with the selected variable,
+                        # are merged with the new variable(s) as well.
+                        i = 0
+                        max_index = len(selected_loop_list)
+                        while i < max_index:
+                            dummy_loop_container = selected_loop_list[0]
+                            del self.list[main_list_index][0]
+                            self.list[main_list_index - 1].append(dummy_loop_container)
+                            i = i + 1
+
+                        # Remove the selected "loop_list" if it is now empty:
+                        if self.list[main_list_index] == []:
+                            del self.list[main_list_index]
+
+                    else:
+                        merge_error = 1
+                        merge_error_msg = "Cannot merge variables with different sequence lengths"
+
+                else:
+                    merge_error = 3
+                    #merge_error_msg = "Variable is at the top level"
+
+            # Trying to perform an "unmerge":
+            else:
+
+                # Ensure selected "LoopContainerObject" is last object in its "loop_list":
+                if loop_list_index == (len(selected_loop_list) - 1):
+
+                    # Perform the unmerge:
+                    del self.list[main_list_index][loop_list_index]
+                    self.list.insert((main_list_index + 1), [selected_loop_container])
+
+                else:
+                    merge_error = 2
+                    merge_error_msg = "Unmerge lowest variable in this cluster first"
+
+        if merge_error == 1:
+            tkMessageBox.showerror("Cannot perform merge", merge_error_msg)
+        elif merge_error == 2:
+            tkMessageBox.showerror("Cannot perform unmerge", merge_error_msg)
+        elif merge_error == 3:
+            # non critical errors
+            pass
+        else:
+            #debugger:
+            #print len(self.list)
+            #print ""
+            #for x in self.list:
+            #    print len(x)
+            #print "--------------"
             self.update_now()
-        self.frame.list.selection_set(new_index)
+
+
 
     def make_contained_object(self, container_class):
         """Factory function for ContainedObjectBase"""
@@ -245,16 +442,56 @@ class ScrollListFrame(Tkinter.Frame):
         else:
             return
 
+    # Returns index of selected item ignoring blank listbox entries:
+    # eg. if listbox had:
+    #
+    # 0 a
+    # 1 b
+    # 2
+    # 3 c
+    # 4 d
+    #
+    # Then the index of element 'c' would be 2
     def get_selected(self):
         items = self.frame.list.curselection()
         try:
             items = map(int, items)
+
         except ValueError: pass
         if len(items) > 0:
-            return items[0]
-        else:
-            return None
+            selected_item_index = items[0]
+            if self.frame.list.get(selected_item_index) != "":
+                blankentrycount = 0
+                i = 0
+                while i < selected_item_index:
+                    if self.frame.list.get(i) == "":
+                        blankentrycount = blankentrycount + 1
+                    i = i + 1
+                return (selected_item_index - blankentrycount)
 
+        return None
+
+
+    # Performs reverse of above:
+    # eg. if listbox had:
+    #
+    # 0 a
+    # 1 b
+    # 2
+    # 3 c
+    # 4 d
+    #
+    # Then "mapping" of given index 2 would result in return value of 3
+    def map_to_listbox_index(self, index):
+        validentrycount = 0
+        i = 0
+        while i < self.frame.list.size():
+            if self.frame.list.get(i) != "":
+                validentrycount = validentrycount + 1
+            if validentrycount == (index + 1):
+                return i
+            i = i + 1
+        return -1
 ###################################################
 
 class Loop(VisionEgg.ClassWithParameters):
@@ -267,6 +504,7 @@ class Loop(VisionEgg.ClassWithParameters):
     __slots__ = (
         'num_done',
         )
+
 
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
@@ -294,7 +532,7 @@ class LoopContainedObject(ContainedObjectBase):
         name_str = p.variable
         if len(name_str) > 15:
             name_str = name_str[:15]
-        return "% 15s % 4s % 4d  %s"%(name_str, str(p.rest_duration_sec), len(p.sequence), seq_str)
+        return "% 15s % 4s % 4d  % 4s"%(name_str, str(p.rest_duration_sec), len(p.sequence), seq_str)
 
 class LoopParamDialog(tkSimpleDialog.Dialog):
     def __init__(self,*args,**kw):
@@ -1239,7 +1477,7 @@ class AppWindow(Tkinter.Frame):
 
                 fd1.close()
                 demoscript = '\n'.join(keep_lines)
-                
+
                 # Client side AST. Only used to extract default values
                 # of elected variables:
                 try:
@@ -1344,14 +1582,20 @@ class AppWindow(Tkinter.Frame):
         height = self.stim_onset_height.get()
         self.ephys_server.set_stim_onset_cal_location(center=(x,y),size=(width,height))
 
+
     def do_loops(self):
-        loop_list = self.loop_frame.get_list_uncontained()
+        super_loop_list = self.loop_frame.get_list_uncontained()
+        # "super_loop_list" is a list of lists, each of which, a
+        # "loop_list", contains "loop" class objects
+        # eg. [[a], [b, c], [d]]
+        # Need to test that "get_list_uncontained()" is returning a list of lists!
         global need_rest_period
         need_rest_period = 0
 
-        if not len(loop_list):
+        if not len(super_loop_list):
             return
 
+        ############################################################
         def process_loops(depth): # recursive processing of loops
 
             class LoopInfoFrame(Tkinter.Frame):
@@ -1373,16 +1617,30 @@ class AppWindow(Tkinter.Frame):
             global need_rest_period
 
             global loop_info_frame
-            if depth == 0: # only make one LoopInfoFrame
+            if depth == 0: # only make one LoopInfoFrame (when depth is 0, ie. first time)
                 top = Tkinter.Toplevel(self)
                 loop_info_frame = LoopInfoFrame(top)
                 loop_info_frame.pack()
 
-            loop = loop_list[depth]
-            max_depth = len(loop_list)-1
+            loop_list = super_loop_list[depth]
+            #print "current depth"
+            #print depth
+            #print "Loop?"
+            #print loop
+            max_depth = len(super_loop_list)-1
+            #print "max_depth"
+            #print max_depth
+
+            loop = loop_list[0].get_contained()
+            # "loop_list" is, for example: [a, b, c]
+            # ie. each element is an object of class "loop".
+            # If one element is done, then all other elements are effectively done, the way we've structured the lists to
+            # be (they all have same 'N' value).
+
             while not loop.is_done() and not loop_info_frame.cancel_asap:
-                if loop.parameters.variable != "<repeat>":
-                    self.stim_frame.set_loopable_variable(loop.parameters.variable,loop.get_current())
+                for loop_element in loop_list:
+                    if loop_element.get_contained().parameters.variable != "<repeat>":
+                        self.stim_frame.set_loopable_variable(loop_element.get_contained().parameters.variable,loop_element.get_contained().get_current())
                 if depth < max_depth:
                     process_loops(depth+1)
                 elif depth == max_depth: # deepest level -- do the trial
@@ -1393,11 +1651,14 @@ class AppWindow(Tkinter.Frame):
                     need_rest_period = 1
                 else:
                     raise RuntimeError("Called with max_depth==-1:")
-                loop.advance()
-            loop.reset()
+                for loop_element in loop_list:
+                    loop_element.get_contained().advance()
+            for loop_element in loop_list:
+                loop_element.get_contained().reset()
             if depth == 0: # destroy LoopInfoFrame
                 top.destroy()
 
+        ############################################################
         process_loops(0) # start recursion on top level
 
     def do_single_trial(self):
