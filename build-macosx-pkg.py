@@ -24,7 +24,9 @@ This package installs the Vision Egg library and associated files, including the
 
 This release exposes two known Mac OS X specific bugs in the Vision Egg's dependencies. Checkbuttons in dialog windows are broken until a button is pressed, and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." These bugs are not serious, just annoying.
 
-The files will be installed to %s. This is the default Python 2.2 frameworks directory.
+The files will be installed to %s. This is the default Python 2.2 framework directory. The system files will be in the subdirectory lib/python2.2/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
+
+A copy of the user files will be made to ~/VisionEgg.  Files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link will be made from ~/Desktop/VisionEgg.
 
 This package has the following dependencies, all of which can be downloaded as a single archive from http://redivi.com/~bob
 
@@ -36,7 +38,8 @@ Numeric 20.3 (Python module)
 """%(default_location,)
 readme_txt = string.strip(readme_txt)
 
-welcome_txt = string.join(map(string.strip,string.split(setup.long_description)))
+#welcome_txt = string.join(map(string.strip,string.split(setup.long_description)))
+welcome_txt = setup.long_description
 
 install_sh = """#!/bin/sh
 
@@ -44,11 +47,19 @@ echo "Running post-install script"
 
 SCRIPTS=%s/VisionEgg
 
-echo "Creating a link on your desktop to the VisionEgg script directory."
-ln -s $SCRIPTS ~/Desktop/VisionEgg
-chmod a+wx ~/Desktop/VisionEgg
+# Make a local user copy of the Vision Egg scripts
+echo "Copying to ~/VisionEgg"
+cp -p -r $SCRIPTS ~
 
-# Should check for old VisionEgg.cfg files, but this version does not do that.
+# Make the local copies owned by the user
+chown -R $USER ~/VisionEgg
+
+# Create a link on the Desktop
+ln -s ~/VisionEgg ~/Desktop
+
+# Make the link owned by the user
+chown $USER ~/Desktop/VisionEgg
+
 """%(default_location,)
 
 post_install = """#!/bin/sh
@@ -91,6 +102,7 @@ DeleteWarning
 NeedsAuthorization
 DisableStop
 UseUserMask
+OverwritePermissions
 Application
 Relocatable
 Required
