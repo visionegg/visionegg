@@ -70,12 +70,5 @@ def main(httpbase=HTTPBASE, upload=True):
     print 'Writing out new plist'
     plist.write(os.path.join(PLISTDIR, plat+'.plist'))
 
-def sync():
-    print 'Uploading plist to server'
-    os.system(UPLOADCMD % os.path.join(PLISTDIR, plat+'.plist'))
-
 if __name__=='__main__':
-    if sys.argv[1:] == ['sync']:
-        sync()
-    else:
-        main()
+    main()
