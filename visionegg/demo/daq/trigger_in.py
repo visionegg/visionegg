@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Use an external device to trigger the Vision Egg."""
 
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, ConstantController
 from VisionEgg.Gratings import *
@@ -10,7 +13,8 @@ from VisionEgg.DaqLPT import *
 # Normal stuff (from grating demo):
 screen = get_default_screen()
 stimulus = SinGrating2D(on               = 0, # turn grating is off when not in go loop
-                        center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        anchor           = 'center',
                         size             = ( 300.0 , 300.0 ),
                         spatial_freq     = 10.0 / screen.size[0],
                         temporal_freq_hz = 5.0,

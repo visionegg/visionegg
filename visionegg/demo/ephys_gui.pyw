@@ -3,6 +3,10 @@
 import sys
 import Pyro
 import Tkinter, tkMessageBox
+
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.PyroApps.EPhysGUI import client_list, AppWindow, get_server
 
 # You can add your own controllers and GUIs to client_list

@@ -2,6 +2,8 @@
 """Perspective-distorted sinusoidal grating in gaussian window"""
 
 from VisionEgg import *
+start_default_logging(); watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
 from VisionEgg.SphereMap import *

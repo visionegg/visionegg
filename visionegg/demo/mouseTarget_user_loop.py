@@ -9,6 +9,9 @@ last_mouse_position = (0.0,0.0)
 #  Import various modules  #
 ############################
 
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.MoreStimuli import *
 from VisionEgg.Text import *

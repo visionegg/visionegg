@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-"""Mapping of texture onto sphere"""
+"""Mapping of texture onto sphere, compare to az_el_grid"""
 
 from VisionEgg import *
+start_default_logging(); watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.SphereMap import *

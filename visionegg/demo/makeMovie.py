@@ -7,6 +7,9 @@ fps = 12.0
 #  Import various modules  #
 ############################
 
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, Controller, FunctionController
 from VisionEgg.MoreStimuli import *
@@ -71,10 +74,8 @@ save_directory = os.path.join(base_dir,'movie')
 if not os.path.isdir(save_directory):
     os.mkdir(save_directory)
     if not os.path.isdir(save_directory):
-        message.add( "Error: cannot make movie directory '%s'."%(save_directory,),
-                     level=Message.ERROR )
-message.add( "Saving movie to directory '%s'."%(save_directory,),
-             level=Message.INFO )
+        print "Error: cannot make movie directory '%s'."%save_directory
+print "Saving movie to directory '%s'."%save_directory
 basename = "movie_"+os.path.splitext(os.path.basename(sys.argv[0]))[0]
 p.export_movie_go(frames_per_sec=fps,filename_base=basename,path=save_directory)
 

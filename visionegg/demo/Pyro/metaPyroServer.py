@@ -9,15 +9,13 @@ which controls the stimuli.  The meta-controller can store information
 in a higher-level format than the Controllers used on individual
 instances of the Stimulus class.
 
-You will need to have a Pyro Name Server running on your network for
-this to work.  It comes with the Pyro distribution as a script in the
-bin directory called ns.  Run it, run this script, and then run
-metaPyroGUI.py from any computer on your network.
-
 """
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
+
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 import sys
 import VisionEgg.Core
@@ -53,7 +51,6 @@ class GratingExperimentMetaController( Pyro.core.ObjBase ):
             self.meta_params = new_parameters
         else:
             raise ValueError("Argument to set_parameters must be instance of GratingMetaParameters")
-#        self.meta_params = new_parameters
         self.update()
 
     def on_function(self,t=-1.0): # default time to between trials time

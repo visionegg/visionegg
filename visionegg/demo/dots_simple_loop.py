@@ -6,6 +6,8 @@ This bypasses the VisionEgg.FlowControl.Presentation class.  It may be easier
 to create simple experiments this way."""
 
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 import pygame
 from pygame.locals import *

@@ -2,6 +2,8 @@
 """Perspective-distorted sinusoidal grating in gaussian window"""
 
 from VisionEgg import *
+start_default_logging(); watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
 from VisionEgg.SphereMap import *
@@ -50,7 +52,9 @@ grid_stimulus_moving = AzElGrid(use_text=False, # no text
                                 minor_line_color=(0.9,0.5,0.5,.2),# set low alpha
                                 major_line_color=(1.0,0.0,0.0,.4),# set low alpha
                                 on=False) # start with grid off
-grid_stimulus_fixed  = AzElGrid(on=False) # start with grid off
+grid_stimulus_fixed  = AzElGrid(on=False,
+                                minor_line_color=(0.5,0.5,0.7),
+                                ) # start with grid off
 
 try:
     # We want the maximum number of samples possible, hopefully 2048

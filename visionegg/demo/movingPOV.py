@@ -3,6 +3,8 @@
 
 import math,os
 from VisionEgg import *
+start_default_logging(); watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.Textures import *
