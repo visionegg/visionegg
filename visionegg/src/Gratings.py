@@ -170,7 +170,7 @@ class SinGrating2D(LuminanceGratingCommon):
                         ve_types.Real), 
         'temporal_freq_hz':(5.0, # hz
                             ve_types.Real),
-        't0_time_sec_absolute':(None,
+        't0_time_sec_absolute':(None, # Will be assigned during first call to draw()
                                 ve_types.Real),
         'phase_at_t0':(0.0, # degrees [0.0-360.0]
                        ve_types.Real),
