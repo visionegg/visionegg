@@ -9,24 +9,23 @@ from VisionEgg.PyroApps.UberClientGUI import client_list, AppWindow
 
 try:
     app_window = AppWindow(client_list=client_list)
-except Pyro.errors.ProtocolError, x:
-    if str(x) == 'connection failed': # Can't find UberServer running on network
-        try:
-            tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
-            sys.exit(1)
-        except:
-            raise # Can't find UberServer running on network
-    else:
-        raise
 except Pyro.errors.PyroError, x:
-    if str(x) in ["Name Server not responding","connection failed"]:
+    uber_server_error = 0
+    if isinstance(x, Pyro.errors.ProtocolError) and str(x) == 'connection failed': # Can't find UberServer running on network
+        uber_server_error = 1
+    if isinstance(x, Pyro.errors.NamingError) and str(x) == 'name not found': # Can't find UberServer running on network
+        uber_server_error = 1
+    if uber_server_error:
+        tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
+        sys.exit(1)
+    elif str(x) in ["Name Server not responding","connection failed"]:
         try:
             tkMessageBox.showerror("Can't find Pyro Name Server","Can't find Pyro Name Server on network.")
             sys.exit(1)
         except:
             raise # Can't find Pyro Name Server on network
     else:
-        raise
+        raise        
         
 app_window.winfo_toplevel().wm_iconbitmap()
 app_window.pack(expand=1,fill=Tkinter.BOTH)
