@@ -114,6 +114,13 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def were_frames_dropped_in_last_go_loop(self):
         return self.presentation.were_frames_dropped_in_last_go_loop()
     
+    def get_last_go_loop_start_time_absolute_sec(self):
+        return self.presentation.get_last_go_loop_start_time_absolute_sec()
+
+    def set_override_t_abs_sec(self, value_sec_string):
+        value_sec = float(value_sec_string) # Pyro loses precision
+        self.presentation.parameters.override_t_abs_sec = value_sec
+    
     def get_next_stimulus_meta_controller(self):
         if self.stimkey:
             klass, make_stimuli = self.stimdict[self.stimkey]
