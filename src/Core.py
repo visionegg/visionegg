@@ -46,7 +46,7 @@ all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
 ####################################################################
 
 import sys, types, math, time, os               # standard Python modules
-import StringIO, warnings
+import StringIO
 
 try:
     import logging                              # available in Python 2.3
@@ -124,7 +124,7 @@ class Screen(VisionEgg.ClassWithParameters):
 
     Parameters:
     
-    bgcolor -- Tuple of 4 floating point values specifying RGBA. The screen is cleared with this color before drawing each frame
+    bgcolor -- Background color. Tuple of 4 RGBA floating point values.
 
     Public variables:
 
@@ -172,6 +172,7 @@ class Screen(VisionEgg.ClassWithParameters):
         )
     
     def __init__(self,**kw):
+        logger = logging.getLogger('VisionEgg.Core')
         
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
@@ -181,12 +182,10 @@ class Screen(VisionEgg.ClassWithParameters):
             try:
                 VisionEgg.config._SYNCLYNC_CONNECTION = synclync.SyncLyncConnection()
             except synclync.SyncLyncError, x:
-                message.add( "Could not connect to SyncLync device (SyncLyncError: %s)."%(str(x),),
-                             level=Message.WARNING )
+                logger.warning( "Could not connect to SyncLync device (SyncLyncError: %s)."%str(x))
                 VisionEgg.config._SYNCLYNC_CONNECTION = None
             else:
-                message.add( "Connected to SyncLync device", 
-                             level=Message.INFO )
+                logger.info( "Connected to SyncLync device" )
         else:
             VisionEgg.config._SYNCLYNC_CONNECTION = None
 
@@ -210,20 +209,18 @@ class Screen(VisionEgg.ClassWithParameters):
             pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,b)
             pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,a)
         else:
-            message.add(
-                """Could not request or query exact bit depths or
-                alpha in framebuffer because you need pygame release
-                1.4.9 or greater. This is only of concern if you use a
-                stimulus that needs this. In that case, the stimulus
-                should check for the desired feature(s).""",
-                level=Message.NAG)
+            logger.debug("Could not request or query exact bit depths "
+                         "or alpha in framebuffer because you need "
+                         "pygame release 1.4.9 or greater. This is "
+                         "only of concern if you use a stimulus that "
+                         "needs this. In that case, the stimulus "
+                         "should check for the desired feature(s).")
             
         if not hasattr(pygame.display,"set_gamma_ramp"):
-            message.add(
-                """set_gamma_ramp function not available because you
-                need pygame release 1.5 or greater. This is only of
-                concern if you need this feature.""",level=Message.NAG)
-            
+            logger.debug("set_gamma_ramp function not available "
+                         "because you need pygame release 1.5 or "
+                         "greater. This is only of concern if you "
+                         "need this feature.")
         pygame.display.set_caption("Vision Egg")
         
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
@@ -242,8 +239,10 @@ class Screen(VisionEgg.ClassWithParameters):
             screen_mode = "window"
         if hasattr(pygame.display,"gl_set_attribute"):
             append_str = " (%d %d %d %d RGBA)."%(r,g,b,a)
-        message.add("Requesting %s %d x %d %d bpp%s"%
-                    (screen_mode,self.size[0],self.size[1],try_bpp,append_str))
+            
+        logger.info("Requesting %s %d x %d %d bpp%s"%
+                    (screen_mode,self.size[0],self.size[1],
+                     try_bpp,append_str))
 
         pygame.display.set_mode(self.size, flags, try_bpp )
         # set a global variable so we know workaround avoid pygame bug        
@@ -263,30 +262,29 @@ class Screen(VisionEgg.ClassWithParameters):
                 AppKit.NSApplication.setApplicationIconImage_(AppKit.NSApp(),im)
                 
         except Exception,x:
-            message.add("Error while trying to set_icon: %s: %s"%
-                        (str(x.__class__),str(x)),
-                        level=Message.INFO)
+            logger.info("Error while trying to set_icon: %s: %s"%
+                        (str(x.__class__),str(x)))
 
         global gl_vendor, gl_renderer, gl_version
         gl_vendor = gl.glGetString(gl.GL_VENDOR)
         gl_renderer = gl.glGetString(gl.GL_RENDERER)
         gl_version = gl.glGetString(gl.GL_VERSION)
 
-        message.add("OpenGL %s, %s, %s"%
-                    (gl_version, gl_renderer, gl_vendor),Message.INFO)
+        logger.info("OpenGL %s, %s, %s"%
+                    (gl_version, gl_renderer, gl_vendor))
 
         if gl_renderer == "GDI Generic" and gl_vendor == "Microsoft Corporation":
-            message.add("Using default Microsoft Windows OpenGL drivers. "
-                        "Please (re-)install the latest video drivers from "
-                        "your video card manufacturer to get hardware"
-                        "accelerated performance.",Message.WARNING)
-
+            logger.warning("Using default Microsoft Windows OpenGL "
+                           "drivers.  Please (re-)install the latest "
+                           "video drivers from your video card "
+                           "manufacturer to get hardware accelerated "
+                           "performance.")
         if gl_renderer == "Mesa GLX Indirect" and gl_vendor == "VA Linux Systems, Inc.":
-            message.add("Using default Mesa GLX drivers. "
-                        "Please (re-)install the latest video drivers from "
-                        "your video card manufacturer or DRI project to"
-                        "get hardware accelarated performance.",Message.WARNING)
-
+            logger.warning("Using default Mesa GLX drivers. Please "
+                           "(re-)install the latest video drivers from "
+                           "your video card manufacturer or DRI "
+                           "project to get hardware accelarated "
+                           "performance.")
         self.red_bits = None
         self.green_bits = None
         self.blue_bits = None
@@ -299,13 +297,12 @@ class Screen(VisionEgg.ClassWithParameters):
             self.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
             self.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
             append_str = " (%d %d %d %d RGBA)"%(self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits)
-        message.add("Video system reports %d bpp%s."%(got_bpp,append_str))
+        logger.info("Video system reports %d bpp%s."%(got_bpp,append_str))
         if got_bpp < try_bpp:
-            message.add(
-                """Video system reports %d bits per pixel, while your program
-                requested %d. Can you adjust your video drivers?"""%(got_bpp,try_bpp),
-                level=Message.WARNING)
-
+            logger.warning("Video system reports %d bits per pixel, "
+                           "while your program requested %d. Can you "
+                           "adjust your video drivers?"%(got_bpp,
+                           try_bpp))
         # Save the address of these functions so they can be called
         # when closing the screen.
         self.__cursor_visible_func__ = pygame.mouse.set_visible
@@ -316,20 +313,19 @@ class Screen(VisionEgg.ClassWithParameters):
             if not sync_success:
                 if not VisionEgg.PlatformDependent.sync_swap_with_vbl_post_gl_init():
                     self.constant_parameters.sync_swap = False
-                    message.add(
-                        
-                        """Unable to detect or automatically
-                        synchronize buffer swapping with vertical
-                        retrace. May be possible by manually adjusting
-                        video drivers. (Look for "Enable Vertical
-                        Sync" or similar.)  If buffer swapping is not
-                        synchronized, frame by frame control will not
-                        be possible.  Because of this, you will
-                        probably get a warning about calculated frames
-                        per second different than specified.""",
-                        
-                        level=Message.WARNING)
-
+                    logger.warning("Unable to detect or automatically "
+                                   "synchronize buffer swapping with "
+                                   "vertical retrace. May be possible "
+                                   "by manually adjusting video "
+                                   "drivers. (Look for 'Enable "
+                                   "Vertical Sync' or similar.) If "
+                                   "buffer swapping is not "
+                                   "synchronized, frame by frame "
+                                   "control will not be possible. "
+                                   "Because of this, you will probably "
+                                   "get a warning about calculated "
+                                   "frames per second different than "
+                                   "specified.")
         # Check previously made OpenGL assumptions now that we have OpenGL window
         post_gl_init()
         
@@ -362,7 +358,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                  size=None, # if None, use full screen
                                  ):
         """get pixel values from framebuffer to PIL image"""
-        import Image # Could import this at the beginning of the file, but it breaks sometimes!
+        import Image # Could import this at the beginning of the file, but it breaks sometimes.
         
         fb_array = self.get_framebuffer_as_array(buffer=buffer,
                                                  format=format,
@@ -403,10 +399,16 @@ class Screen(VisionEgg.ClassWithParameters):
         gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
         gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
         if gl_version >= '1.2' and hasattr(gl,'GL_BGRA'):
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_BGRA,gl.GL_UNSIGNED_INT_8_8_8_8_REV)
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
+                                                 size[0],size[1],
+                                                 gl.GL_BGRA,
+                                                 gl.GL_UNSIGNED_INT_8_8_8_8_REV)
             raw_format = 'BGRA'
         else:
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_RGBA,gl.GL_UNSIGNED_BYTE)
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
+                                                 size[0],size[1],
+                                                 gl.GL_RGBA,
+                                                 gl.GL_UNSIGNED_BYTE)
             raw_format = 'RGBA'
         fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
         fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
@@ -471,12 +473,10 @@ class Screen(VisionEgg.ClassWithParameters):
                                                                   z_clip_near=0.0,
                                                                   z_clip_far=1.0)
         else:
-            
             # We've run once before and therefore already have a
             # texture stimulus. (XXX In the future, make use of
             # already assigned texture object and use put_sub_image
             # for speed.)
-            
             self._put_pixels_texture_stimulus.parameters.texture = VisionEgg.Textures.Texture(pixels)
 
         self._pixel_coord_projection.push_and_set_gl_projection() # Save projection
@@ -530,9 +530,8 @@ class Screen(VisionEgg.ClassWithParameters):
 
         Returns True on success, False otherwise."""
         if not hasattr(pygame.display,"set_gamma_ramp"):
-            message.add(
-                """Need pygame 1.5 or greater for set_gamma_ramp
-                function.""", level=Message.ERROR)
+            logger = logging.getLogger('VisionEgg.Core')
+            logger.error("Need pygame 1.5 or greater for set_gamma_ramp function")
             return False
         if pygame.display.set_gamma_ramp(*args,**kw):
             return True
@@ -550,7 +549,8 @@ class Screen(VisionEgg.ClassWithParameters):
                 VisionEgg.config._open_screens.remove(self)
             if len(VisionEgg.config._open_screens) == 0:
                 # no more open screens
-                self.__cursor_visible_func__(1)
+                if hasattr(self,"__cursor_visible_func__"):
+                    self.__cursor_visible_func__(1)
                 pygame.quit()
         # No access to the cursor visible function anymore
         if hasattr(self,"__cursor_visible_func__"):
@@ -629,11 +629,11 @@ class Screen(VisionEgg.ClassWithParameters):
                 gamma_set_string = "set gamma lookup tables from data in file %s"%os.path.abspath(filename)
             else:
                 raise ValueError("Unknown gamma source: '%s'"%gamma_source)
+            logger = logging.getLogger('VisionEgg.Core')
             if not screen.set_gamma_ramp(red,green,blue):
-                message.add( "Setting gamma ramps failed.",
-                             level=Message.WARNING)
+                logger.warning( "Setting gamma ramps failed." )
             else:
-                message.add( "Gamma set sucessfully: %s"%gamma_set_string, Message.INFO )
+                logger.info( "Gamma set sucessfully: %s"%gamma_set_string )
         return screen
     create_default = staticmethod(create_default)
 
@@ -1136,14 +1136,17 @@ class Viewport(VisionEgg.ClassWithParameters):
                                              bottom=0,top=self.parameters.size[1])
 
     def make_current(self):
-        """Called by Presentation. Set the viewport and draw stimuli."""
         p = self.parameters # shorthand
         p.screen.make_current()
         
         if p.lowerleft != None:
-            warnings.warn("lowerleft parameter of Viewport class will stop being supported. "+\
-                          "Use 'position' instead with anchor set to 'lowerleft'.",
-                          DeprecationWarning,stacklevel=2)
+            if not hasattr(Viewport,"_gave_lowerleft_warning"):
+                logger = logging.getLogger('VisionEgg.Core')
+                logger.warning("lowerleft parameter of Viewport class "
+                               "will stop being supported. Use "
+                               "'position' instead with anchor set to "
+                               "'lowerleft'.")
+                Viewport._gave_lowerleft_warning = True
             p.anchor = 'lowerleft'
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
             
@@ -1215,12 +1218,19 @@ class FixationSpot(Stimulus):
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
-        'color':((1.0,1.0,1.0,1.0),
-                 ve_types.Sequence4(ve_types.Real)),
-        'center':((320.0,240.0), # center if in 640x480 viewport
-                  ve_types.Sequence2(ve_types.Real)),
+        'color':((1.0,1.0,1.0),
+                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                ve_types.Sequence4(ve_types.Real))),
+        'position' : ( ( 320.0, 240.0 ), # in eye coordinates
+                       ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
+                                      ve_types.Sequence3(ve_types.Real),
+                                      ve_types.Sequence4(ve_types.Real))),
+        'anchor' : ('center',
+                    ve_types.String),
         'size':((4.0,4.0), # horiz and vertical size
                 ve_types.Sequence2(ve_types.Real)),
+        'center' : (None,  # DEPRECATED -- don't use
+                    ve_types.Sequence2(ve_types.Real)),
         }
     
     __slots__ = Stimulus.__slots__
@@ -1229,7 +1239,21 @@ class FixationSpot(Stimulus):
         Stimulus.__init__(self,**kw)
 
     def draw(self):
-        if self.parameters.on:
+        p = self.parameters # shorthand
+        if p.center is not None:
+            if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
+                logger = logging.getLogger('VisionEgg.Core')
+                logger.warning("Specifying FixationSpot by deprecated "
+                               "'center' parameter deprecated.  Use "
+                               "'position' parameter instead.  (Allows "
+                               "use of 'anchor' parameter to set to "
+                               "other values.)")
+                VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
+            p.anchor = 'center'
+            p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
+        if p.on:
+            # calculate center
+            center = VisionEgg._get_center(p.position,p.anchor,p.size)
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
@@ -1237,15 +1261,14 @@ class FixationSpot(Stimulus):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            c = self.parameters.color
-            gl.glColorf(c[0],c[1],c[2],c[3])
+            gl.glColorf(*p.color)
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
             # still use one of the matrices to make it change size.
             x_size = self.parameters.size[0]/2.0
             y_size = self.parameters.size[1]/2.0
-            x,y = self.parameters.center[0],self.parameters.center[1]
+            x,y = center[0],center[1]
             x1 = x-x_size; x2 = x+x_size
             y1 = y-y_size; y2 = y+y_size
             gl.glBegin(gl.GL_QUADS)
@@ -1310,9 +1333,10 @@ class FrameTimer:
         return (self._true_time_last_frame - self.first_tick_sec) / sum( self.timing_histogram )
 
     def print_histogram(self):
-        warnings.warn("print_histogram() method of FrameTimer will stop being supported. "+\
-                      "Use log_histogram() instead.",
-                      DeprecationWarning,stacklevel=2)
+        logger = logging.getLogger('VisionEgg.Core')
+        logger.warning("print_histogram() method of FrameTimer is "
+                       "deprecated will stop being supported. Use "
+                       "log_histogram() instead.")
         self.log_histogram()
     
     def log_histogram(self):
@@ -1360,7 +1384,7 @@ class FrameTimer:
         print >> buffer, timing_string
         
         buffer.seek(0)
-        logger = logging.getLogger('VisionEgg')
+        logger = logging.getLogger('VisionEgg.Core')
         logger.info(buffer.read())
         
 ####################################################################
@@ -1373,7 +1397,6 @@ import VisionEgg.Deprecated
 Message = VisionEgg.Deprecated.Message
 
 message = VisionEgg.Deprecated.Message() # create instance of Message class for everything to use
-##message = Message(main_global_instance=1) # create instance of Message class for everything to use
     
 gl_assumptions = []
 
@@ -1385,6 +1408,8 @@ def add_gl_assumption(gl_variable,required_value,failure_callback):
 
 def init_gl_extension(prefix,name):
     global gl # interpreter knows when we're up to something funny with GLTrace
+    logger = logging.getLogger('VisionEgg.Core')
+
     if gl is VisionEgg.GLTrace:
         watched = True
         gl = VisionEgg.GLTrace.gl # manipulate original module for now
@@ -1395,17 +1420,15 @@ def init_gl_extension(prefix,name):
     try:
         exec "import "+module_name
     except ImportError:
-        warnings.warn("Could not import %s -- some features "%(module_name,)+
-                      "will be missing.",
-                      UserWarning,stacklevel=2)
+        logger.warning("Could not import %s -- some features will be "
+                       "missing."%(module_name,))
         return False
     module = eval(module_name)
     init_function_name = "glInit"+name.title().replace('_','')+prefix
     init_function = getattr(module,init_function_name)
     if not init_function():
-        warnings.warn("Could not initialize %s -- some features "%(module_name,)+
-                      "will be missing.",
-                      UserWarning,stacklevel=2)
+        logger.warning("Could not initialize %s -- some features will "
+                       "be missing."%(module_name,))
         return False
     for attr_name in dir(module):
         # put attributes from module into "gl" module dictionary
@@ -1432,9 +1455,10 @@ def init_gl_extension(prefix,name):
 def post_gl_init():
     """Called by Screen instance. Requires OpenGL context to be created."""
     global gl_vendor, gl_renderer, gl_version # set above
-
-    # OpenGL 1.3 has this extension built-in, but doing this allows
-    # use of ARB names
+    logger = logging.getLogger('VisionEgg.Core')
+    
+    # OpenGL 1.3 has this extension built-in, but doing this
+    # regardless of OpenGL version allows use of ARB names.
     init_gl_extension('ARB','multitexture') 
         
     if gl_version < '1.2':
@@ -1457,7 +1481,8 @@ def post_gl_init():
                 if not ok:
                     failure_callback()
             else:
-                raise RuntimeError("Unknown gl_assumption: %s == %s"%(gl_variable,required_value))
+                raise RuntimeError, "Unknown gl_assumption: %s == %s"%(gl_variable,required_value)
+            
         elif gl_variable.upper() == "GL_VERSION":
             value_str = gl_version.split()[0]
             value_ints = map(int,value_str.split('.'))
@@ -1465,7 +1490,7 @@ def post_gl_init():
             if value < required_value:
                 failure_callback()
         else:
-            raise RuntimeError("Unknown gl_assumption")
+            raise RuntimeError, "Unknown gl_assumption"
 
     # Do we have gl.GL_CLAMP_TO_EDGE ?
     try:
@@ -1473,32 +1498,27 @@ def post_gl_init():
     except AttributeError:
         if gl_version >= '1.2':
             # If OpenGL version >= 1.2, this should be defined
-            # It seems to be a PyOpenGL bug that it's not??
-            VisionEgg.Core.message.add(
-                
-                """You do not have GL_CLAMP_TO_EDGE defined.  Because
-                you have OpenGL version 1.2 or greater, this is
-                probably a bug in PyOpenGL.  Assigning
-                GL_CLAMP_TO_EDGE to the value that is usually
-                used.""",
-                
-                level=VisionEgg.Core.Message.WARNING)
+            # It seems to be a PyOpenGL bug that it's not.
+            logger.warning("You do not have GL_CLAMP_TO_EDGE defined. "
+                           "Because you have OpenGL version 1.2 or "
+                           "greater, this is probably a bug in "
+                           "PyOpenGL.  Assigning GL_CLAMP_TO_EDGE to "
+                           "the value that is usually used.")
             gl.GL_CLAMP_TO_EDGE = 0x812F
         else:
             try:
                 init_gl_extension('SGIS','texture_edge_clamp')
                 gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP_TO_EDGE_SGIS
             except:
-                VisionEgg.Core.message.add(
-
-                    """You do not have GL_CLAMP_TO_EDGE available.  Your
-                    OpenGL version is less than 1.2, and the
-                    texture_edge_clamp_SGIS extension failed to load. It
-                    may be impossible to get exact 1:1 reproduction of
-                    your textures.  Using GL_CLAMP instead of
-                    GL_CLAMP_TO_EDGE.""",
-
-                    level=VisionEgg.Core.Message.WARNING)
+                
+                logger.warning("You do not have GL_CLAMP_TO_EDGE "
+                               "available.  Your OpenGL version is "
+                               "less than 1.2, and the "
+                               "texture_edge_clamp_SGIS extension "
+                               "failed to load. It may be impossible to "
+                               "get exact 1:1 reproduction of your "
+                               "textures.  Using GL_CLAMP instead of "
+                               "GL_CLAMP_TO_EDGE.")
                 gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
 
 #########################################################################

@@ -11,6 +11,11 @@ all = ['DotArea2D', 'draw_dots',]
 #
 ####################################################################
 
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
@@ -20,20 +25,21 @@ import math, types, string
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-##try:
-##    import VisionEgg._draw_in_c
-##    draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
-##except ImportError, x:
-##    VisionEgg.Core.message.add("Could not import VisionEgg._draw_in_c module, dots will be drawn in Python.",
-##                               level=VisionEgg.Core.Message.WARNING)
-##    def draw_dots(xs,ys,zs):
-##        """Python method for drawing dots.  Slower than C version"""
-##        if not (len(xs) == len(ys) == len(zs)):
-##            raise ValueError("All input arguments must be same length")
-##        gl.glBegin(gl.GL_POINTS)
-##        for i in xrange(len(xs)):
-##            gl.glVertex3f(xs[i],ys[i],zs[i])
-##        gl.glEnd()
+__version__ = VisionEgg.release_name
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
+### C version of draw_dots() isn't (yet) as fast as Python version: 
+##import VisionEgg._draw_in_c
+##draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
 
 def draw_dots(xs,ys,zs):
     """Python method for drawing dots.  May be replaced by a faster C version."""
@@ -44,18 +50,6 @@ def draw_dots(xs,ys,zs):
         gl.glVertex3f(xs[i],ys[i],zs[i])
     gl.glEnd()
         
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
-
 class DotArea2D(VisionEgg.Core.Stimulus):
     """Random dots of constant velocity
 
@@ -121,13 +115,18 @@ class DotArea2D(VisionEgg.Core.Stimulus):
 
     def draw(self):
         # XXX This method is not speed-optimized. I just wrote it to
-        # get the job done.
+        # get the job done. (Nonetheless, it seems faster than the C
+        # version commented out above.)
         
         p = self.parameters # shorthand
         if p.center is not None:
             if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
-                VisionEgg.Core.message.add("Specifying DotArea2D by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
+                logger = logging.getLogger('VisionEgg.Dots')
+                logger.warning("Specifying DotArea2D by deprecated "
+                               "'center' parameter deprecated.  Use "
+                               "'position' parameter instead.  (Allows "
+                               "use of 'anchor' parameter to set to "
+                               "other values.)")
                 VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
             p.anchor = 'center'
             p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
@@ -138,14 +137,15 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             if p.anti_aliasing:
                 if len(p.color) == 4 and not self._gave_alpha_warning:
                     if p.color[3] != 1.0:
-                        VisionEgg.Core.message.add(
-                            """The parameter anti_aliasing is set to
-                            true in the DotArea2D stimulus class, but
-                            the color parameter specifies an alpha
-                            value other than 1.0.  To acheive the best
-                            anti-aliasing, ensure that the alpha value
-                            for the color parameter is 1.0.""",
-                            level=VisionEgg.Core.Message.WARNING)
+                        logger = logging.getLogger('VisionEgg.Dots')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the DotArea2D "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive the best anti-aliasing, "
+                                       "ensure that the alpha value for "
+                                       "the color parameter is 1.0.")
                         self._gave_alpha_warning = 1
                 gl.glEnable( gl.GL_POINT_SMOOTH )
                 # allow max_alpha value to control blending

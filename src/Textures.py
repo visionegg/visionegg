@@ -16,6 +16,11 @@ all = [ 'FixationCross', 'Mask2D', 'SpinningDrum', 'Texture',
 #
 ####################################################################
 
+try:
+    import logging                              # available in Python 2.3
+except ImportError:
+    import VisionEgg.py_logging as logging      # use local copy otherwise
+
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
@@ -34,7 +39,6 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import _imaging
 import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 
-import string
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
@@ -225,8 +229,9 @@ class Texture(object):
             raise NotImplementedError("Don't know how to convert texel data to PIL image")
 
     def get_pixels_as_image(self):
-        VisionEgg.Core.message.add( "Using old method get_pixels_as_image().  Use get_texels_as_image() instead.",
-                                    level=VisionEgg.Core.Message.DEPRECATION )
+        logger = logging.getLogger('VisionEgg.Textures')
+        logger.warning("Using deprecated method get_pixels_as_image(). "
+                       "Use get_texels_as_image() instead.")
         return self.get_texels_as_image()
 
     def load(self,
@@ -354,8 +359,9 @@ class Texture(object):
 class TextureFromFile( Texture ):
     __slots__ = Texture.__slots__
     def __init__(self, filename ):
-        VisionEgg.Core.message.add("class TextureFromFile outdated, use class Texture instead.",
-                                   VisionEgg.Core.Message.DEPRECATION)
+        logger = logging.getLogger('VisionEgg.Textures')
+        logger.warning("class TextureFromFile deprecated, use class "
+                       "Texture instead.")
         Texture.__init__(self, filename)
 
 class TextureObject(object):
@@ -511,11 +517,13 @@ class TextureObject(object):
         GL_UNSIGNED_BYTE is supported. For PIL images: texel_data is
         used as unsigned bytes.  This is the usual format for common
         computer graphics files."""
-
+        
         if image_data is not None: # check for deprecated parameter name
             if not hasattr(TextureObject,"_gave_put_new_image_data_warning"):
-                VisionEgg.Core.message.add("Using 'image_data' parameter name.  Use 'texel_data' instead",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
+                logger = logging.getLogger('VisionEgg.Textures')
+                logger.warning("Using deprecated 'image_data' "
+                               "parameter name.  Use 'texel_data' "
+                               "instead")
                 TextureObject._gave_put_new_image_data_warning = 1 # static variable set
             if texel_data is not None:
                 raise ValueError("Cannot set both texel_data and image_data")
@@ -695,7 +703,7 @@ class TextureObject(object):
             if self.dimensions == 2:
                 target = gl.GL_TEXTURE_2D
             else:
-                target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
+                target_name = 'GL_CUBE_MAP_'+cube_side.upper()
                 target = getattr(gl,target_name)
             gl.glTexImage2D(target,
                             mipmap_level,
@@ -738,11 +746,13 @@ class TextureObject(object):
 
         For an explanation of most parameters, see the
         put_new_image() method."""
-
+        
         if image_data is not None:  # check for deprecated parameter name
             if not hasattr(TextureObject,"_gave_put_sub_image_data_warning"):
-                VisionEgg.Core.message.add("Using 'image_data' parameter name.  Use 'texel_data' instead",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
+                logger = logging.getLogger('VisionEgg.Textures')
+                logger.warning("Using deprecated 'image_data' "
+                               "parameter name.  Use 'texel_data' "
+                               "instead")
                 TextureObject._gave_put_sub_image_data_warning = 1 # static variable set
             if texel_data is not None:
                 raise ValueError("Cannot set both texel_data and image_data")
@@ -836,7 +846,7 @@ class TextureObject(object):
             if self.dimensions == 2:
                 target = gl.GL_TEXTURE_2D
             else:
-                target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
+                target_name = 'GL_CUBE_MAP_'+cube_side.upper()
                 target = getattr(gl,target_name)
             if offset_tuple is None:
                 x_offset = y_offset = 0
@@ -1045,9 +1055,9 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                 else:
                     loaded_ok = 1
             if resized:
-                VisionEgg.Core.message.add(
-                    "Resized texture in %s to %d x %d"%(
-                    str(self),p.texture.size[0],p.texture.size[1]),VisionEgg.Core.Message.WARNING)
+                logger = logging.getLogger('VisionEgg.Textures')
+                logger.warning("Resized texture in %s to %d x %d"%(
+                    str(self),p.texture.size[0],p.texture.size[1]))
 
 class Mask2D(VisionEgg.ClassWithParameters):
     """A mask for windowing a portion of a texture.
@@ -1202,8 +1212,12 @@ class TextureStimulus(TextureStimulusBaseClass):
             self._reload_texture()
         if p.lowerleft != None:
             if not hasattr(VisionEgg.config,"_GAVE_LOWERLEFT_DEPRECATION"):
-                VisionEgg.Core.message.add("Specifying texture by 'lowerleft' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
+                logger = logging.getLogger('VisionEgg.Textures')
+                logger.warning("Specifying texture by 'lowerleft' "
+                               "deprecated parameter deprecated.  Use "
+                               "'position' parameter instead.  (Allows "
+                               "use of 'anchor' parameter to set to "
+                               "other values.)")
                 VisionEgg.config._GAVE_LOWERLEFT_DEPRECATION = 1
             p.anchor = 'lowerleft'
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)

@@ -14,10 +14,15 @@ Classes:
 Model3DS -- A 3D model from a .3ds file
 """
 
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
 
-import os, types, string
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
+import os
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
@@ -25,11 +30,11 @@ import VisionEgg.Textures
 import VisionEgg._lib3ds # helper functions in C
 import Numeric
 
-gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -97,7 +102,7 @@ class Model3DS(VisionEgg.Core.Stimulus):
             try:
                 texture = VisionEgg.Textures.Texture(filename)
             except IOError, x: # Might be file not found due to case error
-                texture = VisionEgg.Textures.Texture(string.lower(filename))
+                texture = VisionEgg.Textures.Texture(filename.lower())
             if not cp.shrink_texture_ok:
                 texture.load(VisionEgg.Textures.TextureObject(dimensions=2),
                              build_mipmaps=cp.mipmaps_enabled,
@@ -121,10 +126,9 @@ class Model3DS(VisionEgg.Core.Stimulus):
                     else:
                         loaded_ok = 1
                 if resized:
-                    VisionEgg.Core.message.add(
-                        "Resized texture in %s to %d x %d"%(
-                        str(self),texture.size[0],texture.size[1]),VisionEgg.Core.Message.WARNING)
-                        
+                    logger = logging.getLogger('VisionEgg.Lib3DS')
+                    logger.warning("Resized texture in %s to %d x %d"%(
+                        str(self),texture.size[0],texture.size[1]))
             tex_dict[filename] = texture.texture_object.gl_id # keep the GL texture object id
 
             # set the texture defaults

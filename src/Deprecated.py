@@ -39,12 +39,11 @@ class Message:
     FATAL = 6
 
     def __init__(self):
-        self.logger = logging.getLogger('VisionEgg.Deprecated')
-        script_name = sys.argv[0]
-        if not script_name:
-            script_name = "(interactive shell)"
+##        script_name = sys.argv[0]
+##        if not script_name:
+##            script_name = "(interactive shell)"
         self.pid = os.getpid()
-        self.logger.info("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,self.pid))
+##        self.logger.info("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,self.pid))
 
     def add(self,message,level=INFO,preserve_formatting=0,no_sys_stderr=0):
         level_translate = {
@@ -58,6 +57,8 @@ class Message:
             Message.FATAL       : logging.CRITICAL,
             }
         new_level = level_translate[ level ]
+        if not hasattr(self,"logger"):
+            self.logger = logging.getLogger('VisionEgg.Deprecated')
         self.logger.log(new_level,message + '\n(sent using deprecated VisionEgg.Core.Message class)')
         
     def format_string(self,in_str):

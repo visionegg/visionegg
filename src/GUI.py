@@ -23,9 +23,14 @@ except NameError:
 #
 ####################################################################
 
+
+try:
+    import logging                              # available in Python 2.3
+except ImportError:
+    import VisionEgg.py_logging as logging      # use local copy otherwise
+
 import VisionEgg
 import os
-import string
 import sys
 
 class _delay_import_error:
@@ -221,7 +226,11 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             self.tk_im=ImageTk.PhotoImage(im)
             Tkinter.Label(topframe,image=self.tk_im).grid(row=0,rowspan=topframe_row,column=0)
         except Exception,x:
-		VisionEgg.Core.message.add("No Vision Egg logo :( because of error while trying to display image in GUI.GraphicsConfigurationWindow: %s: %s"%(str(x.__class__),str(x)))
+            logger = logging.getLogger('VisionEgg.GUI')
+            logger.info("No Vision Egg logo :( because of error while "
+                        "trying to display image in "
+                        "GUI.GraphicsConfigurationWindow: %s: "
+                        "%s"%(str(x.__class__),str(x)))
 
         ################## end topframe ##############################
 
@@ -346,15 +355,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
 
-        # Record times
-        self.record_times = Tkinter.BooleanVar()
-        self.record_times.set(VisionEgg.config.VISIONEGG_RECORD_TIMES)
-        Tkinter.Checkbutton(cf,
-                            text='Record frame timing information',
-                            variable=self.record_times,
-                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-        cf_row += 1
-
         # Frameless window
         self.frameless = Tkinter.BooleanVar()
         self.frameless.set(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW)
@@ -373,24 +373,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
         
-        # Lock time to frames
-        self.lock_time_to_frames = Tkinter.BooleanVar()
-        self.lock_time_to_frames.set(VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES)
-        Tkinter.Checkbutton(cf,
-                            text='Lock time variables to framecount',
-                            variable=self.lock_time_to_frames,
-                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-        cf_row += 1
-        
-        # Log to console
-        self.log_to_console = Tkinter.BooleanVar()
-        self.log_to_console.set(VisionEgg.config.VISIONEGG_LOG_TO_STDERR)
-        Tkinter.Checkbutton(cf,
-                            text='Echo log messages to console',
-                            variable=self.log_to_console,
-                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-        cf_row += 1
-
         if sys.platform == 'darwin':
             if sys.version == '2.2 (#11, Jan  6 2002, 01:00:42) \n[GCC 2.95.2 19991024 (release)]':
                 if Tkinter.TkVersion == 8.4:
@@ -475,7 +457,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         gamma_frame = Tkinter.Frame(self)
         gamma_frame.grid(row=row,columnspan=2,sticky="we")
         self.gamma_source = Tkinter.StringVar()
-        self.gamma_source.set(string.lower(VisionEgg.config.VISIONEGG_GAMMA_SOURCE)) # can be 'none', 'invert', or 'file'
+        self.gamma_source.set(str(VisionEgg.config.VISIONEGG_GAMMA_SOURCE).lower()) # can be 'none', 'invert', or 'file'
         Tkinter.Label(gamma_frame,
                       text="Gamma:").grid(row=0,column=0)
         Tkinter.Radiobutton(gamma_frame,
@@ -566,7 +548,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
         min_line_length = 60
-        in_list = string.split(in_str)
+        in_list = in_str.split()
         out_str = ""
         cur_line = ""
         for word in in_list:
@@ -652,12 +634,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_GAMMA_FILE = self.gamma_file.get()
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
         VisionEgg.config.VISIONEGG_SYNC_SWAP = self.sync_swap.get()
-        VisionEgg.config.VISIONEGG_RECORD_TIMES = self.record_times.get()
         VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW = self.frameless.get()
         VisionEgg.config.VISIONEGG_HIDE_MOUSE = not self.mouse_visible.get()
-        VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES = self.lock_time_to_frames.get()
-        VisionEgg.config.VISIONEGG_LOG_TO_STDERR = self.log_to_console.get()
-#        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
         VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(self.color_depth.get())
@@ -685,7 +663,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         except IOError, x:
             try:
                 import tkMessageBox
-                if string.find(str(x),'Permission denied'):
+                if str(x).find('Permission denied') != -1:
                     tkMessageBox.showerror(title="Permission denied",
                                            message="Permission denied when trying to save settings.\n\nTry making a copy of the config file in the Vision Egg user directory %s and making sure you have write permission."%(os.path.abspath(VisionEgg.config.VISIONEGG_USER_DIR),))
             except:

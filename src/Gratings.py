@@ -12,12 +12,17 @@ all = ['AlphaGratingCommon', 'LuminanceGratingCommon',
 #
 ####################################################################
 
+try:
+    import logging                              # available in Python 2.3
+except ImportError:
+    import VisionEgg.py_logging as logging      # use local copy otherwise
+
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 import Numeric
-import math, types, string, warnings
+import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
@@ -77,11 +82,10 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
         blue_bits = gl.glGetIntegerv( gl.GL_BLUE_BITS )
         min_bits = min( (red_bits,green_bits,blue_bits) )
         if min_bits < p.bit_depth:
-            warnings.warn(
-                """Requested bit depth of %d, which is greater than
-                your current OpenGL context supports (%d)."""%
-                (p.bit_depth,min_bits),
-                UserWarning,stacklevel=2)
+            logger = logging.getLogger('VisionEgg.Gratings')
+            logger.warning("Requested bit depth of %d, which is "
+                           "greater than your current OpenGL context "
+                           "supports (%d)."% (p.bit_depth,min_bits))
         self.gl_internal_format = gl.GL_LUMINANCE
         self.format = gl.GL_LUMINANCE
         self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
@@ -111,11 +115,10 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
         p = self.parameters # shorthand
         alpha_bit_depth = gl.glGetIntegerv( gl.GL_ALPHA_BITS )
         if alpha_bit_depth < p.bit_depth:
-            warnings.warn(
-                """Requested bit depth of %d, which is greater than
-                your current OpenGL context supports (%d)."""%
-                (p.bit_depth,min_bits),
-                UserWarning,stacklevel=2)
+            logger = logging.getLogger('VisionEgg.Gratings')
+            logger.warning("Requested bit depth of %d, which is "
+                           "greater than your current OpenGL context "
+                           "supports (%d)."% (p.bit_depth,min_bits))
         self.gl_internal_format = gl.GL_ALPHA
         self.format = gl.GL_ALPHA
         self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
@@ -237,10 +240,10 @@ class SinGrating2D(LuminanceGratingCommon):
 
         if p.color2 is not None:
             if VisionEgg.Core.gl_renderer == 'ATi Rage 128 Pro OpenGL Engine' and VisionEgg.Core.gl_version == '1.1 ATI-1.2.22':
-                warnings.warn("Your video card and driver have known "+\
-                              "bugs which prevent them from rendering "+\
-                              "color gratings properly.",
-                              UserWarning,stacklevel=2)
+                logger = logging.getLogger('VisionEgg.Gratings')
+                logger.warning("Your video card and driver have known "
+                               "bugs which prevent them from rendering "
+                               "color gratings properly.")
 
     def __del__(self):
         gl.glDeleteTextures( [self._texture_object_id] )
@@ -248,9 +251,13 @@ class SinGrating2D(LuminanceGratingCommon):
     def draw(self):
         p = self.parameters # shorthand
         if p.center is not None:
-            warnings.warn("center parameter of SinGrating2D class will stop being supported. "+\
-                          "Use 'position' instead with anchor set to 'center'.",
-                          DeprecationWarning,stacklevel=2)
+            if not hasattr(SinGrating2D,"_gave_center_warning"):
+                logger = logging.getLogger('VisionEgg.Gratings')
+                logger.warning("center parameter of SinGrating2D class "
+                               "is deprecated and will stop being "
+                               "supported. Use 'position' instead "
+                               "with anchor set to 'center'.")
+                SinGrating2D._gave_center_warning = True
             p.anchor = 'center'
             p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
         if p.on:

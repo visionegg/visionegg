@@ -15,6 +15,12 @@ EncapsulatedController -- use a controller to control a controller
 
 """
 
+try:
+    import logging
+    import logging.handlers
+except ImportError:
+    import VisionEgg.py_logging as logging
+
 import VisionEgg
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import VisionEgg.ParameterTypes as ve_types
@@ -99,7 +105,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                        # XXX should really require VisionEgg.Core.Viewport
                        # but that would lead to circular import problem
                        ve_types.Sequence(ve_types.Instance(VisionEgg.ClassWithParameters))),
-        'collect_timing_info' : (None,
+        'collect_timing_info' : (True,
                                  ve_types.Boolean),
         'go_duration' : ((5.0,'seconds'),
                          ve_types.Sequence(ve_types.AnyOf(ve_types.Real,
@@ -129,9 +135,6 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         if self.parameters.viewports is None:
             self.parameters.viewports = []
-
-        if self.parameters.collect_timing_info is None:
-            self.parameters.collect_timing_info = VisionEgg.config.VISIONEGG_RECORD_TIMES
 
         if self.parameters.handle_event_callbacks is None:
             self.parameters.handle_event_callbacks = []
@@ -318,10 +321,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_absolute=VisionEgg.time_func()
 
         if p.override_t_abs_sec is not None:
-            if VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES:
-                raise RuntimeError("Cannot override absolute time in 'lock time to frames' mode")
-            else:
-                raise NotImplementedError("Cannot override absolute time yet")
+            raise NotImplementedError("Cannot override absolute time yet")
         
         self.last_go_loop_start_time_absolute_sec = self.time_sec_absolute
         self.time_sec_since_go = 0.0
@@ -430,48 +430,41 @@ class Presentation(VisionEgg.ClassWithParameters):
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
-                VisionEgg.Core.message.add(
-                    """Frame by frame control desired, but average
-                    frame rate was %.2f frames per second-- faster than
-                    any display device (that I know of).  Set your
-                    drivers to sync buffer swapping to vertical
-                    retrace. (platform/driver
-                    dependent)"""%(calculated_fps),
-                    level=VisionEgg.Core.Message.ERROR
-                    )
-                
+                logger = logging.getLogger('VisionEgg.FlowControl')
+                logger.error("Frame by frame control desired, but "
+                             "average frame rate was %.2f frames per "
+                             "second-- faster than any display device "
+                             "(that I know of).  Set your drivers to "
+                             "sync buffer swapping to vertical "
+                             "retrace. (platform/driver "
+                             "dependent)"%(calculated_fps))
         # Warn if > warn_mean_fps_threshold error in frame rate
         if abs(calculated_fps-VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) > self.parameters.warn_mean_fps_threshold:
-            VisionEgg.Core.message.add(
-                """Calculated frames per second was %.3f, while
-                the VISIONEGG_MONITOR_REFRESH_HZ variable is %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
-                level=VisionEgg.Core.Message.WARNING
-                )
-
+            logger = logging.getLogger('VisionEgg.FlowControl')
+            logger.warning("Calculated frames per second was %.3f, "
+                           "while the VISIONEGG_MONITOR_REFRESH_HZ "
+                           "variable is %s."%(calculated_fps,
+                           VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
         frame_skip_fraction = self.parameters.warn_longest_frame_threshold
         inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
 
         longest_frame_draw_time_sec = frame_timer.get_longest_frame_duration_sec()
         if longest_frame_draw_time_sec is not None:
+            logger = logging.getLogger('VisionEgg.FlowControl')
             if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
                 self.frames_dropped_in_last_go_loop = True
-                VisionEgg.Core.message.add(
-
-                    """One or more frames took %.1f msec, which is
-                    signficantly longer than the expected inter frame
-                    interval of %.1f msec for your frame rate (%.1f Hz)."""%(
-
-                    longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
-                    level=VisionEgg.Core.Message.WARNING)
+                logger.warning("One or more frames took %.1f msec, "
+                               "which is signficantly longer than the "
+                               "expected inter frame interval of %.1f "
+                               "msec for your frame rate (%.1f Hz)."%(
+                               longest_frame_draw_time_sec*1000.0,
+                               inter_frame_inteval*1000.0,
+                               VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
             else:
-                VisionEgg.Core.message.add(
-
-                    """Longest frame update was %.1f msec.  Your expected
-                    inter frame interval is %f msec."""%(
-
-                    longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
-                    level=VisionEgg.Core.Message.TRIVIAL)
-
+                logger.debug("Longest frame update was %.1f msec. "
+                             "Your expected inter frame interval is "
+                             "%f msec."%(longest_frame_draw_time_sec*1000.0,
+                             inter_frame_inteval*1000.0))
         if p.collect_timing_info:
             frame_timer.log_histogram()
         self.in_go_loop = 0
@@ -492,6 +485,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         def fake_time_func():
             return self.time_sec_absolute
         VisionEgg.time_func = fake_time_func
+
+        logger = logging.getLogger('VisionEgg.FlowControl')
         
         # Go!
             
@@ -553,7 +548,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             fb_image = screen.get_framebuffer_as_image(buffer='front',format=gl.GL_RGB)
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
             savepath = os.path.join( path, filename )
-            VisionEgg.Core.message.add("Saving '%s'"%filename)
+            logger.info("Saving '%s'"%filename)
             fb_image.save( savepath )
             image_no = image_no + 1
 
@@ -590,8 +585,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             synclync_connection.send_control_packet() # nothing in action_flags -- finishes go loop
 
         if len(screens) > 1:
-            VisionEgg.Core.message.add(
-                """Only saved movie from last screen.""", level=VisionEgg.Core.Message.INFO)
+            logger.warning("Only saved movie from last screen.")
 
         if screen.red_bits is not None:
             warn_about_movie_depth = 0
@@ -602,11 +596,8 @@ class Presentation(VisionEgg.ClassWithParameters):
             elif screen.blue_bits > 8:
                 warn_about_movie_depth = 1
             if warn_about_movie_depth:
-                VisionEgg.Core.message.add(
-                    """Only saved 8 bit per pixel movie, even
-                    though your framebuffer supports more!""",
-                    level=VisionEgg.Core.Message.WARNING)
-
+                logger.warning("Only saved 8 bit per pixel movie, even "
+                               "though your framebuffer supports more!")
         # Restore VisionEgg.time_func
         VisionEgg.time_func = true_time_func
 
@@ -878,19 +869,23 @@ class ConstantController(Controller):
         self.between_go_value = between_go_value
 
     def set_during_go_value(self,during_go_value):
-        if type(during_go_value) is not self.return_type:
-            raise TypeError("during_go_value must be %s"%self.return_type)
-        else:
-            self.during_go_value = during_go_value
+        ve_types.assert_type(ve_types.get_type(during_go_value),self.return_type)
+        self.during_go_value = during_go_value
+##        if ve_types.get_type(during_go_value) is not self.return_type:
+##            raise TypeError("during_go_value must be %s"%str(self.return_type))
+##        else:
+##            self.during_go_value = during_go_value
 
     def get_during_go_value(self):
         return self.during_go_value
         
     def set_between_go_value(self,between_go_value):
-        if type(between_go_value) is not self.return_type:
-            raise TypeError("between_go_value must be %s"%self.return_type)
-        else:
-            self.between_go_value = between_go_value
+        ve_types.assert_type(ve_types.get_type(between_go_value),self.return_type)
+        self.between_go_value = between_go_value
+##        if ve_types.get_type(between_go_value) is not self.return_type:
+##            raise TypeError("between_go_value must be %s"%str(self.return_type))
+##        else:
+##            self.between_go_value = between_go_value
 
     def get_between_go_value(self):
         return self.between_go_value
@@ -967,13 +962,12 @@ class EvalStringController(Controller):
         if not_between_go:
             self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
         if set_return_type:
+            logger = logging.getLogger('VisionEgg.FlowControl')
             if not (self.eval_frequency & Controller.NOT_DURING_GO):
-                VisionEgg.Core.message.add('Executing "%s" to test for return type.'%(during_go_eval_string,),
-                            VisionEgg.Core.Message.TRIVIAL)
+                logger.debug( 'Executing "%s" to test for return type.'%(during_go_eval_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=1))
             elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
-                VisionEgg.Core.message.add('Executing "%s" to test for return type.'%(between_go_eval_string,),
-                            VisionEgg.Core.Message.TRIVIAL)
+                logger.debug('Executing "%s" to test for return type.'%(between_go_eval_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=0))
                 
     def set_during_go_eval_string(self,during_go_eval_string):
@@ -1053,7 +1047,7 @@ class ExecStringController(Controller):
         self.eval_globals = {}
 
         if during_go_exec_string is None:
-            raise ValueError("'during_go_exec_string' is a required argument")
+            raise ValueError, "'during_go_exec_string' is a required argument"
 
         self.restricted_namespace = restricted_namespace
 
@@ -1087,13 +1081,12 @@ class ExecStringController(Controller):
         if not_between_go:
             self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO        
         if set_return_type:
+            logger = logging.getLogger('VisionEgg.FlowControl')
             if not (self.eval_frequency & Controller.NOT_DURING_GO):
-                VisionEgg.Core.message.add('Executing "%s" to test for return type.'%(during_go_exec_string,),
-                            VisionEgg.Core.Message.TRIVIAL)
+                logger.debug('Executing "%s" to test for return type.'%(during_go_exec_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=1))
             elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
-                VisionEgg.Core.message.add('Executing "%s" to test for return type.'%(between_go_exec_string,),
-                            VisionEgg.Core.Message.TRIVIAL)
+                logger.debug('Executing "%s" to test for return type.'%(between_go_exec_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=0))
 
     def set_during_go_exec_string(self,during_go_exec_string):
@@ -1202,8 +1195,8 @@ class FunctionController(Controller):
 
         # Check to make sure return_type is set
         if not kw.has_key('return_type'):
-            VisionEgg.Core.message.add('Evaluating %s to test for return type.'%(str(during_go_func),),
-                        VisionEgg.Core.Message.TRIVIAL)
+            logger = logging.getLogger('VisionEgg.FlowControl')
+            logger.debug('Evaluating %s to test for return type.'%(str(during_go_func),))
             call_args = {}
             if kw['temporal_variables'] & Controller.TIME_SEC_ABSOLUTE:
                 call_args['t_abs'] = VisionEgg.time_func()
