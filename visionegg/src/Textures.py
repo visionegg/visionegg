@@ -25,18 +25,20 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 ############ Import texture compression stuff and use it, if possible ##############
 # This may mess up image statistics! Check the output before using in an experiment!
 
-try:
-    import OpenGL.GL.ARB.texture_compression #   can use this to fit more textures in texture memory
-    # This following function call doesn't seem to return any
-    # useful info, at least on my PowerBook G4.  So it's commented
-    # out for now.
-    ## if not OpenGL.GL.ARB.texture_compression.glInitTextureCompressionARB(): 
-        ## VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-    for attr in dir(OpenGL.GL.ARB.texture_compression):
-        # Put all OpenGL extension names into "gl" variable
-        setattr(gl,attr,getattr(OpenGL.GL.ARB.texture_compression,attr))
-except:
-    VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
+##try:
+##    import OpenGL.GL.ARB.texture_compression #   can use this to fit more textures in texture memory
+##    # This following function call doesn't seem to return any
+##    # useful info, at least on my PowerBook G4.  So it's commented
+##    # out for now.
+##    ## if not OpenGL.GL.ARB.texture_compression.glInitTextureCompressionARB(): 
+##        ## VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
+##    for attr in dir(OpenGL.GL.ARB.texture_compression):
+##        # Put all OpenGL extension names into "gl" variable
+##        setattr(gl,attr,getattr(OpenGL.GL.ARB.texture_compression,attr))
+##except:
+##    VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
+# Don't use texture compression.  (XXX Should remove this as a config variable.)
+VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
 
 def __no_clamp_to_edge_callback():
     # Error callback automatically called if OpenGL version < 1.2
