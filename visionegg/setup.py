@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Setup script for the Vision Egg distribution.
 """
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
 name             = "visionegg"
@@ -54,6 +54,8 @@ classifiers = [
 from distutils.core import setup, Extension
 from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError
+import distutils.command.sdist
+from distutils import dir_util
 import sys, os.path, glob, traceback
 
 package_dir      = {'VisionEgg'          : 'src',
@@ -141,46 +143,48 @@ if not skip_c_compilation:
                                  extra_link_args=gl_extra_link_args
                                  ))
     
-# Find the demo scripts
-def visit_script_dir(scripts, dirname, filenames):
-    for filename in filenames:
-        if filename.endswith('.py') or filename.endswith('.pyw'):
-            if filename != '__init__.py':
-                scripts.append(os.path.join(dirname,filename))
-
-def gather_scripts():
-    scripts = []
-    os.path.walk('demo',visit_script_dir,scripts)
-    os.path.walk('test',visit_script_dir,scripts)
-    return scripts
-
-def organize_script_dirs(scripts):
-    scripts_by_dir = {}
-    for script in scripts:
-        dirname = os.path.join('VisionEgg',os.path.split(script)[0])
-        if dirname not in scripts_by_dir.keys():
-            scripts_by_dir[dirname] = []
-        scripts_by_dir[dirname].append(script)
-    organized = []
-    for dirname in scripts_by_dir.keys():
-        organized.append( (dirname, scripts_by_dir[dirname]) )
-    return organized
-
-scripts = gather_scripts()
-data_files = organize_script_dirs(scripts)
+data_files = []
 data_dir = os.path.join('VisionEgg','data')
-demo_dir = os.path.join('VisionEgg','demo')
+test_dir = os.path.join('VisionEgg','test')
 data_files.append( (data_dir,[os.path.join('data','water.mov')]) )
 data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
 data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
-data_files.append( (demo_dir,[os.path.join('demo','README.txt')]) )
+data_files.append( (data_dir,[os.path.join('test','conform.py')]) )
+data_files.append( (data_dir,[os.path.join('test','opengl_info.py')]) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 global extension_build_failed
 extension_build_failed = 0
 
+class sdist_demo( distutils.command.sdist.sdist ):
+    description = 'build demos and documentation'
+
+    def get_file_list (self):
+        distutils.command.sdist.sdist.get_file_list(self)
+        new_files = []
+        for orig_file in self.filelist.files:
+            if orig_file.startswith('demo') or orig_file.startswith('doc') or orig_file.startswith('test'):
+                new_files.append(orig_file)
+            elif orig_file in ['check-config.py',
+                               'VisionEgg.cfg',
+                               'CHANGELOG.txt',
+                               'README-DEMOS.txt',
+                               'LICENSE.txt',
+                               ]:
+                new_files.append(orig_file)
+        self.filelist.files = new_files
+
+    def make_distribution (self):
+        # call sdist make_distribution after changing our name
+        base_fullname = self.distribution.get_fullname()
+        fullname = base_fullname + "-demo"
+        def get_fullname():
+            return fullname
+        self.distribution.get_fullname = get_fullname # override this method
+        distutils.command.sdist.sdist.make_distribution(self) # call super
+        
 class ve_build_ext( build_ext ):
     # This class allows C extension building to fail.
     # No extension is essential to the Vision Egg.
@@ -233,7 +237,9 @@ def main():
         ext_modules=ext_modules,
         data_files=data_files,
         long_description=long_description,
-        cmdclass={'build_ext':ve_build_ext}, # replace Python default build_ext class with ours
+        cmdclass={'build_ext':ve_build_ext,
+                  'sdist_demo':sdist_demo,
+                  }, # replace Python default build_ext class with ours
         classifiers=classifiers
         )
 
