@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     # get Vision Egg stimulus ready to go
     screen = VisionEgg.Core.Screen.create_default()
-    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/mercator.png")
+    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
     texture = VisionEgg.Textures.Texture(filename)
     sphere_map = VisionEgg.SphereMap.SphereMap(texture=texture,
                                                shrink_texture_ok=1,

@@ -127,7 +127,7 @@ def organize_script_dirs(scripts):
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
 data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
-data_files.append( ('VisionEgg/data',['data/mercator.png']) )
+data_files.append( ('VisionEgg/data',['data/az_el.png']) )
 data_files.append( ('VisionEgg/data',['data/visionegg.bmp']) )
 data_files.append( ('VisionEgg/data',['data/visionegg.tif']) )
 data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
