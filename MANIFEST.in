@@ -25,6 +25,7 @@ include demo/GUI/*.py
 include demo/Pyro/*.py
 include test/*.py
 include data/panorama.jpg
+include data/spiral.png
 include data/az_el.png
 include data/visionegg.bmp
 include data/visionegg.tif
