@@ -67,9 +67,9 @@ class Model3DS(VisionEgg.Core.Stimulus):
         # now load the textures to OpenGL
         for filename in tex_dict.keys():
             try:
-                texture = VisionEgg.Textures.TextureFromFile(filename)
+                texture = VisionEgg.Textures.Texture(filename)
             except IOError, x: # Might be file not found due to case error
-                texture = VisionEgg.Textures.TextureFromFile(string.lower(filename))
+                texture = VisionEgg.Textures.Texture(string.lower(filename))
             current_texture_object = TextureObject(dimensions=2)
             texture.load(current_texture_object,
                          build_mipmaps=1,

@@ -33,7 +33,7 @@ target_viewport = Viewport(screen=screen, stimuli=[target])
 
 # Get a texture
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
-texture = TextureFromFile(filename)
+texture = Texture(filename)
 
 # Create an instance of SpinningDrum class
 drum = SpinningDrum(texture=texture,shrink_texture_ok=1)

@@ -123,7 +123,7 @@ if config.VISIONEGG_FULLSCREEN==1:
 
 # Get a texture
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
-texture = TextureFromFile(filename)
+texture = Texture(filename)
 
 drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
 fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
