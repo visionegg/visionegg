@@ -9,9 +9,12 @@
 # functionality.
 skip_c_compilation = 0
 
+compile_syncmaster = 0
+
 from distutils.core import setup, Extension
 import sys
 import os.path
+import glob
 
 # Normal distutils stuff
 name="visionegg"
@@ -46,22 +49,51 @@ Andrew
 
 # Fill out ext_modules
 if not skip_c_compilation:
+    # _maxpriority
     ext_modules.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
-if sys.platform == "darwin" and not skip_c_compilation:
-    ext_modules.append(Extension(name='_darwin_sync_swap',
-                                sources=['src/_darwin_sync_swap.m'],
-                                include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
-                                              '/System/Library/Frameworks/Cocoa.framework/Headers',
-                                              ],
-                                extra_link_args=['-framework','OpenGL'],
-                                ))
+    # _lib3ds
+    lib3ds_sources = glob.glob('lib3ds/*.c')
+    lib3ds_sources.append('src/_lib3ds.c')
+    ext_modules.append(Extension(name='_lib3ds',
+                                 sources=lib3ds_sources,
+                                 include_dirs=['.'],
+                                 ))
+        
+    if compile_syncmaster:
+        # SyncMaster
+        sources=['src/SyncMaster.c'],
+        include_dir='src/syncmaster'
+        library_dir='src/syncmaster'
+        if sys.platform == 'darwin':
+            libraries=None
+            extra_link_args = ['-framework','SyncMaster']
+        else:
+            libraries=["syncmaster"]
+            extra_link_args = None
 
-if sys.platform == 'linux2' and not skip_c_compilation:
-    ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
+        ext_modules.append(Extension(name='SyncMaster',
+                                     sources=['src/SyncMaster.c'],
+                                     include_dirs=[include_dir],
+                                     libraries=libraries,
+                                     library_dirs=[library_dir],
+                                     extra_link_args=extra_link_args
+                                     ))
 
-if sys.platform[:4] == 'irix' and not skip_c_compilation:
-    ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
+    if sys.platform == "darwin":
+        ext_modules.append(Extension(name='_darwin_sync_swap',
+                                     sources=['src/_darwin_sync_swap.m'],
+                                     include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
+                                                   '/System/Library/Frameworks/Cocoa.framework/Headers',
+                                                   ],
+                                     extra_link_args=['-framework','OpenGL'],
+                                     ))
+
+    if sys.platform == 'linux2':
+        ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
+
+    if sys.platform[:4] == 'irix':
+        ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
 # Fill out data_files
 def visit_script_dir(scripts, dirname, filenames):
