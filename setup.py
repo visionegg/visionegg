@@ -48,6 +48,8 @@ classifiers = [
     'Topic :: Multimedia :: Graphics',
     'Topic :: Scientific/Engineering',
     'Topic :: Scientific/Engineering :: Medical Science Apps.',
+    'Topic :: Scientific/Engineering :: Visualization',
+    'Topic :: Scientific/Engineering :: Neuroscience',
     ]
 
 from distutils.core import setup, Extension
