@@ -40,10 +40,10 @@ from math import *
 import os
 import time
 
-class BlurDrumGui(Tkinter.Frame):
+class BlurDrumGui(AppWindow):
     def __init__(self,master=None,**cnf):
 
-        apply(Tkinter.Frame.__init__,(self,master),cnf)
+        apply(AppWindow.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Motion blurred drum')
         self.pack(expand=1,fill=Tkinter.BOTH)
 
@@ -90,12 +90,9 @@ class BlurDrumGui(Tkinter.Frame):
         # Go button
         Tkinter.Button(self,text="go",command=self.go).pack()
 
-        # Now, create the stimulus
         self.validate_pos_string()
         self.validate_c_string()
-        pan_filename = "orig.bmp"
-        print "blurDemoGUI.py using original file '%s'."%pan_filename
-
+ 
     def positionFunction(self,t):
         return eval(self.validated_pos_string)
 
@@ -127,13 +124,6 @@ class BlurDrumGui(Tkinter.Frame):
         self.validate_c_string()
         p.go()
 
-    def other_idle(self):
-        self.after_idle(self.idle) # register idle function
-
-    def idle(self):
-        p.between_presentations()
-        self.after(1,self.idle) # register other_idle function
-
 default_max_speed = 500.0
 
 screen = get_default_screen() # initialize graphics
@@ -150,7 +140,7 @@ viewport.add_stimulus(drum)
 viewport.add_overlay(fixation_spot)
 
 p = Presentation(viewports=[viewport])
-gui_window = BlurDrumGui()
+gui_window = BlurDrumGui(idle_func=p.between_presentations)
 
 p.add_transitional_controller(fixation_spot.parameters,'on',lambda t: gui_window.fixation_spot.get())
 p.add_transitional_controller(drum.parameters,'motion_blur_on',lambda t: gui_window.blur_on.get())
@@ -158,7 +148,5 @@ p.add_transitional_controller(p.parameters,'duration_sec',lambda t: gui_window.d
 p.add_realtime_controller(drum.parameters,'angle',gui_window.positionFunction)
 p.add_realtime_controller(drum.parameters,'contrast',gui_window.contrastFunction)
 
-p.between_presentations() # call once
-gui_window.after_idle(gui_window.idle) # Let the window run stuff when idle
 gui_window.mainloop()
 
