@@ -51,7 +51,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.2'
+release_name = '0.9.3a0'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
@@ -98,10 +98,19 @@ if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
         # print exception to dialog
         traceback_stream = StringIO.StringIO()
         traceback.print_tb(exc_traceback,None,traceback_stream)
-        try:
-            GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
-        except:
-            pass
+        pygame_bug_workaround = 0 # do we need to workaround pygame bug?
+        if hasattr(config,"_pygame_started"):
+            if config._pygame_started:
+                pygame_bug_workaround = 1
+        if sys.platform == "linux2": # doesn't affect linux for some reason
+            pygame_bug_workaround = 0
+        if not pygame_bug_workaround:
+            try:
+                frame = GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
+                frame.mainloop()
+            except:
+                sys.stderr.write("2nd exception while trying to use GUI.showexception: ")
+                traceback.print_exc()
     class _ExceptionHookKeeper:
         def __init__(self):
             self.orig_hook = sys.excepthook
@@ -287,6 +296,16 @@ class ClassWithParameters:
                 return klass.parameters_and_defaults[parameter_name][1]
         # The for loop only completes if parameter_name is not in any subclass
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
+
+class StaticClassMethod:
+    """Used within the Vision Egg to create static class methods.
+
+    This comes from Alex Martelli's recipe at
+    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52304
+    Static class methods are methods which do not require the class to
+    be instantiated.  In fact, they are often used as constructors."""
+    def __init__(self,method):
+        self.__call__ = method
 
 def get_type(value):
     """Get the type of a value.
