@@ -25,7 +25,6 @@
 #include <math.h>
 
 #if defined(MS_WINDOWS)
-#  pragma comment(lib, "opengl32.lib")
 #  include <windows.h>
 #endif
 

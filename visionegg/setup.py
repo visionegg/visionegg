@@ -55,14 +55,13 @@ if not skip_c_compilation:
     lib3ds_sources.append('src/_lib3ds.c')
     if sys.platform == 'darwin':
         extra_link_args = ['-framework','OpenGL']
-    else:
-        extra_link_args = []
+    elif sys.platform == 'win32':
+        extra_link_args = ['-lopengl32']
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
                                  extra_link_args=extra_link_args
                                  ))
-        
     if sys.platform == "darwin":
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
