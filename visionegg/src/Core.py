@@ -412,11 +412,20 @@ class Screen(VisionEgg.ClassWithParameters):
     create_default = VisionEgg.StaticClassMethod(create_default)
             
 def get_default_screen():
-    """DEPRECATED: Use Screen.create_default() instead."""
-    message.add(message="Called VisionEgg.Core.get_default_screen(). Use VisionEgg.Core.Screen.create_default() instead",
-                level=Message.DEPRECATION)
+    """Make an instance of Screen using a GUI window or from config file."""
+    # I'm thinking about deprecating this function -- what do people think??
+    
+    # I think it is cleaner (although less intuitive to those that
+    # don't know object oriented programming) to use an alternate
+    # constructor of class Screen to create an instance of Screen
+    # based on the values in VisionEgg.config (including the "use GUI"
+    # toggle -- VISIONEGG_GUI_INIT).  In other words, I like "screen =
+    # Screen.create_default()" more than "screen =
+    # get_default_screen()".
+    
+    #message.add(message="Called VisionEgg.Core.get_default_screen(). Use VisionEgg.Core.Screen.create_default() instead",
+    #            level=Message.DEPRECATION)
     return Screen.create_default()
-
 
 ####################################################################
 #
@@ -2070,7 +2079,12 @@ class Message:
             else:
                 raise TypeError("argument output_stream must have write and flush methods.")
         if self.output_stream != sys.stderr:
+            VisionEgg.config._orig_stderr = sys.stderr # save original stderr
+            # reassign stderr to print to logfile
             sys.stderr = self.output_stream
+            VisionEgg.config._orig_stderr.write("Vision Egg logging to %s\n"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),))
+            VisionEgg.config._orig_stderr.flush()
+            
         self.add(sys.argv[0]+" started.",level=Message.INFO)
 
     def __del__(self):
