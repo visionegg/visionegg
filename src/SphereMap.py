@@ -3,22 +3,23 @@
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
-import math, types, string
+import math, types
 
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.Text
 import VisionEgg.Gratings
+import VisionEgg.ThreeDeeMath
 import VisionEgg.ParameterTypes as ve_types
 
 import Numeric  				# Numeric Python package
 import Image
 
-import OpenGL.GL as gl
+gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -48,8 +49,10 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                                            ve_types.Sequence4(ve_types.Real))),
         'my_viewport':(None, # viewport I'm in
                        ve_types.Instance(VisionEgg.Core.Viewport)),
-        'text_viewport':(None, # viewport to draw az and el with, set automatically if not given
-                         ve_types.Instance(VisionEgg.Core.Viewport)),
+        'text_offset':((3,-2), # offset (x,y) to nudge text labels
+                       ve_types.Sequence2(ve_types.Real)),
+        'anti_aliasing' : ( True,
+                            ve_types.Boolean ),
         }
     constant_parameters_and_defaults = {
         'use_text':(True,
@@ -79,6 +82,8 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         self.cached_minor_lines_display_list = gl.glGenLists(1) # Allocate a new display list
         self.cached_major_lines_display_list = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_lists()
+        self.text_viewport = None # not set yet
+        self._gave_alpha_warning = False
         
     def __rebuild_display_lists(self):
         def get_xyz(theta,phi,radius):
@@ -145,10 +150,9 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         if cp.use_text:
             self.labels = []
             self.labels_xyz = []
-            for az in azs_major:
-                for el in els_major:
-                    if el == -90:
-                        continue
+            els_major = list(els_major)+[90.0] # make sure we have north pole
+            for el in els_major:
+                for az in azs_major:
                     theta = -(el-90) / 180.0 * math.pi
                     phi = (az-90.0)/180.0*math.pi
                     x,y,z = get_xyz(theta,phi,cp.radius)
@@ -160,6 +164,10 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                                              anchor = cp.text_anchor,
                                              )
                         )
+                    if (el == -90) or (el == 90):
+                        self.labels[-1].parameters.text = 'x, %.0f'%(el,)
+                        break # only one label at the poles
+
             self.labels_xyz = Numeric.array(self.labels_xyz)
 
     def draw(self):
@@ -167,38 +175,84 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         cp = self.constant_parameters
         if p.on:
             # Set OpenGL state variables
-            gl.glEnable( gl.GL_DEPTH_TEST )
+            gl.glDisable( gl.GL_DEPTH_TEST )
             gl.glDisable( gl.GL_TEXTURE_2D )  # Make sure textures are not drawn
-            gl.glDisable( gl.GL_BLEND )
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
             
             gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
             gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
 
-            gl.glColor(*p.minor_line_color)
+            if p.anti_aliasing:
+                if len(p.minor_line_color) == 4 and not self._gave_alpha_warning:
+                    if p.minor_line_color[3] != 1.0:
+                        VisionEgg.Core.message.add(
+                            """The parameter anti_aliasing is set to
+                            true in the AzElGrid stimulus class, but
+                            the color parameter specifies an alpha
+                            value other than 1.0.  To acheive the best
+                            anti-aliasing, ensure that the alpha value
+                            for the color parameter is 1.0.""",
+                            level=VisionEgg.Core.Message.WARNING)
+                        self._gave_alpha_warning = 1
+                if len(p.major_line_color) == 4 and not self._gave_alpha_warning:
+                    if p.major_line_color[3] != 1.0:
+                        VisionEgg.Core.message.add(
+                            """The parameter anti_aliasing is set to
+                            true in the AzElGrid stimulus class, but
+                            the color parameter specifies an alpha
+                            value other than 1.0.  To acheive the best
+                            anti-aliasing, ensure that the alpha value
+                            for the color parameter is 1.0.""",
+                            level=VisionEgg.Core.Message.WARNING)
+                        self._gave_alpha_warning = 1
+                gl.glEnable( gl.GL_LINE_SMOOTH )
+                # allow max_alpha value to control blending
+                gl.glEnable( gl.GL_BLEND )
+                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
+            else:
+                gl.glDisable( gl.GL_BLEND )
+
+            gl.glColorf(p.minor_line_color)
             gl.glLineWidth(p.minor_line_width)
             gl.glCallList(self.cached_minor_lines_display_list)
 
-            gl.glColor(*p.major_line_color)
+            gl.glColorf(p.major_line_color)
             gl.glLineWidth(p.major_line_width)
             gl.glCallList(self.cached_major_lines_display_list)
 
+            if p.anti_aliasing:
+                gl.glDisable( gl.GL_LINE_SMOOTH ) # turn off
+
             if cp.use_text:
-                if (p.my_viewport is None) or (self not in p.my_viewport.parameters.stimuli):
-                    # XXX could also make Viewport parameter is_drawing and check that
+                my_view = p.my_viewport
+                if (my_view is None) or (not my_view._is_drawing):
                     raise ValueError('use_text is True, but my_viewport not (properly) assigned')
                 
-                if p.text_viewport is None:
-                    # make viewport for text
-                    p.text_viewport = VisionEgg.Core.Viewport(screen=p.my_viewport.parameters.screen)
-                
-                # save original stimuli
-                orig_stimuli = p.text_viewport.parameters.stimuli 
+                if self.text_viewport is None or self.text_viewport_orig != my_view:
+                    # make viewport for text (uses default orthographic projection)
+                    vp = my_view.parameters
+                    self.text_viewport = VisionEgg.Core.Viewport(screen=vp.screen,
+                                                                 position=vp.position,
+                                                                 size=vp.size,
+                                                                 anchor=vp.anchor,
+                                                                 )
+                    lowerleft = VisionEgg._get_lowerleft(vp.position,vp.anchor,vp.size)
+                    self.text_viewport.parameters.projection.stateless_translate(-lowerleft[0],-lowerleft[1],0)
+                    self.text_viewport_orig = p.my_viewport # in case my_viewport changes, change text_viewport
+                        
                 # draw text labels
-                my_view = p.my_viewport
                 my_proj = my_view.parameters.projection
-                clip = my_proj.eye_2_clip(self.labels_xyz)
+
+                xyz = self.labels_xyz
+
+                t = VisionEgg.ThreeDeeMath.TransformMatrix()
+                t.rotate( p.center_azimuth,0.0,-1.0,0.0  ) # acheive same transforms as the lines
+                t.rotate( p.center_elevation,1.0,0.0,0.0 )
+
+                xyz = t.transform_vertices(self.labels_xyz)
+                
+                clip = my_proj.eye_2_clip(xyz)
                 try:
                     # this is much faster when no OverflowError...
                     window_coords = my_view.clip_2_window(clip)
@@ -210,18 +264,19 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                     if clip[i,3] < 0: continue # this vertex is not on screen
                     label = self.labels[i]
                     if all_at_once:
-                        label.parameters.position = window_coords[i,:2]
+                        this_pos = window_coords[i,:2]
                     else:
                         try:
                             window_coords = my_view.clip_2_window(clip[i,:])
                         except OverflowError:
                             continue # not much we can do with this vertex, either
-                        label.parameters.position = window_coords[:2]
+                        this_pos = window_coords[:2]
+                    label.parameters.position = (this_pos[0] + p.text_offset[0],
+                                                 this_pos[1] + p.text_offset[1])
                     draw_labels.append(label)
-                p.text_viewport.parameters.stimuli = draw_labels
-                p.text_viewport.draw()
-                # restore original stimuli
-                p.text_viewport.parameters.stimuli = orig_stimuli
+                self.text_viewport.parameters.stimuli = draw_labels
+                self.text_viewport.draw()
+                my_view.make_current() # restore viewport
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     """Mercator mapping of rectangular texture onto sphere."""
@@ -347,7 +402,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
@@ -482,9 +537,6 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR_MIPMAP_LINEAR)
-#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_NEAREST_MIPMAP_NEAREST)
-#        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR_MIPMAP_NEAREST)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,p.min_filter)
         self._cached_num_samples = p.num_samples
 
