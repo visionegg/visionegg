@@ -23,17 +23,16 @@ elif len(sys.argv) == 3:
     port = int(sys.argv[2])
     
 tcp_server = TCPServer(hostname=hostname,port=port)
+tcp_listener = tcp_server.create_listener_once_connected()
 
-phase_controller = tcp_server.create_tcp_controller(
+phase_controller = tcp_listener.create_tcp_controller(
     tcp_name="stimulus.phase",
     initial_controller=EvalStringController(during_go_eval_string="%f*t*360.0"%(temporal_frequency_hz,))
     )
-contrast_controller = tcp_server.create_tcp_controller(
+contrast_controller = tcp_listener.create_tcp_controller(
     tcp_name="stimulus.contrast",
     initial_controller=ConstantController(during_go_value=1.0)
     )
-
-tcp_server.wait_for_one_connection()
 
 # Initialize OpenGL graphics screen.
 screen = get_default_screen()
@@ -57,6 +56,7 @@ viewport = Viewport( screen=screen, stimuli=[stimulus] )
 p = Presentation(duration=(60.0,'seconds'),viewports=[viewport],check_events=1)
 
 # Register the controller functions
+p.add_controller(None,None, tcp_listener) # Actually listens to the TCP socket
 p.add_controller(stimulus,'phase', phase_controller)
 p.add_controller(stimulus,'contrast', contrast_controller)
 
