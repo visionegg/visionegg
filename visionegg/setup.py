@@ -57,7 +57,7 @@ if not skip_c_compilation:
     lib3ds_sources.append('src/_lib3ds.c')
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
-                                 include_dirs=['.'],
+                                 include_dirs=['.','lib3ds'],
                                  ))
         
     if compile_syncmaster:
