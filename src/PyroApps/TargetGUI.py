@@ -185,7 +185,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
             self.meta_params.bgcolor = (0.0,0.0,0.0,0.0)
         
         if self.ortho_tk_var.get():
-            self.meta_params.orientation_deg = math.fmod(0.0-self.meta_params.direction_deg,360.0)
+            self.meta_params.orientation_deg = math.fmod(self.meta_params.direction_deg,360.0)
         else:
             self.meta_params.orientation_deg = self.orient_tk_var.get()
         self.meta_params.width = self.width_tk_var.get()

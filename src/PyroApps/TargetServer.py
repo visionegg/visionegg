@@ -20,12 +20,12 @@ from VisionEgg.PyroApps.TargetGUI import TargetMetaParameters
 
 class TargetExperimentMetaController( Pyro.core.ObjBase ):
     def __init__(self,screen,presentation,stimuli):
+        Pyro.core.ObjBase.__init__(self)
 
         # get stimulus
         assert( stimuli[0][0] == '2d_overlay')
         target = stimuli[0][1]
         
-        Pyro.core.ObjBase.__init__(self)
         self.meta_params = TargetMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
