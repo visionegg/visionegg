@@ -1135,7 +1135,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'flat':(0,types.IntType), # toggles flat vs. cylinder
                                'flip_image':(0,types.IntType), # toggles normal vs. horizonally flipped image
                                'radius':(1.0,types.FloatType), # radius if cylinder, z distance if flat
-                               'position':( (0.0,0.0,0.0), types.TupleType), # 3D position of drum center
+                               'position':( (0.0,0.0,0.0), types.TupleType), # (3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus)
+                               'anchor':( 'lowerleft', types.StringType), # only in flat: same as anchor parameter of TextureStimulus
                                'drum_center_azimuth':(0.0,types.FloatType), # changes orientation of drum in space
                                'drum_center_elevation':(0.0,types.FloatType), # changes orientation of drum in space
                                'orientation':(0.0,types.FloatType) # 0=right, 90=down
@@ -1195,9 +1196,10 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
+                lowerleft = self._get_lowerleft_flat()
                 # do the orientation
                 gl.glRotatef(p.orientation,0.0,0.0,-1.0)
-                gl.glTranslate(p.position[0],p.position[1],p.position[2])
+                gl.glTranslate(lowerleft[0],lowerleft[1],lowerleft[2])
                 
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
@@ -1342,6 +1344,32 @@ class SpinningDrum(TextureStimulusBaseClass):
                 gl.glVertex4f( x1,  h, z1, 1.0 )
             gl.glEnd()
             gl.glEndList()
+            
+    def _get_lowerleft_flat(self):
+        """Only used when stimulus is flat"""
+        p = self.parameters
+        size = p.texture.size
+        if p.anchor == 'lowerleft':
+            lowerleft = p.position
+        elif p.anchor == 'center':
+            lowerleft = (p.position[0] - size[0]/2.0,p.position[1] - size[1]/2.0)
+        elif p.anchor == 'lowerright':
+            lowerleft = (p.position[0] - size[0],p.position[1])
+        elif p.anchor == 'upperright':
+            lowerleft = (p.position[0] - size[0],p.position[1] - size[1])
+        elif p.anchor == 'upperleft':
+            lowerleft = (p.position[0],p.position[1] - size[1])
+        elif p.anchor == 'left':
+            lowerleft = (p.position[0],p.position[1] - size[1]/2.0)
+        elif p.anchor == 'right':
+            lowerleft = (p.position[0] - size[0],p.position[1] - size[1]/2.0)
+        elif p.anchor == 'bottom':
+            lowerleft = (p.position[0] - size[0]/2.0,p.position[1])
+        elif p.anchor == 'top':
+            lowerleft = (p.position[0] - size[0]/2.0,p.position[1] - size[1])
+        else:
+            raise ValueError("No anchor position %s"%p.anchor)
+        return lowerleft[0], lowerleft[1], p.position[2]
 
 class TextureTooLargeError(VisionEgg.Core.EggError):
     pass
