@@ -14,6 +14,7 @@ import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
 import math,types
 import OpenGL.GL
+import Numeric
 gl = OpenGL.GL
 
 # These modules are part of PIL and get loaded as needed by Image.
@@ -102,6 +103,10 @@ class Texture:
         # everything organized, and making the world a better place.
         # For now, though, we're stuck with this!
 
+        # Is there already a copy loaded into OpenGL video RAM?
+        if hasattr(self,'_loaded_texID'):
+            return self._loaded_texID
+
         # Create a buffer whose sides are a power of 2
         def next_power_of_2(f):
             return max(math.pow(2.0,math.ceil(math.log(f)/math.log(2.0))),1.0)
@@ -164,6 +169,7 @@ class Texture:
                 biggest_dim = max(this_width,this_height)
         
         #del self.orig # clear Image from system RAM
+        self._loaded_texID = texId
         return texId
 
     def get_pil_image(self):
@@ -346,9 +352,10 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
 
 class TextureStimulus(TextureStimulusBaseClass):
+    """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
     parameters_and_defaults = {'on':(1,types.IntType),
-                               'lowerleft':((0.0,0.0),types.TupleType),
-                               'size':((640.0,480.0),types.TupleType)}
+                               'lowerleft':((0.0,0.0),types.TupleType), # in eye coordinates
+                               'size':((640.0,480.0),types.TupleType)} # in eye coordinates
     def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
 
@@ -381,7 +388,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
                     str(self),w,h),VisionEgg.Core.Message.WARNING)
-                self.parameters.size = (w,h)
 
     def draw(self):
         p = self.parameters
@@ -427,6 +433,112 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glVertex2f(l,t)
             gl.glEnd() # GL_QUADS
             
+class TextureStimulus3D(TextureStimulusBaseClass):
+    """A textured rectangle placed arbitrarily in 3 space."""
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'lowerleft':(Numeric.array((0.0,0.0,-1.0)),
+                                            Numeric.ArrayType), # in eye coordinates
+                               'lowerright':(Numeric.array((1.0,0.0,-1.0)),
+                                             Numeric.ArrayType), # in eye coordinates
+                               'upperleft':(Numeric.array((0.0,1.0,-1.0)),
+                                            Numeric.ArrayType), # in eye coordinates
+                               'upperright':(Numeric.array((1.0,1.0,-1.0)),
+                                             Numeric.ArrayType), # in eye coordinates
+                               'depth_test':(1,types.IntType),
+                               #'anti_aliasing':(0,types.IntType),
+                               }
+    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
+        apply(TextureStimulusBaseClass.__init__,(self,),kw)
+
+        if texture is not None:
+            self.texture = texture
+        else:
+            self.texture = Texture(size=(256,16))
+
+        if not shrink_texture_ok:
+            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+        else:
+            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
+            resized = 0
+            while max(self.texture.orig.size) > max_dim:
+                w = self.texture.orig.size[0]/2
+                h = self.texture.orig.size[1]/2
+                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                resized = 1
+            loaded_ok = 0
+            while not loaded_ok:
+                try:
+                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+                    loaded_ok = 1
+                except TextureTooLargeError,x:
+                    w = self.texture.orig.size[0]/2
+                    h = self.texture.orig.size[1]/2
+                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    resized = 1
+            if resized:
+                VisionEgg.Core.message.add(
+                    "Resized texture in %s to %d x %d"%(
+                    str(self),w,h),VisionEgg.Core.Message.WARNING)
+
+    def draw(self):
+        p = self.parameters
+        if p.on:
+            # Clear the modeview matrix
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
+
+            if p.depth_test:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+            else:
+                gl.glDisable(gl.GL_DEPTH_TEST)
+
+##            # XXX slow, should implement machinery to save state
+##            # within VisionEgg to avoid querying OpenGL itself.
+##            orig_polygon_smooth_state = gl.glIsEnabled(gl.GL_POLYGON_SMOOTH)
+            
+##            if p.anti_aliasing:
+##                gl.glEnable(gl.GL_POLYGON_SMOOTH)
+##                #gl.glHint(gl.GL_POLYGON_SMOOTH_HINT,gl.GL_NICEST) # terrbile on nVidia
+##            else:
+##                gl.glDisable(gl.GL_POLYGON_SMOOTH)
+                
+            gl.glDisable(gl.GL_BLEND)
+            gl.glEnable(gl.GL_TEXTURE_2D)
+            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
+            
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
+            if not self.constant_parameters.mipmaps_enabled:
+                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
+                
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
+            
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+
+            tex = self.texture
+            
+            gl.glBegin(gl.GL_QUADS)
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+            gl.glVertex3fv(p.lowerleft)
+
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+            gl.glVertex3fv(p.lowerright)
+
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+            gl.glVertex3fv(p.upperright)
+
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+            gl.glVertex3fv(p.upperleft)
+            gl.glEnd() # GL_QUADS
+##            if orig_polygon_smooth_state:
+##                if not p.anti_aliasing:
+##                    gl.glEnable(gl.GL_POLYGON_SMOOTH)
+##            else:
+##                if p.anti_aliasing:
+##                    gl.glDisable(gl.GL_POLYGON_SMOOTH)
+                
 ####################################################################
 #
 #        Stimulus - Spinning Drum
