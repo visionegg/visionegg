@@ -41,9 +41,10 @@ def showexception(exc_type, exc_value, traceback_str):
             Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
             Tkinter.Label(frame,text=traceback_str).pack()
 
-            b = Tkinter.Button(frame,text="Quit",command=self.close_window)
+            b = Tkinter.Button(frame,text="OK",command=self.close_window)
             b.pack()
-            b.focus_force()
+            b.focus_set()
+	    b.grab_set()
             b.bind('<Return>',self.close_window)
 
         def close_window(self,dummy_arg=None):
