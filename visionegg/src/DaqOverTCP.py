@@ -2,12 +2,16 @@
 
 This module controls data acquisition hardware running on a (probably)
 different computer. The data acquisition server must be implement the
-behavior exhibited by fake_daq_server.
+behavior exhibited by the fake_daq_server.py script in the
+demo/daq/tcp directory.  fake_daq_server.py emulates the mac OS
+program MacDaq, available as a separate project from the Vision Egg
+download site.  MacDaq uses MacAdios hardware to acquire data under
+control of a network (TCP) connection.
 
-Realtime acquisition and display of the sampled signal is not the
-priority of this module. That is the task of the computer actually
-performing the data acquisition. This module merely gets the data
-after the acquisition has occurred."""
+Realtime acquisition and display of the sampled signal is not the goal
+of this module. That is the task of the computer actually performing
+the data acquisition (i.e. the MacDaq system). This module gets the
+data after the acquisition has occurred."""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
@@ -41,11 +45,7 @@ class DaqServerTrigger(VisionEgg.Daq.Trigger):
 
 class DaqServerInputChannel(VisionEgg.Daq.Input):
     def get_data(self):
-        print "Getting data!"
-        self.my_channel.my_device.get_data_for_channel(self.my_channel.constant_parameter.channel_number)
-
-    def set_my_channel(self,daq_server_channel):
-        self.my_channel = daq_server_channel
+        return self.channel.device.get_data_for_channel(self.my_channel.constant_parameter.channel_number)
 
 class DaqServerChannel(VisionEgg.Daq.Channel):
     constant_parameters_and_defaults = {'channel_number':(0,types.IntType)}
@@ -60,14 +60,11 @@ class DaqServerChannel(VisionEgg.Daq.Channel):
             raise ValueError("Gain not right!")
         self.constant_parameters.functionality.set_my_channel(self)
 
-    def set_my_device(self,device):
-        self.my_device = device
-
     def arm_trigger(self):
         # For MacAdios/DaqServ, only one trigger for everything
-        if not hasattr(self,'my_device'):
-            raise RuntimeError("Must set device")
-        self.my_device.arm()
+        if not hasattr(self,'device'):
+            raise RuntimeError("Must add this channel to device using device.add_channel")
+        self.device.arm()
 
 class TCPDaqDevice(VisionEgg.Daq.Device):
     """Data acquisition over TCP.
@@ -109,7 +106,7 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
                     if getattr(buffered.parameters,p_name) != orig_value:
                         raise ValueError("%s for each channel must be equal."%p_name)
             self.channels.append(channel)
-            channel.set_my_device(self)
+            channel.device = self
         else:
             raise NotImplementedError("Only analog channels currently supported.")
 
