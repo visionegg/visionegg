@@ -77,7 +77,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                         'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
                                                        types.IntType)}
 
-    parameters_and_defaults = {'bgcolor':(VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR,
+    parameters_and_defaults = {'bgcolor':((0.5,0.5,0.5,0.0),
                                           types.TupleType),
                                'gamma_ramps':(None,
                                               Numeric.ArrayType)}
@@ -232,6 +232,25 @@ class Screen(VisionEgg.ClassWithParameters):
         # Make sure mouse is visible after screen closed.
         self.cursor_visible_func(1)
         
+def get_default_screen():
+    """Return an instance of screen opened with to default values.
+
+    Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
+    default screen parameters should are determined.  If this value is
+    0, the values from VisionEgg.cfg are used.  If this value is 1, a
+    GUI panel is opened and allows manual settings of the screen
+    parameters.  """
+
+    global VisionEgg # module is in global namespace, not local
+    if not VisionEgg.config.VISIONEGG_GUI_INIT:
+        return Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                           VisionEgg.config.VISIONEGG_SCREEN_H),
+                                     fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                                     preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP)
+    else:
+        import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+        return VisionEgg.GUI.get_screen_via_GUI()
+    
 ####################################################################
 #
 #        Projection and derived classes
@@ -909,7 +928,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             current_frame = current_frame + 1
             
             # Make sure we use the right value to check if we're done
-            if p.duration[1] == 'seconds':
+            if p.duration[0] == 'forever': # forever
+                pass # current_duration_value already set to 0
+            elif p.duration[1] == 'seconds':
                 current_duration_value = current_time
             elif p.duration[1] == 'frames':
                 current_duration_value = current_frame
@@ -919,7 +940,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 for event in pygame.event.get():
                     for event_type, event_callback in p.handle_event_callbacks:
                         if event.type is event_type:
-                            event_callback()
+                            event_callback(event)
             
         # Tell transitional controllers a presentation has ended
         self.call_controllers(
@@ -993,53 +1014,62 @@ class Presentation(VisionEgg.ClassWithParameters):
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
         """
-        raise NotImplementedError("This function is broken until updated!")
         import Image # Could import this at the beginning of the file, but it breaks sometimes!
+        import os # Could also import this, but this is the only place its needed
         
+        # Create shorthand notation, which speeds the main loop
+        # slightly by not performing name lookup each time.
+        p = self.parameters
+
+        # Go!
+            
         # Tell transitional controllers a presentation is starting
-        self.__call_controllers(self.transitional_controllers,0.0)
+        self.call_controllers(
+            time_sec_absolute=0.0,
+            go_started=1,
+            doing_transition=1)
 
-        # Create a few shorthand notations, which speeds
-        # the main loop a little by not performing name lookup each time.
-        duration_value = self.parameters.duration[0]
-        duration_units = self.parameters.duration[1]
-        viewports = self.parameters.viewports
-
-        # Get list of screens
-        screens = []
-        for viewport in viewports:
-            s = viewport.parameters.screen
-            if s not in screens:
-                screens.append(s)
-
-        if len(screens) > 1:
-            raise EggError("Can only export movie of one screen")
-
+        # Do the main loop
         current_time = 0.0
+        current_time_absolute = current_time
         current_frame = 0
         image_no = 1
-        if p.duration[1] == 'seconds':
-            current_duration_value = current_time
-        elif p.duration[1] == 'frames':
-            current_duration_value = current_frame
-        elif p.duration[1] == 'forever':
+        if p.duration[0] == 'forever': # forever
             current_duration_value = 0
-            duration_value = 1
+        elif p.duration[1] == 'seconds': # duration units
+            current_duration_value = current_time
+        elif p.duration[1] == 'frames': # duration units
+            current_duration_value = current_frame
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
-        while (current_duration_value < duration_value):
+        while (current_duration_value < p.duration[0]):
             # Update all the realtime parameters
-            self.__call_controllers(self.realtime_time_controllers,current_time)
-            self.__call_controllers(self.realtime_frame_controllers,current_frame)
+            self.call_controllers(
+                time_sec_absolute=current_time,
+                time_sec_since_go=current_time,
+                frames_since_go=current_frame,
+                go_started=1,
+                doing_transition=0)
+            
+            # Get list of screens
+            screens = []
+            for viewport in p.viewports:
+                s = viewport.parameters.screen
+                if s not in screens:
+                    screens.append(s)
+                
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
+                
             # Draw each viewport
-            for viewport in viewports:
+            for viewport in p.viewports:
                 viewport.draw()
+                
+            # Swap the buffers
             swap_buffers()
-
-            # Now save the contents of the framebuffer
+            
+             # Now save the contents of the framebuffer
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
             framebuffer = gl.glReadPixels(0,0,screen.size[0],screen.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
             fb_image = Image.fromstring('RGB',screen.size,framebuffer)
@@ -1051,13 +1081,27 @@ class Presentation(VisionEgg.ClassWithParameters):
             image_no = image_no + 1
             current_time = current_time + 1.0/frames_per_sec
             current_frame = current_frame + 1
-            if p.duration[1] == 'seconds':
+            if p.duration[0] == 'forever':
+                current_duration_value = 0
+            elif p.duration[1] == 'seconds':
                 current_duration_value = current_time
             elif p.duration[1] == 'frames':
                 current_duration_value = current_frame
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
 
+            if p.check_events:
+                for event in pygame.event.get():
+                    for event_type, event_callback in p.handle_event_callbacks:
+                        if event.type is event_type:
+                            event_callback(event)
+
+        # Tell transitional controllers a presentation has ended
+        self.call_controllers(
+            time_sec_absolute=current_time,
+            go_started=0,
+            doing_transition=1)
+        
     def print_frame_timing_stats(self):
         """Print a histogram of the last recorded frame drawing times.
         """
@@ -1182,12 +1226,18 @@ class ConstantController(Controller):
 
 class EvalStringController(Controller):
     def __init__(self,
-                 during_go_eval_string = "",
-                 between_go_eval_string = "",
+                 during_go_eval_string = None,
+                 between_go_eval_string = None,
                  **kw
                  ):
         # Create a namespace for eval_strings to use
         self.eval_globals = {}
+
+        if during_go_eval_string is None:
+            raise ValueError("'during_go_eval_string' is a required argument")
+        if between_go_eval_string is None:
+            between_go_eval_string = during_go_eval_string
+        
         # Make Numeric and math modules available
         self.eval_globals['Numeric'] = Numeric
         self.eval_globals['math'] = math
@@ -1201,23 +1251,75 @@ class EvalStringController(Controller):
         if 'return_type' not in kw.keys():
             message.add('Evaluating "%s" to test for return type.'%(during_go_eval_string,),
                         Message.TRIVIAL)
-            # XXX Todo - make 't' dependent on temporal variable type and other stuff?
-            eval_locals = {'t':0.0}
+            temporal_variable_name = 't' # temporal_variable_type defaults to TIME_SEC_SINCE_GO
+            initial_value = 0.0
+            if 'temporal_variable_type' in kw.keys():
+                if kw['temporal_variable_type'] == Controller.TIME_SEC_ABSOLUTE:
+                    temporal_variable_name = 't_abs'
+                    initial_value = VisionEgg.timing_func()
+                elif kw['temporal_variable_type'] == Controller.TIME_SEC_SINCE_GO:
+                    pass # don't change the default
+                elif kw['temporal_variable_type'] == Controller.FRAMES_SINCE_GO:
+                    temporal_variable_name = 'f'
+                    initial_value = 0
+                else:
+                    raise ValueError("Unknown value for temporal_variable_type")
+            eval_locals = {temporal_variable_name:initial_value}
             test_result = eval(during_go_eval_string,self.eval_globals,eval_locals)
             kw['return_type'] = type(test_result)
 
         # Call base class __init__ and copy eval_strings
         apply(Controller.__init__,(self,),kw)
-        self.during_go_eval_string = during_go_eval_string
-        self.between_go_eval_string = between_go_eval_string
+
+        if self.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
+            self.temporal_variable_name = 't_abs'
+        elif self.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
+            self.temporal_variable_name = 't'
+        elif self.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+            self.temporal_variable_name = 'f'
+
+        self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
+        self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
 
     def during_go_eval(self):
-        eval_locals = {'t':self.temporal_variable}
-        return eval(self.during_go_eval_string,self.eval_globals,eval_locals)
+        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        return eval(self.during_go_eval_code,self.eval_globals,eval_locals)
 
     def between_go_eval(self):
-        eval_locals = {'t':self.temporal_variable}
-        return eval(self.between_go_eval_string,self.eval_globals,eval_locals)
+        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        return eval(self.between_go_eval_code,self.eval_globals,eval_locals)
+
+class FunctionController(Controller):
+    def __init__(self,
+                 during_go_func = None,
+                 between_go_func = None,
+                 **kw
+                 ):
+        if during_go_func is None:
+            raise ValueError("Must specify during_go_func")
+        if between_go_func is None:
+            between_go_func = during_go_func
+        if 'return_type' not in kw.keys():
+            try:
+                # try a float for temporal variable
+                # emulate modes TIME_SEC_ABSOLUTE and TIME_SEC_SINCE_GO
+                kw['return_type'] = type(during_go_func(0.0))
+            except:
+                try:
+                    # try an int for temporal variable
+                    # emulate mode FRAMES_SINCE_GO
+                    kw['return_type'] = type(during_go_func(0))
+                except:
+                    raise
+        apply(Controller.__init__,(self,),kw)
+        self.during_go_func = during_go_func
+        self.between_go_func = between_go_func
+        
+    def during_go_eval(self):
+        return self.during_go_func(self.temporal_variable)
+
+    def between_go_eval(self):
+        return self.between_go_func(self.temporal_variable)
 
 class DeprecatedCompatibilityController(Controller):
     """DEPRECATED. Allows emulation of purely function-based controllers."""
