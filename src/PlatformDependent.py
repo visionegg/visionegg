@@ -18,6 +18,7 @@ sync_swap_with_vbl_post_gl_init() -- Try to synchronize buffer swapping and vert
 ####################################################################
 
 import sys, os, string
+import VisionEgg
 import VisionEgg.Core
 
 __version__ = VisionEgg.release_name
