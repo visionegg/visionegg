@@ -22,6 +22,16 @@ except:
         """
         pass
 
+def linux_but_not_nvidia():
+    """Called if platform is linux, but drivers not nvidia."""
+    # If you've added support for other drivers to sync with VBL under
+    # linux, please let the Vision Egg folks know how!
+    print "VISIONEGG WARNING: Could not sync buffer swapping to"
+    print "vertical blank pulse because you are running linux but not the"
+    print "nVidia drivers.  It is quite possible this can be enabled, it's"
+    print "just that I haven't had access to anything but nVidia cards under"
+    print "linux!"
+    
 def sync_swap_with_vbl_pre_gl_init():
     """Synchronize buffer swapping and vertical retrace, if possible."""
     success = 0
@@ -32,7 +42,7 @@ def sync_swap_with_vbl_pre_gl_init():
         # before OpenGL context started!
         
         # Assume drivers are nVidia
-        VisionEgg.Core.add_gl_assumption("GL_VENDOR","nvidia","Failed assumption made in PlatformDependent.py function sync_swap_with_vbl()")
+        VisionEgg.Core.add_gl_assumption("GL_VENDOR","nvidia",linux_but_not_nvidia)
         # Set nVidia linux environmental variable
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
         success = 1
