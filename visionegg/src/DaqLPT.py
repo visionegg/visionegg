@@ -26,6 +26,9 @@ if sys.platform == 'win32':
 elif sys.platform == 'linux2':
     import VisionEgg._raw_lpt_linux
     raw_lpt_module = VisionEgg._raw_lpt_linux
+elif sys.platform[:4] == 'irix':
+    import VisionEgg._raw_plp_irix
+    raw_lpt_module = VisionEgg._raw_plp_irix
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -61,7 +64,7 @@ class LPTOutput(VisionEgg.Daq.Output):
 class LPTChannel(VisionEgg.Daq.Channel):
     """A data acquisition channel using the parallel port."""
     def __init__(self,**kw):
-        if not 'raw_lpt_module' in globals():
+        if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
         signal_type = self.constant_parameters.signal_type
@@ -82,7 +85,7 @@ class LPTDevice(VisionEgg.Daq.Device):
     address of 0x0278."""
     
     def __init__(self,base_address=0x378,**kw):
-        if not 'raw_lpt_module' in globals():
+        if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Device.__init__,(self,),kw)
         for channel in self.channels:
@@ -105,7 +108,7 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
     frames."""
     
     def __init__(self,lpt_device=None):
-        if not 'raw_lpt_module' in globals():
+        if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.NoneType,
@@ -134,7 +137,7 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
 
 class LPTTriggerInController(VisionEgg.Core.Controller):
     def __init__(self,lpt_device=None,pin=13):
-        if not 'raw_lpt_module' in globals():
+        if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT input not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.IntType,
