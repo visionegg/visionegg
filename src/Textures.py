@@ -1166,7 +1166,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                                            level=VisionEgg.Core.Message.DEPRECATION)
                 VisionEgg.config._GAVE_LOWERLEFT_DEPRECATION = 1
             p.anchor = 'lowerleft'
-            p.position = p.lowerleft
+            p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
         if p.on:
             # calculate lowerleft corner
             lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
