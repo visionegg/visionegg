@@ -19,6 +19,7 @@ import VisionEgg.PyroApps.ScreenPositionGUI
 
 # Add your client modules here
 import VisionEgg.PyroApps.TargetGUI
+import VisionEgg.PyroApps.MouseTargetGUI
 import VisionEgg.PyroApps.FlatGratingGUI
 import VisionEgg.PyroApps.SphereGratingGUI
 import VisionEgg.PyroApps.SpinningDrumGUI
@@ -26,13 +27,14 @@ import VisionEgg.PyroApps.GridGUI
 
 client_list = []
 client_list.extend( VisionEgg.PyroApps.TargetGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.MouseTargetGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.FlatGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SphereGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SpinningDrumGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.GridGUI.get_control_list() )
 
-class Blahbject:
-    """Encapsulates objects to have useful methods when used in GUI"""
+class ContainedObjectBase:
+    """Base class to encapsulate objects, provides useful methods when used in GUI"""
     def __init__(self):
         raise RuntimeError("Abstract base class!")
     def get_str_30(self):
@@ -42,14 +44,14 @@ class Blahbject:
     header = "unknown parameters"
 
 class ScrollListFrame(Tkinter.Frame):
-    def __init__(self,master=None,list_of_blahbjects=None,blahbject_maker=None,
-                 container_class=Blahbject,
+    def __init__(self,master=None,list_of_contained_objects=None,contained_objectbject_maker=None,
+                 container_class=ContainedObjectBase,
                  **cnf):
         apply(Tkinter.Frame.__init__, (self, master,), cnf)
-        if list_of_blahbjects is None:
+        if list_of_contained_objects is None:
             self.list = []
         else:
-            self.list = list_of_blahbjects
+            self.list = list_of_contained_objects
         self.container_class = container_class
 
         # The frame that has the list and the vscroll
@@ -98,8 +100,8 @@ class ScrollListFrame(Tkinter.Frame):
         
     def get_list_uncontained(self):
         results = []
-        for blah_item in self.list:
-            results.append( blah_item.get_contained() )
+        for contained_object_item in self.list:
+            results.append( contained_object_item.get_contained() )
         return results
 
     def update_now(self):
@@ -110,18 +112,18 @@ class ScrollListFrame(Tkinter.Frame):
             self.frame.list.insert(Tkinter.END,item_str_30)
 
     def add_new(self):
-        blah = self.make_blah(self.container_class)
-        if blah:
-            self.list.append( blah )
+        contained_object = self.make_contained_object(self.container_class)
+        if contained_object:
+            self.list.append( contained_object )
         self.update_now()
 
     def edit_selected(self):
         selected = self.get_selected()
         if selected is not None:
-            orig_blah = self.list[selected]
+            orig_contained_object = self.list[selected]
             # delete old original, make new with defaults from old original
-            modified_blah = self.edit_blah( orig_blah )
-            self.list[selected] = modified_blah
+            modified_contained_object = self.edit_contained_object( orig_contained_object )
+            self.list[selected] = modified_contained_object
             self.update_now()
 
     def remove_selected(self):
@@ -130,10 +132,10 @@ class ScrollListFrame(Tkinter.Frame):
             del self.list[selected]
             self.update_now()
 
-    def make_blah(self, container_class):
-        """Factory function for Blahbject"""
-        if container_class == LoopBlah:
-            return self.make_loop_blah()
+    def make_contained_object(self, container_class):
+        """Factory function for ContainedObjectBase"""
+        if container_class == LoopContainedObject:
+            return self.make_loop_contained_object()
         params = {}
         p = container_class.contained_class.parameters_and_defaults
         keys = p.keys()
@@ -156,20 +158,20 @@ class ScrollListFrame(Tkinter.Frame):
         contained = container_class.contained_class(**params) # call constructor
         return container_class(contained)
 
-    def edit_blah(self, blah_object):
-        if not isinstance(blah_object,LoopBlah):
+    def edit_contained_object(self, contained_object):
+        if not isinstance(contained_object,LoopContainedObject):
             raise NotImplementedError("")
-        orig_contained = blah_object.get_contained()
+        orig_contained = contained_object.get_contained()
         d = LoopParamDialog(self, title="Loop Parameters", orig_values=orig_contained )
         if d.result:
-            return LoopBlah(d.result)
+            return LoopContainedObject(d.result)
         else:
             return
 
-    def make_loop_blah(self):
+    def make_loop_contained_object(self):
         d = LoopParamDialog(self, title="Loop Parameters" )
         if d.result:
-            return LoopBlah(d.result)
+            return LoopContainedObject(d.result)
         else:
             return
 
@@ -204,7 +206,7 @@ class Loop(VisionEgg.ClassWithParameters):
     def reset(self):
         self.num_done = 0
 
-class LoopBlah(Blahbject):
+class LoopContainedObject(ContainedObjectBase):
     """Contrainer for Loop class"""
     contained_class = Loop
     header = "     variable    rest values"
@@ -577,7 +579,7 @@ class AppWindow(Tkinter.Frame):
             self.loop_frame.destroy()
             del self.loop_frame
         self.loop_frame = ScrollListFrame(master=self,
-                                          container_class=LoopBlah)
+                                          container_class=LoopContainedObject)
         apply( self.loop_frame.grid, [], self.loop_frame_cnf )
 
         self.autosave_basename.set( self.stim_frame.get_shortname() )
