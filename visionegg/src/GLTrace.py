@@ -26,9 +26,8 @@ to OpenGL.GL to a reference to VisionEgg.GLTrace.
 
 import OpenGL.GL as gl
 
-import string        
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gl_constants = {}
@@ -93,9 +92,7 @@ class Wrapper:
                     arg_str.append( '|'.join(bitmask_strs) )
                 else:
                     arg_str.append(arg_to_str(args[i])) # convert to name of OpenGL constant
-            arg_str = string.join( arg_str, "," )
-##        else:
-##            arg_str = string.join( map( arg_to_str, args ), "," )
+            arg_str = ','.join( arg_str )
         try:
             result = self.orig_func(*args,**kw)
         except:
