@@ -1,65 +1,63 @@
 #!/usr/bin/env python
+"""A moving target."""
 
-# Display a black target moving across a white background.
-
-########################################################
-#  Import various modules from the Vision Egg package  #
-########################################################
+############################
+#  Import various modules  #
+############################
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
+from math import *
 
 #################################
-#  Define controller functions  #
+#  Initialize the various bits  #
 #################################
 
-def x_as_function_of_time(t):
-    return 25.0*sin(0.1*2.0*math.pi*t)
-
-def y_as_function_of_time(t):
-    return 25.0*sin(0.1*2.0*math.pi*t)
-
-def orientation(dummy_argument):
-    return 135.0
-
-def on_during_experiment(t):
-    if t < 0.0:
-        return 0 # off between stimuli
-    else:
-        return 1 # on during stimulus presentation
-
-##################
-#  Main program  #
-##################
-
-# Initialize OpenGL graphics screen
+# Initialize OpenGL graphics screen.
 screen = get_default_screen()
 
-# Set the background color (RGBA) white
+# Set the background color to white (RGBA).
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 
-# Create a viewport on the screen
-viewport = Viewport(screen,(0,0),screen.size)
+# Create an instance of the Target2D class with appropriate parameters.
+target = Target2D(size  = (25.0,10.0),
+                  color      = (0.0,0.0,0.0,1.0), # Set the target color (RGBA) black
+                  orientation = 45.0)
 
-# Create an instance of the Target2D class
-target = Target2D()
+# Create a Viewport instance
+viewport = Viewport(screen=screen, stimuli=[target])
 
-# Initialize the target's OpenGL stuff
-target.init_gl()
+# Create an instance of the Presentation class.  This contains the
+# the Vision Egg's runtime control abilities.
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport])
 
-# Set the target color (RGBA) black
-target.parameters.color = (0.0,0.0,0.0,1.0)
+#######################
+#  Define controller  #
+#######################
 
-# Tell the viewport to draw the target
-viewport.add_stimulus(target)
+# calculate a few variables we need
+mid_x = screen.size[0]/2.0
+mid_y = screen.size[1]/2.0
+max_vel = min(screen.size[0],screen.size[1]) * 0.4
 
-# Create an instance of the Presentation class
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+# define position as a function of time
+def get_target_position(t):
+    global mid_x, mid_y, max_vel
+    return ( max_vel*sin(0.1*2.0*pi*t) + mid_x , # x
+             max_vel*sin(0.1*2.0*pi*t) + mid_y ) # y
 
-# Register the controller functions
-p.add_realtime_time_controller(target.parameters,'x', x_as_function_of_time)
-p.add_realtime_time_controller(target.parameters,'y', y_as_function_of_time)
-p.add_transitional_controller(target.parameters,'orientation', orientation)
-p.add_transitional_controller(target.parameters,'on', on_during_experiment)
+# Create an instance of the Controller class
+target_position_controller = FunctionController(during_go_func=get_target_position)
+
+#############################################################
+#  Connect the controllers with the variables they control  #
+#############################################################
+
+p.add_controller(target,'center', target_position_controller )
+
+#######################
+#  Run the stimulus!  #
+#######################
+
 p.go()
+

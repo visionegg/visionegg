@@ -1,0 +1,306 @@
+\documentclass{manual}
+
+\title{The Vision Egg Programmer's Manual}
+
+\author{Andrew Straw}
+
+\date{\today}			% update before release!
+\release{0.9.4}			% software release, not documentation
+\setreleaseinfo{}		% empty for final release
+\setshortversion{0.9.4}		% major.minor only for software
+
+\makeindex                      % tell \index to actually write the
+                                % .idx file
+\makemodindex                   % ... and the module index as well.
+
+\begin{document}
+
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+Copyright \copyright{} 2001-2002 Andrew Straw
+All rights reserved.
+
+\begin{abstract}
+
+\noindent
+The Vision Egg was designed to perform two primary tasks.  First is
+the drawing of computer graphics using OpenGL.  Second is the
+coordination of events in a precisely timed way.  It was designed so
+that both tasks occur in a frequently repeating loop to enable
+realtime control of graphics and potentially external hardware.
+
+These are challenging tasks, and the Vision Egg does much of the work
+for you. However, to make full use of the Vision Egg, you should
+understand the basics.  This is a high-level overview of the main
+components.
+
+Note before starting: The Vision Egg is fundamentally object oriented
+in nature, and this document assumes you are familiar with terms such
+as ''class'' and ''instance''.  If you are not, please find some
+information on the topic of object oriented programming.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Coordinating events \label{coordinating events}}
+
+There are several ways to organize the sequence of your experiments
+using the Vision Egg.  The easiest ways make use of
+\class{Presentation}, a class which maintains an association between
+parameters of stimuli and their control functions, calls these
+functions, and initiates drawing of the stimuli.  There are several
+ways to use the \class{Presentation} class, and here they are in
+increasing order of complexity.
+
+\section{Running a single trial}
+
+Most of the Vision Egg demonstration scripts run a single trial and
+then quit. From a programming perspective, this is the easiest way to
+get started. The timing and control of events within a single trial is
+performed by a ``go loop'', which is entered by calling the
+\method{go()} method of the \class{Presentation} class.
+
+A cycle of the go loop consists of updating any relevant stimulus
+parameters, clearing the framebuffer, and calling the stimuli to draw
+themselves.  The buffers are swapped and the cycle begins again,
+usually after waiting for the vertical blanking interval (see the
+section in this manual on double buffering).  When waiting for the
+vertical blanking interval (``sync swap buffers'') is enabled, cycles
+through the ``go loop'' never occur faster than the frame rate.  If
+the go loop is burdened with lots of calculations or if the operating
+system takes the CPU away from the Vision Egg, the cycle through the
+go loop is not completed before the video card begins drawing the next
+frame and therefore a frame is skipped.
+
+A go loop can run indefinitly or have its duration limited to a
+duration measured in seconds or in number of frames drawn.  (Measuring
+duration based on frames drawn is only meaningful when buffer swapping
+is synchronized with the vertical blanking interval and frame skipping
+would be particularly undesirable in this case.)
+
+\section{Continuous operation}
+
+Often, the visual stimulus needs to continue running between trials.
+At a minimum this could be used to keep the display constant and to
+prevent the Vision Egg from quitting, but could also be used to
+maintain a moving pattern on the display between trials.  In addition,
+it may be necessary to trigger a go loop with a minimum of latency
+after the receipt of some signal, such as a digital input on the
+parallel port.
+
+To use the Vision Egg in this manner, the \method{run_forever()}
+method of \class{Presentation} is called, which begins a loop that
+performs the same tasks as a go loop with the exception that functions
+controlling stimulus parameters are informed that it is a ``between go
+loops'' state.  At any point this \method{run_forever} loop can create
+a go loop, which returns control back to the \method{run_forever} loop
+when done.  Alternatively, if the controlling functions for stimulus
+parameters operate between go loops, the entire experiment could be
+run without entering a go loop.  (This could also be acheived by
+starting a go loop with a duration parameter set to ``forever''.)
+
+\section{Custom timing control}
+
+Finally, if you prefer write the loop that handles the timing of your
+stimuli, you are welcome to replace calls to the \method{go} and
+\method{run_forever} methods with your own code.  In this case, you
+should have a look through the source code of those methods to see
+what they do.
+
+\chapter{Hierarchy of graphical objects \label{hierarchy}}
+
+Currently, the Vision Egg supports only a single screen (window).
+However, it is designed to run simultaneously in multiple screens, so
+once this capability is available, the following priciples will apply.
+
+Each screen contains a list of least one ``viewport''. A viewport is
+defined to occupy a rectangular region of the screen and define how
+and where objects are drawn. The default viewport created with each
+screen fills the entire screen. In the Vision Egg \class{Viewport}
+class, the screen position and size are specified in addition to the
+projection.  The projection, specified by the \class{Projection}
+class, transforms 3D ``eye coordinates'' into ``clip coordinates''
+according to, for example, an orthographic or perspective projection.
+(Eye coordinates are the 3D coordinates of objects referenced from the
+observers eye in arbitrary units.  Clip coordinates are used to
+compute the final position of the 3D object on the 2D screen.)  The
+default \class{Projection} created with a \class{Viewport} is an
+orthographic projection that maps eye coordinates in a one to one
+manner to pixel coordinates, allowing specification of object position
+in absolute pixels.
+
+Multiple instances of the \class{Viewport} class may occupy the same
+region of the screen.  This could be used, for example, to overlay
+objects with different projections such as in the targetBackground
+demo.  The order of the list of viewports is important, with the first
+in the list being drawn first and later viewports are drawn on top of
+earlier viewports.
+
+An instance of the \class{Viewport} class keeps an ordered list of the
+objects it draws.  Objects to be drawn on top of other objects should
+be drawn last and therefore placed last in the list.
+
+The objects a viewport drawns are all instances of the
+\class{Stimulus} class. The name ``Stimulus'' is perhaps a slightly
+inaccurate because instances of this class only define how to draw a
+set of graphics primitives. So for example, there are
+\class{SinGrating2D} and \class{TextureStimulus} subclasses of the
+\class{Stimulus} class.
+
+The Vision Egg draws objects in a hierarchical manner.  First, the
+screen(s) calls each of its viewports in turn.  Each viewport calls
+each of its stimuli in turn.  In this way, the occlusion of objects
+can be controlled by drawing order without employing more advanced
+concepts such as depth testing (which is also possible).
+
+\chapter{Controlling stimulus parameters in realtime \label{controllers}}
+
+Another significant concept in the Vision Egg is that of
+``controllers'', instances of the class \class{Controller}.  A
+controller is called at pre-defined intervals and updates the value of
+some stimulus parameter.  For example, in the ``target'' demo script,
+the ``center'' parameter of a \class{Target2D} stimulus is updated on
+every frame by a function which computes position based upon the
+current time.
+
+Instances of \class{Controller} are called by instances of the
+\class{Presentation} class.  After creating an instance of
+\class{Controller}, it must be ``registered'' by calling the
+\method{add_controller} method of \class{Presentation}, during which
+the stimulus parameter under control is specified.  The
+\class{Presentation} takes care of calling the controller from this
+point. Specifically, the \method{during_go_eval()} is called during a
+\method{go()} loop, and \method{between_go_eval()} is called by
+\method{between_presentations()} (during \method{run_forever()}, for
+example.)  These ``eval'' methods return a value which becomes the
+new value of the parameter being controller.
+
+The frequency with which \method{during_go_eval()} and
+\method{between_go_eval()} are evaluated is determined by the
+\var{eval_frequency} attribute of the controller.  The default
+\var{eval_frequency} is every frame.
+
+The \var{temporal_variables} attribute of the controller specifies
+what temporal variables the ``eval'' methods have available to base
+calculations on.  The default value is TIME_SEC_SINCE_GO, so when
+\method{during_go_eval()} is called, the instance will have an
+attribute \var{time_sec_since_go} set to the time since the onset of
+the \method{go()} loop.
+
+For more information, see the documentation for the \class{Controller}
+and \class{Presentation} classes in the \module{VisionEgg.Core}
+module.
+
+\chapter{Other general information \label{other info}}
+
+\section{Double buffering}
+
+The Vision Egg operates in double buffered mode.  This means that the
+contents of the ``front'' framebuffer are read by the video card to
+produce the on-screen display.  Meanwhile, clearing and drawing
+operations always occur on the back framebuffer, which becomes the
+front buffer on a buffer swap (also called flip).  This way, an
+incomplete frame is never drawn to the screen.  However, if the
+buffers are swapped while the display is only part-way through the
+front buffer, the top and bottom parts of the display will contain
+frames drawn at different times and thus lead to a tearing artifact.
+For this reason the default behavior of the Vision Egg is to
+synchronize buffer swapping with the vertical blanking period,
+ensuring that tearing does not happen.  (Synchronizing buffer swapping
+is not available for some video drivers on the linux platform, and may
+frequently be overriden in the Displays control panel in Windows.)
+
+\section{File layout}
+
+Several directories are created in a Vision Egg installation.  The
+files used when a Python script imports any Vision Egg module are in
+the standard Python ``site-packages'' directory.  Next, the Vision Egg
+system directory contains data files such as sample images used by the
+demo scripts and a site-wide configuration file.  A user-specific
+configuration file is looked for is the VisionEgg home directory.  On
+your system, you can determine the exact location of these directories
+by running the ``check-config.py'' script, which is distributed with
+the Vision Egg.  If you have installed the Vision Egg from source, you
+will also have the source directory.
+
+\section{Priority control}
+
+The Vision Egg can take advantage of operating system dependent
+methods of setting the priority of an application.  The performance
+and features vary from platform to platform.  The options available
+from OS specific system calls are available in the Vision Egg.  Before
+trying something new, do not attempt to increase your script's
+priority, because this may result in locking up the computer.
+
+\section{The log file: Warnings and errors}
+
+The Vision Egg logs information including warnings and errors to two
+locations by default: the standard error stream (as standard for
+Python scripts) and to a file called ``VisionEgg.log'' in the current
+directory.  The standard error stream is typically printed on the
+console, which may only be visible when running your script from the
+command line.  If your script (or modules it imports) raise a
+\exception{SyntaxError}, the Vision Egg will be unable to start and
+therefore unable to copy the exception traceback to the log file, and
+viewing the standard error is the only way to see what went wrong.
+Therefore, if your log file does not display an error but your script
+is not executing, run it from the command line.  Also, on Mac OS X,
+the standard error output is only visible through the Console.app
+available in ``/Applications/Utilities''.
+
+\section{Configuration options}
+
+A number of options that control behavior of the Vision Egg are
+available.  These options are first determined when the
+\module{VisionEgg.Configuration} module is loaded (by the base module
+\module{VisionEgg}, for example).  This module first loads variables
+from the ``VisionEgg.cfg'' file and then checks for environment
+variables that override these values.
+
+The values set by \module{VisionEgg.Configuration} may be overriden at
+any time by re-assigning the appropriate variable.  For example:
+
+\begin{verbatim}
+import VisionEgg
+
+# Turn off GUI window when calling create_default_screen()
+VisionEgg.config.VISIONEGG_GUI_INIT = 0
+\end{verbatim}
+
+\section{For more information}
+
+A significant amount of documentation is contained within the source
+code as ''docstrings'' --- special comments within the code.  These
+docstrings are often the best source of information for a particular
+class or function. In particular, the fundamentally important classes
+in the \module{VisionEgg.Core} module are well documented.  You can
+either browse the source code itself, look at the library reference
+compiled from the source, or use a utility such as PyDoc to compile
+your own reference from the source.
+
+The Vision Egg mailing list is another source of valuble information.
+Sign up and browse the archives through the Vision Egg website.
+
+For installation instructions, the Vision Egg website provides the
+most up-to-date, platform-specific information.
+
+To create your own stimuli you need to know OpenGL.  To learn more
+about OpenGL, you may want to begin with ``The Red Book'' (The OpenGL
+Programming Guide, The Official Guide to Learning).  The OpenGL
+specification is also useful (available online).
+
+% %begin{latexonly}
+% \renewcommand{\indexname}{Module Index}
+% %end{latexonly}
+% \input{modvisionegg.ind}              % Module Index
+
+% %begin{latexonly}
+% \renewcommand{\indexname}{Index}
+% %end{latexonly}
+% \input{visionegg.ind}                 % Index
+
+\end{document}

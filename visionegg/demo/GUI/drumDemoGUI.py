@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-#
+"""Spinning drum with a graphical user interface (old).
+
+This demo is pretty old, and I don't recommend looking at it too
+closely!"""
+
 # This is the python source code for a demo application that uses the
 # Vision Egg package.
 #
@@ -23,8 +27,8 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+from VisionEgg import *
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.GUI import *
 from VisionEgg.Textures import *
 
@@ -33,7 +37,7 @@ from math import *
 import os
 import time
 
-default_max_speed = 1000.0
+default_max_speed = 400.0
 
 class DrumGui(AppWindow):
     def __init__(self,master=None,**cnf):
@@ -62,7 +66,7 @@ class DrumGui(AppWindow):
                                       to=60.0,
                                       resolution=0.5,
                                       orient=Tkinter.HORIZONTAL,
-                                      label="Duration (seconds):")
+                                      label="Duration of go loop (seconds):")
         self.duration.set(10.0)
         self.duration.pack(expand=1,fill=Tkinter.X)
 
@@ -111,31 +115,36 @@ class DrumGui(AppWindow):
         self.validate_c_string()
         p.go()
 
+config.VISIONEGG_GUI_INIT=1
 screen = get_default_screen() # initialize graphics
-projection = SimplePerspectiveProjection(fov_x=90.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
+screen.cursor_visible_func(1) # make sure mouse is visible
+if config.VISIONEGG_FULLSCREEN==1:
+    raise RuntimeError("Cannot enter fullscreen mode if you want to see GUI panel!")
 
-try:
-    texture = TextureFromFile("orig.bmp") # try to open a texture file
-except:
-    texture = Texture(size=(256,16)) # otherwise, generate one
+# Get a texture
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+texture = Texture(filename)
 
-drum = SpinningDrum(texture=texture)
-drum.init_gl()
+drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
+fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
 
-fixation_spot = FixationSpot()
-fixation_spot.init_gl()
+perspective = SimplePerspectiveProjection(fov_x=90.0)
+perspective_viewport = Viewport(screen=screen,
+                                size=screen.size,
+                                projection=perspective,
+                                stimuli=[drum])
 
-viewport.add_stimulus(drum)
-viewport.add_stimulus(fixation_spot)
+flat_viewport = Viewport(screen=screen,
+                         size=screen.size,
+                         stimuli=[fixation_spot])
 
-p = Presentation(viewports=[viewport])
+p = Presentation(viewports=[perspective_viewport,flat_viewport])
 gui_window = DrumGui(idle_func=p.between_presentations)
 
-p.add_transitional_controller(fixation_spot.parameters,'on',lambda t: gui_window.fixation_spot.get())
-p.add_transitional_controller(p.parameters,'duration',lambda t: (gui_window.duration.get(),'seconds'))
-p.add_realtime_time_controller(drum.parameters,'angle',gui_window.positionFunction)
-p.add_realtime_time_controller(drum.parameters,'contrast',gui_window.contrastFunction)
+p.add_controller(fixation_spot,'on',FunctionController(during_go_func=lambda t: gui_window.fixation_spot.get(),eval_frequency=Controller.TRANSITIONS))
+p.add_controller(p,'go_duration',FunctionController(during_go_func=lambda t: (gui_window.duration.get(),'seconds'),eval_frequency=Controller.TRANSITIONS))
+p.add_controller(drum,'angular_position',FunctionController(during_go_func=gui_window.positionFunction))
+p.add_controller(drum,'contrast',FunctionController(during_go_func=gui_window.contrastFunction))
 
 gui_window.mainloop()
 

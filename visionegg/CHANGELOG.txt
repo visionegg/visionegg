@@ -1,0 +1,199 @@
+Changes for 0.9.4:
+------------------
+Major features:
+Complete electrophysiology application (see below)
+Luminance and color calibration possible
+Constant visual angle (perspective-distorted) grating stimulus added
+Constant visual angle (perspective-distorted) gaussian and circular windows added
+3D texture-mapped sphere stimulus added
+Random dot stimulus added
+Texture module re-written for ease-of-use, clarity, and support of dynamic texture updating
+Color grating stimulus added
+Support for plaids added
+Masks for gratings and textures implemented using multitexturing - uses high bit depth available there on some hardware
+Vision Egg Programmer's Manual created
+Many more minor features and bug fixes
+
+New electrophysiology application features:
+Complete application with ready-to-run experiments
+Application extendible with new experiments by modifying example experiments
+Full-screen graphics possible with "server" application, GUI client controls experiments over TCP
+Automated sequence control, including sequences-of-sequences
+Stimulus onset timing calibration / verification support
+3D position / perspective-distortion calibration support
+Parameters saved during experiments as Python or Matlab scripts
+Complete configurations can be saved and restored from file
+
+All code written for the 0.9.3 release should continue to run on the 0.9.4 release.  (There may be some slight changes in functionality due to bug fixes.)
+
+Changes for 0.9.3:
+------------------
+
+MAJOR: Added .3ds file support to load 3D models.
+
+MAJOR: Added Labview code to control gratings in a new "contrib"
+package. Thanks Jamie Theobald!
+
+Fixed texture-resizing bug.
+
+Added Rectangle3D stimulus class.
+
+Further refined log printing and other small enhancements.
+
+Changes for 0.9.2:
+------------------
+
+MAJOR: GUI enhancements.
+
+Maximum priority (with various options) can be set on Mac OS X and
+win32.
+
+Frame swap sync with vertical retrace support added to Mac OS X.
+
+Friendly binary installer for Mac OS X, especially useful since now
+Mac OS X code requires compilation.
+
+Added SYNC_SWAP, RECORD_TIMES, HIDE_MOUSE, and FRAMELESS_WINDOW
+options.
+
+Textures now use mipmaps by default.
+
+Minor: Improvements to check-config.py
+
+Changes for 0.9.1:
+------------------
+
+Windows demos now distributed in standalone directory that does not
+require python installation.
+
+TCPServer mode can print current state, prints command summary, has
+help, minor bugfixes.
+
+Lots of little GUI adjustments, including automatic pop-up of
+exception dialog box.
+
+check-config.py detects old version.
+
+Changes for 0.9.0:
+------------------
+
+MAJOR: Overall quality of code and base feature set now approaching
+1.0 status.
+
+MAJOR: Parameter control over TCP interface implemented using
+TCPController class.
+
+MAJOR: Triggering, both out and in, (re)implemented.  Same for other
+data acquisition.
+
+MAJOR: Gratings module, with SinGrating2D and SinGrating3D (with
+perspective distortion) added.
+
+MAJOR: Support for SGI IRIX now added.
+
+MAJOR: Support for variable size (including 10 bits per channel) frame
+buffers added.
+
+MAJOR: Support for gamma table setting (including greater than 8 bit)
+added. (Requires pygame 1.5.)
+
+MAJOR: ``Run forever'' mode added.
+
+MAJOR: Type-checking implemented for parameters under realtime
+control. Complete re-design and re-implementation of realtime
+controllers.
+
+MINOR: Too many to list!
+
+Changed license to LGPL from GPL.
+
+Changes for 0.8.2:
+------------------
+MAJOR: Added frame-by-frame control with realtime_frame_contoller.
+(Also renamed realtime_controller to realtime_time_controller.)  Make
+sure you set your OpenGL driver to swap buffers at vertical retrace
+sync if you use this feature!
+
+Added support for on-screen text though VisionEgg.Text module.
+Bitmapped text works pretty well, stroke fonts have a few issues still.
+
+Must specify units for stimulus duration, either seconds or frames.
+
+Created new module PlatformDependent, which houses all the platform
+dependent C code.  Re-enabled setting of maximum priority (on linux,
+at least).
+
+Made lower_left and size attributes of Viewport class part of
+parameters, so now they can be changed in realtime.
+
+Added automatic detection of all extensions in tests/opengl_info.py.
+
+Removed data acquisition stuff from distribution until I get time to
+get it working again.
+
+Re-incorporated linux (and other unix?) kernel scheduler maximum
+priority stuff.
+
+Re-incorporated collection and printing of frame-timing
+statistics. Turn on by setting "collect_timing_info" argument of
+Presentation.go() to non-zero value.
+
+Contrast control in SpinningDrum now acheived with standard OpenGL
+texture environment functions, not OpenGL extension.
+
+Changes for 0.8.1:
+------------------
+
+Fixed some Mac OS X glitches.
+
+Removed Overlay class from VisionEgg.Core.  (The Overlay class was the
+same as the Stimulus class with the inclusion of its own projection.
+Now, if your stimulus has an associated projection, as 2D stimuli
+would, you must keep track of that yourself.)
+
+Support for specifying the order in which stimuli are drawn added by
+draw_order argument to the add_stimulus method of the Viewport class.
+(Necessary to ensure any graphics that must get drawn on top of
+everything else can be drawn last.)
+
+Added remove_stimulus method to Viewport class.  Added remove
+controller methods to Presentation class.
+
+Improved auto-setting of video modes.
+
+Added GetKeypressDialog and ToplevelDialog classes to GUI module.
+
+Changes for 0.8.0:
+------------------
+
+MAJOR: Implemented new Screen, Viewport, Stimulus, Overlay, and
+Presentation classes in VisionEgg.Core to more cleanly separate
+components and allow multiple viewports on same screen.
+
+MAJOR: Implemented new Parameters class in VisionEgg.Core to allow
+more flexible control of any parameters which may change during or
+between stimulus presentations.  This paves the way for easy control
+using any imaginable means, including a local window, a remote python
+script (see below about Pyro), or from a data-acquisition card.
+
+MAJOR: Added remote execution methods, so now you can run the
+VisionEgg in fullscreen mode while controlling it from a different
+computer.  Check out the the demos in the demo/Pyro directory.
+Requires python package "Pyro" (Python Remote Objects).
+
+New configuration system added.  VisionEgg.config holds system-wide
+configuration defaults. 
+
+Changed VisionEgg.py to Core.py, so now you must do "import
+VisionEgg.Core".
+
+Moved demo scripts into 'demo' directory within the main package.  Now
+there is only one package to maintain.
+
+Pulled texture stuff into Textures.py.
+
+Pulled data acquisition stuff into Daq.py
+
+Added lots of docstrings.
+
+Created this changelog.

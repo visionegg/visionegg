@@ -1,45 +1,80 @@
 #!/usr/bin/env python
+"""Save movie of a black target moving across a white background."""
 
-import math, os
+fps = 12.0
+
+############################
+#  Import various modules  #
+############################
+
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
+from math import *
+from types import *
+import os
 
-fps = 12.0 # frames per second
+#################################
+#  Initialize the various bits  #
+#################################
 
-def x_as_function_of_time(t):
-    return 10.0*sin(0.2*2.0*math.pi*t)
-
-def y_as_function_of_time(t):
-    return 10.0*sin(0.2*2.0*math.pi*t)
-
-def orientation(dummy):
-    return 135.0
-
-def one_during_experiment(t):
-    if t < 0.0:
-        return 0.0
-    else:
-        return 1.0
-
+# Initialize OpenGL graphics screen.
 screen = get_default_screen()
-projection = SimplePerspectiveProjection(fov_x=45.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
-target = Target2D()
-target.init_gl()
-viewport.add_stimulus(target)
 
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+# Set the background color to white (RGBA).
+screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 
-p.add_realtime_time_controller(target.parameters,'x', x_as_function_of_time)
-p.add_realtime_time_controller(target.parameters,'y', y_as_function_of_time)
-p.add_transitional_controller(target.parameters,'orientation', orientation)
-p.add_transitional_controller(target.parameters,'on', one_during_experiment)
+# Create an instance of the Target2D class with appropriate parameters.
+target = Target2D(size  = (25.0,10.0),
+                  color      = (0.0,0.0,0.0,1.0), # Set the target color (RGBA) black
+                  orientation = 45.0)
 
-save_directory = os.path.join(VisionEgg.config.VISIONEGG_STORAGE,'movie')
+# Create a Viewport instance
+viewport = Viewport(screen=screen, stimuli=[target])
+
+# Create an instance of the Presentation class.  This contains the
+# the Vision Egg's runtime control abilities.
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport])
+
+#######################
+#  Define controller  #
+#######################
+
+# calculate a few variables we need
+mid_x = screen.size[0]/2.0
+mid_y = screen.size[1]/2.0
+max_vel = min(screen.size[0],screen.size[1]) * 0.4
+
+# define position as a function of time
+def get_target_position(t):
+    global mid_x, mid_y, max_vel
+    return ( max_vel*sin(0.1*2.0*pi*t) + mid_x , # x
+             max_vel*sin(0.1*2.0*pi*t) + mid_y ) # y
+
+# Create an instance of the Controller class
+target_position_controller = FunctionController(during_go_func=get_target_position)
+
+#############################################################
+#  Connect the controllers with the variables they control  #
+#############################################################
+
+p.add_controller(target,'center', target_position_controller )
+
+#######################
+#  Run the stimulus!  #
+#######################
+
+base_dir = VisionEgg.config.VISIONEGG_USER_DIR
+if not os.path.isdir(base_dir):
+    base_dir = VisionEgg.config.VISIONEGG_SYSTEM_DIR
+save_directory = os.path.join(base_dir,'movie')
 if not os.path.isdir(save_directory):
-    print "Error: cannot save movie, because directory '%s' does not exist."%save_directory
-else:
-    p.export_movie_go(frames_per_sec=fps,path=save_directory)
+    os.mkdir(save_directory)
+    if not os.path.isdir(save_directory):
+        message.add( "Error: cannot make movie directory '%s'."%(save_directory,),
+                     level=Message.ERROR )
+message.add( "Saving movie to directory '%s'."%(save_directory,),
+             level=Message.INFO )
+basename = "movie_"+os.path.splitext(os.path.basename(sys.argv[0]))[0]
+p.export_movie_go(frames_per_sec=fps,filename_base=basename,path=save_directory)
 
 
