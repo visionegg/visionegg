@@ -11,6 +11,8 @@ from Pyro.errors import PyroError,NamingError
 
 import GoObject
 
+Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
+
 class PyroGoObject(Pyro.core.ObjBase, GoObject.GoObject):
     pass
 
@@ -38,7 +40,7 @@ def main():
     viewport.add_stimulus(stimulus)
     p = Presentation(duration_sec=5.0,viewports=[viewport])
     p.add_realtime_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
-    p.between_presentations() # init stuff..
+    p.between_presentations() # initialize stuff..
 
     # connect a new object implementation (first unregister previous one)
     try:
