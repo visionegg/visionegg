@@ -71,8 +71,11 @@ class BlurTextureFamily:
         self.loadToGL(self.p)
         
     def computeSpeedList(self,p):
-        if p.cacheFunction == 'linear':
-            dpsSpeedList = arange(0.0,p.maxSpeed,p.maxSpeed/p.num_cached_textures) # dps
+        if p.maxSpeed == 0.0:
+            dpsSpeedList = zeros((p.num_cached_textures,),'f')
+        elif p.cacheFunction == 'linear':
+            increment = p.maxSpeed/(p.num_cached_textures-1)
+            dpsSpeedList = arange(0.0,p.maxSpeed+increment,increment)
         elif p.cacheFunction == 'exp': # exponentially increasing speed look up table
             dpsSpeedList = arange(float(p.num_cached_textures))/float(p.num_cached_textures)
             logmax = math.log(p.maxSpeed)
@@ -184,6 +187,14 @@ class BlurTextureFamily:
             os.chdir(orig_dir)
         except OSError, x:
             print "Warning in MotionBlur.py:",x
+
+    def __del__(self):
+        """Remove textures from OpenGL"""
+        # I wouldn't have to do this if these were texture buffers
+        # and I just lost the reference to the texture buffer and
+        # texture buffer automatically deleted its OpenGL memory.
+        for i in range(1,len(self.texGLIdList)): # Start with 1 so we don't erase original texture
+            glDeleteTextures(self.texGLIdList[i])
                     
 class BlurredDrum(SpinningDrum):
     def __init__(self,
@@ -193,16 +204,40 @@ class BlurredDrum(SpinningDrum):
                  blur_kernel='boxcar',
                  texture=Texture(size=(256,16))):
         apply(SpinningDrum.__init__,(self,texture))
-        self.texs = BlurTextureFamily(self.texture,
-                                      num_cached_textures=num_cached_textures,
-                                      maxSpeed=max_speed,
-                                      blurKernel=blur_kernel,
-                                      target_fps=target_fps)
+        self.parameters.blur_num_textures = num_cached_textures
+        self.parameters.blur_max_speed = max_speed
+        self.parameters.blur_kernel = blur_kernel
+        self.parameters.blur_assumes_fps = target_fps
+        
         self.parameters.motion_blur_on = 1
         self.parameters.cur_time = 0.0 # have to know the time to calculate amount of blur
 
         self.last_time = 0.0
         self.last_drum_angle = self.parameters.angle
+
+        self.update_texture_family()
+        
+    def update_texture_family(self):
+        """Load into OpenGL a series of pre-blurred images."""
+        self.texs = BlurTextureFamily(self.texture,
+                                      num_cached_textures=self.parameters.blur_num_textures,
+                                      maxSpeed=self.parameters.blur_max_speed,
+                                      blurKernel=self.parameters.blur_kernel,
+                                      target_fps=self.parameters.blur_assumes_fps)
+        self.__blur_num_textures = self.parameters.blur_num_textures
+        self.__blur_max_speed = self.parameters.blur_max_speed
+        self.__blur_kernel = self.parameters.blur_kernel
+        self.__blur_assumes_fps = self.parameters.blur_assumes_fps
+
+    def check_textures(self):
+        """Update texture family if any of the parameters have changed."""
+        p = self.parameters # shorthand
+        if p.blur_assumes_fps == self.__blur_assumes_fps:
+            if p.blur_kernel == self.__blur_kernel:
+                if p.blur_max_speed == self.__blur_max_speed:
+                    if p.blur_num_textures == self.__blur_num_textures:
+                        return
+        self.update_texture_family()
 
     def get_texture_object(self,delta_pos,delta_t):
         """Finds the appropriate texture object for the current velocity."""
@@ -219,6 +254,7 @@ class BlurredDrum(SpinningDrum):
         return self.texs.texGLIdList[speedIndex]
 
     def draw(self):
+        self.check_textures()
         delta_drum_angle = self.parameters.angle - self.last_drum_angle # change in position (units: degrees)
         delta_t = self.parameters.cur_time - self.last_time
 
