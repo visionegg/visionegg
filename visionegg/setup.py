@@ -50,17 +50,17 @@ classifiers = [
     'Topic :: Scientific/Engineering :: Medical Science Apps.',
     ]
 
+from distutils.core import setup, Extension
+from distutils.command.build_ext import build_ext
+from distutils.errors import CCompilerError
+import sys, os.path, glob, traceback
+
 package_dir      = {'VisionEgg'          : 'src',
                     'VisionEgg.PyroApps' : os.path.join('src','PyroApps')}
 packages         = [ 'VisionEgg',
                      'VisionEgg.PyroApps' ]
 ext_package      = 'VisionEgg'
 ext_modules      = []  # filled in later
-
-from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext
-from distutils.errors import CCompilerError
-import sys, os.path, glob, traceback
 
 # Fill out ext_modules
 skip_c_compilation = 0
