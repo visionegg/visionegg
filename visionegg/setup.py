@@ -89,6 +89,8 @@ if not skip_c_compilation:
         gl_extra_link_args = []
     if sys.platform == 'win32':
         gl_libraries = ['opengl32']
+    elif sys.platform[:5] == 'linux':
+        gl_libraries = ['GL']
     else:
         gl_libraries = []
     ext_modules.append(Extension(name='_lib3ds',
