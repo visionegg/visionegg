@@ -8,6 +8,7 @@ Renamed timing_func() to time_func()
 EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
 Screen.put_pixels() method for (pseudo)blitting of raw pixel data
 Textures with alpha bugfixes and examples
+Mipmaps of sinusoidal grating to prevent spatial aliasing
 Documentation de-emphasis on Presentation class
 Now requires Python 2.2 and pygame 1.5
 Changed orientations such that 0 degrees is right and 90 degrees is up.
