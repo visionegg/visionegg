@@ -59,8 +59,8 @@ phase_controller = tcp_listener.create_tcp_controller(
     )
 orientation_controller = tcp_listener.create_tcp_controller(
     tcp_name="orient",
-    initial_controller=EvalStringController(during_go_eval_string="t_abs*15.0",
-                                            between_go_eval_string="t_abs*5.0",
+    initial_controller=EvalStringController(during_go_eval_string="0.0",
+                                            between_go_eval_string="fmod(t_abs,360.0/5.0)*5.0",
                                             eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME,
                                             temporal_variables=VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE)
     )
