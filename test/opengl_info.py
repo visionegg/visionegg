@@ -95,6 +95,17 @@ for extension in string.split(glGetString(GL_EXTENSIONS)):
 
 print
 
+### Get WGL info if this is win32
+
+if sys.platform == 'win32':
+    from OpenGL.WGL.EXT.extensions_string import *
+    if wglInitExtensionsStringEXT(): # Returns 1 if it's working
+        print " WGL_EXTENSIONS ="
+        for extension in string.split(wglGetExtensionsStringEXT()):
+            print "                 ",extension
+
+print            
+
 ### Buffer information
 
 print "Buffer information"
