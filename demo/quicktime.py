@@ -12,6 +12,7 @@ from VisionEgg.Core import *
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
 from VisionEgg.QuickTime import new_movie_from_filename, MovieTexture
+from pygame.locals import *
 
 screen = get_default_screen()
 screen.set(bgcolor=(0,0,0))
@@ -51,9 +52,11 @@ viewport = Viewport(screen=screen,
 
 movie.StartMovie()
 frame_timer = FrameTimer()
-while not pygame.event.peek((pygame.locals.QUIT,
-                             pygame.locals.KEYDOWN,
-                             pygame.locals.MOUSEBUTTONDOWN)):
+quit_now = 0
+while not quit_now:
+    for event in pygame.event.get():
+        if event.type in (QUIT,KEYDOWN,MOUSEBUTTONDOWN):
+            quit_now = 1
     movie.MoviesTask(0)
     screen.clear()
     viewport.draw()

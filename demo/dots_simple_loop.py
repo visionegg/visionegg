@@ -37,7 +37,11 @@ viewport = Viewport( screen=screen, stimuli=[dots,text] )
 # VisionEgg.FlowControl.Presentation class.
 
 frame_timer = FrameTimer()
-while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
+quit_now = 0
+while not quit_now:
+    for event in pygame.event.get():
+        if event.type in (QUIT,KEYDOWN,MOUSEBUTTONDOWN):
+            quit_now = 1
     screen.clear()
     viewport.draw()
     swap_buffers()

@@ -20,7 +20,7 @@ from VisionEgg.Textures import TextureTooLargeError
 from VisionEgg.Text import Text
 from math import sin, pi
 import math
-import pygame.locals
+from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN
 import RandomArray # Numeric
 
 #####################################
@@ -308,10 +308,11 @@ drum_viewport = Viewport( screen     = screen,
 # save time
 frame_timer = VisionEgg.Core.FrameTimer()
 
-# quit on any of these events
-while not pygame.event.peek((pygame.locals.QUIT,
-                             pygame.locals.KEYDOWN,
-                             pygame.locals.MOUSEBUTTONDOWN)):
+quit_now = 0
+while not quit_now:
+    for event in pygame.event.get():
+        if event.type in (QUIT,KEYDOWN,MOUSEBUTTONDOWN):
+            quit_now = 1
     t = VisionEgg.time_func()
     
     # update parameters (can be done with VisionEgg.FlowControl.Controllers)
