@@ -397,12 +397,12 @@ class Screen(VisionEgg.ClassWithParameters):
         else:
             raise ValueError('No support for "%s" framebuffer'%buffer)
 
-        # according to Apple's glGrab,demo, this should force DMA transfers:
+        # according to Apple's glGrab demo, this should force DMA transfers:
         gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 4)
         gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
         gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
         gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
-        if hasattr(gl,'GL_BGRA'):
+        if gl_version >= '1.2' and hasattr(gl,'GL_BGRA'):
             framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_BGRA,gl.GL_UNSIGNED_INT_8_8_8_8_REV)
             raw_format = 'BGRA'
         else:
@@ -410,8 +410,8 @@ class Screen(VisionEgg.ClassWithParameters):
             raw_format = 'RGBA'
         fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
         fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
-        # XXX there's something bizarre going on here:
-        # Why do these all work (at least on Mac OS X/PPC)?
+        # These work, but I don't know why.  There must be something I
+        # don't understand about byte ordering!
         if format == gl.GL_RGB:
             if raw_format == 'BGRA':
                 fb_array = fb_array[:,:,1:]
