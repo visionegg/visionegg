@@ -1,8 +1,8 @@
 """Data acquisition and triggering over the parallel port.
 
-Only x86 computers seem to have parallel ports.  This module was
-programmed using information from "Interfacing the Standard Parallel
-Port" by Craig Peacock, http://www.senet.com.au/~cpeacock.
+This module was programmed using information from "Interfacing the
+Standard Parallel Port" by Craig Peacock,
+http://www.senet.com.au/~cpeacock.
 
 This module only uses the Standard Parallel Port (SPP) protocol, not
 ECP or EPP."""
@@ -16,29 +16,31 @@ ECP or EPP."""
 #
 ####################################################################
 
-debug_output = 0
-try_for_real = 1
-
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Daq
 import sys, types, string
+
+# See the raw LPT module for your platform for direct LPT access
+# without VisionEgg DAQ overhead.  In particular, the inp and out
+# functions are useful.
+
 if sys.platform == 'win32':
-    import winioport
-    raw_lpt_module = winioport
+    import winioport as raw_lpt_module
 elif sys.platform == 'linux2':
-    import VisionEgg._raw_lpt_linux
-    raw_lpt_module = VisionEgg._raw_lpt_linux
+    import VisionEgg._raw_lpt_linux as raw_lpt_module
 ### IRIX implementation not done, but possible
 ##elif sys.platform[:4] == 'irix':
 ##    import VisionEgg._raw_plp_irix
 ##    raw_lpt_module = VisionEgg._raw_plp_irix
+else:
+    raise RuntimeError("VisionEgg.DaqLPT not supported on this platform")
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
+            
 class LPTInput(VisionEgg.Daq.Input):
     def get_data(self):
         """Get status bits 0-7 of the LPT port.
@@ -55,29 +57,21 @@ class LPTInput(VisionEgg.Daq.Input):
         bit4 = value & 0x10
         bit5 = value & 0x20
         """
-        if try_for_real:
-            return raw_lpt_module.inp(self.channel.device.base_address+1)
-        else:
-            return sys.maxint & ~0xFF # return impossible value
+        return raw_lpt_module.inp(self.channel.device.base_address+1)
 
 class LPTOutput(VisionEgg.Daq.Output):
     def put_data(self,data):
         """Set output bits 0-7 (pins 2-9) on the LPT port."""
-        if debug_output:
-            print "out(0x%04X,0x%02X)"%(self.channel.device.base_address,data)
-        if try_for_real:
-            raw_lpt_module.out(self.channel.device.base_address,data)
+        raw_lpt_module.out(self.channel.device.base_address,data)
     def __del__(self):
         """Set output bits low when closing."""
-        if try_for_real:
-            raw_lpt_module.out(self.channel.device.base_address,0)
+        raw_lpt_module.out(self.channel.device.base_address,0)
 
 class LPTChannel(VisionEgg.Daq.Channel):
     """A data acquisition channel using the parallel port."""
     def __init__(self,**kw):
-        if try_for_real:
-            if not 'raw_lpt_module' in globals().keys():
-                raise RuntimeError("LPT output not supported on this platform.")
+        if not 'raw_lpt_module' in globals().keys():
+            raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
         signal_type = self.constant_parameters.signal_type
         if not isinstance(signal_type,VisionEgg.Daq.Digital):
@@ -97,9 +91,8 @@ class LPTDevice(VisionEgg.Daq.Device):
     address of 0x0278."""
     
     def __init__(self,base_address=0x378,**kw):
-        if try_for_real:
-            if not 'raw_lpt_module' in globals().keys():
-                raise RuntimeError("LPT output not supported on this platform.")
+        if not 'raw_lpt_module' in globals().keys():
+            raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Device.__init__,(self,),kw)
         for channel in self.channels:
             if not isinstance(channel,LPTChannel):
@@ -121,9 +114,8 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
     frames."""
     
     def __init__(self,lpt_device=None):
-        if try_for_real:
-            if not 'raw_lpt_module' in globals().keys():
-                raise RuntimeError("LPT output not supported on this platform.")
+        if not 'raw_lpt_module' in globals().keys():
+            raise RuntimeError("LPT output not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.NoneType,
                                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
@@ -151,9 +143,8 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
 
 class LPTTriggerInController(VisionEgg.Core.Controller):
     def __init__(self,lpt_device=None,pin=13):
-        if try_for_real:
-            if not 'raw_lpt_module' in globals().keys():
-                raise RuntimeError("LPT input not supported on this platform.")
+        if not 'raw_lpt_module' in globals().keys():
+            raise RuntimeError("LPT input not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.IntType,
                                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
