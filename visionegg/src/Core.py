@@ -53,7 +53,7 @@ class Screen:
         self.size = size
         self.fullscreen = fullscreen 
 
-        pygame.init()
+        pygame.display.init()
         pygame.display.set_caption("Vision Egg")
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
         if self.fullscreen:
@@ -63,9 +63,19 @@ class Screen:
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
 
-        # Confirmed on 2xAthlon, Mandrake Linux 2.4.17, nVidia geForce 2, 640x480x180
-        # linux will report it can do 32 bpp, but fails on init
-        # (But then reports 32 bpp!)
+        # SDL, and therefore pygame, has problems on linux when trying
+        # to acheive a 32 bpp depth, at least on any of the (nVidia)
+        # setups I've tried.  This is a real killer when trying to use
+        # alpha in the framebuffer.
+        
+        # I workaround this by modifying "display.c" in the pygame
+        # sourcecode where I've added
+        # "SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);" before
+        # "SDL_SetVideoMode(w, h, depth, flags);"
+
+        # Until this is fixed in SDL and pygame, the following
+        # special case for linux must stay. :(
+        
         if sys.platform=='linux2': 
             try:
                 while 1:
@@ -694,7 +704,7 @@ class Presentation:
             current_duration_value = current_frame
         else:
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-        while (current_duration_value <= duration_value):
+        while (current_duration_value < duration_value):
             # Update all the realtime parameters
             for parameters,name,controller in self.realtime_time_controllers:
                 setattr(parameters,name,controller(current_time))
