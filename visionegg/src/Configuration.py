@@ -232,19 +232,19 @@ def save_settings():
                     # Change the output line
                     out_line = ("%s = %s"%(name,getattr(VisionEgg.config,name,))) + line_ending
                     saved_config_vars.append(name)
-            else:
-                if not used_stderr:
-                    stderr_header()
-                    used_sterr = 1
+##            else:
+##                if not used_stderr:
+##                    stderr_header()
+##                    used_sterr = 1
 #                sys.stderr.write("  warning: %s found in config file, but don't know anything about this variable.\n"%(name,))
         out_file_lines.append(out_line)
 
-    for test_name in VisionEgg.config.__dict__.keys():
-        if test_name not in saved_config_vars:
-            if test_name not in dont_save:
-                if not used_stderr:
-                    stderr_header()
-                    used_stderr = 1
+##    for test_name in VisionEgg.config.__dict__.keys():
+##        if test_name not in saved_config_vars:
+##            if test_name not in dont_save:
+##                if not used_stderr:
+##                    stderr_header()
+##                    used_stderr = 1
 #                sys.stderr.write("  info: Not writing variable %s because it is not in original configuration file.\n"%(test_name,))
 
     # Close and reopen orig_file in write mode
