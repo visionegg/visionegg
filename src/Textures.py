@@ -136,7 +136,7 @@ class TextureBuffer:
             # Do error-checking on texture to make sure it will load
             max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
             if self.im.size[0] > max_dim or self.im.size[1] > max_dim:
-                raise EggError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
+                raise VisionEgg.Core.EggError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
             
             # Because the MAX_TEXTURE_SIZE method is insensitive to the current
             # state of the video system, another check must be done using
