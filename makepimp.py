@@ -10,9 +10,9 @@ from plistlib import Plist
 
 debug = True
 
-HTTPBASE = 'http://localhost/~astraw/pimp/'
-UPLOADCMD = 'cp %s ~/Sites/pimp/'
-PLISTDIR = os.path.expanduser('~/Sites/pimp')
+HTTPBASE = 'http://osdn.dl.sourceforge.net/sourceforge/visionegg/'
+UPLOADCMD = 'echo "upload %s" when you want'
+PLISTDIR = "."
 
 plat = distutils.util.get_platform()
 
