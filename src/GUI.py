@@ -58,6 +58,14 @@ class StartGraphicsFrame(Tkinter.Frame):
                             variable=self.realtime,
                             relief=Tkinter.FLAT).pack()
 
+        # texture compression
+        self.tex_compress = Tkinter.BooleanVar()
+        self.tex_compress.set(VisionEgg.video_info.tex_compress)
+        Tkinter.Checkbutton(self.detailsFrame,
+                            text='Texture compression',
+                            variable=self.tex_compress,
+                            relief=Tkinter.FLAT).pack()
+
         # resolution
         Tkinter.Label(self.detailsFrame,text="Window size (pixels):").pack()
         self.resolution = Tkinter.StringVar()
@@ -74,6 +82,9 @@ class StartGraphicsFrame(Tkinter.Frame):
         Tkinter.Button(self,text="start",command=self.start).pack()
         
     def start(self):
+        
+        VisionEgg.video_info.tex_compress = self.tex_compress.get()
+        
         if self.resolution.get() == "640x480":
             width = 640
             height = 480
