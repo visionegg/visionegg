@@ -172,7 +172,7 @@ class Projection:
     """Abstract base class that defines how to set the OpenGL projection matrix"""
     def __init__(self):
         raise RuntimeError("Must use a subclass of Projection")
-    def set_current_GL_matrix(self):
+    def set_GL_projection_matrix(self):
         raise RuntimeError("Must use a subclass of Projection")
 
 class OrthographicProjection(Projection):
@@ -185,13 +185,14 @@ class OrthographicProjection(Projection):
         self.z_clip_near = z_clip_near
         self.z_clip_far = z_clip_far
 
-    def set_current_GL_matrix(self):
+    def set_GL_projection_matrix(self):
         """Set the OpenGL projection matrix and then put OpenGL into modelview mode"""
-        
+        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glOrtho(self.left,self.right,self.bottom,self.top,self.z_clip_near,self.z_clip_far) # Let GL create a matrix and compose it
-        glMatrixMode(GL_MODELVIEW) # Set the matrix mode to modelview (probably what the user will do next)
+        if matrix_mode != GL_PROJECTION:
+            glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class PerspectiveProjection(Projection):
     """A perspective projection"""
@@ -200,7 +201,7 @@ class PerspectiveProjection(Projection):
         self.z_clip_near = z_clip_near
         self.z_clip_far = z_clip_far
 
-    def set_current_GL_matrix(self):
+    def set_GL_projection_matrix(self):
         """Set the OpenGL projection matrix and then put OpenGL into modelview mode"""
         
         global screen_width,screen_height
@@ -208,26 +209,29 @@ class PerspectiveProjection(Projection):
         self.fov_y = self.fov_x / screen_width * screen_height       # Wish that this could be done in __init__, but
         self.aspect_ratio = float(screen_width)/float(screen_height) # screen_width and screen_heigh may not be defined.
 
+        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         gluPerspective(self.fov_y,self.aspect_ratio,self.z_clip_near,self.z_clip_far) # Let GLU create a matrix and compose it
-        glMatrixMode(GL_MODELVIEW) # Set the matrix mode to modelview (probably what the user will do next)
+        if matrix_mode != GL_PROJECTION:
+            glMatrixMode(matrix_mode) # Set the matrix mode back
 
 ####################################################################
 #
-#        Stimulus - Base class (Static teapot, just to show something)
+#        Stimulus - Base class (Spinning teapot, just to show something)
 #
 ####################################################################
 
 class Stimulus:
     """Base class that provides timing routines and core functionality for any stimulus."""
-    def __init__(self,durationSec=1.0,projection=PerspectiveProjection()):
+    def __init__(self,durationSec=5.0,bgcolor=(0.5,0.5,0.5,0.0),projection=OrthographicProjection()):
         self.durationSec = durationSec
         self.projection = projection
         self.spotOn = 0
-        self.drawTimes = [] # List of times the frame was drawn
-        self.drawTimes2 = [] # List of times the frame was drawn
-        self.drawTimes3 = [] # List of times the frame was drawn
+        self.bgcolor = bgcolor
+#        self.drawTimes = [] # List of times the frame was drawn
+#        self.drawTimes2 = [] # List of times ?
+#        self.drawTimes3 = [] # List of times ?
         self.initGL()
 
     def setDuration(self,durationSec):
@@ -235,61 +239,133 @@ class Stimulus:
 
     def setSpotOn(self,spotOn):
         self.spotOn = spotOn
+        if self.spotOn:
+            # setup an orthographic projection so the fixation spot is always square
+            global screen_width,screen_height
+
+            x = 100.0
+            y = x * screen_height / screen_width
+            self.spot_projection = OrthographicProjection(left=-0.5*x,right=0.5*x,bottom=-0.5*y,top=0.5*y,z_clip_near=-1.0,z_clip_far=1.0)
 
     def registerDaq(self,daq):
         self.daq = daq
+        
+    def drawFixationSpot(self):
+        """Draw a fixation spot at the center of the screen"""
+        # save current matrix mode
+        matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
+
+        # before we clear the modelview matrix, save its state
+        if matrix_mode != GL_MODELVIEW:
+            glMatrixMode(GL_MODELVIEW)
+        glPushMatrix() # save the current modelview to the stack
+        glLoadIdentity() # clear the modelview matrix
+
+        # before we clear the projection matrix, save its state
+        glMatrixMode(GL_PROJECTION) 
+        glPushMatrix()
+        glLoadIdentity()
+        self.spot_projection.set_GL_projection_matrix()
+
+        glColor(1.0,1.0,1.0,1.0) # Should cache the color value
+        glDisable(GL_TEXTURE_2D)
+        # This could go in a display list to speed it up
+        glBegin(GL_QUADS)
+        size = 0.25
+        glVertex3f(-size,-size, 0.0);
+        glVertex3f( size,-size, 0.0);
+        glVertex3f( size, size, 0.0);
+        glVertex3f(-size, size, 0.0);
+        glEnd() # GL_QUADS
+        glEnable(GL_TEXTURE_2D)
+
+        glPopMatrix() # restore projection matrix
+
+        glMatrixMode(GL_MODELVIEW)
+        glPopMatrix() # restore modelview matrix
+
+        if matrix_mode != GL_MODELVIEW:
+            glMatrixMode(matrix_mode)   # restore matrix state
 
     def glut_idle(self): # only called if running in GLUT
-        #global glut_window
-        glFinish()
-        curTimeAbs = getTime()
-        curTime = curTimeAbs-self.startTimeAbs
-        self.yrot = math.fmod(curTime*360.0/10.0,360.0)
+#        lastTime = self.curTime # even though it's confusing between these two instructions, this must be done now
+#        lastyrot = self.yrot
+
+#        self.contrast = self.cFunc(self.curTime)
+#        self.yrot = self.posFunc(self.curTime)
+
+#        delta_pos = self.yrot - lastyrot # degrees
+#        delta_t = self.curTime - lastTime # seconds
+
+#        self.texId = self.getTexId(delta_pos,delta_t)
+        
         self.drawGLScene()
-        if curTime > self.durationSec:
-            graphicsClose() # XXX Wrong! I just want to stop glutMainLoop!
-            #glutDestroyWindow(glut_window) # Doesn't stop glutMainLoop
+        cur_time_absolute = getTime()
+        self.cur_time = cur_time_absolute-self.start_time_absolute
+        if self.cur_time > self.durationSec:
+            self.stimulus_done()
+            #graphicsClose() # XXX Wrong! I just want to stop glutMainLoop!
+            #glutDestroyWindow(glut_window) # doesn't quit glutMainLoop
 
-    def glut_go(self):
-        self.yrot = 0.0
-        self.startTimeAbs = getTime()
-        glutDisplayFunc(self.drawGLScene)
+    def glut_go(self): # only called if running in GLUT
+        self.start_time_absolute = getTime()
+        self.cur_time = 0.0
+#        self.yrot = self.posFunc(0.0)
         glutIdleFunc(self.glut_idle)
+#        self.glut_idle() # call glut_idle() at least once before calling drawGLScene
+        glutDisplayFunc(self.drawGLScene)
         glutMainLoop()
+        
+    def sdl_go(self):
+        """Could put in C to run faster.
 
-    def go(self):
-        self.startTimeAbs = getTime()
-        curTimeAbs = getTime()
-        curTime = curTimeAbs-self.startTimeAbs
-        while(curTime <= self.durationSec):
-            self.yrot = math.fmod(curTime*360.0/10.0,360.0)
+        Bare bones timing routines.
+        """
+        self.start_time_absolute = getTime()
+        self.cur_time = 0.0
+        #self.yrot = self.posFunc(self.curTime)
+        #lastyrot = self.yrot
+        #lastTime = self.curTime
+        while (self.cur_time <= self.durationSec):
+            #self.contrast = self.cFunc(self.curTime)
+            #self.yrot = self.posFunc(self.curTime)
+
+            #delta_pos = self.yrot - lastyrot
+            #delta_t = self.curTime - lastTime
+
+            #lastTime = self.curTime
+
+            #self.drawTimes3.append(getTime())
+            #self.texId = self.getTexId(delta_pos,delta_t)
+            
+            #lastyrot = self.yrot
             self.drawGLScene()
-            curTimeAbs = getTime()
-            curTime = curTimeAbs-self.startTimeAbs
+            cur_time_absolute = getTime()
+            self.cur_time = cur_time_absolute-self.start_time_absolute
+        self.stimulus_done()
 
     def drawGLScene(self):
     	"""Redraw the scene on every frame.
     
-        Could put in C to run faster if needed.
+        Since this is just a base class, do something simple.
+        Drawing a teapot seems a good idea, since it looks
+        relatively pretty and takes one line of code.
         """
-        global use_sdl
+        yrot = self.cur_time*90.0 # spin 90 degrees per second
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
         glTranslatef(0.0, 0.0, -6.0)
-        glRotatef(self.yrot,0.0,1.0,0.0)
-        glutSolidTeapot(1.0)
-        if use_sdl:
-            SDL_GL_SwapBuffers()
-        else:
-            glutSwapBuffers()
+        glRotatef(yrot,0.0,1.0,0.0)
+        glutSolidTeapot(0.5)
+        swap_buffers()
 
     def initGL(self):
         global screen_width,screen_height
         
         # Initialize OpenGL viewport
         glViewport(0,0,screen_width,screen_height)
-        self.projection.set_current_GL_matrix()
-        glClearColor(0.5, 0.5, 0.5, 0.0)
+        self.projection.set_GL_projection_matrix()
+        glClearColor(0.0, 0.0, 0.0, 0.0)
 
     def histogram(self,a, bins):  # straight from NumDoc.pdf
         n = searchsorted(sort(a),bins)
@@ -349,41 +425,45 @@ class Stimulus:
         print "Texture finding"
         self.print_hist(drawTimes3,bins)
         
-    def go_wrapper(self):
+    def go(self):
         global use_sdl
         if use_sdl:
-            self.go()
+            self.sdl_go()
         else:
             self.glut_go()
 
-    def do_nothing(self):
-        preciseSleep( 1000 )
+#    def do_nothing(self):
+#        preciseSleep( 1000 )
 
     def stimulus_done(self):
+        global use_sdl
+        
         if use_sdl:
             pass
         else:
+            # I'd really like to break out of the glutMainLoop, but I can't
             glutIdleFunc(self.do_nothing)
             glutDisplayFunc(self.do_nothing)
         self.clearGL()
-        self.frameStats()
+#        self.frameStats()
 
     def clearGL(self):
-        global screen_width,screen_height
-        global use_sdl
+        #global screen_width,screen_height
+        #global use_sdl
         
         # Initialize OpenGL viewport
-        glViewport(0,0,screen_width,screen_height)
+        #glViewport(0,0,screen_width,screen_height)
         
         # Now setup projection
-        self.projection.set_current_GL_matrix()
+        # self.projection.set_GL_projection_matrix()
 
-        glClearColor(0.5, 0.5, 0.5, 0.0)
+        glClearColor(self.bgcolor[0],self.bgcolor[1],self.bgcolor[2],self.bgcolor[3])
         glClear(GL_COLOR_BUFFER_BIT)
-        if use_sdl:
-            SDL_GL_SwapBuffers()
-        else:
-            glutSwapBuffers()
+        swap_buffers()
+        #if use_sdl:
+        #    SDL_GL_SwapBuffers()
+        #else:
+        #    glutSwapBuffers()
         
 ####################################################################
 #
@@ -392,56 +472,39 @@ class Stimulus:
 ####################################################################
 
 class SpinningDrum(Stimulus):
-    def __init__(self,durationSec,texture,posDegFunc,contrastFunc,numSides=30,radius=3.0,projection=PerspectiveProjection()):
+    def __init__(self,durationSec,texture,position_function,contrast_function,numSides=30,radius=3.0,projection=PerspectiveProjection()):
         self.tex = texture
-        self.posFunc = posDegFunc
-        self.cFunc = contrastFunc
+        self.position_function = position_function
+        self.contrast_function = contrast_function
         self.numSides = numSides
         self.radius = radius # in OpenGL (arbitrary) units
         circum = 2.0*math.pi*self.radius
         self.height = circum*float(self.tex.orig.size[1])/float(self.tex.orig.size[0])
         self.texId = texture.load()
-        Stimulus.__init__(self,durationSec,projection)
+        bgcolor = (0.5,0.5,0.5,0.0) # this is fixed so that contrast 0 is this color
+        Stimulus.__init__(self,durationSec,bgcolor,projection)
 
     def drawGLScene(self):
     	"""Redraw the scene on every frame.
     
         Could put in C to run faster if needed.
         """
-        global use_sdl
-
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
 
-        glRotatef(self.yrot,0.0,1.0,0.0)
-        glColor(0.5,0.5,0.5,self.contrast) # Fragment color
+        yrot = self.position_function(self.cur_time)
+        contrast = self.contrast_function(self.cur_time)
+        
+        glRotatef(yrot,0.0,1.0,0.0)
+        glColor(0.5,0.5,0.5,contrast) # Fragment color
         glBindTexture(GL_TEXTURE_2D, self.texId)
         glCallList(self.displayListId)
 
         if self.spotOn: # draw fixation target
-            glPushMatrix()
-            glLoadIdentity()
-            #glRotatef(90.0,0.0,1.0,0.0)
-            glColor(1.0,1.0,1.0,1.0)
-            glDisable(GL_TEXTURE_2D)
-            glBegin(GL_QUADS)
-            size = 0.0005
-            glVertex3f(-size,-size,-0.1);
-            glVertex3f( size,-size,-0.1);
-            glVertex3f( size, size,-0.1);
-            glVertex3f(-size, size,-0.1);
-            glEnd() # GL_QUADS
-            glEnable(GL_TEXTURE_2D)
-            glPopMatrix()
-
-        self.drawTimes.append(getTime())
-        if use_sdl:
-            SDL_GL_SwapBuffers()
-        else:
-            glutSwapBuffers()
-        toggleDOut()
-        glFinish() # Apparently this is not a given with double buffering
-        self.drawTimes2.append(getTime())
+            self.drawFixationSpot()
+            
+        #self.drawTimes.append(getTime())
+        swap_buffers()
 
     def initGL(self):
         global screen_width,screen_height
@@ -450,7 +513,7 @@ class SpinningDrum(Stimulus):
         glViewport(0,0,screen_width,screen_height)
         
         # Now setup projection
-        self.projection.set_current_GL_matrix()
+        self.projection.set_GL_projection_matrix()
 
         glClearColor(0.5, 0.5, 0.5, 0.0 )
         glClear(GL_COLOR_BUFFER_BIT)
@@ -537,13 +600,92 @@ class SpinningDrum(Stimulus):
         glEnd()
         glEndList()
 
+class MovingTarget(Stimulus):
+    def __init__(self,
+                 position_function,
+                 durationSec=10.0,
+                 orientation=0.0,
+                 width=1.0,
+                 height=1.0,
+                 color=(1.0,1.0,1.0,1.0),
+                 bgcolor=(0.0,0.0,0.0,0.0),
+                 anti_aliasing=0,
+                 projection=OrthographicProjection(left=-100.0,right=100.0,top=100.0,bottom=-100.0)):
+        self.position_function = position_function
+        self.width = width
+        self.height = height
+        self.color = color
+        #self.background = background # done in base class
+        self.orientation = orientation # degrees, 0 moves rightwards, 90 moves downwards
+        self.anti_aliasing = anti_aliasing
+        Stimulus.__init__(self,durationSec,bgcolor,projection)
+    
+    def initGL(self):
+        global screen_width,screen_height
+        
+        # Initialize OpenGL viewport
+        glViewport(0,0,screen_width,screen_height)
+        
+        # Now setup projection
+        self.projection.set_GL_projection_matrix()
+
+        # Set the background color and clear the GL window
+        glClearColor(self.bgcolor[0], self.bgcolor[1], self.bgcolor[2], self.bgcolor[3])
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        # Set the foreground color
+        glColor(self.color[0], self.color[1], self.color[2], self.color[3])
+        
+        # Build the display list
+        self.displayListId = glGenLists(1) # Allocate a new display list
+
+        glNewList(self.displayListId,GL_COMPILE)
+        glBegin(GL_QUADS)
+        #Bottom left of quad
+        glVertex2f(-0.5*self.width, -0.5*self.height)
+        #Bottom right
+        glVertex2f( 0.5*self.width, -0.5*self.height)
+        #Top right
+        glVertex2f( 0.5*self.width,  0.5*self.height)
+        #Top left
+        glVertex2f(-0.5*self.width,  0.5*self.height)
+        glEnd()
+        glEndList()
+
+        if self.anti_aliasing:
+            glEnable(GL_POLYGON_SMOOTH)
+            glEnable(GL_LINE_SMOOTH)
+            
+            # must configure and enable blending to do anti-aliasing
+            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+            glEnable(GL_BLEND)
+
+            # Because polygon anti-aliasing doesn't work (for some reason)
+            # only draw lines, not faces
+            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+        
+    def drawGLScene(self):
+        glClear(GL_COLOR_BUFFER_BIT) # clear the framebuffer
+        glLoadIdentity() # clear the modelview matrix
+
+        position = self.position_function(self.cur_time)
+        glTranslatef(position[0],position[1],-1.0) # center the modelview matrix where we want the target
+        glRotatef(self.orientation,0.0,0.0,-1.0) # rotate the modelview matrix to our orientation
+        
+        glCallList(self.displayListId) # draw the target (precompiled display list)
+        
+        if self.spotOn: # probably never on for a moving target stimulus, but still...
+            self.drawFixationSpot()
+
+        swap_buffers()
+
 ####################################################################
 #
 #        Graphics initialization
 #
 ####################################################################            
             
-def graphicsInit(width=640,height=480,fullscreen=1,realtime_priority=1,vsync=1,try_sdl=1):
+def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,try_sdl=1):
     global use_sdl
     global glut_window
     global screen_width,screen_height
@@ -634,3 +776,25 @@ def graphicsClose():
         SDL_ShowCursor(SDL_ENABLE)
         SDL_Quit()
     sys.exit() # Shouldn't do this, but it's the only way I know to quit glutMainLoop
+
+####################################################################
+#
+#        Swap the buffers
+#
+####################################################################            
+
+def swap_buffers():
+    """Swap OpenGL buffers."""
+
+    # Of all the routines that could be put in C for speed, this may
+    # be the biggest bang for the buck.  Then again, it may not.
+    global use_sdl
+
+    if use_sdl:
+        SDL_GL_SwapBuffers()
+    else:
+        glutSwapBuffers()
+    #toggleDOut()
+    #glFinish() # Apparently this is not a given with double buffering
+    #self.drawTimes2.append(getTime())
+
