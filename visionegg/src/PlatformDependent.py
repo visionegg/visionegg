@@ -3,7 +3,7 @@
 Functions:
 
 set_realtime -- Raise the Vision Egg to maximum priority
-linux_but_not_nvidia -- Warn that platform is linux, but drivers not nVidia
+linux_but_unknown_drivers -- Warn that platform is linux, but drivers unknown
 sync_swap_with_vbl_pre_gl_init -- Try to synchronize buffer swapping and vertical retrace before starting OpenGL
 sync_swap_with_vbl_post_gl_init -- Try to synchronize buffer swapping and vertical retrace after starting OpenGL
 """
@@ -55,13 +55,7 @@ def set_priority(*args,**kw):
             value = kw[word]
         params[word] = value
 
-    if sys.platform != 'darwin':
-        try:
-            import _maxpriority
-            apply(_maxpriority.set_realtime,args,kw)
-        except:
-            raise NotImplementedError("No support for setting the priority on this platform")
-    elif sys.platform == 'darwin':
+    if sys.platform == 'darwin':
 
         # Everything to support realtime in Apple Mac OS X is based on
         # the following two things:
@@ -73,39 +67,60 @@ def set_priority(*args,**kw):
         import darwin_maxpriority
 
         if params['darwin_maxpriority_conventional_not_realtime']:
-            import errno
-            darwin_maxpriority.cvar.errno = 0 # set errno in c
-            current_priority = darwin_maxpriority.getpriority(darwin_maxpriority.PRIO_PROCESS,0)
-            if darwin_maxpriority.cvar.errno != 0:
-                raise RuntimeError("Error calling getpriority(): %s"%errno.errorcode[darwin_maxpriority.cvar.errno])
+            process = darwin_maxpriority.PRIO_PROCESS
+            policy = darwin_maxpriority.SCHED_RR
 
-            if not darwin_maxpriority.setpriority(darwin_maxpriority.PRIO_PROCESS,0,params['darwin_conventional_priority']):
-                raise RuntimeError("Error calling getpriority(): %s"%errno.errorcode[darwin_maxpriority.cvar.errno])
+            VisionEgg.Core.message.add(
+                """Setting max priority mode for darwin platform
+                using conventional priority %d."""%(
+                params['darwin_conventional_priority'],),
+                VisionEgg.Core.Message.INFO)
+                
+            # set the priority of the current process
+            try:
+                old_priority = darwin_maxpriority.getpriority(process,0)
+                darwin_maxpriority.setpriority(process,0,params['darwin_conventional_priority'])
+            except OSError, x:
+                import errno
+                
+                if x.errno == errno.EACCES:
+                    new_priority = darwin_maxpriority.getpriority(process,0)
+                    VisionEgg.Core.message.add(
+                        """OSError: [errno 13] Permission denied when
+                        attempting setpriority.  However, I have found
+                        attempting to set priority in this manner
+                        still succeeds in making the program run more
+                        smoothly, so the OSError is being ignored.
+                        Mac OS X reports priority was %d, now
+                        %d."""%(old_priority,new_priority),
+                        VisionEgg.Core.Message.WARNING)
+                else:
+                    raise
 
+            # This sets the pthread priority, which only prioritizes
+            # threads in the process.  Might as well do it, but it
+            # shouldn't matter unless we're running multi-threaded.
             darwin_pthread_priority = params['darwin_pthread_priority']
             if darwin_pthread_priority == "max": # should otherwise be an int
-                darwin_pthread_priority = darwin_maxpriority.sched_get_priority_max(darwin_maxpriority.SCHED_RR)
+                darwin_pthread_priority = darwin_maxpriority.sched_get_priority_max(policy)
 
-            VisionEgg.Core.message.add( "Setting max priority mode for darwin platform "\
-                                        "using conventional priority.",
-                                        VisionEgg.Core.Message.INFO)
-
-            if darwin_maxpriority.set_self_pthread_priority(darwin_maxpriority.SCHED_RR,
+            if darwin_maxpriority.set_self_pthread_priority(policy,
                                                             darwin_pthread_priority) == -1:
                 raise RuntimeError("set_self_pthread failed.")
 
         else:
             bus_speed = darwin_maxpriority.get_bus_speed()
 
-            VisionEgg.Core.message.add( "Setting max priority mode for darwin platform "\
-                                        "using realtime threads. ( period = %d / %d, "\
-                                        "computation = %d / %d, constraint = %d / %d, "\
-                                        "preemptible = %d )"%
-                                        ( bus_speed, params['darwin_realtime_period_denom'],
-                                          bus_speed, params['darwin_realtime_computation_denom'],
-                                          bus_speed, params['darwin_realtime_constraint_denom'],
-                                          params['darwin_realtime_preemptible'] ),
-                                        VisionEgg.Core.Message.INFO)
+            VisionEgg.Core.message.add(
+                """Setting max priority mode for darwin platform
+                using realtime threads. ( period = %d / %d, 
+                computation = %d / %d, constraint = %d / %d, 
+                preemptible = %d )""" % ( bus_speed,
+                params['darwin_realtime_period_denom'],
+                bus_speed, params['darwin_realtime_computation_denom'],
+                bus_speed, params['darwin_realtime_constraint_denom'],
+                params['darwin_realtime_preemptible'] ),
+                VisionEgg.Core.Message.INFO)
 
             period = bus_speed / params['darwin_realtime_period_denom']
             computation = bus_speed / params['darwin_realtime_computation_denom']
@@ -113,17 +128,33 @@ def set_priority(*args,**kw):
             preemptible = params['darwin_realtime_preemptible']
 
             darwin_maxpriority.set_self_thread_time_constraint_policy( period, computation, constraint, preemptible )
+    elif sys.platform == 'win32':
+        import win32_maxpriority
+
+        win32_maxpriority.set_self_process_priority_class(
+            win32_maxpriority.HIGH_PRIORITY_CLASS )
+        
+        win32_maxpriority.self_thread_priority(
+            win32_maxpriority.THREAD_PRIORITY_HIGHEST)
+    elif sys.platform in ['linux','irix','posix']:
+        import posix_maxpriority
+
+        policy = posix_maxpriority.SCHED_FIFO
+        max_priority = posix_maxpriority.sched_get_priority_max( policy )
+        posix_maxpriority.set_self_policy_priority( policy, max_priority )
+        posix_maxpriority.stop_memory_paging()
+    else:
+        raise RuntimeError("Cannot change priority.  Unknown platform '%s'"%sys.platform)
             
-def linux_but_not_nvidia():
-    """Warn that platform is linux, but drivers not nVidia."""
-    # If you've added support for other drivers to sync with VBL under
+def linux_but_unknown_drivers():
+    """Warn that platform is linux, but drivers not known."""
+    # If you've added support for other drivers to sync with VBLANK under
     # linux, please let me know how!
     VisionEgg.Core.message.add(
-        """VISIONEGG WARNING: Could not sync buffer swapping to
-        vertical blank pulse because you are running linux but not the
-        nVidia drivers.  It is quite possible this can be enabled,
-        it's just that I haven't had access to anything but nVidia
-        cards under linux!""", level=VisionEgg.Core.Message.WARNING)
+        """VISIONEGG WARNING: Could not sync buffer swapping to vblank
+        because you are running linux but not known/supported drivers
+        (nVidia or recent Mesa DRI Radeon)."""
+        , level=VisionEgg.Core.Message.WARNING)
     
 def sync_swap_with_vbl_pre_gl_init():
     """Try to synchronize buffer swapping and vertical retrace before starting OpenGL."""
@@ -134,10 +165,12 @@ def sync_swap_with_vbl_pre_gl_init():
         # OpenGL context started, but this variable must be set
         # before OpenGL context started!
         
-        # Assume drivers are nVidia
-        VisionEgg.Core.add_gl_assumption("GL_VENDOR","nvidia",linux_but_not_nvidia)
-        # Set nVidia linux environmental variable
+        # Assume drivers are nVidia or recent ATI
+        VisionEgg.Core.add_gl_assumption("__SPECIAL__","linux_nvidia_or_new_ATI",linux_but_unknown_drivers)
+        # Set for nVidia linux
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
+        # Set for recent linux Mesa DRI Radeon
+        os.environ["LIBGL_SYNC_REFRESH"] = "1"
         success = 1
     elif sys.platform[:4] == "irix":
         
