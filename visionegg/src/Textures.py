@@ -20,6 +20,10 @@ import Image, ImageDraw                         # Python Imaging Library package
 
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
+if "GL_CLAMP_TO_EDGE" not in dir():
+    # Hack because this isn't defined in my PyOpenGL modules:
+    print "HACK: - setting GL_CLAMP_TO_EDGE.  If your textures are messed up, this may be why!"
+    GL_CLAMP_TO_EDGE = 0x812F # This value is in Mesa gl.h and nVidia gl.h, so hopefully it's OK
 
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
@@ -229,6 +233,76 @@ class TextureBuffer:
 
 ####################################################################
 #
+#        Stimulus - TextureStimulus
+#
+####################################################################
+
+class TextureStimulus(VisionEgg.Core.Stimulus):
+    def __init__(self,
+                 texture=Texture(size=(256,16)),
+                 projection = None):
+        self.texture = texture
+        
+        self.parameters = VisionEgg.Core.Parameters()
+        if projection is None:
+            # Make a default projection
+            self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
+        else:
+            self.parameters.projection = projection
+        self.parameters.on = 1
+        self.parameters.texture_scale_linear_interp = 1
+
+        # object coordinates of the rendered texture
+        self.parameters.lower_left = (0.0,0.0)
+        self.parameters.upper_right = (1.0,1.0)
+
+        self.texture_object = self.texture.load()
+
+    def draw(self):
+        if self.parameters.on:
+            self.parameters.projection.push_and_set_gl_projection() # Save then set the projection matrix
+            glDisable(GL_DEPTH_TEST)
+            glDisable(GL_BLEND)
+            glEnable(GL_TEXTURE_2D)
+            glBindTexture(GL_TEXTURE_2D,self.texture_object)
+            
+            if self.parameters.texture_scale_linear_interp:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+            else:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
+##            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+##            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+            
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+
+            p = self.parameters
+            l = p.lower_left[0]
+            r = p.upper_right[0]
+            b = p.lower_left[1]
+            t = p.upper_right[1]
+            
+            glBegin(GL_QUADS)
+            glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+            glVertex2f(l,b)
+
+            glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+            glVertex2f(r,b)
+
+            glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+            glVertex2f(r,t)
+
+            glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+            glVertex2f(l,t)
+            glEnd() # GL_QUADS
+            
+            glPopMatrix() # restore projection matrix
+            
+####################################################################
+#
 #        Stimulus - Spinning Drum
 #
 ####################################################################
@@ -253,6 +327,7 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         """
         if self.parameters.on:
             # Set OpenGL state variables
+            glDisable( GL_DEPTH_TEST )
             glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
             glEnable( GL_BLEND ) # Contrast control implemented through blending
 
@@ -284,8 +359,10 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
 
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
-
-            glLoadIdentity() # clear modelview matrix
+            
+            # clear modelview matrix
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
 
             glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
             glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
