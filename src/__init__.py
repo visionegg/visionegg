@@ -23,9 +23,17 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Make sure we don't have an old version of the VisionEgg installed.
+# (There used to be a module named VisionEgg.VisionEgg.  If it still
+# exists, it'll crash stuff randomly)
+try:
+    __import__('VisionEgg.VisionEgg') # If we can import it, report error
+    raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
+except ImportError:
+    pass # It's OK, the old version isn't there
+
 import Configuration # a Vision Egg module
 import os, sys, time # standard python modules
-import pygame # pygame
 
 ############# Get config defaults #############
 config = Configuration.Config()
@@ -65,6 +73,3 @@ if sys.platform == 'win32':
     timing_func = time.clock
 else:
     timing_func = time.time    
-
-############# What function do we use to swap the buffers? ############
-swap_buffers = pygame.display.flip
