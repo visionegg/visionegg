@@ -20,8 +20,8 @@ def get_control_list():
 class TargetMetaParameters:
     def __init__(self):
         # colors
-        self.color = (1.0, 1.0, 1.0, 1.0)
-        self.bgcolor = (0.0, 0.0, 0.0, 0.0)
+        self.color = (0.0, 0.0, 0.0, 1.0)
+        self.bgcolor = (1.0, 1.0, 1.0, 0.0)
         
         # motion parameters
         self.start_x = 10.0
@@ -84,7 +84,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         pf_row += 1
         Tkinter.Label(param_frame,text="Color:").grid(row=pf_row,column=0)
         self.color_tk_var = Tkinter.StringVar()
-        self.color_tk_var.set("white on black")
+        self.color_tk_var.set("black on white")
         bar = Tkinter.Menubutton(param_frame, textvariable=self.color_tk_var, relief=Tkinter.RAISED)
         bar.grid(row=pf_row, column=2, sticky=Tkinter.W+Tkinter.E, pady=2, padx=2)
         bar.menu = Tkinter.Menu(bar,tearoff=0)
@@ -165,7 +165,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         self.stim_dur_tk_var.set( self.meta_params.stim_sec )
         self.poststim_dur_tk_var.set( self.meta_params.post_stim_sec )
 
-        if self.meta_params.color == (0.0,0.0,0.0,0.0) and self.meta_params.bgcolor == (1.0,1.0,1.0,1.0):
+        if self.meta_params.color == (0.0,0.0,0.0,1.0) and self.meta_params.bgcolor == (1.0,1.0,1.0,0.0):
             self.color_tk_var.set( "black on white" )
         elif self.meta_params.color == (1.0,1.0,1.0,1.0) and self.meta_params.bgcolor == (0.0,0.0,0.0,0.0):
             self.color_tk_var.set( "white on black" )
@@ -178,8 +178,8 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         self.meta_params.velocity_pps = self.velocity_tk_var.get()
         self.meta_params.direction_deg = self.direction_tk_var.get()
         if self.color_tk_var.get() == "black on white":
-            self.meta_params.color = (0.0,0.0,0.0,0.0)
-            self.meta_params.bgcolor = (1.0,1.0,1.0,1.0)
+            self.meta_params.color = (0.0,0.0,0.0,1.0)
+            self.meta_params.bgcolor = (1.0,1.0,1.0,0.0)
         elif self.color_tk_var.get() == "white on black":
             self.meta_params.color = (1.0,1.0,1.0,1.0)
             self.meta_params.bgcolor = (0.0,0.0,0.0,0.0)
