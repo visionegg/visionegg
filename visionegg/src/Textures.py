@@ -66,12 +66,24 @@ else:
 
 ####################################################################
 #
+# XXX ToDo:
+#
+# The main remaining feature to add to this module is automatic
+# management of texture objects.  This would allow many small images
+# (e.g. a bit of text) to live in one large texture object.  This
+# would be much faster when many small textures are drawn in rapid
+# succession.
+#
+####################################################################
+
+####################################################################
+#
 #        Textures
 #
 ####################################################################
 
 def next_power_of_2(f):
-    return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
+    return int(math.pow(2.0,math.ceil(math.log(f)/math.log(2.0))))
 
 def is_power_of_2(f):
     return f == next_power_of_2(f)
@@ -99,11 +111,19 @@ class Texture:
 
     A reference to the original image data is maintained."""
     
-    def __init__(self,texels=None):
+    def __init__(self,texels=None,size=None):
+        """Creates instance of Texture object.
+
+        texels -- Texture data. If not specified, a blank white
+                  texture is created.
+        size -- If a tuple, force size of texture data if possible,
+                raising an exception if not. If None, has no effect.
+        """
 
         if texels is None: # no texel data: make default
-            self.size = (256,256) # an arbitrary default size
-            texels = Image.new("RGB",self.size,(255,255,255)) # white
+            if size is None:
+                size = (256,256) # an arbitrary default size
+            texels = Image.new("RGB",size,(255,255,255)) # white
 
         if type(texels) == types.FileType:
             texels = Image.open(texels) # Attempt to open as an image file
@@ -131,6 +151,21 @@ class Texture:
 
         self.texels = texels
         self.texture_object = None
+        
+        if size is not None and size != self.size:
+            raise ValueError("size was specified, but data could not be rescaled")
+
+    def update(self):
+        """Update texture data
+
+        This method does nothing, but may be overriden in classes that
+        need to update their texture data whenever drawn.
+
+        It it called by the draw() method of any stimuli using
+        textures when its texture object is active, so it can safely
+        use put_sub_image() to manipulate its own texture data.
+        """
+        pass
 
     def make_half_size(self):
         if self.texture_object is not None:
@@ -179,7 +214,11 @@ class Texture:
                                     level=VisionEgg.Core.Message.DEPRECATION )
         return self.get_texels_as_image()
 
-    def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0, internal_format=gl.GL_RGB):
+    def load(self,
+             texture_object,
+             build_mipmaps = True,
+             rescale_original_to_fill_texture_object = False,
+             internal_format=gl.GL_RGB):
         """Load texture data to video texture memory.
 
         This will cause the texture data to become resident in OpenGL
@@ -199,8 +238,8 @@ class Texture:
 
         width, height = self.size
 
-        width_pow2  = int(next_power_of_2(width))
-        height_pow2  = int(next_power_of_2(height))
+        width_pow2  = next_power_of_2(width)
+        height_pow2  = next_power_of_2(height)
 
         if rescale_original_to_fill_texture_object:
             if not isinstance(self.texels,Image.Image):
@@ -248,7 +287,6 @@ class Texture:
                     buffer = Image.new(self.texels.mode,(width_pow2, height_pow2))
                     buffer.paste( self.texels, (0,height_pow2-height,width,height_pow2))
             elif isinstance(self.texels, pygame.surface.Surface): # pygame surface
-                #raise NotImplementedError("")
                 buffer = pygame.surface.Surface( (width_pow2, height_pow2),
                                                  self.texels.get_flags(),
                                                  self.texels.get_bitsize() )
@@ -279,8 +317,8 @@ class Texture:
                 height_pix = int(math.ceil(this_height))
                 shrunk = self.texels.resize((width_pix,height_pix),shrink_filter)
                 
-                width_pow2  = int(next_power_of_2(width_pix))
-                height_pow2  = int(next_power_of_2(height_pix))
+                width_pow2  = next_power_of_2(width_pix)
+                height_pow2  = next_power_of_2(height_pix)
                 
                 im = Image.new(shrunk.mode,(width_pow2,height_pow2))
                 im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
@@ -842,6 +880,7 @@ class TextureObject:
                             size = None,
                             internal_format = gl.GL_RGB,
                             cube_side = None,
+                            check_opengl_errors = True,
                             ):
 
         """Replace texture object with the framebuffer contents.
@@ -902,6 +941,17 @@ class TextureObject:
             new_mipmap_array['height'] = height
 
         if self.dimensions == 1:
+            if check_opengl_errors:
+                target = gl.GL_PROXY_TEXTURE_1D
+                gl.glCopyTexImage1D(target,
+                                    mipmap_level,
+                                    internal_format,
+                                    x,
+                                    y,
+                                    width,
+                                    border)
+                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise TextureTooLargeError("texel_data is too wide for your video system.")
             gl.glCopyTexImage1D(gl.GL_TEXTURE_1D,
                                 mipmap_level,
                                 internal_format,
@@ -910,6 +960,23 @@ class TextureObject:
                                 width,
                                 border)
         else: # self.dimensions in [2,'cube']
+            if check_opengl_errors:
+                if self.dimensions == 2:
+                    target = gl.GL_PROXY_TEXTURE_2D
+                else:
+                    target = gl.GL_PROXY_CUBE_MAP
+                gl.glCopyTexImage2D(target,
+                                    mipmap_level,
+                                    internal_format,
+                                    x,
+                                    y,
+                                    width,
+                                    height,
+                                    border)
+                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise TextureTooLargeError("texel_data is too wide for your video system.")
+                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
+                    raise TextureTooLargeError("texel_data is too tall for your video system.")
             if self.dimensions == 2:
                 target = gl.GL_TEXTURE_2D
             else:
@@ -936,7 +1003,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     Don't instantiate this class directly."""
     parameters_and_defaults = {
         'texture':(None,
-                   ve_types.Instance(Texture)), 
+                   ve_types.Instance(Texture)),
         'texture_mag_filter':(gl.GL_LINEAR,
                               ve_types.Integer),
         'texture_min_filter':(None, # defaults to gl.GL_LINEAR_MIPMAP_LINEAR (unless mipmaps_enabled False, then gl.GL_LINEAR)
@@ -1133,18 +1200,27 @@ class Mask2D(VisionEgg.ClassWithParameters):
         
 
 class TextureStimulus(TextureStimulusBaseClass):
-    """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
+    """A textured rectangle.
+
+    This is mainly for 2D use (z coordinate fixed to 0.0 and w
+    coordinated fixed to 1.0 if not given).
+
+    """
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
         'mask':(None, # texture mask
                 ve_types.Instance(Mask2D)),
         'position':((0.0,0.0), # in eye coordinates
-                    ve_types.Sequence2(ve_types.Real)),
+                    ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
+                                   ve_types.Sequence3(ve_types.Real),
+                                   ve_types.Sequence4(ve_types.Real))),
         'anchor':('lowerleft',
                   ve_types.String),
         'lowerleft':(None,  # DEPRECATED -- don't use
                      ve_types.Sequence2(ve_types.Real)),
+        'angle':(0.0, # in degrees
+                 ve_types.Real),
         'size':(None, # in eye coordinates, defaults to texture data's size (if it exists)
                 ve_types.Sequence2(ve_types.Real)),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
@@ -1201,14 +1277,22 @@ class TextureStimulus(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
-            l = lowerleft[0]
-            r = l + p.size[0]
-            b = lowerleft[1]
-            t = b + p.size[1]
+            translate_vector = p.position
+            if len(translate_vector) == 2:
+                translate_vector = translate_vector[0], translate_vector[1], 0.0
+            gl.glTranslate(*translate_vector)
+            gl.glRotate(p.angle,0,0,1)
 
             tex = p.texture
+
+            tex.update()
             
             gl.glColor(p.color[0],p.color[1],p.color[2],p.max_alpha)
+
+            l = lowerleft[0] - p.position[0]
+            r = l + p.size[0]
+            b = lowerleft[1] - p.position[1]
+            t = b + p.size[1]
 
             if p.mask:
                 p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
@@ -1273,6 +1357,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             tex = self.parameters.texture
+            tex.update()
             
             gl.glBegin(gl.GL_QUADS)
             gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
@@ -1394,6 +1479,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                 
                 TINY = 1.0e-10
                 tex = p.texture
+                tex.update()
+                
                 if tex_phase < TINY: # it's effectively zero
 
                     gl.glBegin(gl.GL_QUADS)
