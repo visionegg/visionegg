@@ -1,7 +1,7 @@
 """GUI bits of the Vision Egg package."""
 
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
+# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# GNU Lesser General Public License (LGPL).
 
 ####################################################################
 #
@@ -9,14 +9,16 @@
 #
 ####################################################################
 
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
+import VisionEgg
 import os
 import Tkinter
 import VisionEgg
+import string
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class AppWindow(Tkinter.Frame):
     """A GUI Window to be subclassed for your main application window"""
