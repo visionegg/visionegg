@@ -620,7 +620,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         while not p.quit:
             self.between_presentations()
             if self.parameters.enter_go_loop:
-                self.parameters.enter_go_loop = 0
+                self.parameters.enter_go_loop = False
                 self.go()
             if p.check_events:
                 for event in pygame.event.get():
