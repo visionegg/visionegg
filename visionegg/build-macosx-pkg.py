@@ -15,17 +15,28 @@ Author: Andrew Straw <astraw@users.sourceforge.net>
 import os, string, shutil, copy, tempfile,sys
 import setup # from local directory
 
-if not sys.version.startswith("2.2"):
-    raise RuntimeError("Build this with Python 2.2")
+if len(sys.argv) > 1:
+    build_number = int(sys.argv[1])
+else:
+    build_number = 1
+
+if sys.version.startswith("2.2"):
+    py_version_short = "2.2"
+    power_mac = "Power_Macintosh"
+elif sys.version.startswith("2.3"):
+    py_version_short = "2.3"
+    power_mac = "Power Macintosh"
+else:
+    raise RuntimeError("Build this with Python 2.2 or 2.3")
 
 import VisionEgg # get release no
 
 # pkg_name must be short to deal with Stuffit Expander braindead-ness.
 # The final number is a "build number" in case the packaging doesn't work.
-pkg_name = "visionegg-%s-py%s-1"%(VisionEgg.release_name,sys.version.split()[0])
+pkg_name = "visionegg-%s-py%s-%d"%(VisionEgg.release_name,sys.version.split()[0],build_number)
 
-default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
-bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-Power_Macintosh.tar.gz"%(setup.version,)
+default_location = "/Library/Frameworks/Python.framework/Versions/%s"%py_version_short
+bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-%s.tar.gz"%(setup.version,power_mac)
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
 # Initial screen
@@ -35,7 +46,7 @@ welcome_txt = setup.long_description
 readme_txt = """
 This package installs the Vision Egg library and associated files, including the demos.
 
-The files will be installed to %s. This is the default Python 2.2 framework directory. The system files will be in the subdirectory lib/python2.2/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
+The files will be installed to %s. This is the default Python %s framework directory. The system files will be in the subdirectory lib/python%s/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
 
 A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link to this directory named VisionEgg will be made on your Desktop, removing anything named VisionEgg already there.
 
@@ -44,13 +55,13 @@ This release exposes a few known bugs with Mac OS X versions of software that th
 This package has the following dependencies:
 
 Mac OS X 10.2 "Jaguar"
-Python 2.2 Mac OS X framework build with Tkinter modules
+Python %s Mac OS X framework build with Tkinter modules
 PyOpenGL (Python module)
 pygame (Python module)
 Python Imaging Library (Python module)
 Numeric (Python module)
 Pyro (Python module) (optional)
-"""%(default_location,)
+"""%(default_location,py_version_short,py_version_short,py_version_short)
 readme_txt = string.strip(readme_txt)
 
 install_sh = """#!/bin/sh
@@ -60,7 +71,7 @@ echo "Running post-install script"
 INSTALLDIR=%s
 
 SCRIPTDIR=$INSTALLDIR/VisionEgg
-LIBDIR=$INSTALLDIR/lib/python2.2/site-packages/VisionEgg
+LIBDIR=$INSTALLDIR/lib/python%s/site-packages/VisionEgg
 
 # Make a local user copy of the Vision Egg scripts
 echo "Copying to /Applications/VisionEgg"
@@ -77,7 +88,7 @@ chown -R root:admin $LIBDIR
 # Make the link owned by the user
 #chown $USER ~/Desktop/VisionEgg
 
-"""%(default_location,)
+"""%(default_location,py_version_short)
 
 post_install = """#!/bin/sh
 # executed by Installer.app after installing the Vision Egg for the first time.
@@ -137,13 +148,14 @@ orig_dir = os.path.abspath(os.curdir)
 bdist_dumb_dir = "XXX_temp_dir_XXX"
 os.mkdir(bdist_dumb_dir)
 os.chdir(bdist_dumb_dir)
-cmd = "tar -xvzf %s"%(bdist_dumb_results,)
+cmd = "tar -xvzf '%s'"%(bdist_dumb_results,)
+print cmd
 os.system(cmd)
 ##cmd = "sudo chown -R root.admin *"
 ##os.system(cmd)
 os.chdir(orig_dir)
 
-pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/2.2")
+pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/%s"%py_version_short)
 
 if not os.path.isdir(dist_dir):
     os.mkdir(dist_dir)
