@@ -148,13 +148,13 @@ class Screen(VisionEgg.ClassWithParameters):
             import synclync
             try:
                 VisionEgg.config._SYNCLYNC_CONNECTION = synclync.SyncLyncConnection()
-                message.add( "Connected to SyncLync device", 
-                             level=Message.INFO )
             except synclync.SyncLyncError, x:
                 message.add( "Could not connect to SyncLync device (SyncLyncError: %s)."%(str(x),),
                              level=Message.WARNING )
                 VisionEgg.config._SYNCLYNC_CONNECTION = None
-                
+            else:
+                message.add( "Connected to SyncLync device", 
+                             level=Message.INFO )
         else:
             VisionEgg.config._SYNCLYNC_CONNECTION = None
 
@@ -438,7 +438,7 @@ class Screen(VisionEgg.ClassWithParameters):
                             hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
         finally:
             if screen is None:
-                # Hmm, opening a screen failed.  Let's do any cleanup that Screen.__init__ missed.
+                # Opening screen failed.  Let's do any cleanup that Screen.__init__ missed.
                 try:
                     pygame.mouse.set_visible(1) # make sure mouse is visible
                     pygame.quit() # close screen
@@ -2213,7 +2213,6 @@ class Message:
         def flush(self,*args,**kw):
             for stream in self.streams:
                 apply(stream.flush,args,kw)
-
     
     def __init__(self,
                  prefix="VisionEgg",
@@ -2234,14 +2233,20 @@ class Message:
         if VisionEgg.config.VISIONEGG_LOG_FILE:
             try:
                 log_file_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
-                output_streams.append(log_file_stream)
             except:
                 print "VISIONEGG WARNING: Could not open log file '%s'"\
                       %(VisionEgg.config.VISIONEGG_LOG_FILE,)
                 print " Writing only to stderr."
+            else:
+                output_streams.append(log_file_stream)
 
         if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
+            use_stderr = 1
             if sys.executable != sys.argv[0]: # Not binary executable
+                use_stderr = 0
+            elif sys.platform == "win32" and os.path.splitext(sys.argv[0]) == ".pyw":
+                use_stderr = 0
+            if use_stderr:
                 output_streams.append(sys.stderr)
 
         self.output_stream = apply(Message.Tee, output_streams)
