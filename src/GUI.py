@@ -472,7 +472,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                 import tkMessageBox
                 if string.find(str(x),'Permission denied'):
                     tkMessageBox.showerror(title="Permission denied",
-                                           message="Permission denied when trying to save settings.\n\nTry making a copy of the config file in the Vision Egg user directory and making sure you have write permission.")
+                                           message="Permission denied when trying to save settings.\n\nTry making a copy of the config file in the Vision Egg user directory %s and making sure you have write permission."%(os.path.abspath(VisionEgg.config.VISIONEGG_USER_DIR),))
             except:
                 raise x
 
