@@ -139,6 +139,10 @@ class VideoInfoFrame(Tkinter.Frame):
                 Tkinter.Label(self.sub_frame,text="fullscreen: %d x %d, %d bpp"%(VisionEgg.video_info.width,VisionEgg.video_info.height,VisionEgg.video_info.bpp)).pack()
             else:
                 Tkinter.Label(self.sub_frame,text="window: %d x %d, %d bpp"%(VisionEgg.video_info.width,VisionEgg.video_info.height,VisionEgg.video_info.bpp)).pack()
+            if VisionEgg.video_info.tex_compress:
+                Tkinter.Label(self.sub_frame,text="Texture compression: On").pack()
+            else:
+                Tkinter.Label(self.sub_frame,text="Texture compression: Off").pack()
         else:
             Tkinter.Label(self.sub_frame,text="Video system not initialized").pack()
 
