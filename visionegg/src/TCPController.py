@@ -425,6 +425,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                         
     def __unprocessed_line(self,match):
         text = match.group(1)
+        text = string.strip(text).lower()
         if text=="quit": # this a hack, really (should be a controller in charge of Presentation.parameters.quit)
             raise SystemExit
         elif text=="close" or text=="exit":
