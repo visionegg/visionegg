@@ -24,7 +24,7 @@ class GridMetaController( Pyro.core.ObjBase ):
     def __init__(self,screen,presentation,stimuli):
 
         # get the instance of Stimulus that was created
-        assert( stimuli[0][0] == '3d_perspective' )
+        assert( stimuli[0][0] == '3d_perspective_with_set_viewport_callback' )
         grid = stimuli[0][1]
         
         Pyro.core.ObjBase.__init__(self)
@@ -33,12 +33,12 @@ class GridMetaController( Pyro.core.ObjBase ):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
         if not isinstance(presentation,VisionEgg.Core.Presentation):
             raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
-        if not isinstance(grid,VisionEgg.SphereMap.SphereMap):
+        if not isinstance(grid,VisionEgg.SphereMap.AzElGrid):
             raise ValueError("Expecting instance of VisionEgg.SphereMap.SphereMap")
         self.p = presentation
         self.stim = grid
 
-        screen.parameters.bgcolor = (0.5, 0.5, 0.5, 0.0)
+        screen.parameters.bgcolor = (1.0, 1.0, 1.0, 0.0)
 
     def get_parameters(self):
         return self.meta_params
@@ -63,13 +63,16 @@ def get_meta_controller_class():
     return GridMetaController
 
 def make_stimuli():
-    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
-    texture = VisionEgg.Textures.Texture(filename)
-    stimulus = VisionEgg.SphereMap.SphereMap(texture=texture,
-                                             stacks=100,
-                                             slices=100,
-                                             shrink_texture_ok=1)
-    return [('3d_perspective',stimulus)] # return ordered list of tuples
+##    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
+##    texture = VisionEgg.Textures.Texture(filename)
+##    stimulus = VisionEgg.SphereMap.SphereMap(texture=texture,
+##                                             stacks=100,
+##                                             slices=100,
+##                                             shrink_texture_ok=1)
+    stimulus = VisionEgg.SphereMap.AzElGrid()
+    def set_az_el_grid_viewport(viewport):
+        stimulus.parameters.my_viewport = viewport
+    return [('3d_perspective_with_set_viewport_callback',stimulus,set_az_el_grid_viewport)] # return ordered list of tuples
 
 def get_meta_controller_stimkey():
     return "grid_server"
