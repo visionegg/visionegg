@@ -20,33 +20,45 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-class showexception(Tkinter.Frame):
-    """A window that shows a string and has a quit button."""
-    def __init__(self,exc_type, exc_value, traceback_str):
-        title="Vision Egg: exception caught"
-        first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
-        type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
+def showexception(exc_type, exc_value, traceback_str):
+    # private subclass of Tkinter.Frame
+    class ShowExceptionFrame(Tkinter.Frame):
+        """A window that shows a string and has a quit button."""
+        def __init__(self,master,exc_type, exc_value, traceback_str):
+            Tkinter.Frame.__init__(self,master,borderwidth=20)
+            title="Vision Egg: exception caught"
+            first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
+            type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
 
-        apply(Tkinter.Frame.__init__,(self,),{'borderwidth':20})
-        frame = self
+            frame = self
 
-        frame.pack()
-        top = frame.winfo_toplevel()
-        top.title(title)
-        top.protocol("WM_DELETE_WINDOW",self.close_window)
-        
-        Tkinter.Label(frame,text=first_str).pack()
-        Tkinter.Label(frame,text=type_value_str).pack()
-        Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
-        Tkinter.Label(frame,text=traceback_str).pack()
-        
-        b = Tkinter.Button(frame,text="Quit",command=self.close_window)
-        b.pack()
-        b.focus_force()
-        b.bind('<Return>',self.close_window)
-        
-    def close_window(self,dummy_arg=None):
-        self.quit()
+            top = frame.winfo_toplevel()
+            top.title(title)
+            top.protocol("WM_DELETE_WINDOW",self.close_window)
+
+            Tkinter.Label(frame,text=first_str).pack()
+            Tkinter.Label(frame,text=type_value_str).pack()
+            Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
+            Tkinter.Label(frame,text=traceback_str).pack()
+
+            b = Tkinter.Button(frame,text="Quit",command=self.close_window)
+            b.pack()
+            b.focus_force()
+            b.bind('<Return>',self.close_window)
+
+        def close_window(self,dummy_arg=None):
+            self.quit()
+    # create instance of class
+    parent = Tkinter._default_root
+    if parent:
+        top = Tkinter.Toplevel(parent)
+        top.transient(parent)
+    else:
+        top = None
+    f = ShowExceptionFrame(top, exc_type, exc_value, traceback_str)
+    f.pack()
+    f.mainloop()
+    f.winfo_toplevel().destroy()
                 
 class AppWindow(Tkinter.Frame):
     """A GUI Window to be subclassed for your main application window"""
@@ -279,6 +291,15 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             variable=self.mouse_visible,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
+        
+        # Log to console
+        self.log_to_console = Tkinter.BooleanVar()
+        self.log_to_console.set(VisionEgg.config.VISIONEGG_LOG_TO_STDERR)
+        Tkinter.Checkbutton(cf,
+                            text='Echo log messages to console',
+                            variable=self.log_to_console,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
 
 ##        # texture compression
 ##        self.tex_compress = Tkinter.BooleanVar()
@@ -461,6 +482,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_RECORD_TIMES = self.record_times.get()
         VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW = self.frameless.get()
         VisionEgg.config.VISIONEGG_HIDE_MOUSE = not self.mouse_visible.get()
+        VisionEgg.config.VISIONEGG_LOG_TO_STDERR = self.log_to_console.get()
 #        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
