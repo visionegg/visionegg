@@ -219,7 +219,7 @@ class Texture(object):
         if type(self.texels) == Numeric.ArrayType:
             if len(self.texels.shape) == 2:
                 a = self.texels
-                if a.typecode() == Numeric.UnsignedInt8:
+                if a.typecode() == Numeric.UInt8:
                     mode = "L"
                 elif a.typecode() == Numeric.Float32:
                     mode = "F"
@@ -510,13 +510,13 @@ class TextureObject(object):
 
         If the data_type parameter is None (the default), it is set to
         GL_UNSIGNED_BYTE. For Numeric arrays: texel_data is (re)cast
-        as UnsignedInt8 and, if it is a floating point type, values
-        are assumed to be in the range 0.0-1.0 and are scaled to the
-        range 0-255.  If the data_type parameter is not None, the
-        texel_data is not rescaled or recast.  Currently only
-        GL_UNSIGNED_BYTE is supported. For PIL images: texel_data is
-        used as unsigned bytes.  This is the usual format for common
-        computer graphics files."""
+        to UInt8 and, if it is a floating point type, values are
+        assumed to be in the range 0.0-1.0 and are scaled to the range
+        0-255.  If the data_type parameter is not None, the texel_data
+        is not rescaled or recast.  Currently only GL_UNSIGNED_BYTE is
+        supported. For PIL images: texel_data is used as unsigned
+        bytes.  This is the usual format for common computer graphics
+        files."""
         
         if image_data is not None: # check for deprecated parameter name
             if not hasattr(TextureObject,"_gave_put_new_image_data_warning"):
@@ -586,7 +586,7 @@ class TextureObject(object):
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(texel_data) == Numeric.ArrayType:
-                texel_data = texel_data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+                texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -773,7 +773,7 @@ class TextureObject(object):
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(texel_data) == Numeric.ArrayType:
-                texel_data = texel_data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+                texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -898,7 +898,7 @@ class TextureObject(object):
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(data) == Numeric.ArrayType:
-                data = data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+                data = data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -908,7 +908,7 @@ class TextureObject(object):
             else:
                 x_offset = offset_tuple[0]
             width = data.shape[0]
-            raw_data = data.astype(Numeric.UnsignedInt8).tostring()
+            raw_data = data.astype(Numeric.UInt8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
                                x_offset,
@@ -929,7 +929,7 @@ class TextureObject(object):
             if type(data) == Numeric.ArrayType:
                 width = data.shape[1]
                 height = data.shape[0]
-                raw_data = data.astype(Numeric.UnsignedInt8).tostring()
+                raw_data = data.astype(Numeric.UInt8).tostring()
             elif isinstance(texel_data,Image.Image):
                 width = data.size[0]
                 height = data.size[1]

@@ -111,7 +111,7 @@ class MovieTexture(VisionEgg.Textures.Texture):
         self._buf_b = 0
         self._buf_t = height
         
-        buffer = Numeric.zeros( (tex_shape,tex_shape), Numeric.UnsignedInt8 )
+        buffer = Numeric.zeros( (tex_shape,tex_shape), Numeric.UInt8 )
         texture_object.put_new_image( buffer,
                                       internal_format=gl.GL_RGB,
                                       mipmap_level=0 )
