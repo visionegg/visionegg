@@ -7,7 +7,14 @@ components and allow multiple viewports on same screen.
 
 MAJOR: Implemented new Parameters class in VisionEgg.Core to allow
 more flexible control of any parameters which may change during or
-between stimulus presentations.
+between stimulus presentations.  This paves the way for easy control
+using any imaginable means, including a local window, a remote python
+script (see below about Pyro), or from a data-acquisition card.
+
+MAJOR: Added remote execution methods, so now you can run the
+VisionEgg in fullscreen mode while controlling it from a different
+computer.  Check out the the demos in the demo/Pyro directory.
+Requires python package "Pyro" (Python Remote Objects).
 
 New configuration system added.  VisionEgg.config holds system-wide
 configuration defaults. 
