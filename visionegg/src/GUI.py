@@ -426,7 +426,9 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                     information, please refer to
                     http://developer.apple.com/ techpubs/ macosx/
                     Darwin/ General/ KernelProgramming/ scheduler/
-                    Using_Mach__pplications.html"""
+                    Using_Mach__pplications.html Hint: Try the
+                    realtime task method with the framerate as the
+                    denominator.  """
                     
                     )).grid(row=row,columnspan=4,column=0)
                 row = 1
