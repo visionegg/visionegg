@@ -66,7 +66,11 @@ def main():
 
     #the mainloop is pretty simple, the work is done in these funcs
     frame_timer = FrameTimer()
-    while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
+    quit_now = 0
+    while not quit_now:
+        for event in pygame.event.get():
+            if event.type in (QUIT,KEYDOWN,MOUSEBUTTONDOWN):
+                quit_now = 1
         modifyflamebase(flame)
         processflame(flame)
         blitdouble(screen, flame, doubleflame)
