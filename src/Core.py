@@ -973,14 +973,18 @@ class Viewport(VisionEgg.ClassWithParameters):
     parameters_and_defaults = {
         'screen':(None,
                   ve_types.Instance(Screen)),
-        'lowerleft':((0,0),
-                     ve_types.Sequence2(ve_types.Real)), 
+        'position':((0,0),
+                    ve_types.Sequence2(ve_types.Real)), 
+        'anchor':('lowerleft',
+                  ve_types.String),
         'size':(None, # will use screen.size if not specified
                 ve_types.Sequence2(ve_types.Real)),
         'projection':(None, # instance of VisionEgg.Core.Projection
                       ve_types.Instance(Projection)),
         'stimuli':(None,
                    ve_types.Sequence(ve_types.Instance(Stimulus))),
+        'lowerleft':(None,  # DEPRECATED -- don't use
+                     ve_types.Sequence2(ve_types.Real)), 
         } 
 
     def __init__(self,**kw):
@@ -1003,13 +1007,14 @@ class Viewport(VisionEgg.ClassWithParameters):
             raise EggError("Must specify screen when creating an instance of Viewport.")
         
         self.stimuli = []
-        if self.parameters.size is None:
-            self.parameters.size = self.parameters.screen.constant_parameters.size
-        if self.parameters.projection is None:
+        p = self.parameters # shorthand
+        if p.size is None:
+            p.size = p.screen.constant_parameters.size
+        if p.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
-            self.parameters.projection = self.make_new_pixel_coord_projection()
-        if self.parameters.stimuli is None:
-            self.parameters.stimuli = []
+            p.projection = self.make_new_pixel_coord_projection()
+        if p.stimuli is None:
+            p.stimuli = []
 
     def make_new_pixel_coord_projection(self):
         """Create instance of Projection mapping eye coordinates 1:1 with pixel coordinates."""
@@ -1020,16 +1025,27 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     def draw(self):
         """Called by Presentation. Set the viewport and draw stimuli."""
-        self.parameters.screen.make_current()
+        p = self.parameters # shorthand
+        p.screen.make_current()
+        
+        if p.lowerleft != None:
+            if not hasattr(VisionEgg.config,"_GAVE_VP_LOWERLEFT_DEPRECATION"):
+                VisionEgg.Core.message.add("Specifying viewport by 'lowerleft' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
+                                           level=VisionEgg.Core.Message.DEPRECATION)
+                VisionEgg.config._GAVE_VP_LOWERLEFT_DEPRECATION = 1
+            p.anchor = 'lowerleft'
+            p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
+            
+        lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
+        
+        gl.glViewport(lowerleft[0],
+                      lowerleft[1],
+                      p.size[0],
+                      p.size[1])
 
-        gl.glViewport(self.parameters.lowerleft[0],
-                      self.parameters.lowerleft[1],
-                      self.parameters.size[0],
-                      self.parameters.size[1])
+        p.projection.set_gl_projection()
 
-        self.parameters.projection.set_gl_projection()
-
-        for stimulus in self.parameters.stimuli:
+        for stimulus in p.stimuli:
             stimulus.draw()
         
 ####################################################################
