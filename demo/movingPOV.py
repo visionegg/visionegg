@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """A demonstration of 2 viewports.
-
-The viewport on the right looks a little bit strange, I think
-due to clipping of the projection."""
+"""
 import math
 
 import VisionEgg
@@ -21,8 +19,19 @@ def projection_matrix_f(t):
     glMatrixMode(GL_PROJECTION)
     glPushMatrix()
     glLoadIdentity()
-    gluLookAt(0.0,t*0.1,0.0,
-              0.0,0.0,1.0,
+    
+    # All of the following variables don't change, so for speed they
+    # could be stored in a variable that persists when this function
+    # goes out of scope.
+    fov_x=55.0
+    z_clip_near = 0.1
+    z_clip_far=10000.0
+    aspect_ratio=float(screen.size[0]/2)/screen.size[1]
+    fov_y = fov_x / aspect_ratio
+    
+    gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far)
+    gluLookAt(0.0,t*0.1+1.0,-2.0,
+              0.0,0.0,0.0,
               0.0,1.0,0.0)
     results = glGetFloatv(GL_PROJECTION_MATRIX)
     glPopMatrix()
@@ -34,8 +43,7 @@ screen = get_default_screen()
 mid_x = screen.size[0]/2
 mid_y = screen.size[1]/2
 projection1 = SimplePerspectiveProjection(fov_x=90.0,aspect_ratio=(float(mid_x)/screen.size[1]))
-projection2 = SimplePerspectiveProjection(fov_x=135.0,aspect_ratio=(float(mid_x)/screen.size[1]))
-projection2.translate(0.0,0.9,0.0)
+projection2 = SimplePerspectiveProjection()
 viewport1 = Viewport(screen,(0,0),(mid_x,screen.size[1]),projection1)
 viewport2 = Viewport(screen,(mid_x,0),(mid_x,screen.size[1]),projection2)
 stimulus = SpinningDrum()
@@ -49,5 +57,3 @@ p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of
 p.add_realtime_time_controller(projection2.parameters,'matrix', projection_matrix_f)
 
 p.go()
-
-
