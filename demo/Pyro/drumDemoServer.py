@@ -77,6 +77,11 @@ interpolation_controller = ConstantPyroController(1)
 pyro_server.connect(interpolation_controller,'interpolation_controller')
 p.add_transitional_controller(drum.parameters,'texture_scale_linear_interp',interpolation_controller.eval)
 
+# texture clamp controller
+texture_repeat_controller = ConstantPyroController(0)
+pyro_server.connect(texture_repeat_controller,'texture_repeat_controller')
+p.add_transitional_controller(drum.parameters,'texture_repeat',texture_repeat_controller.eval)
+
 ################### done with controllers
 
 # initialize graphics to between presentations state
