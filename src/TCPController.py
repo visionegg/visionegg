@@ -91,8 +91,10 @@ class TCPServer:
 
     def create_listener_once_connected(self):
         """Wait for connection and spawn instance of SocketListenController."""
+        host,port = self.server_socket.getsockname()
+        fqdn = socket.getfqdn(host)
         VisionEgg.Core.message.add(
-            """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),
+            """Awaiting connection to TCP Server at "%s", port %d"""%(fqdn,port),
             level=VisionEgg.Core.Message.INFO)
         self.server_socket.listen(1)
         if self.dialog_ok:
@@ -105,7 +107,8 @@ class TCPServer:
                     spacer = Tkinter.Frame(self,borderwidth=30)
                     spacer.pack()
                     Tkinter.Label(spacer,text=
-                                  """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),).pack()
+                                  """Awaiting connection to TCP Server at "%s", port %d"""%(fqdn,port)
+                                  ).pack()
                     b = Tkinter.Button(self,text="Cancel",command=self.stop_listening)
                     b.pack(side=Tkinter.BOTTOM)
                     b.focus_force()
@@ -158,13 +161,15 @@ class SocketListenController(VisionEgg.Core.Controller):
     close -- close the connection
     exit -- close the connection
     quit -- quit the server program
+    help -- print help message
+    <name> -- show the value of the controller of <name>
     <name>=const(<args>) -- assign a new ConstantController to <name>
     <name>=eval_str(<args>) -- assign a new EvalStringController to <name>
     <name>=exec_str(<args>) -- assign a new ExecStringController to <name>
     <name>=exec_str(*<args>) -- assign a new unrestricted namespace ExecStringController to <name>
 
-    TCP commands are always on a single line.  (Newlines can be
-    specified by using "\n" without the quotes.)
+    TCP commands are always on a single line.  (Newlines in string
+    literals can be specified by using "\n" without the quotes.)
 
     The assignment commands share common behavior:
 
@@ -217,6 +222,28 @@ class SocketListenController(VisionEgg.Core.Controller):
     <name>=exec_str("print 'Time since go=%f'%(t,)\nx=t*360.0","x=0.0",EVERY_FRAME,TIME_SEC_SINCE_GO)
 
     """
+    
+    help_string = r"""    TCP commands (sent over network socket):
+    
+    close -- close the connection
+    exit -- close the connection
+    quit -- quit the server program
+    help -- print this message
+    <name> -- show the value of the controller of <name>
+    <name>=const(<args>) -- assign a new ConstantController to <name>
+    <name>=eval_str(<args>) -- assign a new EvalStringController to <name>
+    <name>=exec_str(<args>) -- assign a new ExecStringController to <name>
+    <name>=exec_str(*<args>) -- assign a new unrestricted namespace ExecStringController to <name>
+
+    TCP commands are always on a single line.  (Newlines in string
+    literals can be specified by using "\n" without the quotes.)
+
+    The assignment commands share common behavior:
+
+    <name> -- value passed as argument "tcp_name" to method create_tcp_controller
+    <args> -- during_go [, between_go [, eval_frequency [, temporal_variables [, return_type ]]]]
+    """
+
     _re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
     _re_const = re.compile(r'^const\(\s?(.*)\s?\)$',re.DOTALL)
     _re_eval_str = re.compile(r'^eval_str\(\s?(.*)\s?\)$',re.DOTALL)
@@ -249,6 +276,7 @@ class SocketListenController(VisionEgg.Core.Controller):
         self.socket.setblocking(0) # don't block on this socket
         
         self.socket.send("Hello. This is %s version %s.\n"%(self.__class__,__version__))
+        self.socket.send(SocketListenController.help_string+"\n")
         self.socket.send("Begin sending commands now.\n")
 
         self.buffer = ""
@@ -299,7 +327,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                         self.__do_assignment_command(tcp_name,command,require_type)
                         self.last_command[tcp_name] = None
                 # Clear any complete lines for which we don't have a tcp_name
-                self.buffer = SocketListenController._re_line.sub(self.__unknown_line,self.buffer)
+                self.buffer = SocketListenController._re_line.sub(self.__unprocessed_line,self.buffer)
         elif self.server_socket is not None:
             # Not connected on self.socket, check self.server_socket for new connection
             try:
@@ -307,6 +335,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                 (client, client_address) = self.server_socket.accept()
                 self.socket = client
                 self.socket.send("Hello. This is %s version %s.\n"%(self.__class__,__version__))
+                self.socket.send(SocketListenController.help_string+"\n")
                 self.socket.send("Begin sending commands now.\n")
                 for tcp_name in self.names.keys():
                     (controller, name_re_str, parser, require_type) = self.names[tcp_name]
@@ -314,11 +343,11 @@ class SocketListenController(VisionEgg.Core.Controller):
             except socket.error, x:
                 pass
                         
-    def __unknown_line(self,match):
-        for str in match.groups():
-            if str=="quit":
+    def __unprocessed_line(self,match):
+        for unprocessed_line in match.groups():
+            if unprocessed_line=="quit":
                 raise SystemExit
-            elif str=="close" or str=="exit":
+            elif unprocessed_line=="close" or unprocessed_line=="exit":
                 self.socket = None # close socket
                 if not self.disconnect_ok:
                     raise RuntimeError("Socket disconnected!")
@@ -326,8 +355,15 @@ class SocketListenController(VisionEgg.Core.Controller):
                     if self.server_socket is not None:
                         self.server_socket.setblocking(0)
                 return ""
-            self.socket.send("Error: Invalid command line \""+str+"\"\n")
-            VisionEgg.Core.message.add("Invalid command line: \""+str+'"',
+            elif unprocessed_line=="help":
+                self.socket.send(SocketListenController.help_string+"\n")
+                return ""
+            elif unprocessed_line in self.names.keys():
+                (controller, name_re_str, parser, require_type) = self.names[unprocessed_line]
+                self.socket.send(str(controller)+"\n")
+                return ""
+            self.socket.send("Error: Invalid command line \""+unprocessed_line+"\"\n")
+            VisionEgg.Core.message.add("Invalid command line: \""+unprocessed_line+'"',
                                        level=VisionEgg.Core.Message.INFO)
         return ""
 
@@ -540,3 +576,90 @@ class TCPController(VisionEgg.Core.EncapsulatedController):
         create_tcp_controller of class SocketListenController."""
         apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
         self.tcp_name = tcp_name
+
+    def __str__(self):
+        value = ""
+        my_class = self.contained_controller.__class__
+        if my_class == VisionEgg.Core.ConstantController:
+            value += "const( "
+            value += str(self.contained_controller.get_during_go_value()) + ", "
+            value += str(self.contained_controller.get_between_go_value()) + ", "
+        elif my_class == VisionEgg.Core.EvalStringController:
+            value += "eval_str( "
+            str_val = self.contained_controller.get_during_go_eval_string()
+            if str_val is None:
+                value += "None, "
+            else:
+                value += '"' + string.replace(str_val,"\n",r"\n") + '", '
+            str_val = self.contained_controller.get_between_go_eval_string()
+            if str_val is None:
+                value += "None, "
+            else:
+                value += '"' + string.replace(str_val,"\n",r"\n") + '", '
+        elif my_class == VisionEgg.Core.ExecStringController:
+            value += "exec_str("
+            if self.contained_controller.restricted_namespace:
+                value += " "
+            else: # unrestricted
+                value += "* "
+            str_val = self.contained_controller.get_during_go_exec_string()
+            if str_val is None:
+                value += "None, "
+            else:
+                value += '"' + string.replace(str_val,"\n",r"\n") + '", '
+            str_val = self.contained_controller.get_between_go_exec_string()
+            if str_val is None:
+                value += "None, "
+            else:
+                value += '"' + string.replace(str_val,"\n",r"\n") + '", '
+        never = 1
+        ef = self.contained_controller.eval_frequency
+        if ef & VisionEgg.Core.Controller.EVERY_FRAME:
+            value += "EVERY_FRAME | "
+            never = 0
+        if ef & VisionEgg.Core.Controller.TRANSITIONS:
+            value += "TRANSITIONS | "
+            never = 0
+        if ef & VisionEgg.Core.Controller.ONCE:
+            value += "ONCE | "
+            never = 0
+        if ef & VisionEgg.Core.Controller.NOT_DURING_GO:
+            value += "NOT_DURING_GO | "
+            never = 0
+        if ef & VisionEgg.Core.Controller.NOT_BETWEEN_GO:
+            value += "NOT_BETWEEN_GO | "
+            never = 0
+        if never:
+            value += "NEVER"
+        else:
+            value = value[:-3] # get rid of trailing "| "
+        value += ", "
+        time_indep = 1
+        tv = self.contained_controller.temporal_variables
+        if tv & VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE:
+            value += "TIME_SEC_ABSOLUTE | "
+            time_indep = 0
+        if tv & VisionEgg.Core.Controller.TIME_SEC_SINCE_GO:
+            value += "TIME_SEC_SINCE_GO | "
+            time_indep = 0
+        if tv & VisionEgg.Core.Controller.FRAMES_ABSOLUTE:
+            value += "FRAMES_ABSOLUTE | "
+            time_indep = 0
+        if tv & VisionEgg.Core.Controller.FRAMES_SINCE_GO:
+            value += "FRAMES_SINCE_GO | "
+            time_indep = 0
+        if time_indep:
+            value += "TIME_INDEPENDENT"
+        else:
+            value = value[:-3] # get rid of trailing "| "
+        value += ", "
+        my_type = self.contained_controller.returns_type()
+        if my_type == types.ClassType:
+            value += str(my_type)
+        else:
+            for t in dir(types):
+                if my_type == getattr(types,t):
+                    value += "types."+t
+                    break
+        value += " )"
+        return value
