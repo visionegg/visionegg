@@ -79,10 +79,12 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 # (There used to be a module named VisionEgg.VisionEgg.  If it still
 # exists, it will randomly crash things.)
 try:
-    __import__('VisionEgg.VisionEgg') # If we can import it, report error
-    raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
+    __import__('VisionEgg.VisionEgg')
 except ImportError:
     pass # It's OK, the old version isn't there
+else:
+    # If we can import it, report error
+    raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
 
 ############# Get config defaults #############
 config = Configuration.Config()
