@@ -235,7 +235,7 @@ class TextureBuffer:
 
 class SpinningDrum(VisionEgg.Core.Stimulus):
     def __init__(self,
-                 texture=VisionEgg.Textures.Texture(size=(256,16))):
+                 texture=Texture(size=(256,16))):
         self.texture = texture
         
         self.parameters = VisionEgg.Core.Parameters()
