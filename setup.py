@@ -15,6 +15,8 @@ if len(sys.argv) > 1:
         is_source_distribution = 1
 
 if sys.platform not in ['cygwin','darwin','mac','win32'] or is_source_distribution:
+    # The maximum priority stuff should work on most versions of Unix.
+    # (It depends on the system call sched_setscheduler.)
     extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
 if sys.platform == 'linux2' or is_source_distribution:
@@ -22,7 +24,7 @@ if sys.platform == 'linux2' or is_source_distribution:
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.8.0",
+      version = "0.8.1",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",
