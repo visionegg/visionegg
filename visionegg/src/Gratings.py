@@ -56,7 +56,10 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
             self.format = gl.GL_LUMINANCE
             self.gl_type = gl.GL_INT
             self.numeric_type = Numeric.Int32
-            self.max_int_val = float((2**31)-1)
+            try:
+                self.max_int_val = float((2**31)-1)
+            except OverflowError:
+                self.max_int_val = float((2.**31.)-1)
         else:
             raise ValueError("supported bitdepths are 8, 12, and 16.")
         self.cached_bit_depth = self.parameters.bit_depth
@@ -133,6 +136,25 @@ class SinGrating2D(LuminanceGratingCommon):
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
+
+    def get_texel_data(self):
+        w = self.parameters.size[0]
+        inc = w/float(self.parameters.num_samples)
+        phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
+        floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+        return texel_data
+
+    def convert_texel_data_to_array(self,texel_data):
+        return Numeric.fromstring(texel_data,self.numeric_type)
+
+    def get_raw_array(self):
+        w = self.parameters.size[0]
+        inc = w/float(self.parameters.num_samples)
+        phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
+        floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        raw_array = (floating_point_sin*self.max_int_val).astype(self.numeric_type)
+        return raw_array
 
     def draw(self):
         if self.parameters.on:
