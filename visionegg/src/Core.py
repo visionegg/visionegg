@@ -148,7 +148,10 @@ class Screen:
 ####################################################################
 
 class Viewport:
-    """A portion of a screen which shows stimuli."""
+    """A portion of a screen which shows stimuli.
+
+    A screen may have multiple viewports.  The viewports may be
+    overlapping.  """
     def __init__(self,screen,lower_left,size,projection=None):
         self.screen = screen
         self.stimuli = []
@@ -156,17 +159,13 @@ class Viewport:
         self.parameters.lower_left = lower_left
         self.parameters.size = size
         if projection is None:
-            self.set_projection_screen_coords()
+            # Default projection maps object coordinates 1:1 on viewport pixel coordinates
+            self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
+                                                                bottom=0,top=self.parameters.size[1],
+                                                                z_clip_near=0.0,
+                                                                z_clip_far=1.0)
         else:
             self.parameters.projection = projection
-
-    def set_projection_screen_coords(self):
-        self.parameters.projection = OrthographicProjection(left=self.parameters.lower_left[0],
-                                                            right=self.parameters.lower_left[0]+self.parameters.size[0],
-                                                            bottom=self.parameters.lower_left[1],
-                                                            top=self.parameters.lower_left[1]+self.parameters.size[1],
-                                                            z_clip_near=0.1,
-                                                            z_clip_far=100.0)
 
     def add_stimulus(self,stimulus,draw_order=-1):
         """Add a stimulus to the list of those drawn in the viewport
@@ -187,7 +186,7 @@ class Viewport:
         self.screen.make_current()
         glViewport(self.parameters.lower_left[0],self.parameters.lower_left[1],self.parameters.size[0],self.parameters.size[1])
 
-        self.parameters.projection.set_GL_projection_matrix()
+        self.parameters.projection.set_gl_projection()
         
         for stimulus in self.stimuli:
             stimulus.draw()
@@ -203,72 +202,88 @@ class Projection:
     def __init__(self):
         raise RuntimeError("Trying to instantiate an abstract base class.")
 
-    def set_GL_projection_matrix(self):
-        """Set the OpenGL projection matrix, return to original matrix mode."""
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
+    def set_gl_projection(self):
+        """Set the OpenGL projection matrix."""
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
+
+    def push_and_set_gl_projection(self):
+        """Set the OpenGL projection matrix, pushing current projection matrix to stack."""
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glPushMatrix()
+        glLoadMatrixf(self.parameters.matrix)
+
     def translate(self,x,y,z):
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
+        """Compose a translation and set the OpenGL projection matrix."""
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
         glTranslatef(x,y,z)
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
+
+    def stateless_translate(self,x,y,z):
+        """Compose a translation without changing OpenGL state."""
+        matrix_mode = glGetInteger(GL_MATRIX_MODE)
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glPushMatrix()
+        glLoadMatrixf(self.parameters.matrix)
+        glTranslatef(x,y,z)
+        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        glPopMatrix()
+        if matrix_mode is not None:
+            glMatrixMode(matrix_mode)
+
     def rotate(self,angle_degrees,x,y,z):
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
+        """Compose a rotation and set the OpenGL projection matrix."""
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
         glRotatef(angle_degrees,x,y,z)
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
+
+    def stateless_rotate(self,angle_degrees,x,y,z):
+        """Compose a rotation without changing OpenGL state."""
+        matrix_mode = glGetInteger(GL_MATRIX_MODE)
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glPushMatrix()
+        glLoadMatrixf(self.parameters.matrix)
+        glRotatef(angle_degrees,x,y,z)
+        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        glPopMatrix()
+        if matrix_mode is not None:
+            glMatrixMode(matrix_mode)
 
 class OrthographicProjection(Projection):
     """An orthographic projection"""
-    def __init__(self,left=-1.0,right=1.0,bottom=-1.0,top=1.0,z_clip_near=0.1,z_clip_far=100.0):
+    def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
+        """Create an orthographic projection.
+
+        Defaults to map x eye coordinates in the range [0,640] to clip
+        coordinates in the range [0,1] and y eye coordinates [0,480]
+        -> [0,1].  In other words, if the viewport is 640 x 480, eye
+        coordinates correspond 1:1 with window coordinates."""
         self.parameters = Parameters()
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
         self.parameters = Parameters()
         fov_y = fov_x / aspect_ratio
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class PerspectiveProjection(Projection):
     """A perspective projection"""
     def __init__(self,left,right,bottom,top,near,far):
         self.parameters = Parameters()
-        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glFrustrum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if matrix_mode != GL_PROJECTION:
-            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
-                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 ####################################################################
 #
@@ -302,16 +317,68 @@ class Stimulus:
     """Base class for a stimulus.
 
     Any stimulus element should be a subclass of this Stimulus class.
-    For example, if your experiment displays two spots simultaneously,
-    you could either have two subclasses of Stimulus, each which draws
-    a single spot, or one subclass of Stimulus which draws two spots.
+    The draw() method contains the code executed before every buffer
+    swap in order to render the stimulus to the frame buffer.  It
+    should execute as quickly as possible.  The init_gl() method must
+    be called before the first call to draw() so that any internal
+    data, OpenGL display lists, and OpenGL:texture objects can be
+    established.
+    
+    If your experiment displays two spots simultaneously, you could
+    create two instances of (a single subclass of) Stimulus, varying
+    parameters so each draws at a different location.  Another
+    possibility is to create one instance of a subclass that draws two
+    spots.  A third possibility is to create a single instance and add
+    it to two different viewports.  (Something that will not work
+    would be adding the same instance two times to the same viewport.
+    It would also get drawn twice, although at exactly the same
+    location.)
+    
+    OpenGL is a 'state machine', meaning that it has internal
+    parameters whose values vary and affect how it operates.  Because
+    of this inherent uncertainty, there are only limited assumptions
+    about the state of OpenGL that an instance of Stimulus should
+    expect when its draw() method is called.  Because the Vision Egg
+    loops through stimuli this also imposes some rules that a
+    well-behaved subclass of Stimulus must follow.
+    
+    First, the framebuffer will contain the results of any drawing
+    operations performed since the last buffer swap by other instances
+    of (subclasses of) Stimulus. Therefore, the order in which stimuli
+    are added to an instance of Viewport may be important.
+    Additionally, if there are overlapping viewports, the order in
+    which viewports are added to an instance of Screen may be
+    important.
 
-    Note that for many stimuli, you will want the stimulus to set its
-    own projection.  Most 2D objects should probably define their own
-    projection, which will specify where, in relation to the viewport,
-    the object is drawn. (See the FixationSpot class for an example.)
-    3D objects should probably let the viewport's default projection
-    be used.
+    Second, the projection matrix will be that which was set by the
+    viewport. Note that for some stimuli, you will want the stimulus
+    to set its own projection.  Most 2D objects should probably define
+    their own projection, which will specify where, in relation to the
+    viewport, the object is drawn.  3D objects should probably let the
+    viewport's default projection be used.   To be well-behaved, if the draw() method alters the
+    projection matrix, it must be restored.  The glPushMatrix() and
+    glPopMatrix() commands provide an easy way to do this.  (See the
+    FixationSpot class for an example.)
+
+    Third, previously established OpenGL display lists and OpenGL
+    texture objects will be available.  The method init_gl() is
+    provided to establish these things.
+
+    Fourth, there are several OpenGL state variables which are
+    commonly set by subclasses of Stimulus, and which cannot be
+    assumed to have any particular value at the time draw() is called.
+    These state variables are: blending mode and function, texture
+    state and environment, the matrix mode (modelview or projection),
+    the modelview matrix, depth mode and settings. Therefore, if the
+    draw() method depends on specific values for any of these states,
+    it must specify its own values to OpenGL.
+
+    Finally, a well-behaved Stimulus subclass resets any OpenGL state
+    values other than those listed above to their initial state before
+    draw() and init_gl() were called.  In other words, before your
+    stimulus changes the state of an OpenGL variable, use
+    glGetBoolean, glGetInteger, glGetFloat, or a similar function to 
+    query its value and restore it later.
     """
     def __init__(self):
         self.parameters = Parameters()
@@ -337,72 +404,59 @@ class Stimulus:
 ####################################################################
 
 class FixationSpot(Stimulus):
-    def __init__(self):
+    def __init__(self,position=(320,240),projection=None):
+        """Create a fixation spot.
+        
+        If no projection is specified, assume the position of the
+        fixation spot, which is by default equal to (320,240), is in
+        the middle of the viewport.
+        """
         self.parameters = Parameters()
         self.parameters.on = 1
-        self.parameters.modelview_matrix = eye(4)
-        self.parameters.projection_matrix = eye(4)
-        self.parameters.size = 0.25
+        if projection is None:
+            # assume spot is in center of viewport
+            w,h=(position[0]*2.0,position[1]*2.0)
+            self.parameters.projection = OrthographicProjection(right=w,top=h)
+        else:
+            self.parameters.projection = projection
+            
+        self.parameters.size = 5.0 # length of side
         self.parameters.color = (1.0,1.0,1.0,1.0)
+        self.parameters.position = position
 
     def init_gl(self):
-        # impose our own measurement grid on the viewport
-        viewport_aspect = 4.0/3.0 # guess for the default
-        pseudo_width = 100.0
-        pseudo_height = 100.0 / viewport_aspect
-        (l,r,b,t) = (-0.5*pseudo_width,0.5*pseudo_width,-0.5*pseudo_height,0.5*pseudo_height)
-        z_near = -1.0
-        z_far = 1.0
-        
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
-
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-        glOrtho(l,r,b,t,z_near,z_far)
-        self.parameters.projection_matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        glPopMatrix()
-
-        glMatrixMode(matrix_mode)
+        pass
 
     def draw(self):
         if self.parameters.on:
-            glBlendFunc(GL_ONE,GL_ZERO) # If blending enabled, draw over everything            
-            
-            # save current matrix mode
-            matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
+            glDisable(GL_DEPTH_TEST)
+            glDisable(GL_TEXTURE_2D)
+            glDisable(GL_BLEND)
 
             glMatrixMode(GL_MODELVIEW)
-            glPushMatrix() # save the current modelview to the stack
-            glLoadMatrixf(self.parameters.modelview_matrix) # set the modelview matrix
+            glLoadIdentity()
 
-            # before we clear the projection matrix, save its state
-            glMatrixMode(GL_PROJECTION) 
-            glPushMatrix()
-            glLoadMatrixf(self.parameters.projection_matrix) # set the projection matrix
+            # before we set the projection matrix, push its state
+            self.parameters.projection.push_and_set_gl_projection()
 
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
-            glDisable(GL_TEXTURE_2D)
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
             # still use one of the matrices to make it change size.
-            size = self.parameters.size
+            size = self.parameters.size/2.0 # self.parameters.size is in pixels
+            x,y = self.parameters.position
+            x1 = x-size; x2 = x+size
+            y1 = y-size; y2 = y+size
             glBegin(GL_QUADS)
-            glVertex3f(-size,-size, 0.0);
-            glVertex3f( size,-size, 0.0);
-            glVertex3f( size, size, 0.0);
-            glVertex3f(-size, size, 0.0);
+            glVertex2f(x1,y1)
+            glVertex2f(x2,y1)
+            glVertex2f(x2,y2)
+            glVertex2f(x1,y2)
             glEnd() # GL_QUADS
-            glEnable(GL_TEXTURE_2D)
 
             glPopMatrix() # restore projection matrix
-
-            glMatrixMode(GL_MODELVIEW)
-            glPopMatrix() # restore modelview matrix
-
-            glMatrixMode(matrix_mode)   # restore matrix state
 
 ####################################################################
 #
