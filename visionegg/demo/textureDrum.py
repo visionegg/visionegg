@@ -14,7 +14,7 @@ def angle_as_function_of_time(t):
 def contrast_as_function_of_time(t):
     return abs(math.cos(2*math.pi*t*0.2))
 
-filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data","panorama.jpg")
 texture = Texture(filename)
 
 screen = get_default_screen()
