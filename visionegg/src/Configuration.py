@@ -129,7 +129,7 @@ class Config:
             if sys.platform == 'darwin':
                 cfg.add_section('darwin')
                 for key in extra_darwin_defaults.keys():
-                    cfg.set('darwin',key,str(defaults[key]))
+                    cfg.set('darwin',key,str(extra_darwin_defaults[key]))
 
         # Do the general stuff first
         # Set the default values
