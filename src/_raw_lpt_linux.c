@@ -92,7 +92,22 @@ static PyObject *base_address_ok(PyObject * self, PyObject * args)
 }
 
 static char inp__doc__[] = 
-"VisionEgg._raw_lpt_linux.inp(base_address) -> value";
+"inp(base_address) -> value\n"
+"Get status bits 0-7 of the LPT port.\n"
+"\n"
+"For LPT0, base_address should be 0x379\n"
+"\n"
+"The status bits were not really meant for data input\n"
+"Nevertheless, for sampling one or two digital inputs, they\n"
+"work fine.\n"
+"\n"
+"Bits 4 and 5 (pins 13 and 12, respectively) should be first\n"
+"choice to sample a digital voltage.  The other bits have some\n"
+"oddities. Bits 0 and 1 are designated reserved. Others are\n"
+"'active low'; they show a logic 0 when +5v is applied.\n"
+"\n"
+"bit4 = value & 0x10\n"
+"bit5 = value & 0x20\n";
 
 static PyObject *inp(PyObject * self, PyObject * args)
 {
@@ -123,7 +138,10 @@ static PyObject *inp(PyObject * self, PyObject * args)
 }
 
 static char out__doc__[] = 
-"VisionEgg._raw_lpt_linux.out(base_address, value) -> None";
+"VisionEgg._raw_lpt_linux.out(base_address, value) -> None\n"
+"Write output bits 0-7 (pins 2-9) on the parallel port LPT0\n"
+"\n"
+"For LPT0, base_address should be 0x378\n";
 
 static PyObject *out(PyObject * self, PyObject * args)
 {

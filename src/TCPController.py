@@ -23,11 +23,10 @@ if you use this module, I recommend operating behind a firewall. This
 could be an inexpensive "routing switch" used for cable modems, which
 would provide the added benefit that your local network would be
 isolated.  This would elimate all traffic not to or from computers on
-the switch and therefore reduce/eliminate packet collisions,
-incraseing latency, and providing a network performance and
-reliability. To address security concerns, you could also write code
-that implements IP address checking or other security
-features. (Hopefully contributing it back to the Vision Egg!)
+the switch and therefore reduce/eliminate packet collisions, decrease
+latency, and providing a network performance and reliability. To
+address security concerns, you could also write code that implements
+IP address checking or other security features.
 
 Classes:
 
