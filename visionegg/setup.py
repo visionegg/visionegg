@@ -17,7 +17,7 @@ if len(sys.argv) > 1:
 if sys.platform not in ['cygwin','darwin','mac','win32'] or is_source_distribution:
     extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
-if sys.platform == 'linux' or is_source_distribution:
+if sys.platform == 'linux2' or is_source_distribution:
     extensions.append(Extension(name='_dout',sources=['src/_dout.c']))
 
 # Normal distutils stuff
