@@ -50,6 +50,11 @@ if not skip_c_compilation:
     # _maxpriority
     ext_modules.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
+    if sys.platform == 'darwin':
+        ext_modules.append(Extension(name='_darwin_maxpriority',
+                                     sources=['src/darwin_maxpriority.c',
+                                              'src/darwin_maxpriority_wrap.c']))
+
     # _lib3ds
     lib3ds_sources = glob.glob('lib3ds/*.c')
     lib3ds_sources.append('src/_lib3ds.c')
