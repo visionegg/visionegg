@@ -1458,6 +1458,10 @@ class Controller:
     Controller.FRAMES_ABSOLUTE   -- frames, continuously increasing
     Controller.FRAMES_SINCE_GO   -- frames, reset to 0 each go loop
 
+    If none of these flags is set, the value is:
+
+    Controller.TIME_INDEPENDENT -- No temporal variables.
+
     Attributes:
 
     return_type -- type of the value returned by the eval functions
