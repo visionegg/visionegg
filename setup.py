@@ -4,10 +4,9 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-# On Mac OS X, you can eliminate the need for the C compiler if you
-# set this line to 1.  Of course, that also gets rid of the Vision
-# Egg's ability to schedule itself as a real time application.
-    
+# You can eliminate the need for the C compiler if you set this line
+# to 1.  Of course, that also removes some of the Vision Egg's
+# functionality.
 skip_c_compilation = 0
 
 from distutils.core import setup, Extension
