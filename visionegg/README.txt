@@ -29,7 +29,7 @@ directory.
 
 CURRENT STATUS
 
-This is release 0.9.1. We're homing in on a 1.0 release, and at this
+This is release 0.9.2. We're homing in on a 1.0 release, and at this
 time, I am quite happy that all of the core functionality planned for
 the Vision Egg is now working. Also, the existing interface has
 stabilized, with a vast majority of changes being bugfixes and

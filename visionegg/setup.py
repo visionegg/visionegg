@@ -16,7 +16,7 @@ import os.path
 
 # Normal distutils stuff
 name="visionegg"
-version = "0.9.2a1"
+version = "0.9.2"
 description = "Vision Egg"
 url = 'http://www.visionegg.org/'
 author = "Andrew Straw"
