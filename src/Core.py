@@ -68,7 +68,6 @@ import OpenGL.GL                                #   main package
 gl = OpenGL.GL                                  # shorthand
 
 import Numeric  				# Numeric Python package
-import MLab                                     # Matlab function imitation from Numeric Python
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -475,6 +474,37 @@ class Projection(VisionEgg.ClassWithParameters):
         if matrix_mode is not None:
             gl.glMatrixMode(matrix_mode)
 
+    def get_matrix(self):
+        return self.parameters.matrix
+
+    def look_at(self, eye, center, up ):
+        # Basically the same as gluLookAt
+        def normalize(vec):
+            numpy_vec = Numeric.array(vec)
+            mag = math.sqrt(Numeric.sum(numpy_vec*numpy_vec))
+            return numpy_vec / mag
+        def cross(vec1,vec2):
+            return ( vec1[1]*vec2[2] - vec1[2]*vec2[1],
+                     vec1[2]*vec2[0] - vec1[0]*vec2[2],
+                     vec1[0]*vec2[1] - vec1[1]*vec2[0] )
+        forward = Numeric.array(( center[0] - eye[0],
+                                  center[1] - eye[1],
+                                  center[2] - eye[2]),'f')
+        forward = normalize(forward)
+        side = cross(forward,up)
+        side = normalize(side)
+        new_up = cross(side,forward) # recompute up
+        m = Numeric.array([[side[0], new_up[0], -forward[0], 0.0],
+                           [side[1], new_up[1], -forward[1], 0.0],
+                           [side[2], new_up[2], -forward[2], 0.0],
+                           [0.0, 0.0, 0.0, 1.0]])
+        # This should get optimized -- don't do it in OpenGL
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glMultMatrixf(m)
+        gl.glTranslatef(-eye[0],-eye[1],-eye[2])
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+
 class OrthographicProjection(Projection):
     """An orthographic projection"""
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
@@ -504,7 +534,7 @@ class SimplePerspectiveProjection(Projection):
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
         # This is a translation of what gluPerspective does:
-        #glu.gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
+        #glu.gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far)
         radians = fov_y / 2.0 * math.pi / 180.0
         delta_z = z_clip_far - z_clip_near
         sine = math.sin(radians)
@@ -839,6 +869,7 @@ class Presentation(VisionEgg.ClassWithParameters):
     Parameters:
 
     viewports -- List of Viewport instances to draw. Order is important.
+    collect_timing_info -- Int (boolean) log timing statistics during go loop.
     go_duration -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',)
     check_events -- Int (boolean) to allow input event checking during 'go' loop.
     handle_event_callbacks -- List of tuples to handle events. (event_type,event_callback_func)
@@ -858,8 +889,10 @@ class Presentation(VisionEgg.ClassWithParameters):
     between_presentations -- Maintain display while between stimulus presentations
     
     """
-    parameters_and_defaults = {'viewports' : ([],
+    parameters_and_defaults = {'viewports' : (None,
                                               types.ListType),
+                               'collect_timing_info' : (None,
+                                                        types.IntType),
                                'go_duration' : ((5.0,'seconds'),
                                                 types.TupleType),
                                'check_events' : (1, # May cause performance hit if non zero
@@ -882,6 +915,12 @@ class Presentation(VisionEgg.ClassWithParameters):
     
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+
+        if self.parameters.viewports is None:
+            self.parameters.viewports = []
+
+        if self.parameters.collect_timing_info is None:
+            self.parameters.collect_timing_info = VisionEgg.config.VISIONEGG_RECORD_TIMES
 
         if self.parameters.handle_event_callbacks is None:
             self.parameters.handle_event_callbacks = []
@@ -1012,15 +1051,15 @@ class Presentation(VisionEgg.ClassWithParameters):
         swapped.
 
         """
-        collect_timing_info = VisionEgg.config.VISIONEGG_RECORD_TIMES
         # Create shorthand notation, which speeds the main loop
         # slightly by not performing name lookup each time.
         p = self.parameters
 
-        # Clear any previous timing info if necessary
-        if collect_timing_info:
-            self.frame_draw_times = []
-
+        # Create timing histogram if necessary
+        if p.collect_timing_info:
+            time_msec_bins = range(1,20)
+            timing_histogram = [0]*len(time_msec_bins)
+            
         while (not p.trigger_armed) or (not p.trigger_go_if_armed):
             self.between_presentations()
 
@@ -1071,18 +1110,27 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Swap the buffers
             swap_buffers()
             
-            # If wanted, save time this frame was drawn for
-            if collect_timing_info:
-                self.frame_draw_times.append(self.time_sec_since_go)
-                
             # Set the time variables for the next frame
             self.time_sec_absolute=VisionEgg.timing_func()
             last_time_sec_since_go = self.time_sec_since_go
             self.time_sec_since_go = self.time_sec_absolute - start_time_absolute
             self.frames_absolute = self.frames_absolute+1
             self.frames_since_go = self.frames_since_go+1
-
-            longest_frame_draw_time_sec = max(longest_frame_draw_time_sec,self.time_sec_since_go-last_time_sec_since_go)
+            
+            this_frame_draw_time_sec = self.time_sec_since_go-last_time_sec_since_go
+            
+            # If wanted, save time this frame was drawn for
+            if p.collect_timing_info:
+                index = int(math.ceil(this_frame_draw_time_sec*1000.0))-1
+                if index > (len(timing_histogram)-1):
+                    index = -1
+                try:
+                    timing_histogram[index] += 1
+                except OverflowError:
+                    # already enough values to max out long integer
+                    pass
+                
+            longest_frame_draw_time_sec = max(longest_frame_draw_time_sec,this_frame_draw_time_sec)
         
             # Make sure we use the right value to check if we're done
             if p.go_duration[0] == 'forever': # forever
@@ -1153,8 +1201,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                 longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
                 level=Message.TRIVIAL)
                 
-        if collect_timing_info:
-            self.__print_frame_timing_stats()
+        if p.collect_timing_info:
+            self.__print_frame_timing_stats(timing_histogram,longest_frame_draw_time_sec*1000.0)
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Emulates method 'go' but saves a movie."""
@@ -1329,44 +1377,23 @@ class Presentation(VisionEgg.ClassWithParameters):
         swap_buffers()
         self.frames_absolute = self.frames_absolute+1
         
-    def __print_frame_timing_stats(self):
-        """Print a histogram of the last recorded frame drawing times.
+    def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec):
+        timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
+        timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
+        timing_string = self.__print_hist(timing_histogram,timing_string)
+        timing_string += "\n"
+        message.add(timing_string,level=Message.INFO,preserve_formatting=1)
 
-        If argument 
-        """
-        if len(self.frame_draw_times) > 1:
-            frame_draw_times = Numeric.array(self.frame_draw_times)
-            self.frame_draw_times = [] # clear the list
-            frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
-            timing_string = "During the last \"go\" loop, "+str((len(frame_draw_times)+1))+" frames were drawn.\n"
-            mean_sec = MLab.mean(frame_draw_times)
-            timing_string = timing_string + "mean frame to frame time: %.3f msec (== %.2f fps), max time: %.3f msec\n"%(mean_sec*1.0e3,1.0/mean_sec,max(frame_draw_times)*1.0e3)
-            bins = Numeric.arange(0.0,19.0,1.0) # msec
-            bins = bins*1.0e-3 # sec
-            timing_string = self.__print_hist(frame_draw_times,bins,timing_string)
-            timing_string = timing_string + "\n"
-            message.add(timing_string,level=Message.INFO,preserve_formatting=1)
-
-    def __histogram(self,a, bins):  
-        """Create a histogram from data
-
-        This function is taken straight from NumDoc.pdf, the Numeric Python
-        documentation."""
-        n = Numeric.searchsorted(Numeric.sort(a),bins)
-        n = Numeric.concatenate([n, [len(a)]])
-        return n[1:]-n[:-1]
-        
-    def __print_hist(self,a, bins, timing_string):
+    def __print_hist(self,hist, timing_string):
         """Print a pretty histogram"""
-        hist = self.__histogram(a,bins)
         lines = 10
         maxhist = float(max(hist))
-        h = hist # copy
-        hist = hist.astype('f')/maxhist*float(lines) # normalize to 10
-        timing_string = timing_string + "histogram:\n"
+        h = hist
+        hist = Numeric.array(hist,'f')/maxhist*float(lines) # normalize to number of lines
+        timing_string += "histogram:\n"
         for line in range(lines):
             val = float(lines)-1.0-float(line)
-            timing_string = timing_string + "%6d   "%(round(maxhist*val/10.0),)
+            timing_string = timing_string + "%6d   "%(round(maxhist*val/lines),)
             q = Numeric.greater(hist,val)
             for qi in q:
                 s = ' '
@@ -1375,8 +1402,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                 timing_string = timing_string + "%4s "%(s,)
             timing_string = timing_string + "\n"
         timing_string = timing_string + " Time: "
-        for bin in bins:
-            timing_string = timing_string + "%4d "%(int(bin*1.0e3),)
+        for bin in Numeric.arange(len(hist)).astype('f'):
+            timing_string = timing_string + "%4d "%(bin,)
         timing_string = timing_string + "+(msec)\n"
         timing_string = timing_string + "Total:    "
         for hi in h:
