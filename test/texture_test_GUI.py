@@ -24,7 +24,6 @@ import Tkinter
 
 import VisionEgg.Core
 import VisionEgg.GUI
-import VisionEgg.AppHelper
 import VisionEgg.Textures
 
 class TextureTestFrame(VisionEgg.GUI.AppWindow):
@@ -135,7 +134,7 @@ class TextureTestFrame(VisionEgg.GUI.AppWindow):
         self.info_frame.update()
     
 if __name__ == '__main__':
-    screen = VisionEgg.AppHelper.get_default_screen()
+    screen = VisionEgg.Core.get_default_screen()
     
     app = TextureTestFrame()
     app.pack()

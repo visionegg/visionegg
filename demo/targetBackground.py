@@ -5,11 +5,12 @@
 #  Import various modules  #
 ############################
 
+from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.MoreStimuli import *
 from VisionEgg.Textures import *
+import os
 from math import *
-from types import *
 
 # Initialize OpenGL graphics screen.
 screen = get_default_screen()
@@ -31,13 +32,11 @@ target_viewport = Viewport(screen=screen, stimuli=[target])
 #####################
 
 # Get a texture
-try:
-    texture = TextureFromFile("orig.bmp") # try to open a texture file
-except:
-    texture = Texture(size=(256,16)) # otherwise, generate one
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+texture = TextureFromFile(filename)
 
 # Create an instance of SpinningDrum class
-drum = SpinningDrum(texture=texture)
+drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
 
 # Create a perspective projection for the spinning drum
 perspective = SimplePerspectiveProjection(fov_x=90.0)

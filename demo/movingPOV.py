@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """2 viewports, one with a changing perspective."""
 
-import math
-import VisionEgg
+import math,os
+from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
 from OpenGL.GL import *
@@ -42,7 +42,12 @@ mid_y = screen.size[1]/2
 projection1 = SimplePerspectiveProjection(fov_x=90.0,
                                           aspect_ratio=(float(mid_x)/screen.size[1]))
 projection2 = SimplePerspectiveProjection() # Parameters set in realtime, so no need to specify here
-stimulus = SpinningDrum()
+
+# Get a texture
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+texture = TextureFromFile(filename)
+
+stimulus = SpinningDrum(texture=texture,shrink_texture_ok=1)
 viewport1 = Viewport(screen=screen,
                      lowerleft=(0,0),
                      size=(mid_x,screen.size[1]),
