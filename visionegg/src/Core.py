@@ -1061,7 +1061,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                                        types.IntType),
                                'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
                                                           types.FloatType),
-                               'warn_longest_frame_threshold':(1.5, # fraction
+                               'warn_longest_frame_threshold':(2.0, # fraction (set to 2.0 for no false alarms)
                                                                types.FloatType),
                                }
     
@@ -1085,6 +1085,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         self.time_sec_absolute=VisionEgg.timing_func()
         self.frames_absolute=0
+
+        self.in_go_loop = 0
+        self.frames_dropped_in_last_go_loop = 0 # boolean
 
     def add_controller( self, class_with_parameters, parameter_name, controller ):
         """Add a controller"""
@@ -1188,7 +1191,17 @@ class Presentation(VisionEgg.ClassWithParameters):
             controller.eval_frequency = controller.eval_frequency & ~Controller.ONCE
             if isinstance(controller,EncapsulatedController):
                 controller.contained_controller.eval_frequency = controller.contained_controller.eval_frequency & ~Controller.ONCE
+
+    def is_in_go_loop(self):
+        """Queries if the presentation is in a go loop.
+
+        This is useful to check the state of the Vision Egg
+        application from a remote client over Pyro."""
+        return self.in_go_loop
         
+    def were_frames_dropped_in_last_go_loop(self):
+        return self.frames_dropped_in_last_go_loop
+
     def go(self):
         """Main control loop during stimulus presentation.
 
@@ -1205,6 +1218,11 @@ class Presentation(VisionEgg.ClassWithParameters):
         swapped.
 
         """
+        self.in_go_loop = 1
+        
+        # Clear boolean indicator
+        self.frames_dropped_in_last_go_loop = 0 # boolean
+
         # Create shorthand notation, which speeds the main loop
         # slightly by not performing name lookup each time.
         p = self.parameters
@@ -1270,7 +1288,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Draw each viewport
             for viewport in p.viewports:
                 viewport.draw()
-                
+                            
             # Swap the buffers
             if synclync_connection:
                 if not synclync_hack_done_once:
@@ -1365,6 +1383,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
 
         if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
+            self.frames_dropped_in_last_go_loop = 1 # boolean
             message.add(
 
                 """One or more frames took %.1f msec, which is
@@ -1381,9 +1400,10 @@ class Presentation(VisionEgg.ClassWithParameters):
 
                 longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
                 level=Message.TRIVIAL)
-                
+
         if p.collect_timing_info:
             self.__print_frame_timing_stats(timing_histogram,mean_frame_time_msec,calculated_fps,longest_frame_draw_time_sec*1000.0,time_msec_bins)
+        self.in_go_loop = 0
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Emulates method 'go' but saves a movie."""
