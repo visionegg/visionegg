@@ -18,6 +18,7 @@ import Numeric
 import Image
 import ImageDraw
 import os
+import time
 
 if DEBUG:
     import VisionEgg.GLTrace
@@ -121,9 +122,45 @@ class VETestCase(unittest.TestCase):
         p.go()
         p.go() # check to make sure it works a second time
 
+    def test_presentation_go_duration(self):
+        p = VisionEgg.FlowControl.Presentation(go_duration=(1,'frames'))
+        p.go()
+        p.parameters.go_duration = (2,'frames')
+        p.go()
+        p.parameters.go_duration = (3,'frames')
+        p.go()
+        p.parameters.go_duration = (0,'frames')
+        p.go()
+        p.parameters.go_duration = (0.05,'seconds')
+        p.go()
+
     def test_presentation_go_not(self):
         p = VisionEgg.FlowControl.Presentation(go_duration=(0,'frames'))
         p.go() # make sure it works with 0 duration
+
+
+    def test_presentation_frame_drop_test(self):
+        p = VisionEgg.FlowControl.Presentation(go_duration=(0,'frames'))
+        p.go() # make sure it works with 0 duration
+        p.were_frames_dropped_in_last_go_loop()
+        self.failUnless(not p.were_frames_dropped_in_last_go_loop(),'frame drop test false positive')
+
+        orig_framerate_setting = VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
+        fake_hz = 200.0
+        VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = fake_hz
+        skip_frame = VisionEgg.FlowControl.FunctionController(
+            during_go_func = lambda t: time.sleep(2.0/fake_hz))
+        p.add_controller(None,None,skip_frame)
+        p.parameters.go_duration = 3,'frames'
+        orig_threshold = p.parameters.warn_longest_frame_threshold
+        p.parameters.warn_longest_frame_threshold = 1.1
+        p.go()
+        p.remove_controller(None,None,skip_frame)
+        
+        VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = orig_framerate_setting
+        p.parameters.warn_longest_frame_threshold = orig_threshold
+        
+        self.failUnless(p.were_frames_dropped_in_last_go_loop(),'missed simulated dropped frame')
 
     def test_core_screen_query_refresh_rate(self):
         fps = self.screen.query_refresh_rate()
@@ -391,7 +428,9 @@ def suite():
     ve_test_suite.addTest( VETestCase("test_parameter_types_instance") )
     ve_test_suite.addTest( VETestCase("test_presentation_go") )
     ve_test_suite.addTest( VETestCase("test_presentation_go_twice") )
+    ve_test_suite.addTest( VETestCase("test_presentation_go_duration") )
     ve_test_suite.addTest( VETestCase("test_presentation_go_not") )
+    ve_test_suite.addTest( VETestCase("test_presentation_frame_drop_test") )
     ve_test_suite.addTest( VETestCase("test_core_refresh_rates_match") )
     ve_test_suite.addTest( VETestCase("test_core_screen_query_refresh_rate") )
     ve_test_suite.addTest( VETestCase("test_core_screen_measure_refresh_rate") )
