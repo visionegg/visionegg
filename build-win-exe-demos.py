@@ -9,7 +9,7 @@ http://www.mcmillan-inc.com/install1.html
 
 # Options
 python = sys.executable
-installer_dir = "C:\Installer" # directory of Gordon McMillan's installer
+installer_dir = "C:\\Installer" # directory of Gordon McMillan's installer
 if not os.path.isdir(installer_dir):
     raise RuntimeError("Can't find McMillan's Installer")
 makespec = os.path.join(installer_dir,"Makespec.py")
