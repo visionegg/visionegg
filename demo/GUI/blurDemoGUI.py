@@ -8,19 +8,17 @@
 # as appropriate for the rotational velocity of the drum and the frame
 # rate of the display. (You must set the frame rate of your display.)
 #
-# By default, the original image is called 'orig.bmp'.  You'll get an
-# error if the code cannot find this image.  You could create a BMP
-# format image called 'orig.bmp', or you could change the code to look
-# look for another image.
+# By default, the texture displayed on the drum is generated
+# automatically, but can be changed to open any image file.  There are
+# a couple of lines commented out below that show how to use an image
+# file called "orig.bmp".  Feel free to change it to the name of your
+# favorite image!
 #
 # This demo uses the GUI tookit "Tkinter", which may not be available on
 # all platforms. Also, because this code also controls a GUI, it is much
 # more complicated than the minimum needed to create a stimulus with the
 # VisionEgg.
 #
-# If you run this demo in fullscreen mode, you won't be able to see the
-# control window to tell the stimulus to "go" unless you're connected
-# to the computer running the Vision Egg from a remote X window.
 #
 # Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
@@ -39,6 +37,8 @@ import Tkinter
 from math import *
 import os
 import time
+
+default_max_speed = 1000.0
 
 class BlurDrumGui(AppWindow):
     def __init__(self,master=None,**cnf):
@@ -124,13 +124,13 @@ class BlurDrumGui(AppWindow):
         self.validate_c_string()
         p.go()
 
-default_max_speed = 500.0
-
 screen = get_default_screen() # initialize graphics
 projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
 
 drum = BlurredDrum(max_speed=default_max_speed)
+#drum = BlurredDrum(max_speed=default_max_speed,
+#                   texture=TextureFromFile("orig.bmp"))
 drum.init_gl()
 
 fixation_spot = FixationSpot()
@@ -147,6 +147,7 @@ p.add_transitional_controller(drum.parameters,'motion_blur_on',lambda t: gui_win
 p.add_transitional_controller(p.parameters,'duration_sec',lambda t: gui_window.duration.get())
 p.add_realtime_controller(drum.parameters,'angle',gui_window.positionFunction)
 p.add_realtime_controller(drum.parameters,'contrast',gui_window.contrastFunction)
+p.add_realtime_controller(drum.parameters,'cur_time', lambda t: t)
 
 gui_window.mainloop()
 
