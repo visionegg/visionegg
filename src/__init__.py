@@ -13,26 +13,29 @@ graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
 """
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
+# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# GNU Lesser General Public License (LGPL).
+
+release_name = '0.8.3a0'
 
 import string
-__version__ = string.split('$Revision$')[1]
+import Configuration # a Vision Egg module
+import os, sys, time # standard python modules
+import pygame, pygame.display
+
+__version__ = release_name
+__cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Make sure we don't have an old version of the VisionEgg installed.
 # (There used to be a module named VisionEgg.VisionEgg.  If it still
-# exists, it'll crash stuff randomly)
+# exists, it will randomly crash things.)
 try:
     __import__('VisionEgg.VisionEgg') # If we can import it, report error
     raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
 except ImportError:
     pass # It's OK, the old version isn't there
-
-import Configuration # a Vision Egg module
-import os, sys, time # standard python modules
-import pygame, pygame.display
 
 ############# Get config defaults #############
 config = Configuration.Config()
