@@ -13,17 +13,23 @@
  */
  
 /* For _visionegg_getTime */
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 /* For _visionegg_precise_sleep */
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 /* For _visionegg_setRealtime */
 #ifndef __APPLE_CC__
+#ifndef _WIN32
 #include <sys/mman.h>
 #include <sched.h>
 #include <errno.h>
+#endif
 #endif
 
 #ifdef XXX_LPT_DOUT // This turns on a very non-portable i386 linux hack
@@ -34,11 +40,17 @@
 
 #define TRY(E)     if(! (E)) return NULL
 
+/*
 static PyObject *_visionegg_getTime(PyObject * self, PyObject * args)
 {
   double result;
 
 #define USE_GETTIMEOFDAY
+#ifdef USE_CLOCK
+  clock_t clocks;
+
+  clocks = clock();
+#endif
 #ifdef USE_GETTIMEOFDAY
   static struct timeval tv;
   double sec;
@@ -49,7 +61,7 @@ static PyObject *_visionegg_getTime(PyObject * self, PyObject * args)
   result = sec + (usec*1.0e-6);
 #endif
 #ifdef USE_GETTIMEOFDAY2
-  /* This seems broken. */
+  // This seems broken. 
   //  static struct timeval mytv;
   //  gettimeofday(&mytv,NULL);
   //  return(mytv.tv_sec+mytv.tv_usec/1000000.0);
@@ -58,7 +70,7 @@ static PyObject *_visionegg_getTime(PyObject * self, PyObject * args)
   result = (double)myts.tv_sec + (double)((double)myts.tv_nsec/(double)1.0e9);
 #endif
 #ifdef USE_RDTSC
-  /* Never really tried to get this working.  It's not very portable! */
+  // Never really tried to get this working.  It's not very portable! 
   // This bit is shamelessly stolen and modified from
   // latency-graph.c, (c) Benno Senoner, http://www.linuxdj.com/latency-graph
   extern double cpu_hz; // set magically from /proc/cpuinfo?
@@ -70,7 +82,9 @@ static PyObject *_visionegg_getTime(PyObject * self, PyObject * args)
 #endif
   return Py_BuildValue("d",result);
 }
+*/
 
+/*
 static PyObject *_visionegg_preciseSleep(PyObject * self, PyObject * args)
 {
   double arg1;
@@ -82,10 +96,12 @@ static PyObject *_visionegg_preciseSleep(PyObject * self, PyObject * args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+*/
 
 static PyObject *_visionegg_setRealtime(PyObject * self, PyObject * args)
 {
 #ifndef __APPLE_CC__ // Mac OS X doesn't support setscheduler() commands
+#ifndef _WIN32 // Neither does Windows
   int policy;
   struct sched_param params;
 
@@ -141,6 +157,7 @@ static PyObject *_visionegg_setRealtime(PyObject * self, PyObject * args)
 #endif /* closes ifdef MCL_FUTURE */
 #endif /* closes ifdef MCL_CURRENT */
 
+#endif // closes ifndef _WIN32
 #endif /* closes ifndef __APPLE_CC__ */
 
   Py_INCREF(Py_None);
@@ -181,8 +198,8 @@ static PyObject *_visionegg_set_dout(PyObject * self, PyObject * args)
 
 static PyMethodDef
 _visionegg_methods[] = {
-  { "getTime", _visionegg_getTime, 1},
-  { "preciseSleep", _visionegg_preciseSleep, 1},
+//  { "getTime", _visionegg_getTime, 1},
+//  { "preciseSleep", _visionegg_preciseSleep, 1},
   { "setRealtime", _visionegg_setRealtime, 1},
   { "toggleDOut", _visionegg_toggleDOut, 1},
   { "set_dout", _visionegg_set_dout, 1},
