@@ -936,6 +936,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         for controller in done_once:
             #Unset ONCE flag
             controller.eval_frequency = controller.eval_frequency & ~Controller.ONCE
+            if isinstance(controller,EncapsulatedController):
+                controller.contained_controller.eval_frequency = controller.contained_controller.eval_frequency & ~Controller.ONCE
         
     def go(self,collect_timing_info=0):
         """Main control loop during stimulus presentation.
@@ -1610,7 +1612,10 @@ class EvalStringController(Controller):
         self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
 
     def get_between_go_eval_string(self):
-        return self.between_go_eval_string
+        if hasattr(self,"between_go_eval_string"):
+            return self.between_go_eval_string
+        else:
+            return None
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
@@ -1679,11 +1684,13 @@ class ExecStringController(Controller):
                 self.eval_globals[key] = getattr(math,key)
 
         self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
+        self.during_go_exec_string = during_go_exec_string
         not_between_go = 0
         if between_go_exec_string is None:
             not_between_go = 1
         else:
             self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
+            self.between_go_exec_string = between_go_exec_string
 
         # Check to make sure return_type is set
         set_return_type = 0
@@ -1707,10 +1714,21 @@ class ExecStringController(Controller):
 
     def set_during_go_exec_string(self,during_go_exec_string):
         self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
+        self.during_go_exec_string = during_go_exec_string
+
+    def get_during_go_exec_string(self):
+        return self.during_go_exec_string
 
     def set_between_go_exec_string(self,between_go_exec_string):
         self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
+        self.between_go_exec_string = between_go_exec_string
         self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
+
+    def get_between_go_exec_string(self):
+        if hasattr(self,"between_go_exec_string"):
+            return self.between_go_exec_string
+        else:
+            return None
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
@@ -1917,10 +1935,11 @@ class Message:
                 raise TypeError("argument output_stream must have write and flush methods.")
         if self.output_stream != sys.stderr:
             sys.stderr = self.output_stream
+        self.add(sys.argv[0]+" started.",level=Message.INFO)
 
     def __del__(self):
+        self.output_stream.write("\n")
         try:
-            #Sometimes this makes a noise!
             sys.stderr = self.orig_stderr
         except:
             pass
