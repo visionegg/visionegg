@@ -928,6 +928,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         'opaque_display_list_id',
         '_cached_window_shape',
         '_cached_shape_radius_parameter',
+        '_cached_shape_parameter2',
         '_cached_num_s_samples',
         '_cached_num_t_samples',
         '_cached_radius',
@@ -981,6 +982,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             s_axis = (Numeric.arange(p.num_s_samples)/float(p.num_s_samples)-0.5)**2
             t_axis = (Numeric.arange(p.num_t_samples)/float(p.num_t_samples)-0.5)**2
             mask = s_axis[Numeric.NewAxis,:] + t_axis[:,Numeric.NewAxis]
+            angle_deg = min(180,p.window_shape_radius_parameter) # clip angle
             cartesian_radius = 0.5*math.sin(p.window_shape_radius_parameter/180.0*math.pi)
             floating_point_window = Numeric.less(mask,cartesian_radius**2)
         elif p.window_shape == 'gaussian':
@@ -1019,7 +1021,8 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
             # t coordinate represents height.
             # Convert angle to height.
-            desired_height = math.sin(p.window_shape_parameter2/180.0*math.pi)*0.25
+            angle_deg = min(90,p.window_shape_parameter2*0.5) # clip angle
+            desired_height = math.sin(angle_deg/180.0*math.pi)*0.5
             t_axis = Numeric.arange(p.num_t_samples)/float(p.num_t_samples)-0.5
             t_axis = Numeric.less(abs(t_axis),desired_height)
             floating_point_window = Numeric.outerproduct(t_axis,s_axis)
@@ -1060,6 +1063,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
         self._cached_window_shape = p.window_shape
         self._cached_shape_radius_parameter = p.window_shape_radius_parameter
+        self._cached_shape_parameter2 = p.window_shape_parameter2
         self._cached_num_s_samples = p.num_s_samples
         self._cached_num_t_samples = p.num_t_samples
 
@@ -1176,6 +1180,9 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             self.__rebuild_display_lists()
             
         if self._cached_window_shape != p.window_shape or self._cached_shape_radius_parameter != p.window_shape_radius_parameter:
+            self.__rebuild_texture_object()
+
+        if p.window_shape == 'lat-long rectangle' and self._cached_shape_parameter2 != p.window_shape_parameter2:
             self.__rebuild_texture_object()
             
         if self._cached_num_s_samples != p.num_s_samples or self._cached_num_t_samples != p.num_t_samples:
