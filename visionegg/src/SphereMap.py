@@ -32,39 +32,40 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
 
     def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(VisionEgg.Textures.TextureStimulusBaseClass.__init__,(self,),kw)
-        
-        if texture is not None:
-            self.texture = texture
-        else:
-            self.texture = VisionEgg.Textures.Texture(size=(256,16))
+
+        # Create an OpenGL texture object this instance "owns"
+        self.texture_object = VisionEgg.Textures.TextureObject(dimensions=2)
+
+        # Get texture data that goes into texture object
+        if not isinstance(texture,VisionEgg.Textures.Texture):
+            texture = VisionEgg.Textures.Texture(texture)
+        self.texture = texture
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+            # send texture to OpenGL
+            self.texture.load( self.texture_object,
+                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
-            while max(self.texture.orig.size) > max_dim:
-                w = self.texture.orig.size[0]/2
-                h = self.texture.orig.size[1]/2
-                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+            while max(self.texture.size) > max_dim:
+                self.texture.make_half_size()
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+                    # send texture to OpenGL
+                    self.texture.load( self.texture_object,
+                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
                 except VisionEgg.Textures.TextureTooLargeError,x:
-                    w = self.texture.orig.size[0]/2
-                    h = self.texture.orig.size[1]/2
-                    if min(w,h) <= 0:
-                        raise TextureTooLargeError("Strange: even a 0 size texture is too large.")
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    self.texture.make_half_size()
                     resized = 1
-            if resized:
-                VisionEgg.Core.message.add(
-                    "Resized texture in %s to %d x %d"%(
-                    str(self),w,h),VisionEgg.Core.Message.WARNING)
-            
+                    if resized:
+                        VisionEgg.Core.message.add(
+                            "Resized texture in %s to %d x %d"%(
+                            str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
+                                                            
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
         
@@ -168,17 +169,14 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             gl.glLoadIdentity()
 
             gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
-            # Make sure texture object parameters set the way we want
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
             if not self.constant_parameters.mipmaps_enabled:
-                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
-                
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             # center the texture map
             gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
@@ -209,14 +207,14 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         if self.parameters.t0_time_sec_absolute is None:
             self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
 
-        self.texture_object = gl.glGenTextures(1) # Allocate a new texture object
+        self.texture_object_id = gl.glGenTextures(1) # Allocate a new texture object
         self.__rebuild_texture_object()
         
-        self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
+        self.cached_display_list_id = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
 
     def __rebuild_texture_object(self):
-        gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
+        gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object_id)
         p = self.parameters # shorthand
         
         # Do error-checking on texture to make sure it will load
@@ -268,7 +266,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
 
-        gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
+        gl.glNewList(self.cached_display_list_id,gl.GL_COMPILE)
 
         p = self.parameters
         gl.glBegin(gl.GL_QUADS)
@@ -339,7 +337,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glDisable( gl.GL_TEXTURE_2D )
             gl.glDisable( gl.GL_BLEND )
 
-            gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
+            gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object_id)
 
             l = 0.0
             r = 360.0
@@ -374,7 +372,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
             gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
 
-            gl.glCallList(self.cached_display_list)
+            gl.glCallList(self.cached_display_list_id)
 
             gl.glDisable( gl.GL_TEXTURE_1D )
 
@@ -398,15 +396,15 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     def __init__(self, **kw):
         apply( VisionEgg.Gratings.LuminanceGratingCommon.__init__, (self,), kw )
         
-        self.texture_object = gl.glGenTextures(1)
+        self.texture_object_id = gl.glGenTextures(1)
         self.__rebuild_texture_object()
         
-        self.windowed_display_list = gl.glGenLists(1) # Allocate a new display list
-        self.opaque_display_list = gl.glGenLists(1) # Allocate a new display list
+        self.windowed_display_list_id = gl.glGenLists(1) # Allocate a new display list
+        self.opaque_display_list_id = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_lists()
 
     def __rebuild_texture_object(self):
-        gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
+        gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object_id)
         p = self.parameters
 
         # Do error-checking on texture to make sure it will load
@@ -506,7 +504,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
         p = self.parameters
 
-        gl.glNewList(self.windowed_display_list,gl.GL_COMPILE)
+        gl.glNewList(self.windowed_display_list_id,gl.GL_COMPILE)
 
         gl.glBegin(gl.GL_QUADS)
             
@@ -551,7 +549,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         gl.glEnd()
         gl.glEndList()
 
-        gl.glNewList(self.opaque_display_list,gl.GL_COMPILE)
+        gl.glNewList(self.opaque_display_list_id,gl.GL_COMPILE)
         gl.glBegin(gl.GL_QUADS)
             
         for stack in range(p.stacks):
@@ -617,7 +615,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
             gl.glBlendFunc( gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA ) # alpha 1.0 = transparent
             
-            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
+            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object_id)
             apply( gl.glColor, p.opaque_color )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
@@ -629,6 +627,6 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
             gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 
-            gl.glCallList(self.windowed_display_list)
+            gl.glCallList(self.windowed_display_list_id)
             gl.glEnable( gl.GL_TEXTURE_2D )
-            gl.glCallList(self.opaque_display_list)
+            gl.glCallList(self.opaque_display_list_id)

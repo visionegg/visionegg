@@ -70,20 +70,22 @@ class Model3DS(VisionEgg.Core.Stimulus):
                 texture = VisionEgg.Textures.TextureFromFile(filename)
             except IOError, x: # Might be file not found due to case error
                 texture = VisionEgg.Textures.TextureFromFile(string.lower(filename))
-            gl_texId = texture.load(build_mipmaps=1,rescale_original_to_fill_texture_object=1)
-            tex_dict[filename] = gl_texId # save just the GL texture ID
+            current_texture_object = TextureObject(dimensions=2)
+            texture.load(current_texture_object,
+                         build_mipmaps=1,
+                         rescale_original_to_fill_texture_object=1)
+            tex_dict[filename] = current_texture_object.gl_id # keep the GL texture object id
 
             # set the texture defaults
-            gl.glBindTexture(gl.GL_TEXTURE_2D,gl_texId) # this is probably already done, but it doesn't hurt
-            
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,cp.texture_mag_filter)
             if not self.constant_parameters.mipmaps_enabled:
-                if cp.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
+                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,cp.texture_min_filter)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,cp.texture_wrap_s)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,cp.texture_wrap_t)              
-            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+            current_texture_object.set_min_filter( p.texture_min_filter )
+            current_texture_object.set_mag_filter( p.texture_mag_filter )
+            current_texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            current_texture_object.set_wrap_mode_t( p.texture_wrap_t )
+                                                                                    
+        gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
         os.chdir(orig_dir)
         self.tex_dict = tex_dict

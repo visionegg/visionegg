@@ -36,7 +36,7 @@ screen = get_default_screen()
 
 # allocate temporary texture in grayscale mode for dynamic texture
 temp_grayscale_image = Image.new("L",dynamic_checkerboard_size,0)
-temp_texture = TextureFromPILImage(temp_grayscale_image)
+temp_texture = Texture(temp_grayscale_image)
     
 # create TextureStimulus for dynamic stimulus
 scaled_dynamic_size = (scale*dynamic_checkerboard_size[0],scale*dynamic_checkerboard_size[1])
@@ -53,8 +53,8 @@ dynamic_checkerboard = TextureStimulus(texture=temp_texture,
                                        )
 
 # allocate static texture
-static_data = RandomArray.randint(0,2,static_checkerboard_size)
-static_texture = TextureFromNumpyArray(static_data)
+static_data = RandomArray.randint(0,2,static_checkerboard_size)*255
+static_texture = Texture(static_data)
     
 # create TextureStimulus for static stimulus
 scaled_static_size = (scale*static_checkerboard_size[0],scale*static_checkerboard_size[1])
@@ -83,11 +83,11 @@ p = Presentation(go_duration=(dynamic_time+static_time,'seconds'),
 
 # Use a controller to hook into go loop, but control texture buffer
 # through direct manipulation.
-dynamic_texture_buffer = dynamic_checkerboard.texture.get_texture_buffer()
+dynamic_texture_object = dynamic_checkerboard.texture.get_texture_object()
 def control_dynamic(t):
     if t <= dynamic_time:
-        random_data = RandomArray.randint(0,2,dynamic_checkerboard_size)
-        dynamic_texture_buffer.put_sub_image_numpy( random_data )
+        random_data = RandomArray.randint(0,2,dynamic_checkerboard_size)*255
+        dynamic_texture_object.put_sub_image( random_data )
 p.add_controller(None,None,FunctionController(during_go_func=control_dynamic))
 
 p.go()
