@@ -2,6 +2,7 @@
 
 """flames.py - Realtime Fire Effect Demo
 Pete Shinners, April 3, 2001
+Slightly modified by Andrew Straw, July 24, 2003
 
 Ok, this is a pretty intense demonstation of using
 the surfarray module and numeric. It uses an 8bit
@@ -41,6 +42,7 @@ from pygame.surfarray import *
 from pygame.locals import *
 from Numeric import *
 from RandomArray import *
+from VisionEgg.Core import FrameTimer
 
 RES = array((240, 180))
 MAX = 246
@@ -60,11 +62,14 @@ def main():
     randomflamebase(flame)    
 
     #the mainloop is pretty simple, the work is done in these funcs
+    frame_timer = FrameTimer()
     while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
         modifyflamebase(flame)
         processflame(flame)
         blitdouble(screen, flame, doubleflame)
         pygame.display.flip()
+        frame_timer.tick()
+    frame_timer.print_histogram()
 
 
 
@@ -133,4 +138,4 @@ def blitdouble(screen, flame, doubleflame):
 
 if __name__ == '__main__': main()
 
-    
+  
