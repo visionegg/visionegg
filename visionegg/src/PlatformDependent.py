@@ -222,6 +222,9 @@ def query_refresh_rate(screen):
     if sys.platform == 'win32':
         import win32_getrefresh
         return win32_getrefresh.getrefresh()
+    elif sys.platform == 'darwin':
+        import darwin_getrefresh
+        return darwin_getrefresh.getrefresh()
     else:
         raise NotImplementedError("Platform dependent code to query frame rate not implemented on this platform.")
 
