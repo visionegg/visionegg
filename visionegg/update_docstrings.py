@@ -155,12 +155,16 @@ for xx in xl:
                 fd.close()
                 del fd
             search_str = re.compile( r'^class %s\W'%xx.__name__ )
+            print 'searching for %s in %s'%(xx.__name__,fname)
             for line_no, line in enumerate(buf):
                 if search_str.match(line):
                     #print xx.__name__,fname,line_no+1,line
                     found=1
                     break
             if not found:
+                if xx.__name__ in ['StrokeText','GlutTextBase','BitmapText']:
+                    print 'skipping %s - not found, probably because no glut'%xx.__name__
+                    continue
                 raise RuntimeError("didn't find source for %s"%xx.__name__)
             doc_find = re.compile(r'"""')
             doc_start = line_no+1
