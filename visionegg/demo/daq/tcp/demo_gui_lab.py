@@ -8,6 +8,8 @@ import VisionEgg.Daq, VisionEgg.DaqOverTCP
 class DataCanvas(Tkinter.Canvas):
     color_order = ['red','green','blue']
     axis_inset = 40
+    y_scale = 1000.0
+    y_unit = 'mV'
     def __init__(self,master=None,**kw):
         apply(Tkinter.Canvas.__init__,(self,master),kw)
         
@@ -21,6 +23,10 @@ class DataCanvas(Tkinter.Canvas):
                                       fill='black')
         self.yaxis = self.create_line(x1,y1,x1,y2,
                                       fill='black')
+
+        self.create_text( x1, int((y1+y2)/2.0),
+                          anchor="e",
+                          text='mV')
 
         self.xmin_tag = self.create_text( x1,y1,
                                           anchor="n")
@@ -60,11 +66,10 @@ class DataCanvas(Tkinter.Canvas):
             
     def add_channel(self,channel):
         gain = channel.constant_parameters.signal_type.constant_parameters.gain
-        #print "gain",gain
         tmax = channel.constant_parameters.daq_mode.parameters.duration_sec
         tsamp = 1.0/channel.constant_parameters.daq_mode.parameters.sample_rate_hz
         times = Numeric.arange(0.0,tmax,tsamp)
-        data = gain*channel.constant_parameters.functionality.get_data()
+        data = channel.constant_parameters.functionality.get_data()/gain/100.0*DataCanvas.y_scale
 
         data_max = MLab.max(data)
         data_min = MLab.min(data)
@@ -103,11 +108,10 @@ class DataCanvas(Tkinter.Canvas):
         for wave in self.waves.keys():
             old_channel,ymin,ymax,old_color = self.waves[wave]
             gain = old_channel.constant_parameters.signal_type.constant_parameters.gain
-            #print "gain",gain
             tmax = old_channel.constant_parameters.daq_mode.parameters.duration_sec
             tsamp = 1.0/old_channel.constant_parameters.daq_mode.parameters.sample_rate_hz
             times = Numeric.arange(0.0,tmax,tsamp)
-            data = gain*old_channel.constant_parameters.functionality.get_data()
+            data = old_channel.constant_parameters.functionality.get_data()/gain/100.0*DataCanvas.y_scale
             
             scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
             offset = float(x1), -self.ymax*scale[1]+float(y2)
@@ -136,11 +140,10 @@ class DataCanvas(Tkinter.Canvas):
         for wave in self.waves.keys():
             old_channel,ymin,ymax,old_color = self.waves[wave]
             gain = old_channel.constant_parameters.signal_type.constant_parameters.gain
-            #print "gain",gain
             tmax = old_channel.constant_parameters.daq_mode.parameters.duration_sec
             tsamp = 1.0/old_channel.constant_parameters.daq_mode.parameters.sample_rate_hz
             times = Numeric.arange(0.0,tmax,tsamp)
-            data = gain*old_channel.constant_parameters.functionality.get_data()
+            data = old_channel.constant_parameters.functionality.get_data()/gain/100.0*DataCanvas.y_scale
             
             scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
             offset = float(x1), -self.ymax*scale[1]+float(y2)
@@ -206,7 +209,14 @@ class AppWindow(Tkinter.Frame):
         self.bar.daq_server.menu.add_command(label='Close DAQ server', command=self.daq_quit_server)
 
         self.bar.channel_settings = BarButton(self.bar, text='Channel settings')
-        self.bar.channel_settings.menu.add_command(label='Add channel',command=self.add_channel)
+        
+##        self.bar.channel_settings.menu.add_command(label='Add channel',command=self.add_channel)
+        self.bar.channel_settings.menu.add_command(label='Set number of channels',command=self.set_num_channels)
+        
+        self.bar.channel_settings.menu.add_command(label='Set duration',command=self.set_duration)
+        self.bar.channel_settings.menu.add_command(label='Set sample rate',command=self.set_sample_rate)
+
+        self.bar.channel_settings.menu.add_command(label='Set trigger mode',command=self.set_trigger_mode)
         self.bar.channel_settings.menu.add_command(label='Set gain',command=self.set_gain)
         
         self.bar.tk_menuBar(self.bar.file, self.bar.daq_server, self.bar.channel_settings)
@@ -219,22 +229,52 @@ class AppWindow(Tkinter.Frame):
 
         self.tcp_daq_device = None
         self.channels = []
-        self.gain = 0.2048
+        
+        self.gain = 20.48
+        self.duration_sec = 5.0
+        self.sample_rate_hz = 1000.0
+        self.num_channels = 0
+        self.trigger_mode = 0
+        self.sync_channel_list()
 
-    def add_channel(self):
-        print "Using default channel parameters, fix later..."
-        channel = VisionEgg.DaqOverTCP.DaqServerChannel(
-            channel_number=len(self.channels),
-            daq_mode=VisionEgg.Daq.Buffered(trigger=self.trigger,
-                                            sample_rate_hz=1000.0,
-                                            duration_sec=0.1),
-            signal_type=VisionEgg.Daq.Analog(gain=self.gain),
-            functionality=VisionEgg.DaqOverTCP.DaqServerInputChannel()
-            )
-        self.channels.append(channel)
-        if self.tcp_daq_device is not None:
-            #channel.set_my_device(self.tcp_daq_device)
-            self.tcp_daq_device.add_channel(channel)
+##    def add_channel(self):
+##        print "Using default channel parameters, fix later..."
+##        channel = VisionEgg.DaqOverTCP.DaqServerChannel(
+##            channel_number=len(self.channels),
+##            daq_mode=VisionEgg.Daq.Buffered(trigger=self.trigger,
+##                                            sample_rate_hz=self.sample_rate_hz,
+##                                            duration_sec=self.duration_sec),
+##            signal_type=VisionEgg.Daq.Analog(gain=self.gain),
+##            functionality=VisionEgg.DaqOverTCP.DaqServerInputChannel()
+##            )
+##        self.channels.append(channel)
+##        if self.tcp_daq_device is not None:
+##            #channel.set_my_device(self.tcp_daq_device)
+##            self.tcp_daq_device.add_channel(channel)
+
+    def set_num_channels(self):
+        self.num_channels = tkSimpleDialog.askinteger("Number of channels","Number of channels",initialvalue=self.num_channels)
+        self.sync_channel_list()
+
+    def sync_channel_list(self):
+        for channel in self.channels:
+            if self.tcp_daq_device is not None:
+                self.tcp_daq_device.remove_channel(channel)
+        self.channels = []
+        
+        for i in range(self.num_channels):
+            channel = VisionEgg.DaqOverTCP.DaqServerChannel(
+                channel_number=len(self.channels),
+                daq_mode=VisionEgg.Daq.Buffered(trigger=self.trigger,
+                                                sample_rate_hz=self.sample_rate_hz,
+                                                duration_sec=self.duration_sec),
+                signal_type=VisionEgg.Daq.Analog(gain=self.gain),
+                functionality=VisionEgg.DaqOverTCP.DaqServerInputChannel()
+                )
+            self.channels.append(channel)
+            if self.tcp_daq_device is not None:
+                #channel.set_my_device(self.tcp_daq_device)
+                self.tcp_daq_device.add_channel(channel)
         
     def arm(self):
         if self.tcp_daq_device is None:
@@ -250,6 +290,29 @@ class AppWindow(Tkinter.Frame):
 
     def set_gain(self):
         self.gain = tkSimpleDialog.askfloat("Gain","Gain",initialvalue=self.gain)
+        for channel in self.channels:
+            channel.constant_parameters.signal_type.constant_parameters.gain = self.gain
+        if self.tcp_daq_device.connection.gain != self.gain:
+            self.tcp_daq_device.connection.set_gain(self.gain)
+
+    def set_trigger_mode(self):
+        self.trigger_mode = tkSimpleDialog.askinteger("Trigger mode","Trigger mode",initialvalue=self.trigger_mode)
+        if self.trigger_mode == 0:
+            self.trigger.parameters.mode = 'immediate'
+        elif self.trigger_mode == 1:
+            self.trigger.parameters.mode = 'rising_edge'
+        elif self.trigger_mode == 2:
+            self.trigger.parameters.mode = 'falling_edge'
+       
+    def set_duration(self):
+        self.duration_sec = tkSimpleDialog.askfloat("Sample duration (sec)","Sample duration (sec)",initialvalue=self.duration_sec)
+        for channel in self.channels:
+            channel.constant_parameters.daq_mode.parameters.duration_sec = self.duration_sec
+
+    def set_sample_rate(self):
+        self.sample_rate_hz = tkSimpleDialog.askfloat("Sample rate (Hz)","Sample rate (Hz)",initialvalue=self.sample_rate_hz)
+        for channel in self.channels:
+            channel.constant_parameters.daq_mode.parameters.sample_rate_hz = self.sample_rate_hz
 
     def daq_set_hostname(self):
         try:
@@ -279,6 +342,7 @@ class AppWindow(Tkinter.Frame):
                 for channel in self.channels:
                     channel.set_my_device(self)
                     self.add_channel(channel)
+            self.tcp_daq_device.connection.set_gain(self.gain)
             
         except Exception,x:
             app.winfo_toplevel().config(cursor="")
@@ -288,6 +352,7 @@ class AppWindow(Tkinter.Frame):
     def daq_close(self):
         try:
             if self.tcp_daq_device:
+                self.tcp_daq_device.connection.close_socket()
                 self.tcp_daq_device = None
             else:
                 raise RuntimeError("Couldn't disconnect from DAQ server, because not connected!")
