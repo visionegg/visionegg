@@ -3,7 +3,7 @@
 
 void set_icon(char * filename) {
   NSImage *icon;
-  const char *error;
+  char *error;
 
   NS_DURING
       icon = [[NSImage alloc] initWithContentsOfFile: \
