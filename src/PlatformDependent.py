@@ -32,7 +32,8 @@ def set_priority(*args,**kw):
     Defaults to maximum priority, but can be changed via keyword
     arguments.
 
-    Returns 1 on success, 0 on failure."""
+    Raises an exception on failure.
+    """
     
     # potential keywords
     parse_me = ["darwin_realtime_period_denom",
@@ -58,14 +59,10 @@ def set_priority(*args,**kw):
         try:
             import _maxpriority
             apply(_maxpriority.set_realtime,args,kw)
-            return 1
         except:
-            return 0
+            raise NotImplementedError("No support for setting the priority on this platform")
     elif sys.platform == 'darwin':
-        try:
-            import darwin_maxpriority
-        except:
-            return 0
+        import darwin_maxpriority
 
         if params['darwin_maxpriority_conventional_not_realtime']:
             import errno
@@ -108,7 +105,6 @@ def set_priority(*args,**kw):
             preemptible = params['darwin_realtime_preemptible']
 
             darwin_maxpriority.set_self_thread_time_constraint_policy( period, computation, constraint, preemptible )
-            return 1
             
 def linux_but_not_nvidia():
     """Warn that platform is linux, but drivers not nVidia."""
