@@ -9,7 +9,13 @@ include src/*.m
 include src/*.h
 include lib3ds/*
 include doc/reference/*.html
+include doc/reference/make.sh
+include doc/reference/pydoc.py
 include doc/visionegg/*
+include doc/visionegg.tex
+include doc/visionegg.pdf
+include doc/index.html
+include doc/BUILD.txt
 include demo/*.py
 include demo/*.pyw
 include demo/README.txt
