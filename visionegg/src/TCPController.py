@@ -497,7 +497,7 @@ class SocketListenController(VisionEgg.Core.Controller):
             tcp_name=tcp_name,
             initial_controller=initial_controller
             )
-        name_re_str = re.compile("^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
+        name_re_str = re.compile("^"+tcp_name+r"\s*=\s*(.*)\s*\n$",re.MULTILINE)
         parser = Parser(tcp_name,self.last_command).parse_func
         self.names[tcp_name] = (controller, name_re_str, parser, require_type)
         self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
