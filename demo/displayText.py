@@ -17,8 +17,7 @@ def on_during_experiment(t):
 screen = get_default_screen()
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white (RGBA)
 viewport = Viewport(screen,(0,0),screen.size)
-text = BitmapText("Hello world!")
-text.parameters.x = 0.4
+text = BitmapText(text="Hello world!",x=0.4)
 text.init_gl()
 text.parameters.color = (0.0,0.0,0.0,1.0) # black text (RGBA)
 viewport.add_stimulus(text)
