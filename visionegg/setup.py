@@ -9,21 +9,16 @@ import sys
 import os.path
 
 extensions = []
-is_source_distribution = 0
 
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'sdist':
-        is_source_distribution = 1
-
-if sys.platform not in ['cygwin','darwin','mac','win32'] or is_source_distribution:
+if sys.platform not in ['cygwin','darwin','mac','win32']:
     # The maximum priority stuff should work on most versions of Unix.
     # (It depends on the system call sched_setscheduler.)
     extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
-if sys.platform == 'linux2' or is_source_distribution:
+if sys.platform == 'linux2':
     extensions.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
-if sys.platform[:4] == 'irix' or is_source_distribution:
+if sys.platform[:4] == 'irix':
     extensions.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
 def visit_script_dir(scripts, dirname, filenames):
@@ -53,6 +48,7 @@ def organize_script_dirs(scripts):
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
 data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
+data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg']) )
 
 long_description = """
 The Vision Egg is a programming library (with demo
@@ -61,13 +57,13 @@ cards to produce visual stimuli for vision research
 experiments."""
 
 # Normal distutils stuff
-setup(name="VisionEgg",
+setup(name="visionegg",
       version = "0.9.0",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
       author_email = "astraw@users.sourceforge.net",
-      licence = "LGPL",
+      license = "LGPL",
       package_dir={'VisionEgg' : 'src',
                    #'VisionEgg.test' : 'test',
                    #'VisionEgg.demo' : 'demo',
