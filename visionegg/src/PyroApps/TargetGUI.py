@@ -59,40 +59,36 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
 
         param_frame = self.param_frame # shorthand for self.param_frame created in base class
 
-        # Allow columns to expand
-        param_frame.columnconfigure(0,weight=1)
-        param_frame.columnconfigure(1,weight=1)
-        
         pf_row = 0
-        Tkinter.Label(param_frame,text="Start X (pixels):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Start X (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.start_x_tk_var = Tkinter.DoubleVar()
         self.start_x_tk_var.set(self.meta_params.start_x)
         self.make_callback_entry(textvariable=self.start_x_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Start X"] = ("start_x",self.start_x_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Start Y (pixels):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Start Y (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.start_y_tk_var = Tkinter.DoubleVar()
         self.start_y_tk_var.set(self.meta_params.start_y)
         self.make_callback_entry(textvariable=self.start_y_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Start Y"] = ("start_y",self.start_y_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Velocity (pixels/sec):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Velocity (pixels/sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.velocity_tk_var = Tkinter.DoubleVar()
         self.velocity_tk_var.set(self.meta_params.velocity_pps)
         self.make_callback_entry(textvariable=self.velocity_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Velocity"] = ("velocity_pps",self.velocity_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Direction (degrees):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Direction (degrees):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.direction_tk_var = Tkinter.DoubleVar()
         self.direction_tk_var.set(self.meta_params.direction_deg)
         self.make_callback_entry(textvariable=self.direction_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Direction"] = ("direction_deg",self.direction_tk_var)
 
         pf_row += 1
-        Tkinter.Label(param_frame,text="Color:").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Color:").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.color_tk_var = Tkinter.StringVar()
         self.color_tk_var.set("black on white")
         bar = Tkinter.Menubutton(param_frame, textvariable=self.color_tk_var, relief=Tkinter.RAISED)
@@ -109,7 +105,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         bar['menu'] = bar.menu       
 
         pf_row += 1
-        Tkinter.Label(param_frame,text="Orientation (degrees):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Orientation (degrees):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.ortho_tk_var = Tkinter.StringVar()
         self.ortho_tk_var.set("ortho")
 
@@ -131,34 +127,34 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         self.loopable_variables["Orientation"] = ("orientation_deg",self.orient_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Width (pixels):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Width (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.width_tk_var = Tkinter.DoubleVar()
         self.width_tk_var.set(self.meta_params.width)
         self.make_callback_entry(textvariable=self.width_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Width"] = ("width",self.width_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Height (pixels):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Height (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.height_tk_var = Tkinter.DoubleVar()
         self.height_tk_var.set(self.meta_params.height)
         self.make_callback_entry(textvariable=self.height_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Height"] = ("height",self.height_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.prestim_dur_tk_var = Tkinter.DoubleVar()
         self.prestim_dur_tk_var.set(self.meta_params.pre_stim_sec)
         self.make_callback_entry(textvariable=self.prestim_dur_tk_var).grid(row=pf_row,column=2)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.stim_dur_tk_var = Tkinter.DoubleVar()
         self.stim_dur_tk_var.set(self.meta_params.stim_sec)
         self.make_callback_entry(textvariable=self.stim_dur_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Duration"] = ("stim_sec",self.stim_dur_tk_var)
         
         pf_row += 1
-        Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0)
+        Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.poststim_dur_tk_var = Tkinter.DoubleVar()
         self.poststim_dur_tk_var.set(self.meta_params.post_stim_sec)
         self.make_callback_entry(textvariable=self.poststim_dur_tk_var).grid(row=pf_row,column=2)
@@ -217,6 +213,6 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
 
 if __name__=='__main__':
     frame = TargetControlFrame()
-    frame.pack(expand=1,fill=Tkinter.BOTH)
+    frame.pack(expand=Tkinter.YES,fill=Tkinter.BOTH)
     frame.winfo_toplevel().title("%s"%(os.path.basename(os.path.splitext(sys.argv[0])[0]),))
     frame.mainloop()

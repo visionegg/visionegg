@@ -33,23 +33,19 @@ class StimulusControlFrame(Tkinter.Frame):
         self.pyro_client = None
         self.entry_width = 10
         self.connected = 0
-        self.meta_params = meta_params_class()
+        if meta_params_class is not None:
+            self.meta_params = meta_params_class()
         self.loopable_variables = {}
 
-        row = 0
         Tkinter.Label(self,
                       text=title,
-                      font=("Helvetica",12,"bold")).grid(row=row,column=0,columnspan=2)
+                      font=("Helvetica",12,"bold")).pack(expand=Tkinter.YES,
+                                                         fill=Tkinter.X)
         
         if not suppress_go_buttons:
-            row += 1
-
-            # let columns expand
             connected_frame = Tkinter.Frame(self)
-            connected_frame.grid(row=row,column=0,columnspan=2,sticky=Tkinter.W+Tkinter.E)
-            connected_frame.columnconfigure(0,weight=1)
-            connected_frame.columnconfigure(1,weight=1)
-            connected_frame.columnconfigure(2,weight=1)
+            connected_frame.pack(expand=Tkinter.YES,
+                                 fill=Tkinter.X)
 
             self.connected_text = Tkinter.StringVar()
             self.connected_text.set("Server status: Not connected")
@@ -77,13 +73,11 @@ class StimulusControlFrame(Tkinter.Frame):
                            command=self.quit_server).grid(row=1,
                                                           column=2)
         
-        row += 1
         self.param_frame = Tkinter.Frame(self)
-        self.param_frame.grid(row=row,column=0,sticky=Tkinter.N)
+        self.param_frame.pack(expand=Tkinter.YES,fill=Tkinter.BOTH)
         
         if not suppress_go_buttons:
-            row += 1
-            Tkinter.Button(self,text="Begin Trial",command=self.go).grid(row=row,column=0,columnspan=2)
+            Tkinter.Button(self,text="Begin Trial",command=self.go).pack()#expand=Tkinter.YES,fill=Tkinter.BOTH)
 
     def make_callback_entry(self, master=None, **kw):
         if 'width' not in kw.keys():
@@ -234,6 +228,6 @@ class StimulusControlFrame(Tkinter.Frame):
 
 if __name__=='__main__':
     frame = StimulusControlFrame()
-    frame.pack(expand=1,fill=Tkinter.BOTH)
+    frame.pack(expand=Tkinter.YES,fill=Tkinter.BOTH)
     frame.winfo_toplevel().title("%s"%(os.path.basename(os.path.splitext(sys.argv[0])[0]),))
     frame.mainloop()
