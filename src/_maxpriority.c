@@ -4,8 +4,7 @@
  * This is the C source code for setting maximum priority by the Vision Egg
  * library.
  *
- * I believe it requires some POSIX commands or a darwin system. I know
- * it works on linux and Mac OS X 10.1.4 but not Windows.
+ * There is code for darwin (Mac OS X), win32, and linux/irix/posix.
  *
  * Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of
  * the GNU Lesser General Public License (LGPL).
@@ -16,36 +15,37 @@
  *
  */
 
-#ifndef __APPLE__
-#include <sys/mman.h>
-#include <sched.h>
-#include <errno.h>
-#else
+#if defined(__APPLE__)
 /* Everything to support realtime in Apple Mac OS X is based on the following two things:
-
    1) http://developer.apple.com/techpubs/macosx/Darwin/General/KernelProgramming/scheduler/Using_Mach__pplications.html
-
    2) The Mac OS X port of the Esound daemon.
-
 */
-
 #include "darwin_pthread_modified.h" // Had problems with original...
 #include <mach/mach.h>
 #include <sys/sysctl.h>
-#endif /* closes ifndef __APPLE__ */
+#elif defined(_WIN32)
+/* Windows */
+#include <WINDOWS.H> // winbase.h is all we really want, but it doesn't include all the headers it needs
+#include <WINBASE.H>
+#else 
+/* Normal UNIX stuff */
+#include <sys/mman.h>
+#include <sched.h>
+#include <errno.h>
+#endif 
 
 #define TRY(E)     if(! (E)) return NULL
 
 static char set_realtime__doc__[] = 
-"Raise the Vision Egg to maximum priority.
-
-The following optional keyword arguments only have an effect
-on the darwin (Mac OS X) platform:
-
-  darwin_period_denom = 120;
-  darwin_computation_denom = 2400;
-  darwin_constraint_denom = 1200;
-  darwin_preemptible = 0;";
+"Raise the Vision Egg to maximum priority.\n"
+"\n"
+"The following optional keyword arguments only have an effect\n"
+"on the darwin (Mac OS X) platform:\n"
+"\n"
+"  darwin_period_denom = 120;\n"
+"  darwin_computation_denom = 2400;\n"
+"  darwin_constraint_denom = 1200;\n"
+"  darwin_preemptible = 0;";
 
 static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -68,15 +68,18 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   int darwin_computation_denom;
   int darwin_constraint_denom;
   int darwin_preemptible;
-#ifndef __APPLE__
-  struct sched_param params;
-  int policy;
-#else /* ifndef __APPLE__ */
+#if defined(__APPLE__)
   struct thread_time_constraint_policy ttcpolicy;
   int ret;
   int bus_speed, mib [2] = { CTL_HW, HW_BUS_FREQ };
   size_t len;
-#endif /* ifndef __APPLE__ */
+#elif defined(_WIN32)
+  SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+#else
+  struct sched_param params;
+  int policy;
+#endif
 
   /* Default values for keyword arguments */
   darwin_period_denom = 120;
@@ -138,10 +141,31 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   Py_DECREF(core_Message_INFO);
   Py_DECREF(coreModule);
 
-#ifndef __APPLE__
+#if defined(__APPLE__)
+  /* The Apple Mac OS X specific version */
 
-  /* This should work on all POSIX non-Apple platforms. See below for
-     Apple Mac OS X implementation. */
+  len = sizeof(bus_speed);
+  sysctl( mib, 2, &bus_speed, &len, NULL, 0);
+
+  ttcpolicy.period= bus_speed / darwin_period_denom;
+  ttcpolicy.computation=bus_speed / darwin_computation_denom;
+  ttcpolicy.constraint=bus_speed / darwin_constraint_denom;
+  ttcpolicy.preemptible= darwin_preemptible ;
+
+  ret=thread_policy_set(mach_thread_self(),
+			THREAD_TIME_CONSTRAINT_POLICY,
+			(int *)&ttcpolicy,
+			THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+
+  if (ret != KERN_SUCCESS) {
+    PyErr_SetString(PyExc_RuntimeError,"Failed trying to set realtime priority in Mac OS X.");
+    return NULL;
+  }
+
+#elif defined(_WIN32)
+#else
+
+  /* This should work on all POSIX non-Apple platforms. */
 
   /* First, tell the scheduler that we want maximum priority! */
   //  policy = SCHED_RR;
@@ -194,30 +218,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 #endif /* closes ifdef MCL_FUTURE */
 #endif /* closes ifdef MCL_CURRENT */
-#endif /* closes ifndef __APPLE__ */
-
-#ifdef __APPLE__
-  /* The Apple Mac OS X specific version */
-
-  len = sizeof(bus_speed);
-  sysctl( mib, 2, &bus_speed, &len, NULL, 0);
-
-  ttcpolicy.period= bus_speed / darwin_period_denom;
-  ttcpolicy.computation=bus_speed / darwin_computation_denom;
-  ttcpolicy.constraint=bus_speed / darwin_constraint_denom;
-  ttcpolicy.preemptible= darwin_preemptible ;
-
-  ret=thread_policy_set(mach_thread_self(),
-			THREAD_TIME_CONSTRAINT_POLICY,
-			(int *)&ttcpolicy,
-			THREAD_TIME_CONSTRAINT_POLICY_COUNT);
-
-  if (ret != KERN_SUCCESS) {
-    PyErr_SetString(PyExc_RuntimeError,"Failed trying to set realtime priority in Mac OS X.");
-    return NULL;
-  }
-
-#endif /* clases ifdef __APPLE__ */
+#endif /* closes all precompiler conditionals */
 
   Py_INCREF(Py_None);
   return Py_None;  /* It worked OK. */
