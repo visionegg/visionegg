@@ -64,6 +64,7 @@ defaults= {
     'VISIONEGG_MESSAGE_LEVEL':        1,
     'VISIONEGG_GUI_ON_ERROR':         1,
     'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" (blank string) means sys.stderr
+    'VISIONEGG_LOG_TO_STDERR':        1,
     'SYNCLYNC_PRESENT':               0,
     }
 

@@ -55,6 +55,12 @@ release_name = '0.9.4'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
+import traceback
+try:
+    import cStringIO
+    StringIO = cStringIO
+except:
+    import StringIO
 
 __version__ = release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -80,51 +86,54 @@ if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
     # When run directly from commandline, no GUIs!
     config.VISIONEGG_TKINTER_OK = 0
 
-if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
-    import traceback
-    try:
-        import cStringIO
-        StringIO = cStringIO
-    except:
-        import StringIO
-    import GUI
-    def _vision_egg_exception_hook(exc_type, exc_value, exc_traceback):
-        # close any open screens
-        if hasattr(config,'_open_screens'):
-            for screen in config._open_screens:
-                screen.close()
-        # print exception to sys.stderr
+class _ExceptionHookKeeper:
+    def handle_exception(self, exc_type, exc_value, exc_traceback):
 
-        if hasattr(config,"_orig_stderr"):
-            # We've saved the original sys.stderr, which means we're now intercepting it.
-            # Print a warning on the console:
-            config._orig_stderr.write("WARNING: Exception written to logfile\n")
-            config._orig_stderr.flush()
+        # send exception to log file
+        if hasattr(config,"_message"):
+            traceback_stream = StringIO.StringIO()
+            traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
+            traceback_stream.seek(0)
 
-        traceback.print_exception(exc_type,exc_value,exc_traceback)
-        # print exception to dialog
-        traceback_stream = StringIO.StringIO()
-        traceback.print_tb(exc_traceback,None,traceback_stream)
-        pygame_bug_workaround = 0 # do we need to workaround pygame bug?
-        if hasattr(config,"_pygame_started"):
-            if config._pygame_started:
-                pygame_bug_workaround = 1
-        if sys.platform == "linux2": # doesn't affect linux for some reason
-            pygame_bug_workaround = 0
-        if not pygame_bug_workaround:
-            try:
+            config._message.add(traceback_stream.read(),
+                                level=config._message.WARNING,
+                                preserve_formatting=1,
+                                no_sys_stderr=1) # prevent exception from going to console twice
+
+        if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
+            # Should really check if any GUI windows are open and only do this then
+            
+            # close any open screens
+            if hasattr(config,'_open_screens'):
+                for screen in config._open_screens:
+                    screen.close()
+
+            traceback_stream = StringIO.StringIO()
+            traceback.print_tb(exc_traceback,None,traceback_stream)
+            traceback_stream.seek(0)
+
+            import GUI
+            pygame_bug_workaround = 0 # do we need to workaround pygame bug?
+            if hasattr(config,"_pygame_started"):
+                if config._pygame_started:
+                    pygame_bug_workaround = 1
+            if sys.platform == "linux2": # doesn't affect linux for some reason
+                pygame_bug_workaround = 0
+            if not pygame_bug_workaround:
                 frame = GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
                 frame.mainloop()
-            except:
-                sys.stderr.write("2nd exception while trying to use GUI.showexception: ")
-                traceback.print_exc()
-    class _ExceptionHookKeeper:
-        def __init__(self):
-            self.orig_hook = sys.excepthook
-            sys.excepthook = _vision_egg_exception_hook
-        def __del__(self):
-            sys.excepthook = self.orig_hook
-    _exception_hook_keeper = _ExceptionHookKeeper()
+                frame.winfo_toplevel().destroy()
+
+        # continue on with normal exception processing:
+        self.orig_hook(exc_type, exc_value, exc_traceback)
+
+    def __init__(self):
+        self._sys = sys # preserve ref to sys module
+        self.orig_hook = self._sys.excepthook # keep copy
+        sys.excepthook = self.handle_exception
+    def __del__(self):
+        self._sys.excepthook = self.orig_hook # restore original
+_exception_hook_keeper = _ExceptionHookKeeper()
 
 ############ A base class finder utility function ###########
 
