@@ -57,37 +57,6 @@ except NameError:
     True = 1==1
     False = 1==0
 
-def __no_clamp_to_edge_callback():
-    # Error callback automatically called if OpenGL version < 1.2
-    
-    # This function is called if the OpenGL version is < 1.2, in which
-    # case GL_CLAMP_TO_EDGE is not defined by default.
-    
-    try:
-        import OpenGL.GL.SGIS.texture_edge_clamp
-        if OpenGL.GL.SGIS.texture_edge_clamp.glInitTextureEdgeClampSGIS():
-            gl.GL_CLAMP_TO_EDGE = OpenGL.GL.SGIS.texture_edge_clamp.GL_CLAMP_TO_EDGE_SGIS
-        else:
-            del gl.GL_CLAMP_TO_EDGE
-            raise RuntimeError("No GL_CLAMP_TO_EDGE")
-    except:
-        
-        VisionEgg.Core.message.add(
-            
-            """Your version of OpenGL is less than 1.2, and you do not
-            have the GL_SGIS_texture_edge_clamp OpenGL extension.
-            therefore, you do not have GL_CLAMP_TO_EDGE available.  It
-            may be impossible to get exact 1:1 reproduction of your
-            textures.  Using GL_CLAMP instead of GL_CLAMP_TO_EDGE.""",
-
-            level=VisionEgg.Core.Message.WARNING)
-        gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
-
-if "GL_CLAMP_TO_EDGE" not in dir(gl):
-    # Hack because this isn't defined in my PyOpenGL modules:
-    VisionEgg.Core.add_gl_assumption("GL_VERSION",1.2,__no_clamp_to_edge_callback)
-    gl.GL_CLAMP_TO_EDGE = 0x812F # This value is in Mesa gl.h and nVidia gl.h, so hopefully it's OK for others
-
 ####################################################################
 #
 #        Textures
@@ -994,9 +963,9 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
-        # We have to set these parameters here because we may hav
+        # We have to set these parameters here because we may have
         # re-assigned gl.GL_CLAMP_TO_EDGE.  This allows us to use
-        # symbol gl.GL_CLAMP_TO_EDGE even if our version of OpenG
+        # symbol gl.GL_CLAMP_TO_EDGE even if our version of OpenGL
         # doesn't support it.
         if self.parameters.texture_wrap_s is None:
             self.parameters.texture_wrap_s = gl.GL_CLAMP_TO_EDGE
