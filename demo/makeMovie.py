@@ -4,7 +4,6 @@ import math, os
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
-from VisionEgg.MotionBlur import *
 
 fps = 12.0 # frames per second
 
@@ -16,9 +15,6 @@ def y_as_function_of_time(t):
 
 def orientation(dummy):
     return 135.0
-
-def angle_as_function_of_time(t):
-    return 1000.0*math.cos(0.1*2.0*math.pi*t)
 
 def one_during_experiment(t):
     if t < 0.0:
@@ -32,19 +28,13 @@ viewport = Viewport(screen,(0,0),screen.size,projection)
 target = Target2D()
 target.init_gl()
 viewport.add_stimulus(target)
-drum = BlurredDrum(max_speed=200.0*math.pi,target_fps=fps)
-drum.init_gl()
-viewport.add_stimulus(drum)
 
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
 
 p.add_realtime_time_controller(target.parameters,'x', x_as_function_of_time)
 p.add_realtime_time_controller(target.parameters,'y', y_as_function_of_time)
-p.add_realtime_time_controller(drum.parameters,'angle', angle_as_function_of_time)
-p.add_realtime_time_controller(drum.parameters,'cur_time', lambda t: t)
 p.add_transitional_controller(target.parameters,'orientation', orientation)
 p.add_transitional_controller(target.parameters,'on', one_during_experiment)
-p.add_transitional_controller(drum.parameters,'contrast', one_during_experiment)
 
 p.export_movie_go(frames_per_sec=fps,path=os.path.join(VisionEgg.config.VISIONEGG_STORAGE,'movie'))
 
