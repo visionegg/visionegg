@@ -34,6 +34,15 @@ License.) See LICENSE.txt for more information.  This software is
 provided "as is" without any warranty of any kind, either expressed or
 implied.
 
+CREDITS (SOURCE CODE INCLUDED WITH THE VISION EGG DISTRIBUTION)
+
+lib3ds is copyright (c) by J.E. Hoffmann and is included with this
+release based on the GNU LGPL.  See lib3ds/README and lib3ds/COPYING.
+
+py_logging.py (renamed from logging/__init__.py in the Python 2.3
+source) is copyright (c) by Vinay Sajip and is included with this
+release based on the BSD-style license included in that file.
+
 MAILING LIST
 
 Sign up for the mailing list at
