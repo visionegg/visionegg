@@ -11,5 +11,12 @@ graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
 
-For installation instructions, go to the website:
+For installation instructions, latest information, and everything
+else, go to the website:
 http://visionegg.sourceforge.net
+
+For documentation, start with the demos and then read the source code.
+It is quite well commented, is authoritative, and it's all I've got
+time to maintain!
+
+For demos, see the 'demo' directory.

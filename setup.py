@@ -22,7 +22,7 @@ if sys.platform == 'linux2' or is_source_distribution:
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.7.1",
+      version = "0.8.0-alpha1",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",
@@ -33,7 +33,12 @@ setup(name="visionegg",
       packages=[ 'VisionEgg',
                  'VisionEgg.test'],
       ext_package='VisionEgg',
-      ext_modules=extensions
+      ext_modules=extensions,
+      long_description =
+      """The Vision Egg is a programming library (with demo
+      applications) that uses standard, inexpensive computer graphics
+      cards to produce visual stimuli for vision research
+      experiments."""
 )
 
 

@@ -1,0 +1,29 @@
+Changes for 0.8.0:
+------------------
+
+MAJOR: Implemented new Screen, Viewport, Stimulus, Overlay, and
+Presentation classes in VisionEgg.Core to more cleanly separate
+components and allow multiple viewports on same screen.
+
+MAJOR: Implemented new Parameters class in VisionEgg.Core to allow
+more flexible control of any parameters which may change during or
+between stimulus presentations.
+
+New configuration system added.  VisionEgg.config holds system-wide
+configuration defaults. 
+
+Changed VisionEgg.py to Core.py, so now you must do "import
+VisionEgg.Core".
+
+Moved demo scripts into 'demo' directory within the main package.  Now
+there is only one package to maintain.
+
+Motion blur cache uses directory VisionEgg.config.VISIONEGG_STORAGE
+
+Pulled texture stuff into Textures.py.
+
+Pulled data acquisition stuff into Daq.py
+
+Added lots of docstrings.
+
+Created this changelog.
