@@ -401,6 +401,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                 except TextureTooLargeError,x:
                     w = self.texture.orig.size[0]/2
                     h = self.texture.orig.size[1]/2
+                    if min(w,h) <= 0:
+                        raise TextureTooLargeError("Strange: even a 0 size texture is too large.")
                     self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
                     resized = 1
             if resized:
@@ -416,7 +418,7 @@ class SpinningDrum(TextureStimulusBaseClass):
         """
         if self.parameters.on:
             # Set OpenGL state variables
-            gl.glDisable( gl.GL_DEPTH_TEST )
+            gl.glEnable( gl.GL_DEPTH_TEST )
             gl.glEnable( gl.GL_TEXTURE_2D )  # Make sure textures are drawn
             gl.glEnable( gl.GL_BLEND ) # Contrast control implemented through blending
 
