@@ -33,12 +33,12 @@ class TextStimulus(VisionEgg.Core.Stimulus):
                                'lowerleft':((320.0,240.),types.TupleType),
                                'text':('the string to display',types.StringType)}
     def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(*(self,),**kw)
 
 class BitmapText(TextStimulus):
     parameters_and_defaults = {'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,types.IntType)}
     def __init__(self,**kw):
-        apply(TextStimulus.__init__,(self,),kw)
+        TextStimulus.__init__(*(self,),**kw)
 
     def draw(self):
         if self.parameters.on:
@@ -65,7 +65,7 @@ class StrokeText(TextStimulus):
                                'anti_aliasing':(1,types.IntType)}
     def __init__(self,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
-        apply(TextStimulus.__init__,(self,),kw)
+        TextStimulus.__init__(*(self,),**kw)
 
     def draw(self):
         if self.parameters.on:

@@ -18,7 +18,7 @@ considered unstable.
 
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
 
 ####################################################################
@@ -56,7 +56,7 @@ class DaqServerChannel(VisionEgg.Daq.Channel):
     constant_parameters_and_defaults = {'channel_number':(0,types.IntType)}
     
     def __init__(self,**kw):
-        apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
+        VisionEgg.Daq.Channel.__init__(self,**kw)
         # Should let daq server raise this error if it can't set gain
         analog = self.constant_parameters.signal_type
         if not isinstance(analog,VisionEgg.Daq.Analog):
@@ -77,7 +77,7 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
     Interface to a remote data acquisition TCP server that implements
     a simple data acquisition protocol."""
     def __init__(self,hostname='localhost',port=50003,**kw):
-        apply(VisionEgg.Daq.Device.__init__,(self,),kw)
+        VisionEgg.Daq.Device.__init__(self,**kw)
         self.connection = DaqConnection(hostname=hostname,port=port)
 
     def add_channel(self,channel):
@@ -157,10 +157,10 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
 ##class DebugSocket(socket.socket):
 ##    def send(self,string):
 ##        #print "SEND",string
-##        apply(socket.socket.send,(self,string))
+##        socket.socket.send(self,string)
 
 ##    def recv(self,bufsize):
-##        results = apply(socket.socket.recv,(self,bufsize))
+##        results = socket.socket.recv(self,bufsize)
 ##        #print "RECV",results
 ##        return results
 

@@ -22,13 +22,13 @@ class GratingMetaParameters:
         
 class CallbackEntry(Tkinter.Entry):
     def __init__(self,master=None,callback=None,**kw):
-        apply( Tkinter.Entry.__init__, (self,master), kw)
+        Tkinter.Entry.__init__(self,master, **kw)
         self.bind('<Return>',callback)
         self.bind('<Tab>',callback)
 
 class StimulusControlFrame(Tkinter.Frame):
     def __init__(self, master=None, suppress_begin_button=0,**kw):
-        apply(Tkinter.Frame.__init__,(self,master),kw)
+        Tkinter.Frame.__init__(self,master,**kw)
         self.pyro_client = None
         self.entry_width = 10
         self.connected = 0

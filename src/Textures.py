@@ -305,6 +305,11 @@ class TextureObject:
         if multitexture_unit_num is None:
             self.multitexture_unit = None
         else:
+            if not hasattr(VisionEgg.config,"_glInitMultitextureARB_done"):
+                if not gl.glInitMultitextureARB():
+                    raise RuntimeError("Need GL_ARB_multitexture OpenGL extension.")
+                else:
+                    VisionEgg.config._glInitMultitextureARB_done = 1
             attr_name = "GL_TEXTURE%d_ARB"%multitexture_unit_num
             self.multitexture_unit = getattr(gl,attr_name)
         # default OpenGL values for these values
@@ -783,7 +788,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
                      
     def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
 
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -848,7 +853,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
         def next_power_of_2(f):
             return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
         
-        apply(VisionEgg.ClassWithParameters.__init__,(self,)+args,kw)
+        VisionEgg.ClassWithParameters.__init__(*(self,)+args,**kw)
 
         cp = self.constant_parameters # shorthand
         width,height = cp.num_samples
@@ -953,7 +958,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     def __init__(self,*args,**kw):
         if 'mask' in kw.keys():
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
-        apply(TextureStimulusBaseClass.__init__,(self,)+args,kw)
+        TextureStimulusBaseClass.__init__(*(self,)+args,**kw)
             
     def draw(self):
         p = self.parameters
@@ -1088,7 +1093,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                                }
     
     def __init__(self,**kw):
-        apply(TextureStimulusBaseClass.__init__,(self,),kw)
+        TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list_normal = gl.glGenLists(1) # Allocate a new display list
         self.cached_display_list_mirror = gl.glGenLists(1) # Allocate a new display list
         self.rebuild_display_list()

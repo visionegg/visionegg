@@ -21,7 +21,7 @@ class StimulusControlFrame(Tkinter.Frame):
                  title="Stimulus Control",
                  meta_params_class=None,
                  **kw):
-        apply(Tkinter.Frame.__init__,(self,master),kw)
+        Tkinter.Frame.__init__(self,master,**kw)
         self.pyro_client = None
         self.entry_width = 10
         self.connected = 0
@@ -82,7 +82,7 @@ class StimulusControlFrame(Tkinter.Frame):
             kw['width'] = self.entry_width
         if master==None:
             master=self.param_frame
-        e = apply(Tkinter.Entry,(master,),kw)
+        e = Tkinter.Entry(master,**kw)
         e.bind('<Return>',self.send_values)
         e.bind('<Tab>',self.send_values)
         return e

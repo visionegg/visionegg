@@ -34,11 +34,12 @@ class SphereGratingMetaParameters:
 class SphereGratingControlFrame(client_utils.StimulusControlFrame):
     title = "Grating (Perspective-distorted) Experiment"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
-        apply(client_utils.StimulusControlFrame.__init__,(self,
-                                                          master,
-                                                          suppress_go_buttons,
-                                                          SphereGratingControlFrame.title,
-                                                          SphereGratingMetaParameters),kw)
+        client_utils.StimulusControlFrame.__init__(self,
+                                                   master,
+                                                   suppress_go_buttons,
+                                                   SphereGratingControlFrame.title,
+                                                   SphereGratingMetaParameters,
+                                                   **kw)
 
         param_frame = self.param_frame # shorthand for self.param_frame created in base class
 

@@ -47,7 +47,7 @@ class Model3DS(VisionEgg.Core.Stimulus):
                                         }
     def __init__(self,**kw):
         # Initialize base class
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
 
         max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
         if max_dim is None:

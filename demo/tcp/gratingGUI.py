@@ -111,7 +111,7 @@ class SocketChecker:
     
 class SocketLogger:
     def __init__(self,*args,**kw):
-        self.socket = apply(socket.socket,args,kw)
+        self.socket = socket.socket(*args,**kw)
         for attr in dir(self.socket):
             if attr != "send" and attr != "recv" and attr[:2] != "__":
                 setattr(self,attr,getattr(self.socket,attr))
@@ -126,7 +126,7 @@ class SocketLogger:
 def connect():
     class ConnectWindow(Tkinter.Frame):
         def __init__(self,master=None,host="",port=5000,**kw):
-            apply(Tkinter.Frame.__init__,(self,master),kw)
+            Tkinter.Frame.__init__(self,master,**kw)
             self.next_row = 0
             self.socket = None
             self.buffer = ""
@@ -238,14 +238,14 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
 class BarButton(Tkinter.Menubutton):
     # Taken from Guido van Rossum's Tkinter svkill demo
     def __init__(self, master=None, **cnf):
-        apply(Tkinter.Menubutton.__init__, (self, master), cnf)
+        Tkinter.Menubutton.__init__(self, master, **cnf)
         self.pack(side=Tkinter.LEFT)
         self.menu = Tkinter.Menu(self, name='menu')
         self['menu'] = self.menu
 
 class GratingControl(Tkinter.Frame):
     def __init__(self,master=None,socket=None,**kw):
-        apply(Tkinter.Frame.__init__,(self,master),kw)
+        Tkinter.Frame.__init__(self,master,**kw)
         self.socket = socket
         self.next_row = 0
         self.last_values = {}
@@ -691,7 +691,7 @@ def parse_tcp_string(tcp_string):
 
 class TCPApp(Tkinter.Frame):
     def __init__(self,master=None,socket=None,starting_buffer=None,**kw):
-        apply(Tkinter.Frame.__init__,(self,master),kw)
+        Tkinter.Frame.__init__(self,master,**kw)
         self.socket = socket
         self.name_dict = {}
         self.other_interested_instances = [] # also want to know what's happening on the socket

@@ -24,11 +24,12 @@ class ColorCalMetaParameters:
 class ColorCalControlFrame(client_utils.StimulusControlFrame):
     title = "Color Calibration"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
-        apply(client_utils.StimulusControlFrame.__init__,(self,
-                                                          master,
-                                                          suppress_go_buttons,
-                                                          ColorCalControlFrame.title,
-                                                          ColorCalMetaParameters),kw)
+        client_utils.StimulusControlFrame.__init__(self,
+                                                   master,
+                                                   suppress_go_buttons,
+                                                   ColorCalControlFrame.title,
+                                                   ColorCalMetaParameters,
+                                                   **kw)
 
         param_frame = self.param_frame # shorthand for self.param_frame created in base class
 

@@ -56,7 +56,7 @@ class Wrapper:
         else: kw_str = ""
         arg_str = string.join( map( arg_to_str, args ), "," )
         print "%s(%s)%s"%(self.attr_name,arg_str,kw_str)
-        result = apply(self.orig_func,args,kw)
+        result = self.orig_func(*args,**kw)
         return result
 
 for attr in dir(gl):
