@@ -7,6 +7,7 @@ import math, types, string
 
 import VisionEgg.Core
 import VisionEgg.Textures
+import VisionEgg.Text
 import VisionEgg.Gratings
 import VisionEgg.ParameterTypes as ve_types
 
@@ -26,6 +27,201 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+class AzElGrid(VisionEgg.Core.Stimulus):
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'center_azimuth':(0.0, # 0=right, 90=right
+                          ve_types.Real),
+        'center_elevation':(0.0, # 0=right, 90=up
+                            ve_types.Real),
+        'minor_line_width':(1.0,
+                            ve_types.Real),
+        'major_line_width':(2.0,
+                            ve_types.Real),
+        'minor_line_color':((0.0,0.0,1.0),
+                            ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                           ve_types.Sequence4(ve_types.Real))),
+        'major_line_color':((0.0,0.0,0.0),
+                            ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                           ve_types.Sequence4(ve_types.Real))),
+        'my_viewport':(None, # viewport I'm in
+                       ve_types.Instance(VisionEgg.Core.Viewport)),
+        'text_viewport':(None, # viewport to draw az and el with, set automatically if not given
+                         ve_types.Instance(VisionEgg.Core.Viewport)),
+        }
+    constant_parameters_and_defaults = {
+        'use_text':(True,
+                    ve_types.Boolean),
+        'radius':(1.0,
+                  ve_types.Real),
+        'az_minor_spacing':(10.0,
+                            ve_types.Real),
+        'az_major_spacing':(30.0,
+                            ve_types.Real),
+        'el_minor_spacing':(10.0,
+                            ve_types.Real),
+        'el_major_spacing':(30.0,
+                            ve_types.Real),
+        'num_samples_per_circle':(100,
+                                  ve_types.UnsignedInteger),
+        'font_size':(24,
+                     ve_types.UnsignedInteger),
+        'text_color':((0.0,0.0,0.0),
+                      ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                     ve_types.Sequence4(ve_types.Real))),
+        'text_anchor':('lowerleft',
+                       ve_types.String),
+        }
+    def __init__(self,**kw):
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
+        self.cached_minor_lines_display_list = gl.glGenLists(1) # Allocate a new display list
+        self.cached_major_lines_display_list = gl.glGenLists(1) # Allocate a new display list
+        self.__rebuild_display_lists()
+        
+    def __rebuild_display_lists(self):
+        def get_xyz(theta,phi,radius):
+            # theta normally between 0 and pi (north pole to south pole)
+            # phi between -pi and pi
+            y = radius * math.cos( theta )
+            w = radius * math.sin( theta )
+            x = w * math.cos( phi )
+            z = w * math.sin( phi )
+            return x,y,z
+        def draw_half_great_circle(az):
+            for i in range(cp.num_samples_per_circle/2):
+                # let theta exceed 1 pi to draw 2nd half of circle
+                theta_start = i/float(cp.num_samples_per_circle)*2*math.pi
+                theta_stop = (i+1)/float(cp.num_samples_per_circle)*2*math.pi
+                phi_start = phi_stop = (az-90.0)/180.0*math.pi
+                x_start,y_start,z_start = get_xyz(theta_start,phi_start,cp.radius)
+                x_stop,y_stop,z_stop = get_xyz(theta_stop,phi_stop,cp.radius)
+                gl.glVertex3f(x_start, y_start, z_start)
+                gl.glVertex3f(x_stop, y_stop, z_stop)
+        def draw_iso_elevation_circle(el):
+            # el from -90 = pi to el 90 = 0
+            theta_start = theta_stop = -(el-90) / 180.0 * math.pi
+            for i in range(cp.num_samples_per_circle):
+                phi_start = i/float(cp.num_samples_per_circle)*2*math.pi
+                phi_stop = (i+1)/float(cp.num_samples_per_circle)*2*math.pi
+                x_start,y_start,z_start = get_xyz(theta_start,phi_start,cp.radius)
+                x_stop,y_stop,z_stop = get_xyz(theta_stop,phi_stop,cp.radius)
+                gl.glVertex3f(x_start, y_start, z_start)
+                gl.glVertex3f(x_stop, y_stop, z_stop)
+
+        cp = self.constant_parameters
+        azs_major = Numeric.arange(-180.0,180.0,cp.az_major_spacing)
+        azs_minor = Numeric.arange(-180.0,180.0,cp.az_minor_spacing)
+        els_major = Numeric.arange(-90.0,90.0,cp.el_major_spacing)
+        els_minor = Numeric.arange(-90.0,90.0,cp.el_minor_spacing)
+
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadIdentity()
+
+        gl.glNewList(self.cached_minor_lines_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_LINES)
+        # az minor
+        for az in azs_minor:
+            if az in azs_major:
+                continue # draw only once as major
+            draw_half_great_circle(az)
+        for el in els_minor:
+            if el in els_major:
+                continue # draw only once as major
+            draw_iso_elevation_circle(el)
+        gl.glEnd()
+        gl.glEndList()
+        
+        gl.glNewList(self.cached_major_lines_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_LINES)
+        for az in azs_major:
+            draw_half_great_circle(az)
+        for el in els_major:
+            draw_iso_elevation_circle(el)
+        gl.glEnd()
+        gl.glEndList()
+
+        if cp.use_text:
+            self.labels = []
+            self.labels_xyz = []
+            for az in azs_major:
+                for el in els_major:
+                    if el == -90:
+                        continue
+                    theta = -(el-90) / 180.0 * math.pi
+                    phi = (az-90.0)/180.0*math.pi
+                    x,y,z = get_xyz(theta,phi,cp.radius)
+                    self.labels_xyz.append((x,y,z))
+                    self.labels.append(
+                        VisionEgg.Text.Text( text = '%.0f, %.0f'%(az,el),
+                                             font_size = cp.font_size,
+                                             color = cp.text_color,
+                                             anchor = cp.text_anchor,
+                                             )
+                        )
+            self.labels_xyz = Numeric.array(self.labels_xyz)
+
+    def draw(self):
+        p = self.parameters
+        cp = self.constant_parameters
+        if p.on:
+            # Set OpenGL state variables
+            gl.glEnable( gl.GL_DEPTH_TEST )
+            gl.glDisable( gl.GL_TEXTURE_2D )  # Make sure textures are not drawn
+            gl.glDisable( gl.GL_BLEND )
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
+            
+            gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
+
+            gl.glColor(*p.minor_line_color)
+            gl.glLineWidth(p.minor_line_width)
+            gl.glCallList(self.cached_minor_lines_display_list)
+
+            gl.glColor(*p.major_line_color)
+            gl.glLineWidth(p.major_line_width)
+            gl.glCallList(self.cached_major_lines_display_list)
+
+            if cp.use_text:
+                if (p.my_viewport is None) or (self not in p.my_viewport.parameters.stimuli):
+                    # XXX could also make Viewport parameter is_drawing and check that
+                    raise ValueError('use_text is True, but my_viewport not (properly) assigned')
+                
+                if p.text_viewport is None:
+                    # make viewport for text
+                    p.text_viewport = VisionEgg.Core.Viewport(screen=p.my_viewport.parameters.screen)
+                
+                # save original stimuli
+                orig_stimuli = p.text_viewport.parameters.stimuli 
+                # draw text labels
+                my_view = p.my_viewport
+                my_proj = my_view.parameters.projection
+                clip = my_proj.eye_2_clip(self.labels_xyz)
+                try:
+                    # this is much faster when no OverflowError...
+                    window_coords = my_view.clip_2_window(clip)
+                    all_at_once = True
+                except OverflowError:
+                    all_at_once = False
+                draw_labels = []
+                for i in range(len(self.labels)):
+                    if clip[i,3] < 0: continue # this vertex is not on screen
+                    label = self.labels[i]
+                    if all_at_once:
+                        label.parameters.position = window_coords[i,:2]
+                    else:
+                        try:
+                            window_coords = my_view.clip_2_window(clip[i,:])
+                        except OverflowError:
+                            continue # not much we can do with this vertex, either
+                        label.parameters.position = window_coords[:2]
+                    draw_labels.append(label)
+                p.text_viewport.parameters.stimuli = draw_labels
+                p.text_viewport.draw()
+                # restore original stimuli
+                p.text_viewport.parameters.stimuli = orig_stimuli
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     """Mercator mapping of rectangular texture onto sphere."""
@@ -180,6 +376,8 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                             ve_types.Real),
         't0_time_sec_absolute':(None,
                                 ve_types.Real),
+        'ignore_time':(False, # ignore temporal frequency variable - allow control purely with phase_at_t0
+                       ve_types.Boolean),
         'phase_at_t0':(0.0,  # degrees
                        ve_types.Real),
         'orientation':(0.0,  # 0=right, 90=up
@@ -239,7 +437,11 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             cycles_per_texel = p.spatial_freq_cpd * inc
             if cycles_per_texel < p.lowpass_cutoff_cycles_per_texel: # sharp cutoff lowpass filter
                 # below cutoff frequency - draw sine wave
-                phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+                if p.ignore_time:
+                    phase = p.phase_at_t0
+                else:
+                    t_var = VisionEgg.time_func() - p.t0_time_sec_absolute
+                    phase = t_var*p.temporal_freq_hz*360.0 + p.phase_at_t0
                 floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
                 floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
                 texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -373,7 +575,11 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                 inc = 360.0/float(this_mipmap_level_num_samples)# degrees per pixel
                 cycles_per_texel = p.spatial_freq_cpd * inc
                 if cycles_per_texel < p.lowpass_cutoff_cycles_per_texel: # sharp cutoff lowpass filter
-                    phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+                    if p.ignore_time:
+                        phase = p.phase_at_t0
+                    else:
+                        t_var = VisionEgg.time_func() - p.t0_time_sec_absolute
+                        phase = t_var*p.temporal_freq_hz*360.0 + p.phase_at_t0
                     floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
                     floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
                     texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
