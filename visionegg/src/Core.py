@@ -460,20 +460,24 @@ class Screen(VisionEgg.ClassWithParameters):
         gl.glMatrixMode(gl.GL_PROJECTION) # Restore projection
         gl.glPopMatrix()
                 
-    def get_framerate(self, average_over_seconds=0.0):
-        if average_over_seconds > 0.0:
-            start_time = VisionEgg.time_func()
-            now = start_time
-            num_frames = 0
-            while (now - start_time) < average_over_seconds:
-                swap_buffers()
-                now = VisionEgg.time_func()
-                num_frames += 1
-            fps = num_frames / (now - start_time)
-            return fps
+    def query_refresh_rate(self):
+        return VisionEgg.PlatformDependent.query_refresh_rate(self)
+
+    def measure_refresh_rate(self,average_over_seconds=0.1):
+        """Measure the refresh rate. Assumes swap buffers synced."""
+        start_time = VisionEgg.time_func()
+        duration_sec = 0.0
+        num_frames = 0
+        while duration_sec < average_over_seconds:
+            swap_buffers()
+            now = VisionEgg.time_func()
+            num_frames += 1
+            duration_sec = now - start_time
+        if duration_sec > 0.0:
+            fps = num_frames / duration_sec
         else:
-            # query hardware if possible
-            raise NotImplementedError("Platform dependent code to query frame rate not implemented on this platform.")
+            fps = 0.0
+        return fps
 
     def set_gamma_ramp(self, red, green, blue):
         return pygame.display.set_gamma_ramp(red,green,blue)
