@@ -82,7 +82,6 @@ if __name__ == '__main__':
     texture = VisionEgg.Textures.Texture(filename)
     sphere_map = VisionEgg.SphereMap.SphereMap(texture=texture,
                                                shrink_texture_ok=1,
-                                               radius=1000.0,
                                                stacks=100,
                                                slices=100)
     temp = ScreenPositionParameters()

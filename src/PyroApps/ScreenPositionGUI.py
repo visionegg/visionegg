@@ -18,11 +18,11 @@ class ScreenPositionParameters:
     def __init__(self):
 
         # frustum (initial values - view portion of unit sphere)
-        self.left = -0.5
-        self.right = 0.5
-        self.top = 0.5
-        self.bottom = -0.5
-        self.near = 0.5
+        self.left = -0.2
+        self.right = 0.2
+        self.top = 0.2
+        self.bottom = -0.2
+        self.near = 0.2
         self.far = 2.0
         
         # position/orientation
