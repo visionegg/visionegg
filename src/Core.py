@@ -54,7 +54,8 @@ all = ['ConstantController', 'Controller', 'EggError',
        'Message', 'OrthographicProjection', 'PerspectiveProjection',
        'Presentation', 'Projection', 'Screen', 'SimplePerspectiveProjection',
        'Stimulus', 'Viewport', 'add_gl_assumption', 'check_gl_assumptions',
-       'get_default_screen', 'message', 'swap_buffers']
+       'get_default_screen', 'message', 'swap_buffers',
+       'make_homogeneous_coord_rows']
 
 ####################################################################
 #
@@ -63,6 +64,7 @@ all = ['ConstantController', 'Controller', 'EggError',
 ####################################################################
 
 import sys, types, string, math, time, os       # standard Python modules
+import warnings
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
 import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
@@ -93,9 +95,29 @@ except NameError:
     True = 1==1
     False = 1==0
 
+try:
+    gl.GL_BGRA
+except AttributeError:
+    gl.GL_BGRA = 0x80E1 # XXX why doesn't PyOpenGL define this?!
+
+try:
+    gl.GL_UNSIGNED_INT_8_8_8_8_REV
+except AttributeError:
+    gl.GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367 # XXX why doesn't PyOpenGL define this?!
+
 def swap_buffers():
     VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
     return pygame.display.flip()
+
+def make_homogeneous_coord_rows(v):
+    """Convert vertex (or row-wise vertices) into homogeneous coordinates."""
+    v = Numeric.array(v,typecode=Numeric.Float)
+    if len(v.shape) == 1:
+        v = v[Numeric.NewAxis,:] # make a rank-2 array
+    if v.shape[1] == 3:
+        ws = Numeric.ones((v.shape[0],1),typecode=Numeric.Float)
+        v = Numeric.concatenate( (v,ws), axis=1 )
+    return v
 
 ####################################################################
 #
@@ -144,7 +166,8 @@ class Screen(VisionEgg.ClassWithParameters):
     
     parameters_and_defaults = {
         'bgcolor':((0.5,0.5,0.5,0.0),
-                   ve_types.Sequence4(ve_types.Real)),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         }
     
     constant_parameters_and_defaults = {
@@ -360,47 +383,65 @@ class Screen(VisionEgg.ClassWithParameters):
     def set_size(self, value): raise RuntimeError("Attempting to set read-only value")
     size = property(get_size,set_size)
 
-    def get_framebuffer_as_image(self, buffer='back', format=gl.GL_RGB):
-        """get pixel values from framebuffer to PIL image (SLOW)"""
+    def get_framebuffer_as_image(self,
+                                 buffer='back',
+                                 format=gl.GL_RGB,
+                                 position=(0,0),
+                                 anchor='lowerleft',
+                                 size=None, # if None, use full screen
+                                 ):
+        """get pixel values from framebuffer to PIL image"""
         import Image # Could import this at the beginning of the file, but it breaks sometimes!
-
-        if buffer == 'front':
-            gl.glReadBuffer( gl.GL_FRONT )
-        elif buffer == 'back':
-            gl.glReadBuffer( gl.GL_BACK )
-        else:
-            raise ValueError('No support for "%s" framebuffer'%buffer)
+        
+        fb_array = self.get_framebuffer_as_array(buffer=buffer,
+                                                 format=format,
+                                                 position=position,
+                                                 anchor=anchor,
+                                                 size=size,
+                                                 )
+        size = fb_array.shape[1], fb_array.shape[0]
         if format == gl.GL_RGB:
-            mode_string = 'RGB'
+            pil_mode = 'RGB'
         elif format == gl.GL_RGBA:
-            mode_string = 'RGBX'
-        else:
-            raise NotImplementedError("Only RGB and RGBA formats currently supported")
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],format,gl.GL_UNSIGNED_BYTE)
-        fb_image = Image.fromstring(mode_string,self.size,framebuffer_pixels)
+            pil_mode = 'RGBA'
+        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
         fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
         return fb_image
 
-    def get_framebuffer_as_array(self, buffer='back', format=gl.GL_RGB):
-        """get pixel values from framebuffer to Numeric array (SLOW)"""
-        
+    def get_framebuffer_as_array(self,
+                                 buffer='back',
+                                 format=gl.GL_RGB,
+                                 position=(0,0),
+                                 anchor='lowerleft',
+                                 size=None, # if None, use full screen
+                                 ):
+        """get pixel values from framebuffer to Numeric array"""# (SLOW)"""
+        if size is None:
+            size = self.size
+        lowerleft = VisionEgg._get_lowerleft(position,anchor,size)
         if buffer == 'front':
             gl.glReadBuffer( gl.GL_FRONT )
         elif buffer == 'back':
             gl.glReadBuffer( gl.GL_BACK )
         else:
             raise ValueError('No support for "%s" framebuffer'%buffer)
+
+        # according to Apple's glGrab,demo, this should force DMA transfers:
+        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 4)
+        gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
+        gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
+        gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
+        framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_BGRA,gl.GL_UNSIGNED_INT_8_8_8_8_REV)
+        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
+        fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
         if format == gl.GL_RGB:
-            num_channels = 3
+            fb_array = fb_array[:,:,1:]
         elif format == gl.GL_RGBA:
-            num_channels = 4
+            alpha = fb_array[:,:,0,Numeric.NewAxis]
+            fb_array = fb_array[:,:,1:]
+            fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
         else:
             raise NotImplementedError("Only RGB and RGBA formats currently supported")
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],format,gl.GL_UNSIGNED_BYTE)
-        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
-        fb_array = Numeric.reshape(fb_array,(self.size[1],self.size[0],num_channels))
         return fb_array
 
     def put_pixels(self,
@@ -486,7 +527,10 @@ class Screen(VisionEgg.ClassWithParameters):
         """Called by Presentation instance. Clear the screen."""
 
         c = self.parameters.bgcolor # Shorthand
-        gl.glClearColor(c[0],c[1],c[2],c[3])
+        if len(c) == 4:
+            gl.glClearColor(*c)
+        else:
+            gl.glClearColor(c[0],c[1],c[2],0.0) # set alpha to 0.0 unless specified
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     def make_current(self):
@@ -770,7 +814,27 @@ class Projection(VisionEgg.ClassWithParameters):
         gl.glMultMatrixf(m)
         gl.glTranslatef(-eye[0],-eye[1],-eye[2])
         self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
-
+    def eye_2_clip(self,eye_coords_vertex):
+        """Transform eye coordinates to clip coordinates"""
+        m = Numeric.array(self.parameters.matrix)
+        v = Numeric.array(eye_coords_vertex)
+        homog = make_homogeneous_coord_rows(v)
+        r = Numeric.matrixmultiply(homog,m)
+        if len(homog.shape) > len(v.shape):
+            r = Numeric.reshape(r,(4,))
+        return r
+    def clip_2_norm_device(self,clip_coords_vertex):
+        """Transform clip coordinates to normalized device coordinates"""
+        v = Numeric.array(clip_coords_vertex)
+        homog = make_homogeneous_coord_rows(v)
+        r = (homog/homog[:,3,Numeric.NewAxis])[:,:3]
+        if len(homog.shape) > len(v.shape):
+            r = Numeric.reshape(r,(3,))
+        return r
+    def eye_2_norm_device(self,eye_coords_vertex):
+        """Transform eye coordinates to normalized device coordinates"""
+        return self.clip_2_norm_device(self.eye_2_clip(eye_coords_vertex))
+    
 class OrthographicProjection(Projection):
     """An orthographic projection"""
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
@@ -989,14 +1053,6 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
 
-    Parameters:
-
-    screen -- Instance of Screen on which to draw
-    lowerleft -- Tuple (length 2) specifying viewport lowerleft corner position in pixels relative to screen lowerleft corner.
-    size -- Tuple (length 2) specifying viewport size in pixels
-    projection -- Instance of Projection
-    stimuli -- List of instances of Stimulus to draw
-    
     """
     parameters_and_defaults = {
         'screen':(None,
@@ -1005,6 +1061,8 @@ class Viewport(VisionEgg.ClassWithParameters):
                     ve_types.Sequence2(ve_types.Real)), 
         'anchor':('lowerleft',
                   ve_types.String),
+        'depth_range':((0,1),
+                       ve_types.Sequence2(ve_types.Real)), 
         'size':(None, # will use screen.size if not specified
                 ve_types.Sequence2(ve_types.Real)),
         'projection':(None, # instance of VisionEgg.Core.Projection
@@ -1024,7 +1082,8 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         Optional arguments (specify parameter value other than default):
 
-        lowerleft -- defaults to (0,0)
+        position -- defaults to (0,0), position relative to screen by anchor (see below)
+        anchor -- defaults to 'lowerleft'
         size -- defaults to screen.size
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
@@ -1057,10 +1116,9 @@ class Viewport(VisionEgg.ClassWithParameters):
         p.screen.make_current()
         
         if p.lowerleft != None:
-            if not hasattr(VisionEgg.config,"_GAVE_VP_LOWERLEFT_DEPRECATION"):
-                VisionEgg.Core.message.add("Specifying viewport by 'lowerleft' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
-                VisionEgg.config._GAVE_VP_LOWERLEFT_DEPRECATION = 1
+            warnings.warn("lowerleft parameter of Viewport class will stop being a supported. "+\
+                          "Use 'position' instead with anchor set to 'lowerleft'.",
+                          DeprecationWarning,stacklevel=2)
             p.anchor = 'lowerleft'
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
             
@@ -1070,11 +1128,49 @@ class Viewport(VisionEgg.ClassWithParameters):
                       lowerleft[1],
                       p.size[0],
                       p.size[1])
+        gl.glDepthRange(p.depth_range[0],p.depth_range[1])
 
         p.projection.set_gl_projection()
 
         for stimulus in p.stimuli:
             stimulus.draw()
+    def norm_device_2_window(self,norm_device_vertex):
+        """Transform normalized device coordinates to window coordinates"""
+        v = Numeric.array(norm_device_vertex)
+        homog = make_homogeneous_coord_rows(v)
+        xd = homog[:,0,Numeric.NewAxis]
+        yd = homog[:,1,Numeric.NewAxis]
+        zd = homog[:,2,Numeric.NewAxis]
+
+        p = self.parameters # shorthand
+        lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
+        x,y = lowerleft
+        w,h = p.size
+        n,f = p.depth_range
+        
+        # clamp n and f
+        n = max(1.0,min(0.0,n))
+        f = max(1.0,min(0.0,f))
+
+        ox = x + w/2.0
+        oy = y + h/2.0
+        px = w
+        py = h
+        xw = (px/2.0)*xd + ox
+        yw = (py/2.0)*yd + oy
+        zw = ((f-n)/2.0)*zd + (n+f)/2.0
+        r = Numeric.concatenate((xw,yw,zw),axis=1)
+        if len(homog.shape) > len(v.shape):
+            r = Numeric.reshape(r,(3,))
+        return r
+    def clip_2_window(self,eye_coords_vertex):
+        """Transform clip coordinates to window coordinates"""
+        my_proj = self.parameters.projection
+        return self.norm_device_2_window( my_proj.clip_2_norm_device( eye_coords_vertex ) )
+    def eye_2_window(self,eye_coords_vertex):
+        """Transform eye coordinates to window coordinates"""
+        my_proj = self.parameters.projection
+        return self.norm_device_2_window( my_proj.eye_2_norm_device( eye_coords_vertex ) )
         
 ####################################################################
 #
@@ -1416,6 +1512,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_since_go = 0.0
         self._true_time_go_start = VisionEgg.true_time_func()
         self._true_time_last_frame = self._true_time_go_start
+        true_time_now = self._true_time_go_start
         self.frames_since_go = 0
 
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
