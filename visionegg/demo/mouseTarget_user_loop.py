@@ -137,4 +137,4 @@ while not quit_now:
     viewport.draw()
     swap_buffers()
     frame_timer.tick()
-frame_timer.print_histogram()
+frame_timer.log_histogram()
