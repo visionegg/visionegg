@@ -29,10 +29,13 @@ if swig_src_dir: # the above returns '' if we're in it on Python2.1
     os.chdir(swig_src_dir)
 
 interfaces = ["darwin_app_stuff",
+              "darwin_getrefresh",
               "darwin_maxpriority",
+              "gl_qt",
+              "posix_maxpriority",
               "win32_getrefresh",
               "win32_maxpriority",
-              "posix_maxpriority"]
+              ]
 product_suffixes = ["_wrap.c",
                     ".py"]
 other_source_suffixes = [".m",
