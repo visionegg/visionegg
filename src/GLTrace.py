@@ -11,6 +11,9 @@ import VisionEgg.GLTrace as gl
 
 in your code.
 
+Also, trace another module's use of OpenGL by changing its reference
+to OpenGL.GL to a reference to VisionEgg.GLTrace.
+
 This module also imports everything in OpenGL.GL.ARB.multitexture.
 """
 
@@ -39,6 +42,10 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gl_constants = {}
 
+# functions which we don't want to map all the arguments of
+special_functions = {'glTexImage2D':[1,3,4,5], # level,width,height,border
+                     }
+
 def arg_to_str( arg ):
     if type(arg) == int:
         if arg in gl_constants.keys():
@@ -54,7 +61,16 @@ class Wrapper:
     def run(self,*args,**kw):
         if kw: kw_str = " AND KEYWORDS"
         else: kw_str = ""
-        arg_str = string.join( map( arg_to_str, args ), "," )
+        if self.attr_name in special_functions:
+            arg_str = []
+            for i in range(len(args)):
+                if i in special_functions[self.attr_name]:
+                    arg_str.append(str(args[i])) # don't convert to name of OpenGL constant
+                else:
+                    arg_str.append(arg_to_str(args[i])) # convert to name of OpenGL constant
+            arg_str = string.join( arg_str, "," )
+        else:
+            arg_str = string.join( map( arg_to_str, args ), "," )
         print "%s(%s)%s"%(self.attr_name,arg_str,kw_str)
         result = self.orig_func(*args,**kw)
         return result
