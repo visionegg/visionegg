@@ -26,18 +26,6 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-def set_icon( name ):
-    if sys.platform == 'darwin':
-        try:
-            import darwin_app_stuff
-            darwin_app_stuff.set_icon( name )
-        except Exception, x:
-            import warnings
-            # can't use VisionEgg.Core.message module because this gets loaded first
-            warnings.warn( "Could not set icon: %s: %s"%(x.__class__,str(x)) )
-    else:
-        raise NotImplmentedError("set_icon not currently supported on this platform.")
-
 def set_priority(*args,**kw):
     """Set the priority of the Vision Egg application.
 
