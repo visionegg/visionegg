@@ -531,7 +531,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 h = self.texture.height
 
                 # calculate texture coordinates based on current angle
-                tex_phase = p.angular_position/360.0
+                tex_phase = p.angular_position/-360.0 + 0.5 # offset to match non-flat
                 tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
                 TINY = 1.0e-10
