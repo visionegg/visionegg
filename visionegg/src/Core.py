@@ -283,6 +283,11 @@ class Screen(VisionEgg.ClassWithParameters):
         if self.constant_parameters.maxpriority: 
             PlatformDependent.set_realtime()
 
+        if hasattr(VisionEgg.config,'_open_screens'):
+            VisionEgg.config._open_screens.append(self)
+        else:
+            VisionEgg.config._open_screens = [self]
+
     def clear(self):
         """Called by Presentation instance. Clear the screen."""
 
@@ -310,11 +315,28 @@ class Screen(VisionEgg.ClassWithParameters):
             return 0
         return apply(pygame.display.set_gamma_ramp,args,kw)
 
+    def close(self):
+        """Close the screen.
+
+        You can call this to close the screen.  Not necessary during
+        normal operation because it gets automatically deleted."""
+        # Close pygame if possible
+        if hasattr(VisionEgg.config,'_open_screens'):
+            if self in VisionEgg.config._open_screens:
+                VisionEgg.config._open_screens.remove(self)
+            if len(VisionEgg.config._open_screens) == 0:
+                # no more open screens
+                self.cursor_visible_func(1)
+                pygame.quit()
+        # No access to the cursor visible function anymore
+        if hasattr(self,"cursor_visible_func"):
+            del self.cursor_visible_func
+            
     def __del__(self):
         # Make sure mouse is visible after screen closed.
         if hasattr(self,"cursor_visible_func"):
             self.cursor_visible_func(1)
-        
+            
 def get_default_screen():
     """Return an instance of screen opened with to default values.
 
@@ -1887,8 +1909,9 @@ class Message:
         except:
             pass
         
-    def add(self,text,level=INFO):
-        self.message_queue.append((level,text))
+    def add(self,text,level=INFO,preserve_formatting=0):
+        date_str = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.message_queue.append((level,text,preserve_formatting,date_str))
         self.handle()
         
     def format_string(self,in_str):
@@ -1908,7 +1931,7 @@ class Message:
     def handle(self):
         while len(self.message_queue) > 0:
             my_str = ""
-            level, text = self.message_queue.pop(0)
+            level,text,preserve_formatting,date_str = self.message_queue.pop(0)
             if level >= self.print_level:
                 my_str=my_str+self.prefix+" "
                 if level == Message.TRIVIAL:
@@ -1925,8 +1948,9 @@ class Message:
                     my_str=my_str+" ERROR"
                 elif level == Message.FATAL:
                     my_str=my_str+" FATAL"
-                my_str=my_str+" ("+time.strftime("%Y-%m-%d %H:%M:%S")+"): "+text
-                my_str = self.format_string(my_str)
+                my_str=my_str+" ("+date_str+"): "+text
+                if not preserve_formatting:
+                    my_str = self.format_string(my_str)
                 self.output_stream.write(my_str)
                 self.output_stream.flush()
             if level >= self.exception_level:
