@@ -31,14 +31,15 @@ class TextureTestFrame(Tkinter.Frame):
         self.winfo_toplevel().title('Texture Test')
         self.pack()
 
-        vid_info_frame = VisionEgg.GUI.VideoInfoFrame(self)
-        vid_info_frame.pack()
+        self.vid_info_frame = VisionEgg.GUI.VideoInfoFrame(self)
+        self.vid_info_frame.pack()
 
         self.tex_compression = Tkinter.BooleanVar()
+        self.tex_compression.set(VisionEgg.video_info.tex_compress)
         Tkinter.Checkbutton(self,
                             text="Texture compression",
                             variable=self.tex_compression,
-                            command=vid_info_frame.update).pack()
+                            command=self.set_tex_compression).pack()
 
         Tkinter.Label(self,text="Texture width:").pack()
         self.tex_width = Tkinter.StringVar()
@@ -50,14 +51,38 @@ class TextureTestFrame(Tkinter.Frame):
         self.tex_height.set("512")
         Tkinter.OptionMenu(self,self.tex_height,"1","2","4","8","16","32","64","128","256","512","1024","2048","4096").pack()
 
+        Tkinter.Label(self,text="image file to use as texture:").pack()
+        self.image_file = Tkinter.StringVar()
+        self.image_file.set("(none - generate own)")
+        Tkinter.Entry(self,textvariable=self.image_file).pack()
+
         Tkinter.Button(self,text="do glTexSubImage2D ('blit') speed test",command=self.do_blit_speed).pack()
-#        Tkinter.Button(self,text="get maximum number of resident textures",command=do_resident_textures).pack()
+        Tkinter.Button(self,text="get maximum number of resident textures",command=self.do_resident_textures).pack()
 
     def do_blit_speed(self):
+        glEnable( GL_TEXTURE_2D )
+        print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
         VisionEgg.video_info.tex_compress = self.tex_compression.get()
         
         tex1 = VisionEgg.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get())))
-        tex1.load() # initialize the original texture
+        tex_id = tex1.load() # initialize the original texture
+        tex_buf = tex1.get_texture_buffer()
+
+        # show the texture first
+        VisionEgg.OrthographicProjection().set_GL_projection_matrix()
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClear(GL_COLOR_BUFFER_BIT)
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, tex1.buf_bf)
+        glVertex3f(-1.0,-1.0,-6.0)
+        glTexCoord2f(1.0, tex1.buf_bf)
+        glVertex3f(1.0,-1.0,-6.0)
+        glTexCoord2f(1.0, tex1.buf_tf)
+        glVertex3f(1.0,1.0,-6.0)
+        glTexCoord2f(0.0, tex1.buf_tf)
+        glVertex3f(-1.0,1.0,-6.0)
+        glEnd()
+        VisionEgg.swap_buffers()
 
         texture_dest = tex1.get_texture_buffer()
         texture_source = tex1.get_pil_image()
@@ -65,12 +90,23 @@ class TextureTestFrame(Tkinter.Frame):
         num = 10
         start = time.time()
         for i in range(num):
-            texture_dest.put_sub_image(texture_source,(0,0),(texture_source.size[0],texture_source.size[1]))
+            print "BROKEN!!!"
+#            texture_dest.put_sub_image(texture_source,(0,0),(texture_source.size[0],texture_source.size[1]))
         stop = time.time()
 
         print "Did %d calls to glTexSubImage2D in %f seconds."%(num,stop-start)
         
         print "blit speed!"
+        tex_buf.free()
+
+    def do_resident_textures(self):
+        print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
+        print "Not implemented yet!"
+
+    def set_tex_compression(self):
+        """Callback for tick button"""
+        VisionEgg.video_info.tex_compress = self.tex_compression.get()
+        self.vid_info_frame.update()
     
 app_window = []
 def start_texture_test_menu():
