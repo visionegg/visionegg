@@ -27,7 +27,7 @@ def showexception(exc_type, exc_value, traceback_str):
         def __init__(self,master,exc_type, exc_value, traceback_str):
             Tkinter.Frame.__init__(self,master,borderwidth=20)
             title="Vision Egg: exception caught"
-            first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
+            first_str = "An unhandled exception was caught."
             type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
 
             frame = self
@@ -38,8 +38,9 @@ def showexception(exc_type, exc_value, traceback_str):
 
             Tkinter.Label(frame,text=first_str).pack()
             Tkinter.Label(frame,text=type_value_str).pack()
-            Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
-            Tkinter.Label(frame,text=traceback_str).pack()
+            if traceback_str:
+                Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
+                Tkinter.Label(frame,text=traceback_str).pack()
 
             b = Tkinter.Button(frame,text="OK",command=self.close_window)
             b.pack()
