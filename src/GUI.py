@@ -345,11 +345,19 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         row += 1
 
-        # Start button
-        b = Tkinter.Button(self,text="ok",command=self.start)
-        b.grid(row=row,columnspan=2)
-        b.focus_force()
+        bf = Tkinter.Frame(self)
+        bf.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
+
+        # Save settings to config file
+        b = Tkinter.Button(bf,text="Save current settings to config file",command=self.save)
+        b.grid(row=0,column=0,padx=20)
         b.bind('<Return>',self.start)
+
+        # Start button
+        b2 = Tkinter.Button(bf,text="ok",command=self.start)
+        b2.grid(row=0,column=1,padx=20)
+        b2.focus_force()
+        b2.bind('<Return>',self.start)
 
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
@@ -392,14 +400,22 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                     
                     )).grid(row=row,columnspan=4,column=0)
                 row = 1
-                Tkinter.Checkbutton(f,text="Use conventional priority",variable=parent.darwin_conventional).grid(row=row,column=0,columnspan=4)
+#                Tkinter.Checkbutton(f,text="Use conventional priority",variable=parent.darwin_conventional).grid(row=row,column=0,columnspan=4)
                 row = 2
-                Tkinter.Label(f,text="Conventional priority settings").grid(row=row,column=0,columnspan=2)
+#                Tkinter.Label(f,text="Conventional priority settings").grid(row=row,column=0,columnspan=2)
+                Tkinter.Radiobutton(f,
+                              text="Conventional priority method",
+                              variable=parent.darwin_conventional,
+                              value=1).grid(row=row,column=0,columnspan=2)
                 row += 1
                 Tkinter.Label(f,text="Priority").grid(row=row,column=0,sticky=Tkinter.E)
                 Tkinter.Entry(f,textvariable=parent.darwin_priority).grid(row=row,column=1,sticky=Tkinter.W)
                 row = 2
-                Tkinter.Label(f,text="Realtime settings").grid(row=row,column=2,columnspan=2)
+                Tkinter.Radiobutton(f,
+                              text="Realtime task method",
+                              variable=parent.darwin_conventional,
+                              value=0).grid(row=row,column=2,columnspan=2)
+#                Tkinter.Label(f,text="Realtime settings").grid(row=row,column=2,columnspan=2)
                 row += 1
                 Tkinter.Label(f,text="Realtime period denominator").grid(row=row,column=2,sticky=Tkinter.E)
                 Tkinter.Entry(f,textvariable=parent.darwin_realtime_period_denom).grid(row=row,column=3,sticky=Tkinter.W)
@@ -419,9 +435,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                 self.destroy()
                 
         DarwinFineTuneDialog(parent=self)
-        
-    def start(self):
-        self.clicked_ok = 1
+
+    def _set_config_values(self):
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
@@ -446,17 +461,23 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = not self.darwin_realtime_preemptible.get()
+        
+    def save(self):
+        self._set_config_values()
+        try:
+            VisionEgg.Configuration.save_settings()
+        except IOError, x:
+            try:
+                import tkMessageBox
+                if string.find(str(x),'Permission denied'):
+                    tkMessageBox.showerror(title="Permission denied",
+                                           message="Permission denied when trying to save settings.\n\nTry making a copy of the config file in the Vision Egg user directory and making sure you have write permission.")
+            except:
+                raise x
 
-##        self.opened_screen = None
-
-##        try:
-##            self.opened_screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-##                                                             VisionEgg.config.VISIONEGG_SCREEN_H),
-##                                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-##                                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-##                                                       bgcolor=(0.5,0.5,0.5,0.0),
-##                                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
-##        finally:
+    def start(self):
+        self.clicked_ok = 1
+        self._set_config_values()
         for child in self.children.values():
             child.destroy()
         Tkinter.Tk.destroy(self.master) # OK, now close myself
