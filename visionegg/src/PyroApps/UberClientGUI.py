@@ -121,9 +121,9 @@ class ScrollListFrame(Tkinter.Frame):
         selected = self.get_selected()
         if selected is not None:
             orig_contained_object = self.list[selected]
-            # delete old original, make new with defaults from old original
             modified_contained_object = self.edit_contained_object( orig_contained_object )
-            self.list[selected] = modified_contained_object
+            if modified_contained_object is not None: # "Cancel" press results in None
+                self.list[selected] = modified_contained_object
             self.update_now()
 
     def remove_selected(self):
