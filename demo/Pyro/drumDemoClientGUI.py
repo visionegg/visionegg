@@ -12,7 +12,6 @@ client = PyroClient()
 
 fixation_spot_on_controller = client.get('fixation_spot_on_controller')
 drum_on_controller = client.get('drum_on_controller')
-motion_blur_on_controller = client.get('motion_blur_on_controller')
 duration_controller = client.get('duration_controller')
 angle_controller = client.get('angle_controller')
 contrast_controller = client.get('contrast_controller')
@@ -21,10 +20,10 @@ drum_flat_controller = client.get('drum_flat_controller')
 interpolation_controller = client.get('interpolation_controller')
 go_object = client.get('go_object')
 
-class BlurDrumGui(Tkinter.Frame):
+class DrumGui(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
-        self.winfo_toplevel().title('Vision Egg - Motion blurred drum')
+        self.winfo_toplevel().title('Vision Egg - spinning drum')
         self.pack(expand=1,fill=Tkinter.BOTH)
 
         # Close server button
@@ -63,15 +62,6 @@ class BlurDrumGui(Tkinter.Frame):
                             variable=self.isi_on,
                             relief=Tkinter.FLAT).pack()
         
-        # Blur on
-        self.blur_on = Tkinter.BooleanVar()
-        self.blur_on.set(1)
-        Tkinter.Checkbutton(self,
-                            text='Motion blur',
-                            command=self.push_values,
-                            variable=self.blur_on,
-                            relief=Tkinter.FLAT).pack()
-
         # Fixation spot
         self.fixation_spot = Tkinter.BooleanVar()
         self.fixation_spot.set(1)
@@ -129,7 +119,6 @@ class BlurDrumGui(Tkinter.Frame):
         
         drum_on_controller.set_value(1,self.isi_on.get())
         fixation_spot_on_controller.set_value(gui_window.fixation_spot.get())
-        motion_blur_on_controller.set_value(gui_window.blur_on.get())
         duration_controller.set_value((gui_window.duration.get(),'seconds'))
         angle_controller.set_value(self.validated_pos_string)
         contrast_controller.set_value(self.validated_c_string)
@@ -153,7 +142,7 @@ class BlurDrumGui(Tkinter.Frame):
         go_object.quit()
         sys.exit()
 
-gui_window = BlurDrumGui()
+gui_window = DrumGui()
 gui_window.push_values() # make sure everything is in sync
 gui_window.mainloop()
 

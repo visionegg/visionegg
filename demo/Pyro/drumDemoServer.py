@@ -4,7 +4,7 @@ from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.PyroHelpers import *
 from VisionEgg.GUI import *
-from VisionEgg.MotionBlur import *
+from VisionEgg.Textures import *
 
 default_max_speed = 1000.0
 
@@ -25,7 +25,7 @@ ortho_proj = OrthographicProjection(left=-half_horiz,right=half_horiz,
                                     z_clip_near=0.0001,z_clip_far=1000.0)
 viewport = Viewport(screen,(0,0),screen.size,perspective_proj)
 
-drum = BlurredDrum(max_speed=default_max_speed,texture=texture)
+drum = SpinningDrum(texture=texture)
 drum.init_gl()
 fixation_spot = FixationSpot()
 fixation_spot.init_gl()
@@ -46,11 +46,6 @@ drum_on_controller = BiStatePyroController(1,0) # on during stimulus, off otherw
 pyro_server.connect(drum_on_controller,'drum_on_controller')
 p.add_transitional_controller(drum.parameters,'on',drum_on_controller.eval)
 
-# motion blur toggle
-motion_blur_on_controller = ConstantPyroController(1) # always on
-pyro_server.connect(motion_blur_on_controller,'motion_blur_on_controller')
-p.add_transitional_controller(drum.parameters,'motion_blur_on',motion_blur_on_controller.eval)
-
 # duration constant
 duration_controller = ConstantPyroController((10.0,'seconds'))
 pyro_server.connect(duration_controller,'duration_controller')
@@ -65,9 +60,6 @@ p.add_realtime_time_controller(drum.parameters,'angle',angle_controller.eval)
 contrast_controller = EvalStringPyroController('1.0')
 pyro_server.connect(contrast_controller,'contrast_controller')
 p.add_realtime_time_controller(drum.parameters,'contrast',contrast_controller.eval)
-
-# local only controller -- current time
-p.add_realtime_time_controller(drum.parameters,'cur_time', lambda t: t)
 
 # projection controller --  allows remote object to set the projection
 projection_controller = LocalDictPyroController({'perspective_proj':perspective_proj,
