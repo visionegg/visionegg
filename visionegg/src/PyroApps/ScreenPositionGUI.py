@@ -441,13 +441,13 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.send_values()
 
     def save(self):
-        filename = tkFileDialog.asksaveasfilename(defaultextension=".projcfg",filetypes=[('Projection file','*.projcfg')])
+        filename = tkFileDialog.asksaveasfilename(defaultextension=".ve_3dproj",filetypes=[('Projection file','*.ve_3dproj')])
         fd = open(filename,"w")
         save_dict = self.get_param_dict()
         pickle.dump( save_dict, fd )
 
     def load(self):
-        filename = tkFileDialog.askopenfilename(defaultextension=".projcfg",filetypes=[('Projection file','*.projcfg')])
+        filename = tkFileDialog.askopenfilename(defaultextension=".ve_3dproj",filetypes=[('Projection file','*.ve_3dproj')])
         if not filename:
             return
         fd = open(filename,"r")
