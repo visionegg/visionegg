@@ -13,7 +13,7 @@ screen = get_default_screen()
 
 # Create the instance of TextureStimulus
 stimulus = TextureStimulus(texture = texture,
-                           size    = texture.orig.size,
+                           size    = texture.size,
                            shrink_texture_ok=1)
 
 viewport = Viewport(screen=screen,
