@@ -11,7 +11,7 @@
 
 import VisionEgg
 import os
-import Tkinter, tkMessageBox
+import Tkinter, tkMessageBox, tkFileDialog
 import string
 import sys
 
@@ -174,11 +174,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         topframe_row = 0
         
         Tkinter.Label(topframe,
-                      text=self.format_string("This window allows you to interactively Vision Egg parameters that are not controllable in real time."),
-                      ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
-        topframe_row += 1
-
-        Tkinter.Label(topframe,
                       text=self.format_string("The default value for these variables and the presence of this dialog window can be controlled via the Vision Egg config file. If this file exists in the Vision Egg user directory, that file is used.  Otherwise, the configuration file found in the Vision Egg system directory is used."),
                       ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
         topframe_row += 1
@@ -212,23 +207,12 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         ################## begin file_frame ##############################
         
         file_frame = Tkinter.Frame(self)
-        file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
+        file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E,pady=5)
 
         # Script name and location
         file_row = 0
         Tkinter.Label(file_frame,
                       text="This script:").grid(row=file_row,column=0,sticky=Tkinter.E)
-#	self.keeper = Tkinter.StringVar()
-#	self.keeper.set("%s"%(os.path.abspath(sys.argv[0]),))
-#        k2 = Tkinter.Entry(file_frame,textvar=self.keeper)
-#	k2.grid(row=file_row,column=1,sticky=Tkinter.W+Tkinter.E)
-#	print k2.focusmodel()
-#	def reset(dummy_arg=None):
-#		self.keeper.set("%s"%(os.path.abspath(sys.argv[0]),))
-#	k2.bind('',reset)
-#	k2.bind('<Leave>',reset)
-#	k2.bind('<Key>',reset)
-#	k2.protocol('WM_TAKE_FOCUS',0)
         Tkinter.Label(file_frame,
                       text="%s"%(os.path.abspath(sys.argv[0]),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         file_row += 1
@@ -366,6 +350,15 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
         
+        # Lock time to frames
+        self.lock_time_to_frames = Tkinter.BooleanVar()
+        self.lock_time_to_frames.set(VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES)
+        Tkinter.Checkbutton(cf,
+                            text='Lock time variables to framecount',
+                            variable=self.lock_time_to_frames,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
+        
         # Log to console
         self.log_to_console = Tkinter.BooleanVar()
         self.log_to_console.set(VisionEgg.config.VISIONEGG_LOG_TO_STDERR)
@@ -375,14 +368,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
 
-##        # texture compression
-##        self.tex_compress = Tkinter.BooleanVar()
-##        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
-##        Tkinter.Checkbutton(cf,
-##                            text='Texture compression',
-##                            variable=self.tex_compress,
-##                            relief=Tkinter.FLAT).grid(row=cf_row,columnspan=2)
-        
         if sys.platform == 'darwin':
             if sys.version == '2.2 (#11, Jan  6 2002, 01:00:42) \n[GCC 2.95.2 19991024 (release)]':
                 if Tkinter.TkVersion == 8.4:
@@ -398,7 +383,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         ################## begin entry_frame ###################
 
         entry_frame = Tkinter.Frame(self)
-        entry_frame.grid(row=row,column=1,padx=10)
+        entry_frame.grid(row=row,column=1,padx=10,sticky="n")
         row += 1
         ef_row = 0 
 
@@ -456,11 +441,68 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         self.alpha_depth = Tkinter.StringVar()
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
         Tkinter.Entry(entry_frame,textvariable=self.alpha_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         ################## end entry_frame ###################
 
-        row += 1
+        ################## gamma_frame ###################
 
+        # gamma stuff
+        row += 1
+        gamma_frame = Tkinter.Frame(self)
+        gamma_frame.grid(row=row,columnspan=2,sticky="we")
+        self.gamma_source = Tkinter.StringVar()
+        self.gamma_source.set(string.lower(VisionEgg.config.VISIONEGG_GAMMA_SOURCE)) # can be 'none', 'invert', or 'file'
+        Tkinter.Label(gamma_frame,
+                      text="Gamma set method:").grid(row=0,column=0)
+        Tkinter.Radiobutton(gamma_frame,
+                            text="None",
+                            value="none",
+                            variable = self.gamma_source).grid(row=0,column=1)
+        Tkinter.Radiobutton(gamma_frame,
+                            text="Linearize native",
+                            value="invert",
+                            variable = self.gamma_source).grid(row=0,column=2)
+        Tkinter.Label(gamma_frame,
+                      text="Red:").grid(row=0,column=3)
+        self.gamma_invert_red = Tkinter.DoubleVar()
+        self.gamma_invert_red.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED )
+        Tkinter.Entry(gamma_frame,
+                      textvariable=self.gamma_invert_red,
+                      width=5).grid(row=0,column=4)
+        Tkinter.Label(gamma_frame,
+                      text="Green:").grid(row=0,column=5)
+        self.gamma_invert_green = Tkinter.DoubleVar()
+        self.gamma_invert_green.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN )
+        Tkinter.Entry(gamma_frame,
+                      textvariable=self.gamma_invert_green,
+                      width=5).grid(row=0,column=6)
+        Tkinter.Label(gamma_frame,
+                      text="Blue:").grid(row=0,column=7)
+        self.gamma_invert_blue = Tkinter.DoubleVar()
+        self.gamma_invert_blue.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE )
+        Tkinter.Entry(gamma_frame,
+                      textvariable=self.gamma_invert_blue,
+                      width=5).grid(row=0,column=8)
+        Tkinter.Radiobutton(gamma_frame,
+                            text="Custom:",
+                            value="file",
+                            variable = self.gamma_source).grid(row=0,column=9)
+        self.gamma_file = Tkinter.StringVar()
+        if os.path.isfile(VisionEgg.config.VISIONEGG_GAMMA_FILE):
+            self.gamma_file.set( VisionEgg.config.VISIONEGG_GAMMA_FILE )
+        else:
+            self.gamma_file.set("")
+        Tkinter.Entry(gamma_frame,
+                      textvariable=self.gamma_file,
+                      width=15).grid(row=0,column=10)
+        Tkinter.Button(gamma_frame,
+                       command=self.set_gamma_file,
+                       text="Set...").grid(row=0,column=11)
+        
+        ################## end gamma_frame ###################
+        
+        row += 1
         bf = Tkinter.Frame(self)
         bf.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
 
@@ -474,6 +516,16 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         b2.grid(row=0,column=1,padx=20)
         b2.focus_force()
         b2.bind('<Return>',self.start)
+
+    def set_gamma_file(self,dummy_arg=None):
+        filename = tkFileDialog.askopenfilename(
+            parent=self,
+            defaultextension=".ve_gamma",
+            filetypes=[('Configuration file','*.ve_gamma')],
+            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
+        if not filename:
+            return
+        self.gamma_file.set(filename)
 
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
@@ -557,11 +609,17 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
     def _set_config_values(self):
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
+        VisionEgg.config.VISIONEGG_GAMMA_SOURCE = self.gamma_source.get()
+        VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED = self.gamma_invert_red.get()
+        VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN = self.gamma_invert_green.get()
+        VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE = self.gamma_invert_blue.get()
+        VisionEgg.config.VISIONEGG_GAMMA_FILE = self.gamma_file.get()
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
         VisionEgg.config.VISIONEGG_SYNC_SWAP = self.sync_swap.get()
         VisionEgg.config.VISIONEGG_RECORD_TIMES = self.record_times.get()
         VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW = self.frameless.get()
         VisionEgg.config.VISIONEGG_HIDE_MOUSE = not self.mouse_visible.get()
+        VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES = self.lock_time_to_frames.get()
         VisionEgg.config.VISIONEGG_LOG_TO_STDERR = self.log_to_console.get()
 #        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
