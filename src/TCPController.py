@@ -11,8 +11,8 @@ name=eval_str("t*5.0*360.0","0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
 
 import VisionEgg
 import VisionEgg.Core
-import socket, select, re, string
-import types
+import socket, select, re, string, types
+import Numeric, math # for eval
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -49,7 +49,6 @@ class SocketListenController(VisionEgg.Core.Controller):
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
     re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.MULTILINE)
     re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.MULTILINE)
-    #re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\,\s?(.*)\s?,\s?(.*)\s?\)',re.MULTILINE)
     def __init__(self,
                  socket,
                  client_address,
@@ -75,6 +74,9 @@ class SocketListenController(VisionEgg.Core.Controller):
 
         self.names = {} # ( controller, name_re, parser )
         self.last_command = {}
+
+    def send_raw_text(self,text):
+        self.socket.send(text)
 
     def __check_socket(self):
         # First, update the buffer XXX Check for socket errors!
@@ -122,6 +124,8 @@ class SocketListenController(VisionEgg.Core.Controller):
             raise ValueError("Must specify tcp_name")
         if tcp_name in self.names.keys():
             raise ValueError('tcp_name "%s" already in use.'%tcp_name)
+        if string.count(tcp_name,' '):
+            raise ValueError('tcp_name "%s" cannot have spaces.'%tcp_name)
         if initial_controller is None:
             # create default controller
             initial_controller = VisionEgg.Core.ConstantController(
@@ -140,7 +144,7 @@ class SocketListenController(VisionEgg.Core.Controller):
         name_re_str = re.compile(r"^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
         parser = Parser(tcp_name,self.last_command).parse_func
         self.names[tcp_name] = (controller, name_re_str, parser)
-        self.socket.send("%s controllable with this connection.\n"%tcp_name)
+        self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
         return controller
     
     def __do_command(self,tcp_name,command):
@@ -247,9 +251,9 @@ class TCPController(VisionEgg.Core.Controller):
         
     def during_go_eval(self):
         self.contained_controller.temporal_variable = self.temporal_variable
-        # XXX HACK to fix:
-        if self.contained_controller.temporal_variable is None:
-            self.contained_controller.temporal_variable = 0.0
+##        # XXX HACK to fix:
+##        if self.contained_controller.temporal_variable is None:
+##            self.contained_controller.temporal_variable = 0.0
         return self.contained_controller.during_go_eval()
 
     def between_go_eval(self):
