@@ -271,7 +271,10 @@ class Texture:
             # Mipmap generation could be done in the TextureObject
             # class by GLU, but here we have more control
             if not isinstance(self.texels, Image.Image): # PIL Image
-                raise NotImplementedError("Building of mipmaps not implemented this texel data type.")
+                raise NotImplementedError(
+                    "Building of mipmaps not implemented for this texel "+\
+                    "data type. (Use PIL Images or set parameter "+\
+                    "mipmaps_enabled = 0.)")
             this_width, this_height = self.size
             biggest_dim = max(this_width,this_height)
             mipmap_level = 1
