@@ -643,18 +643,18 @@ static swig_type_info *swig_types[1];
 #define SWIG_init    init_win32_getrefresh
 
 #define SWIG_name    "_win32_getrefresh"
-extern int getrefresh();
+extern double getrefresh();
 #ifdef __cplusplus
 extern "C" {
 #endif
 static PyObject *_wrap_getrefresh(PyObject *self, PyObject *args) {
     PyObject *resultobj;
-    int result;
+    double result;
     
     if(!PyArg_ParseTuple(args,(char *)":getrefresh")) goto fail;
-    result = (int)getrefresh();
+    result = (double)getrefresh();
     
-    resultobj = PyInt_FromLong((long)result);
+    resultobj = PyFloat_FromDouble(result);
     return resultobj;
     fail:
     return NULL;

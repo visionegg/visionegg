@@ -1,3 +1,3 @@
 %module win32_getrefresh
 
-extern int getrefresh();
+extern double getrefresh();
