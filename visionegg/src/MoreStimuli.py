@@ -38,6 +38,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                         
     def __init__(self,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        self._gave_alpha_warning = 0
 
     def draw(self):
         if self.parameters.on:
@@ -53,17 +54,33 @@ class Target2D(VisionEgg.Core.Stimulus):
 
             w = self.parameters.size[0]/2.0
             h = self.parameters.size[1]/2.0
+            
             gl.glBegin(gl.GL_QUADS)
             gl.glVertex3f(-w,-h, 0.0);
             gl.glVertex3f( w,-h, 0.0);
             gl.glVertex3f( w, h, 0.0);
             gl.glVertex3f(-w, h, 0.0);
             gl.glEnd() # GL_QUADS
-
+            
             if self.parameters.anti_aliasing:
-                # GL_POLYGON_SMOOTH doesn't seem to work
-                # We've already drawn a filled polygon (aliased),
-                # now redraw the outline of the polygon (with anti-aliasing)
+                if not self._gave_alpha_warning:
+                    if c[3] != 1.0:
+                        VisionEgg.Core.message.add(
+                            """The parameter anti_aliasing is set to
+                            true in the Target2D stimulus class, but
+                            the color parameter specifies an alpha
+                            value other than 1.0.  To acheive
+                            anti-aliasing, ensure that the alpha value
+                            for the color parameter is 1.0.""",
+                            level=VisionEgg.Core.Message.WARNING)
+                        self._gave_alpha_warning = 1
+
+                # We've already drawn a filled polygon (aliased), now
+                # redraw the outline of the polygon (with
+                # anti-aliasing).  (Using GL_POLYGON_SMOOTH results in
+                # artifactual lines where triangles were joined to
+                # create quad, at least on some OpenGL
+                # implementations.)
 
                 # Calculate coverage value for each pixel of outline
                 # and store as alpha
