@@ -62,6 +62,14 @@ def set_priority(*args,**kw):
         except:
             raise NotImplementedError("No support for setting the priority on this platform")
     elif sys.platform == 'darwin':
+
+        # Everything to support realtime in Apple Mac OS X is based on
+        # the following two things:
+        #
+        # 1) http://developer.apple.com/techpubs/macosx/Darwin/General/KernelProgramming/scheduler/Using_Mach__pplications.html
+        #
+        # 2) The Mac OS X port of the Esound daemon.
+                   
         import darwin_maxpriority
 
         if params['darwin_maxpriority_conventional_not_realtime']:
