@@ -24,7 +24,7 @@ kind of stuff!"""
 # Note that the Vision Egg is not imported!
 # This script can be run on computers without the Vision Egg installed
 import Tkinter, tkMessageBox
-import sys, socket, time, select, re, string, types
+import sys, socket, time, select, re, string, types, traceback
 import Numeric, math
 
 # Save a copy of everything sent?
@@ -62,7 +62,7 @@ class SocketChecker:
             except Exception, x:
                 tkMessageBox.showwarning(title="Connection Error",
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
-                return
+                raise
             new_info = 1
             self.buffer += new
             try:
@@ -156,8 +156,6 @@ Any errors produced by this program will be sent to Python's standard
 error console.  Any errors produced by the gratingTCP program should
 be logged in the normal Vision Egg way.
 
-It is a known bug that this program does not run on Mac OS X.
-
 In this demo is possible to crash the Vision Egg TCP server. Because
 this is still beta software, and because the purpose of this
 demonstration is to expose as much power and functionality as
@@ -191,19 +189,27 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
                 port = int(self.port.get())
             except:
                 port = self.port.get()
-                
+
+            print host
+            
             try:
-                host = socket.getfqdn()
+                host = socket.getfqdn(host)
             except Exception,x:
+                traceback.print_exc()
                 tkMessageBox.showwarning(title="Connection Error",
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
                 return
 
+            print host
+            
             self.socket = SocketLogger(socket.AF_INET,socket.SOCK_STREAM)
 
+            print host
             try:
                 self.socket.connect((host,port))
             except Exception,x:
+                sys.stderr.write("Attempting to connect to \"%s\":\n"%(str(host),))
+                traceback.print_exc()
                 tkMessageBox.showwarning(title="Connection Error",
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
                 return
@@ -219,6 +225,7 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
                         # Disconnected
                         raise RuntimeError("Socket disconnected")
                 except Exception, x:
+                    traceback.print_exc()
                     tkMessageBox.showwarning(title="Connection Error",
                                              message="%s:\n%s"%(str(x.__class__),str(x)))
                     return
