@@ -4,6 +4,7 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
+import VisionEgg
 import string
 
 __version__ = VisionEgg.release_name
@@ -17,6 +18,34 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 #
 ####################################################################
 
+class Trigger(VisionEgg.ClassWithParameters):
+    """(Abstract) Defines trigger behavior."""
+    parameters_and_defaults = { 'use_trigger' : 0 }
+    def arm(self):
+        """(Abstract) Start data acquisition when trigger received, or go immediately if use_trigger = 0."""
+        pass
+
+class DaqSetup(VisionEgg.ClassWithParameters):
+    """(Abstract) Data acquisition hardware interface."""
+    parameters_and_defaults = { 'num_channels_used' : 1,
+                                'num_channels_max' : 1,
+                                'duration_sec': 0.01,
+                                'trigger' : None,
+                                }
+    def add_daq_channel(self,daq_channel):
+        """(Abstract) Add a new data acquisition channel"""
+        pass
+
+class DaqChannel(VisionEgg.ClassWithParameters):
+    parameters_and_defaults = { 'signal_name' : 'Default signal',
+                                'channel_num' : 0,
+                                'gain' : 0.2048,
+                                'offset' : 0.0,
+                                'sample_freq_hz' : 1000.0,
+                                'units' : 'mV',
+                                }
+
+######### old crap below this line #################################
 class ChannelParams:
     def __init__(self,channel_number,sample_freq_hz,duration_sec,gain):
         self.channel_number = channel_number
