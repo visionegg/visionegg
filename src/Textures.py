@@ -95,7 +95,7 @@ class Texture:
         draw.line((0,0) + self.orig.size, fill=(255,255,255))
         draw.line((0,self.orig.size[1],self.orig.size[0],0), fill=(255,255,255))
 
-    def load(self, build_mipmaps=1):
+    def load(self, build_mipmaps=1, rescale_original_to_fill_texture_object=0):
         """Load texture into OpenGL."""
         # Someday put all this in a texture buffer manager.
         # The buffer manager will do a much better job of putting
@@ -118,7 +118,11 @@ class Texture:
         height_pow2  = int(next_power_of_2(height))
 
         self.buf = TextureBuffer( size=(width_pow2, height_pow2) )
-        self.buf.im.paste(self.orig,(0,0,width,height))
+        if rescale_original_to_fill_texture_object:
+            rescaled = self.orig.resize((width_pow2,height_pow2),Image.BICUBIC)
+            self.buf.im.paste(rescaled,(0,0,width_pow2,height_pow2))
+        else:
+            self.buf.im.paste(self.orig,(0,0,width,height))
 
         # Location of myself in the buffer, in pixels
         # This is a semi-private variable: you should probably use the
