@@ -15,7 +15,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gui_ok = 1
 
-print "check-config.py for Vision Egg 0.9.2."
+print "check-config.py for Vision Egg 0.9.3."
 print "[%s CVS revision %s]"%(__date__,__cvs__)
 print "Beginning configuration check."
 
