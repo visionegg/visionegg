@@ -2117,11 +2117,12 @@ class Message:
             else:
                 raise TypeError("argument output_stream must have write and flush methods.")
         if self.output_stream != sys.stderr:
-            # reassign stderr to print to logfile
-            VisionEgg.config._orig_stderr = sys.stderr
-            sys.stderr = self.output_stream
-            VisionEgg.config._orig_stderr.write("Vision Egg logging to %s\n"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),))
-            VisionEgg.config._orig_stderr.flush()
+            if not (sys.executable == sys.argv[0] and sys.platform == 'win32'): # don't do this if Windows binary
+                # reassign stderr to print to logfile
+                VisionEgg.config._orig_stderr = sys.stderr
+                sys.stderr = self.output_stream
+                VisionEgg.config._orig_stderr.write("Vision Egg logging to %s\n"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),))
+                VisionEgg.config._orig_stderr.flush()
             
         self.add(sys.argv[0]+" started.",level=Message.INFO)
 
