@@ -25,6 +25,8 @@ VISIONEGG_USER_DIR or VISIONEGG_SYSTEM_DIR as specified above.
 However, You can specify a different filename and directory by setting
 the environment variable VISIONEGG_CONFIG_FILE.  """
 
+# Warning: This code is a bit of a hack
+
 # This is the python source code for the config module of the Vision Egg package.
 #
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
@@ -90,7 +92,8 @@ class Config:
             self.VISIONEGG_USER_DIR = os.curdir
         else:
             self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
-            self.VISIONEGG_USER_DIR = os.path.expanduser("~/VisionEgg")
+            user_dir = os.path.expanduser("~")
+            self.VISIONEGG_USER_DIR = os.path.join(user_dir,"VisionEgg")
 
         # See if there's an environment variable for the config file
         if 'VISIONEGG_CONFIG_FILE' in os.environ.keys():
@@ -103,12 +106,22 @@ class Config:
                 if not os.path.isfile(configFile):
                     configFile = None # No file, use defaults specified in environment variables then here
 
-        try:
-            cfg.read(configFile)
-        except ConfigParser.MissingSectionHeaderError:
-            sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
-            sys.stderr.flush()
-            raise
+        if configFile:
+            try:
+                cfg.read(configFile)
+            except ConfigParser.MissingSectionHeaderError:
+#                sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
+#                sys.stderr.flush()
+                raise
+        else:
+            # pretend we have a config file
+            cfg.add_section('General')
+            for key in defaults.keys():
+                cfg.set('General',key,str(defaults[key]))
+            if sys.platform == 'darwin':
+                cfg.add_section('darwin')
+                for key in extra_darwin_defaults.keys():
+                    cfg.set('darwin',key,str(defaults[key]))
 
         # Do the general stuff first
         # Set the default values
@@ -119,8 +132,8 @@ class Config:
         try:
             general_options = cfg.options('General')
         except ConfigParser.NoSectionError,x:
-            sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
-            sys.stderr.flush()
+#            sys.stderr.write("Error opening VisionEgg.cfg at %s (is it old format?)\n"%(os.path.abspath(configFile),))
+#            sys.stderr.flush()
             raise
         for option in general_options:
             name = string.upper(option)
@@ -151,8 +164,8 @@ class Config:
             try:
                 platform_options = cfg.options(platform_name)
             except ConfigParser.NoSectionError,x:
-                sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
-                sys.stderr.flush()
+#                sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
+#                sys.stderr.flush()
                 raise
             for option in platform_options:
                 name = string.upper(option)
@@ -186,11 +199,11 @@ def save_settings():
 #    re_section_finder = re.compile(r"^\s?\[(\w+)\]\s?$")
     re_setting_finder = re.compile(r"^\s?((?:VISIONEGG_[A-Z_]*)|(?:SYNCLYNC_[A-Z_]*))\s?=\s?(\S*)\s?$",re.IGNORECASE)
 
-    used_stderr = 0
-    def stderr_header():
-        sys.stderr.write("VisionEgg.Configuration.save_settings() messages:\n")
+##    used_stderr = 0
+##    def stderr_header():
+##        sys.stderr.write("VisionEgg.Configuration.save_settings() messages:\n")
 
-    print VisionEgg.config.VISIONEGG_CONFIG_FILE
+#    print VisionEgg.config.VISIONEGG_CONFIG_FILE
     orig_file = open(VisionEgg.config.VISIONEGG_CONFIG_FILE,"r")
     orig_lines = orig_file.readlines()
 
@@ -223,7 +236,7 @@ def save_settings():
                 if not used_stderr:
                     stderr_header()
                     used_sterr = 1
-                sys.stderr.write("  warning: %s found in config file, but don't know anything about this variable.\n"%(name,))
+#                sys.stderr.write("  warning: %s found in config file, but don't know anything about this variable.\n"%(name,))
         out_file_lines.append(out_line)
 
     for test_name in VisionEgg.config.__dict__.keys():
@@ -232,7 +245,7 @@ def save_settings():
                 if not used_stderr:
                     stderr_header()
                     used_stderr = 1
-                sys.stderr.write("  info: Not writing variable %s because it is not in original configuration file.\n"%(test_name,))
+#                sys.stderr.write("  info: Not writing variable %s because it is not in original configuration file.\n"%(test_name,))
 
     # Close and reopen orig_file in write mode
     orig_file.close()
