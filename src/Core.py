@@ -1924,7 +1924,7 @@ class Message:
                     self.output_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
                 except:
                     self.output_stream = sys.stderr
-                    self.add(message="Could not open log file %s, writing to stderr instead.",
+                    self.add("Could not open log file %s, writing to stderr instead.",
                              level=Message.WARNING)
             else:
                 self.output_stream = sys.stderr
@@ -1944,9 +1944,9 @@ class Message:
         except:
             pass
         
-    def add(self,text,level=INFO,preserve_formatting=0):
+    def add(self,message,level=INFO,preserve_formatting=0):
         date_str = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.message_queue.append((level,text,preserve_formatting,date_str))
+        self.message_queue.append((level,message,preserve_formatting,date_str))
         self.handle()
         
     def format_string(self,in_str):
