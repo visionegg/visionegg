@@ -38,7 +38,7 @@
 #include <errno.h>
 #endif 
 
-#define PY_CHECK(X) if (X==NULL) goto error
+#define PY_CHECK(X) if (!(X)) goto error
 
 static char set_realtime__doc__[] = 
 "Raise the Vision Egg to maximum priority.\n"
@@ -91,10 +91,9 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   PyObject * darwin_maxpriority_conventional_not_realtime_py=NULL;
   PyObject * darwin_conventional_priority_py=NULL;
   PyObject * darwin_pthread_priority_py=NULL;
-
-#if defined(__APPLE__)
   PyObject * info_string=NULL;
 
+#if defined(__APPLE__)
   int darwin_realtime_period_denom;
   int darwin_realtime_computation_denom;
   int darwin_realtime_constraint_denom;
@@ -151,9 +150,9 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   Py_DECREF(rootModule); // Don't need it any more
 
   /* Now set the C types based on the values. */
-#if defined(__APPLE__)
-  /* darwin specific arguments */
 
+  /* darwin specific arguments */
+#if defined(__APPLE__)
   /* darwin_realtime_period_denom */
   if (darwin_realtime_period_denom_py != Py_None) {
     /* User passed keyword argument */
@@ -269,8 +268,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   Py_DECREF(temp_result); // don't need it
   if (PyErr_Occurred())
     goto error;
-
-#endif /* closes if defined(__APPLE__) */
+#endif // closes if defined(__APPLE__)
 
   // Now get VisionEgg.Core.message to pass message 
   coreModule = PyImport_ImportModule("VisionEgg.Core"); // New ref
