@@ -30,8 +30,12 @@ class Teapot(Stimulus):
         
     def draw(self):
         if self.parameters.on:
-            glBlendFunc(GL_ONE,GL_ZERO) # If blending enabled, draw over everything            
-            glLoadIdentity() # clear (hopefully the) modelview matrix
+            glDisable(GL_TEXTURE_2D)
+            glDisable(GL_BLEND)
+            glDisable(GL_DEPTH_TEST)
+            # clear modelview matrix
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity() 
             glTranslatef(0.0, 0.0, -6.0)
             glRotatef(self.parameters.yrot,0.0,1.0,0.0)
             glutSolidTeapot(0.5)
