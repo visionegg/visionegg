@@ -13,9 +13,8 @@ import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
 import math,types
-import OpenGL.GL
+import OpenGL.GL as gl
 import Numeric
-gl = OpenGL.GL
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
