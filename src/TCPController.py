@@ -14,6 +14,11 @@ import VisionEgg.Core
 import socket, select, re, string, types
 import Numeric, math # for eval
 
+try:
+    import Tkinter
+except:
+    pass
+
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
@@ -39,10 +44,39 @@ class TCPServer:
 
     def create_listener_once_connected(self):
         VisionEgg.Core.message.add(
-            """Awaiting connection to TCPServer at %s"""%(self.server_socket.getsockname(),),
+            """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),
             level=VisionEgg.Core.Message.INFO)
         self.server_socket.listen(1)
-        client, client_address = self.server_socket.accept()
+        if "Tkinter" in globals():
+            class WaitingDialog(Tkinter.Frame):
+                def __init__(self,server_socket=None,**kw):
+                    if 'borderwidth' not in kw.keys():
+                        kw['borderwidth'] = 20
+                    apply(Tkinter.Frame.__init__,(self,),kw)
+                    self.winfo_toplevel().title('Vision Egg TCP Server')
+                    self.server_socket = server_socket
+                    Tkinter.Label(self,text=
+                                  """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),).pack()
+                    self.winfo_toplevel().protocol("WM_DELETE_WINDOW", self.stop_listening)
+                    self.server_socket.setblocking(0)
+                    self.after(1,self.idle_func)
+                def stop_listening(self,dummy=None):
+                    raise SystemExit
+                def idle_func(self):
+                    try:
+                        # This line raises an exception unless there's an incoming connection
+                        self.accepted = self.server_socket.accept()
+                        self.quit()
+                    except socket.error, x:
+                        self.after(1,self.idle_func)
+            dialog = WaitingDialog(server_socket = self.server_socket)
+            dialog.pack()
+            dialog.mainloop()
+            client, client_address = dialog.accepted
+            dialog.winfo_toplevel().destroy()
+        else:
+            client, client_address = self.server_socket.accept()
+
         return SocketListenController(client,client_address)
 
 class SocketListenController(VisionEgg.Core.Controller):
