@@ -14,6 +14,21 @@ filename = os.path.join("/3dmodels/insects","a3dwasp.3ds")
 # Create the instance of Model3DS
 stimulus = Model3DS(filename=filename)
 
+print "***PLEASE NOTE THAT LIB3DS SUPPORT IS INCOMPLETE***"
+##print
+
+##print "Dumping the nodes of %s"%(filename,)
+##stimulus.dump_nodes()
+##print
+
+##print "Dumping the materials of %s"%(filename,)
+##stimulus.dump_materials()
+##print
+
+##print "Dumping the meshes of %s"%(filename,)
+##stimulus.dump_meshes()
+##print
+
 projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen=screen,
                     size=screen.size,
