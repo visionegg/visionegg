@@ -94,7 +94,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                                     Default: True
     viewports                    -- list of Viewport instances to draw. Order is important. (Sequence of Instance of <class 'VisionEgg.ClassWithParameters'>)
                                     Default: (determined at runtime)
-    warn_longest_frame_threshold -- threshold to print frame skipped warning (fraction units) (Real)
+    warn_longest_frame_threshold -- threshold to print frame skipped warning (units: factor of inter-frame-interval) (Real)
                                     Default: 2.0
     warn_mean_fps_threshold      -- threshold to print observered vs. expected frame rate warning (fraction units) (Real)
                                     Default: 0.01
@@ -133,9 +133,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
                                    ve_types.Real,
                                    "threshold to print observered vs. expected frame rate warning (fraction units)"),
-        'warn_longest_frame_threshold': (2.0, # fraction (set to 2.0 for no false alarms)
+        'warn_longest_frame_threshold': (2.0, # fraction (set to 2.0 for no false positives)
                                          ve_types.Real,
-                                         "threshold to print frame skipped warning (fraction units)"),
+                                         "threshold to print frame skipped warning (units: factor of inter-frame-interval)"),
         'override_t_abs_sec':(None, # override t_abs (in seconds) -- set only when reconstructing experiments
                               ve_types.Real,
                               "Override t_abs. Set only when reconstructing experiments. (units: seconds)"),
