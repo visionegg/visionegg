@@ -44,7 +44,7 @@ def az_el_controller(t=None):
     x,y = mouse_position
     azimuth = (float(x) / screen.size[0]) * 180 - 90
     elevation = (float(y) / screen.size[1]) * 180 - 90
-    text1.parameters.text = "Mouse moves window, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation)
+    text1.parameters.text = "Mouse moves window, press Esc to quit. Az, El = (%5.1f, %5.1f)"%(azimuth,elevation)
     mask.parameters.window_center_azimuth = azimuth
     mask.parameters.window_center_elevation = elevation
     if grating_orient_method == 'reorient stimulus': # normal
@@ -60,7 +60,7 @@ def az_el_controller(t=None):
     
 def quit(event):
     global p # get presentation instance
-    p.parameters.quit = 1
+    p.parameters.go_duration = (0,'frames')
 
 def mouse_button_down(event):
     if event.button == 1:
@@ -107,9 +107,6 @@ handle_event_callbacks = [(pygame.locals.QUIT, quit),
 screen = get_default_screen()
 
 projection = SimplePerspectiveProjection(fov_x=130.0)
-#projection.look_at( (0.0,0.0,0.0),
-#                    (-1.0,0.0,-1.0),
-#                    (0.0,1.0,0.0) )
 
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
 texture = Texture(filename)
@@ -140,21 +137,22 @@ mask = SphereWindow(radius=1.0*0.90, # make sure window is inside sphere with gr
                     stacks=50)
 
 text_color = (0.0,0.0,1.0,0.0) # RGBA (light blue)
-text0 = BitmapText( text = "Demonstration of perspective distorted, windowed grating.",
-                    lowerleft=(0,105),
-                    color=text_color)
-text1 = BitmapText( text = "Mouse moves mask, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),
-                    lowerleft=(0,80),
-                    color=text_color)
-text2 = BitmapText( text = "'s' displays sinusoidal grating, 'g' displays (az, el) grid.",
-                    lowerleft=(0,55),
-                    color=text_color)
-text3 = BitmapText( text = "Numeric keypad changes grating orientation.",
-                    lowerleft=(0,30),
-                    color=text_color)
-text4 = BitmapText( text = "(Hold mouse button to prevent re-orienting stimulus with mask.)",
-                    lowerleft=(0,5),
-                    color=text_color)
+center_x = screen.size[0]/2.0
+kw = {'anchor':'bottom','color':text_color,'font_size':30}
+text4 = Text( text = "(Hold mouse button to prevent re-orienting stimulus with mask.)",
+              position=(center_x,0),**kw)
+ypos = text4.parameters.size[1] + 10
+text3 = Text( text = "Numeric keypad changes grating orientation.",
+              position=(center_x,ypos),**kw)
+ypos += text3.parameters.size[1] + 10
+text2 = Text( text = "'s' displays sinusoidal grating, 'g' displays (az, el) grid.",
+              position=(center_x,ypos),**kw)
+ypos += text2.parameters.size[1] + 10
+text1 = Text( text = "Mouse moves mask, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),
+              position=(center_x,ypos),**kw)
+ypos += text1.parameters.size[1] + 10
+text0 = Text( text = "Demonstration of perspective distorted, windowed grating.",
+              position=(center_x,ypos),**kw)
 viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
@@ -167,7 +165,8 @@ text_viewport = Viewport(screen=screen, # default (orthographic) viewport
                                   text2,
                                   text3,
                                   text4])
-p = Presentation(viewports=[viewport,text_viewport],
+p = Presentation(go_duration=('forever',),
+                 viewports=[viewport,text_viewport],
                  handle_event_callbacks=handle_event_callbacks)
 
 p.add_controller(None, None, MousePositionController() )
@@ -175,4 +174,4 @@ p.add_controller(None, None, MousePositionController() )
 p.add_controller(None,None,FunctionController(during_go_func=az_el_controller,
                                               between_go_func=az_el_controller))
 
-p.run_forever()
+p.go()
