@@ -13,16 +13,16 @@
  *
  */
 
-#include <OpenGL.h>
-#include <CGLTypes.h>
-#include <CGLCurrent.h>
+#include <Cocoa/Cocoa.h>
+#include <OpenGL/OpenGL.h>
+#include <Carbon/Carbon.h>
 
 #define TRY(E)     if(! (E)) return NULL
 
-static char sync__doc__[] = 
+static char sync_swap__doc__[] = 
 "Synchronize framebuffer swapping with vertical retrace sync pulse.";
 
-static PyObject *sync(PyObject * self, PyObject * args)
+static PyObject *sync_swap(PyObject * self, PyObject * args)
 {
   CGLContextObj context;
 
@@ -37,7 +37,7 @@ static PyObject *sync(PyObject * self, PyObject * args)
 
 static PyMethodDef
 _darwin_sync_swap_methods[] = {
-  { "sync", sync, METH_VARARGS, sync__doc__},
+  { "sync_swap", sync_swap, METH_VARARGS, sync_swap__doc__},
   { NULL, NULL} /* sentinel */
 };
 
