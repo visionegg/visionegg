@@ -68,7 +68,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5b1'
+release_name = '0.9.5b2'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -162,7 +162,16 @@ class _ExceptionHookKeeper:
         sys.excepthook = self.handle_exception
     def __del__(self):
         self._sys.excepthook = self.orig_hook # restore original
-_exception_hook_keeper = _ExceptionHookKeeper()
+
+def watch_exceptions():
+    global _exception_hook_keeper
+    _exception_hook_keeper = _ExceptionHookKeeper()
+
+def stop_watching_exceptions():
+    global _exception_hook_keeper
+    del _exception_hook_keeper
+
+watch_exceptions()
 
 ############ A base class finder utility function ###########
 
@@ -192,7 +201,16 @@ def time_func():
 
     This returns a floating point timestamp.  It uses the most
     accurate time available on a given platform (unless in "lock time
-    to frames" mode.")."""
+    to frames" mode.").
+    """
+    # XXX ToDo
+    # Make config have setattr parameter that hooks to changing this
+    # so we can just assign the function pointer
+    #
+    # XXX Possible To-Do:
+    #  On MacOSX use AudioGetCurrentHostTime() and
+    #  AudioConvertHostTimeToNanos() #
+    
     if config.VISIONEGG_LOCK_TIME_TO_FRAMES:
         return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
     else:
