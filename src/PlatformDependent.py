@@ -32,8 +32,9 @@ def set_icon( name ):
             import darwin_app_stuff
             darwin_app_stuff.set_icon( name )
         except Exception, x:
-            VisionEgg.Core.message.add( "Could not set icon: %s: %s"%(x.__class__,str(x)),
-                                        level=VisionEgg.Core.Message.WARNING)
+            import warnings
+            # can't use VisionEgg.Core.message module because this gets loaded first
+            warnings.warn( "Could not set icon: %s: %s"%(x.__class__,str(x)) )
     else:
         raise NotImplmentedError("set_icon not currently supported on this platform.")
 
