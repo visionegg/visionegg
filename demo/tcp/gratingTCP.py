@@ -37,6 +37,10 @@ contrast_controller = tcp_listener.create_tcp_controller(
     tcp_name="contrast",
     initial_controller=ConstantController(during_go_value=1.0)
     )
+center_controller = tcp_listener.create_tcp_controller(
+    tcp_name="center",
+    initial_controller=ConstantController((screen.size[0]/2.0,screen.size[1]/2.0))
+    )
 size_controller = tcp_listener.create_tcp_controller(
     tcp_name="size",
     initial_controller=ConstantController(during_go_value=(300.0,300.0))
@@ -77,7 +81,7 @@ wildcard_controller = tcp_listener.create_tcp_controller(
     )
 
 # Create the instance SinGrating with appropriate parameters
-stimulus = SinGrating2D(center=(screen.size[0]/2.0,screen.size[1]/2.0))
+stimulus = SinGrating2D()
 
 # Create a viewport (with default pixel coordinate system)
 # with stimulus
@@ -90,6 +94,7 @@ p = Presentation(viewports=[viewport],check_events=1)
 p.add_controller(None,None, tcp_listener) # Actually listens to the TCP socket
 p.add_controller(stimulus,'on', on_controller)
 p.add_controller(stimulus,'contrast', contrast_controller)
+p.add_controller(stimulus,'center', center_controller)
 p.add_controller(stimulus,'size', size_controller)
 p.add_controller(stimulus,'spatial_freq', spatial_freq_controller)
 p.add_controller(stimulus,'temporal_freq_hz', temporal_freq_controller)
