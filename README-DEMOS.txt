@@ -18,11 +18,12 @@ even breaking on older systems.
 
 DOCUMENTATION
 
+The Programmer's Manual and API Reference are available in
+doc/index.html
+
 To get started, please look at the tutorials (on the website), demo
-programs (in the "demo" directory), and the Vision Egg Programmer's
-Manual and the API Reference (in the "doc" directory).  Once you've
-done that, the ultimate authority is the source code, particularly the
-docstrings in the Core.py module.
+programs (in the "demo" directory). The ultimate authority is the
+source code.
 
 OUTPUT LOGGING
 
