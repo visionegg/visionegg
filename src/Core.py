@@ -1420,7 +1420,7 @@ class FrameTimer:
             return
         average_ifi_sec = self.get_average_ifi_sec()
         print >> buffer, '%d frames were drawn.'%int(n_frames)
-        print >> buffer, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
+        print >> buffer, 'Mean IFI was %.2f msec (%.2f fps), longest IFI was %.2f msec.'%(
             average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
         
         h = hist = self.timing_histogram # shorthand
