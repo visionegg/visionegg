@@ -666,7 +666,8 @@ static PyObject *_wrap_set_self_policy_priority(PyObject *self, PyObject *args) 
         result = (int)set_self_policy_priority(arg1,arg2);
         
         if (errno) {
-            return PyErr_SetFromErrno(PyExc_OSError);
+            PyErr_SetFromErrno(PyExc_OSError);
+            goto fail;
         }
     }
     resultobj = PyInt_FromLong((long)result);
@@ -686,7 +687,8 @@ static PyObject *_wrap_stop_memory_paging(PyObject *self, PyObject *args) {
         result = (int)stop_memory_paging();
         
         if (errno) {
-            return PyErr_SetFromErrno(PyExc_OSError);
+            PyErr_SetFromErrno(PyExc_OSError);
+            goto fail;
         }
     }
     resultobj = PyInt_FromLong((long)result);
@@ -707,7 +709,8 @@ static PyObject *_wrap_sched_get_priority_max(PyObject *self, PyObject *args) {
         result = (int)sched_get_priority_max(arg1);
         
         if (errno) {
-            return PyErr_SetFromErrno(PyExc_OSError);
+            PyErr_SetFromErrno(PyExc_OSError);
+            goto fail;
         }
     }
     resultobj = PyInt_FromLong((long)result);
