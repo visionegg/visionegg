@@ -47,13 +47,19 @@ Andrew
 
 # Fill out ext_modules
 if not skip_c_compilation:
-    # _maxpriority
+    # priority raising/setting stuff
     if sys.platform == 'darwin':
         ext_modules.append(Extension(name='_darwin_maxpriority',
                                      sources=['src/darwin_maxpriority.c',
                                               'src/darwin_maxpriority_wrap.c']))
-    else:
-        ext_modules.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
+    elif sys.platform == 'win32':
+        ext_modules.append(Extension(name='_win32_maxpriority',
+                                     sources=['src/win32_maxpriority.c',
+                                              'src/win32_maxpriority_wrap.c']))
+    elif sys.platform in ['linux','irix','posix']:
+        ext_modules.append(Extension(name='_posix_maxpriority',
+                                     sources=['src/posix_maxpriority.c',
+                                              'src/posix_maxpriority_wrap.c']))
 
     # _lib3ds
     lib3ds_sources = glob.glob('lib3ds/*.c')
