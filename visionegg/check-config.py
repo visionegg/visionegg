@@ -239,6 +239,16 @@ try:
 except:
     print 'Python Imaging Library (package "Image") failed'
     
+try:
+    import Numeric
+    print 'Numeric version %s'%(Numeric.__version__,),
+    if Numeric.__version__ >= '20.3':
+        print "(OK)"
+    else:
+        print "(Untested)"
+except:
+    print 'Numeric failed'
+    
 print
 
 print "Optional module(s):"
