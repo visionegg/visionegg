@@ -63,9 +63,7 @@ import pygame.locals
 import pygame.display
 swap_buffers = pygame.display.flip              # make shortcut name
 
-                                                # from PyOpenGL:
-import OpenGL.GL                                #   main package
-gl = OpenGL.GL                                  # shorthand
+import OpenGL.GL as gl                          # PyOpenGL (and shortcut name)
 
 import Numeric  				# Numeric Python package
 
@@ -1656,13 +1654,13 @@ class Controller:
         """Called by Presentation. Evaluate during the main 'go' loop.
 
         Override this method in base classes."""
-        raise NotImplementedError("Definition in abstract base class Contoller must be overriden.")
+        raise NotImplementedError("%s: Definition in abstract base class Contoller must be overriden."%(str(self),))
 
     def between_go_eval(self):
         """Called by Presentation. Evaluate between runs of the main 'go' loop.
         
         Override this method in base classes.""" 
-        raise NotImplementedError("Definition in abstract base class Controller must be overriden.")
+        raise NotImplementedError("%s: Definition in abstract base class Controller must be overriden."%(str(self),))
 
     def _test_self(self,go_started):
         """Test whether a controller works.
