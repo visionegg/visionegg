@@ -17,7 +17,7 @@ import math, types, string
 import OpenGL.GL as gl
 
 try:
-    import OpenGL.GL.ARB.multitexture
+    import OpenGL.GL.ARB.multitexture # Not necessary for most Vision Egg functions
 except ImportError:
     pass
 else:
