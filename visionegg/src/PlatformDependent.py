@@ -26,14 +26,14 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 ############# Import Vision Egg C routines, if they exist #############
-try:
-    from _maxpriority import *                  # pickup set_realtime() function
-except:
-    def set_realtime():
-        """Raise the Vision Egg to maximum priority. (NOT SUPPORTED)"""
-        pass
+def set_priority(*args,**kw):
+    """Set the priority of the Vision Egg application.
 
-def set_realtime(*args,**kw):
+    Defaults to maximum priority, but can be changed via keyword
+    arguments.
+
+    Returns 1 on success, 0 on failure."""
+    
     # potential keywords
     parse_me = ["darwin_realtime_period_denom",
                 "darwin_realtime_computation_denom",
@@ -91,7 +91,7 @@ def set_realtime(*args,**kw):
 
         else:
             bus_speed = darwin_maxpriority.get_bus_speed()
-            
+
             VisionEgg.Core.message.add( "Setting max priority mode for darwin platform "\
                                         "using realtime threads. ( period = %d / %d, "\
                                         "computation = %d / %d, constraint = %d / %d, "\
@@ -106,7 +106,7 @@ def set_realtime(*args,**kw):
             computation = bus_speed / params['darwin_realtime_computation_denom']
             constraint = bus_speed / params['darwin_realtime_constraint_denom']
             preemptible = params['darwin_realtime_preemptible']
-        
+
             darwin_maxpriority.set_self_thread_time_constraint_policy( period, computation, constraint, preemptible )
             return 1
             

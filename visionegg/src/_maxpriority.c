@@ -44,17 +44,21 @@ static char set_realtime__doc__[] =
 "Raise the Vision Egg to maximum priority.\n"
 "\n"
 "The following optional keyword arguments only have an effect\n"
-"on the darwin (Mac OS X) platform: If not specified, the value\n"
-"is taken from VisionEgg.config if present, or will otherwise\n"
-"default to the value in parentheses.\n"
+"on the platform specified. If not specified, the value\n"
+"is taken from VisionEgg.config, which by default is\n"
+"the value in parentheses.\n"
 "\n"
 "  darwin_realtime_period_denom (120)\n"
 "  darwin_realtime_computation_denom (2400)\n"
 "  darwin_realtime_constraint_denom (1200)\n"
 "  darwin_realtime_preemptible (0)\n"
 "  darwin_maxpriority_conventional_not_realtime (0) (Disables above realtime arguments)\n"
-"  darwin_conventional_priority (-20) (-20 is maximum priority)"
-"  darwin_pthread_priority (\"max\")\n";
+"  darwin_conventional_priority (-20) (-20 is maximum priority)\n"
+"  darwin_pthread_priority (\"max\")\n"
+"  win32_process_priority_class (\"HIGH_PRIORITY_CLASS\")\n"
+"  win32_thread_priority_level (\"THREAD_PRIORITY_TIME_CRITICAL\")\n"
+"  posix_scheduling_policy (\"SCHED_FIFO\")\n"
+"  posix_scheduling_priority_less_than_max (0)\n";
 
 static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -311,7 +315,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
     ttcpolicy.constraint=bus_speed / darwin_realtime_constraint_denom;
     ttcpolicy.preemptible= darwin_realtime_preemptible ;
 
-    info_string = PyString_FromFormat("Setting realtime mode for darwin platform using realtime threads. "
+    info_string = PyString_FromFormat("Setting max priority mode for darwin platform using realtime threads. "
 				      "( period = %d / %d, "
 				      "computation = %d / %d, "
 				      "constraint = %d / %d, "
@@ -401,25 +405,44 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 
 #elif defined(_WIN32)
-  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority for win32 platform.", core_Message_INFO ); // new ref
+  /* Add message saying what's about to happen. */
+  info_string = PyString_FromFormat("Setting priority for win32 platform. "
+				    "( Process priority class REALTIME_PRIORITY_CLASS, "
+				    "thread priority THREAD_PRIORITY_HIGHEST)"); // new ref
+  PY_CHECK(info_string);
+  
+  temp_result = PyObject_CallObject(core_message_add,Py_BuildValue("(O)",info_string)); // new ref
   PY_CHECK(temp_result); // make sure it worked
-  Py_DECREF(temp_result); // clean up
+
+  // clean up Python variables
+  Py_DECREF(temp_result); 
+  Py_DECREF(info_string);
 
   SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #else
 
-  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority for POSIX platform.", core_Message_INFO ); // new ref
-  PY_CHECK(temp_result); // make sure it worked
-  Py_DECREF(temp_result); // clean up
-
   /* This should work on all POSIX non-Apple platforms. */
 
-  /* First, tell the scheduler that we want maximum priority! */
+  /* First, tell get the maximum priority value for our scheduling policy. */
   //  policy = SCHED_RR;
   policy = SCHED_FIFO;
   params.sched_priority = sched_get_priority_max(policy);
 
+  /* Add message saying what's about to happen. */
+  info_string = PyString_FromFormat("Setting priority for POSIX platform. "
+				    "( Policy SCHED_FIFO, priority %d, which is the maximum possible priority - 0 )",
+				    params.sched_priority); // new ref
+  PY_CHECK(info_string);
+  
+  temp_result = PyObject_CallObject(core_message_add,Py_BuildValue("(O)",info_string)); // new ref
+  PY_CHECK(temp_result); // make sure it worked
+
+  // clean up Python variables
+  Py_DECREF(temp_result); 
+  Py_DECREF(info_string);
+
+  /* Do it now */
   if (sched_setscheduler(0,policy,&params) == -1) { // pid 0 means this process
     switch(errno) {
     case EPERM:
