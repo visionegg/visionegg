@@ -4,16 +4,29 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
+# On Mac OS X, you can eliminate the need for the C compiler if you
+# set this line to 1.  Of course, that also gets rid of the Vision
+# Egg's ability to schedule itself as a real time application.
+    
+skip_macosx_c_compilation = 0
+
 from distutils.core import setup, Extension
 import sys
 import os.path
 
 extensions = []
 
-if sys.platform not in ['cygwin','darwin','mac','win32']:
+if sys.platform not in ['cygwin','mac','win32'] and (sys.platform != 'darwin' or not skip_macosx_c_compilation):
     # The maximum priority stuff should work on most versions of Unix.
     # (It depends on the system call sched_setscheduler.)
     extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
+
+if sys.platform == "darwin" and not skip_macosx_c_compilation:
+    extensions.append(Extension(name='_darwin_sync_swap',
+                                sources=['src/_darwin_sync_swap.c'],
+                                include_dirs=['/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers'],
+                                extra_link_args=["-framework OpenGL"],
+                                ))
 
 if sys.platform == 'linux2':
     extensions.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
@@ -61,7 +74,7 @@ experiments."""
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.9.1",
+      version = "0.9.2a0",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
