@@ -45,7 +45,7 @@ class ScrollListFrame(Tkinter.Frame):
     def __init__(self,master=None,list_of_blahbjects=None,blahbject_maker=None,
                  container_class=Blahbject,
                  **cnf):
-        apply(Tkinter.Frame.__init__, (self,master), cnf)
+        apply(Tkinter.Frame.__init__, (self, master,), cnf)
         if list_of_blahbjects is None:
             self.list = []
         else:
@@ -467,33 +467,37 @@ class AppWindow(Tkinter.Frame):
                       text="Parameter Save Options",
                       font=("Helvetica",12,"bold")).grid(row=row,column=1)
         row += 1
-        asf = Tkinter.Frame(self)
+        self.auto_save_frame = Tkinter.Frame(self)
+        asf = self.auto_save_frame # shorthand
         asf.grid(row=row,column=1,sticky="nwes")
         asf.columnconfigure(1,weight=1)
 
-        asf_row=0
+        asf.grid_row = 0
         self.autosave = Tkinter.BooleanVar()
         self.autosave.set(1)
-        Tkinter.Checkbutton(asf,
-                            text="Auto save trial parameters",
-                            variable=self.autosave).grid(row=asf_row,columnspan=2)
-        asf_row += 1
+        self.auto_save_button = Tkinter.Checkbutton(asf,
+                                                    text="Auto save trial parameters",
+                                                    variable=self.autosave)
+        self.auto_save_button.grid(row=asf.grid_row,columnspan=2)
+        
+        asf.grid_row += 1
         Tkinter.Label(asf,
-                      text="Auto save directory:").grid(row=asf_row,column=0,sticky="e")
+                      text="Parameter save directory:").grid(row=asf.grid_row,column=0,sticky="e")
         Tkinter.Entry(asf,
-                      textvariable=self.autosave_dir).grid(row=asf_row,column=1,sticky="we")
+                      textvariable=self.autosave_dir).grid(row=asf.grid_row,column=1,sticky="we")
         Tkinter.Button(asf,
-                       text="Set...",command=self.set_autosave_dir).grid(row=asf_row,column=2)
-        asf_row += 1
+                       text="Set...",command=self.set_autosave_dir).grid(row=asf.grid_row,column=2)
+        asf.grid_row += 1
         Tkinter.Label(asf,
-                      text="Auto save basename:").grid(row=asf_row,column=0,sticky="e")
+                      text="Parameter save basename:").grid(row=asf.grid_row,column=0,sticky="e")
         Tkinter.Entry(asf,
-                      textvariable=self.autosave_basename).grid(row=asf_row,column=1,sticky="we")
+                      textvariable=self.autosave_basename).grid(row=asf.grid_row,column=1,sticky="we")
         Tkinter.Button(asf,
-                       text="Reset",command=self.reset_autosave_basename).grid(row=asf_row,column=2)
+                       text="Reset",command=self.reset_autosave_basename).grid(row=asf.grid_row,column=2)
         
         row += 1
-        Tkinter.Button(self, text='Do single trial', command=self.do_single_trial).grid(row=row,column=0)
+        self.do_single_trial_button = Tkinter.Button(self, text='Do single trial', command=self.do_single_trial)
+        self.do_single_trial_button.grid(row=row,column=0)
         Tkinter.Button(self, text='Do sequence', command=self.do_loops).grid(row=row,column=1)
 
         # Allow rows and columns to expand
@@ -632,7 +636,7 @@ class AppWindow(Tkinter.Frame):
                 elif depth == max_depth: # deepest level -- do the trial
                     if need_rest_period:
                         time.sleep(loop.parameters.rest_duration_sec)
-                    self.do_single_trial()
+                    self.do_single_trial_button.invoke()
                     need_rest_period = 1
                 else:
                     raise RuntimeError("Called with max_depth==-1:")
@@ -640,14 +644,18 @@ class AppWindow(Tkinter.Frame):
             loop.reset()
 
         process_loops(0) # start recursion on top level
-        
+
     def do_single_trial(self):
+        self.do_single_trial_pre()
+        self.do_single_trial_work()
+
+    def do_single_trial_pre(self):
         self.duration_sec = self.stim_frame.get_duration_sec()
+        (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
+        self.trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
         if self.autosave.get():
             # Figure out filename to save results in
-            (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
-            time_str = "%04d%02d%02d_%02d%02d%02d.params"%(year,month,day,hour24,min,sec)
-            filename = self.autosave_basename.get() + time_str
+            filename = self.autosave_basename.get() + self.trial_time_str + ".params"
             fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
             fd = open(fullpath_filename,"w")
             fd.write("finished_time = %04d%02d%02d%02d%02d%02d\n"%(year,month,day,hour24,min,sec))
@@ -655,15 +663,31 @@ class AppWindow(Tkinter.Frame):
             for parameter_name, parameter_value in parameter_list:
                 fd.write("%s = %s\n"%(parameter_name, parameter_value))
             fd.close()
+            
+    def do_single_trial_work(self):
+        # make wait cursor
+        root = self.winfo_toplevel()
+        old_cursor = root["cursor"]
+        root["cursor"] = "watch"
+        root.update()
+        
         self.stim_frame.go()
         time.sleep(self.duration_sec)
 
+        #restore cursor
+        root["cursor"] = old_cursor
+        root.update()
+
     def quit(self):
         self.uber_server.set_quit_status(1)
+        # call parent class
         apply(Tkinter.Frame.quit, (self,))
 
     def destroy(self):
-        self.uber_server.set_quit_status(1)
+        try:
+            self.uber_server.set_quit_status(1)
+        except:
+            pass
         apply(Tkinter.Frame.destroy, (self,))
         
 class BarButton(Tkinter.Menubutton):
