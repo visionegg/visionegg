@@ -39,6 +39,9 @@ try:
 except:
     VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
 
+def next_power_of_2(f):
+    return pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
+
 ####################################################################
 #
 #        Textures
@@ -65,8 +68,8 @@ class Texture:
         # with power of 2 buffers.
 
         # Create a buffer whose sides are a power of 2
-        width_pow2  = int(pow(2.0,math.ceil(self.__log2(float(self.orig.size[0])))))
-        height_pow2 = int(pow(2.0,math.ceil(self.__log2(float(self.orig.size[1])))))
+        width_pow2  = int(next_power_of_2(self.orig.size[0]))
+        height_pow2  = int(next_power_of_2(self.orig.size[1]))
 
         self.buf = TextureBuffer( (width_pow2, height_pow2) )
         self.buf.im.paste(self.orig,(0,0,self.orig.size[0],self.orig.size[1]))
@@ -90,10 +93,6 @@ class Texture:
         texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
 #        del self.orig # clear Image from system RAM
         return texId
-
-    def __log2(self,f):
-    	"""Private method - logarithm base 2"""
-        return math.log(f)/math.log(2)
 
     def get_pil_image(self):
         """Returns a PIL Image of the texture."""
@@ -196,6 +195,7 @@ class TextureBuffer:
 
     def put_sub_image(self,pil_image,lower_left, size):
         """This function always segfaults, for some reason!"""
+        # Could it be that the width and height must be a power of 2?
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         print "bound texture"
         data = pil_image.tostring("raw","RGB",0,-1)
@@ -255,6 +255,23 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
             # Set OpenGL state variables
             glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
             glEnable( GL_BLEND ) # Contrast control implemented through blending
+
+            # All of the contrast control stuff is somewhat arcane and
+            # not very clear from reading the code, so here is how it
+            # works in English. (Not that it makes it any more clear!)
+            #
+            # In the final "textured fragment" (before being blended
+            # to the framebuffer), the color values are equal to those
+            # of the texture (with the exception of pixels around the
+            # edges which have their amplitudes reduced due to
+            # anti-aliasing and are intermediate between the color of
+            # the texture and mid-gray), and the alpha value is set to
+            # the contrast.  Blending occurs, and by choosing the
+            # appropriate values for glBlendFunc, adds the product of
+            # fragment alpha (contrast) and fragment color to the
+            # product of one minus fragment alpha (contrast) and what
+            # was already in the framebuffer. 
+
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
             
             if self.parameters.texture_scale_linear_interp:
