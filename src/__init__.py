@@ -277,6 +277,21 @@ class ClassWithParameters( object ):
 
     __slots__ = ('parameters','constant_parameters') # limit access only to specified attributes
 
+    def __getstate__(self):
+        """support for being pickled"""
+        result = {}
+        for attr in self.__slots__:
+            if hasattr(self,attr):
+                result[attr] = getattr(self,attr)
+        return result
+
+    def __setstate__(self,dict):
+        """support for being unpickled"""
+        for attr in dict.keys():
+            setattr(self,attr,dict[attr])
+
+    __safe_for_unpickling__ = True # tell python 2.2 we know what we're doing
+
     def __init__(self,**kw):
         """Create self.parameters and set values."""
         self.constant_parameters = Parameters() # create self.constant_parameters
@@ -367,7 +382,7 @@ class ClassWithParameters( object ):
         for kw_parameter_name in kw.keys():
             if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
-
+            
     def is_constant_parameter(self,parameter_name):
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
