@@ -5,7 +5,12 @@ Standard Parallel Port" by Craig Peacock,
 http://www.senet.com.au/~cpeacock.
 
 This module only uses the Standard Parallel Port (SPP) protocol, not
-ECP or EPP."""
+ECP or EPP.
+
+This module has not been extensively tested or used, and should be
+considered unstable.
+
+"""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
