@@ -8,6 +8,7 @@ import Pyro.core
 
 import sys, os, string
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.SphereMap
 import VisionEgg.Textures
 import VisionEgg.PyroHelpers
@@ -24,8 +25,8 @@ class ScreenPositionMetaController( Pyro.core.ObjBase ):
     def __init__(self,presentation,projection):
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = ScreenPositionParameters()
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(projection,VisionEgg.Core.PerspectiveProjection):
             raise ValueError("Expecting instance of VisionEgg.Core.PerspectiveProjection")
         self.p = presentation
@@ -93,7 +94,7 @@ if __name__ == '__main__':
                                                       temp.near,
                                                       temp.far)
     viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[sphere_map],projection=projection)
-    p = VisionEgg.Core.Presentation(viewports=[viewport])
+    p = VisionEgg.FlowControl.Presentation(viewports=[viewport])
 
     # now hand over control of stimulus to GratingExperimentMetaController
     projection_controller = ScreenPositionMetaController(p,projection)

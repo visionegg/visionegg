@@ -23,6 +23,7 @@ ECP or EPP.  You may have to set your computer's BIOS accordingly.
 
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.Daq
 import sys, types, string
 
@@ -110,7 +111,7 @@ class LPTDevice(VisionEgg.Daq.Device):
             raise ValueError("LPTDevice only has LPTChannels.")
         VisionEgg.Daq.Device.add_channel(self,channel)
         
-class LPTTriggerOutController(VisionEgg.Core.Controller):
+class LPTTriggerOutController(VisionEgg.FlowControl.Controller):
     """Use 8 bits of digital output for triggering and frame timing verification.
 
     Bit 0 (pin 2) goes high when the go loop begins and low when the
@@ -122,9 +123,9 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
     def __init__(self,lpt_device=None):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
-        VisionEgg.Core.Controller.__init__(self,
+        VisionEgg.FlowControl.Controller.__init__(self,
                                            return_type=types.NoneType,
-                                           eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
+                                           eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         # Initialize DAQ stuff:
         self.trigger_out_channel = LPTChannel(signal_type = VisionEgg.Daq.Digital(),
                                               daq_mode = VisionEgg.Daq.Immediate(),
@@ -147,13 +148,13 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
         value = self.total_frames*2 + 0
         self.trigger_out_channel.constant_parameters.functionality.put_data(value)
 
-class LPTTriggerInController(VisionEgg.Core.Controller):
+class LPTTriggerInController(VisionEgg.FlowControl.Controller):
     def __init__(self,lpt_device=None,pin=13):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT input not supported on this platform.")
-        VisionEgg.Core.Controller.__init__(self,
+        VisionEgg.FlowControl.Controller.__init__(self,
                                            return_type=types.IntType,
-                                           eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
+                                           eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         # Initialize DAQ stuff:
         self.trigger_in_channel = LPTChannel(signal_type = VisionEgg.Daq.Digital(),
                                              daq_mode = VisionEgg.Daq.Immediate(),

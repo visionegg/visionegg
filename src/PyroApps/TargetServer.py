@@ -12,6 +12,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.MoreStimuli
 import VisionEgg.PyroHelpers
 import Pyro.core
@@ -29,8 +30,8 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         self.meta_params = TargetMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(target,VisionEgg.MoreStimuli.Target2D):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
         
@@ -38,11 +39,11 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         self.p = presentation
         self.stim = target
 
-        self.p.add_controller(self.stim,'on',VisionEgg.Core.FunctionController(
+        self.p.add_controller(self.stim,'on',VisionEgg.FlowControl.FunctionController(
             during_go_func=self.on_function_during_go,
             between_go_func=self.on_function_between_go))
 
-        self.p.add_controller(self.stim,'position',VisionEgg.Core.FunctionController(
+        self.p.add_controller(self.stim,'position',VisionEgg.FlowControl.FunctionController(
             during_go_func=self.center_during_go,
             between_go_func=self.center_between_go))
 
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     stimuli = make_stimuli()
     stimulus = stimuli[0][1]
     viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stimulus])
-    p = VisionEgg.Core.Presentation(viewports=[viewport])
+    p = VisionEgg.FlowControl.Presentation(viewports=[viewport])
 
     # now hand over control of grating and mask to FlatGratingExperimentMetaController
     meta_controller = TargetExperimentMetaController(screen,p,stimuli)
