@@ -29,14 +29,13 @@ considered unstable.
 
 import VisionEgg
 import VisionEgg.Daq
-import socket, re, types
+import VisionEgg.ParameterTypes as ve_types
+import socket, re
 import Numeric
 
-import string
-
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 ##################################################################
@@ -46,14 +45,14 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class DaqServerTrigger(VisionEgg.Daq.Trigger):
     valid_modes = ['immediate','rising_edge','falling_edge']
-    parameters_and_defaults = {'mode':('immediate',types.StringType)}
+    parameters_and_defaults = {'mode':('immediate',ve_types.String)}
 
 class DaqServerInputChannel(VisionEgg.Daq.Input):
     def get_data(self):
         return self.channel.device.get_data_for_channel(self.channel.constant_parameters.channel_number)
 
 class DaqServerChannel(VisionEgg.Daq.Channel):
-    constant_parameters_and_defaults = {'channel_number':(0,types.IntType)}
+    constant_parameters_and_defaults = {'channel_number':(0,ve_types.Integer)}
     
     def __init__(self,**kw):
         VisionEgg.Daq.Channel.__init__(self,**kw)
@@ -154,16 +153,6 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
         else:
             raise RuntimeError("Must have at least 1 channel")
 
-##class DebugSocket(socket.socket):
-##    def send(self,string):
-##        #print "SEND",string
-##        socket.socket.send(self,string)
-
-##    def recv(self,bufsize):
-##        results = socket.socket.recv(self,bufsize)
-##        #print "RECV",results
-##        return results
-
 DebugSocket = socket.socket
 
 class DaqConnection:
@@ -203,7 +192,7 @@ class DaqConnection:
         while not DaqConnection.command_prompt.search(self.buffer):
             self.buffer = self.buffer + self.socket.recv(DaqConnection.BUFSIZE)
             # Prune all but the last line from the buffer
-            self.buffer = string.split(self.buffer,"%s%s"%(chr(0x0D),chr(0x0A)))[-1]
+            self.buffer = self.buffer.split("%s%s"%(chr(0x0D),chr(0x0A)))[-1]
         # XXX to-do: prune everything up to the end of command_prompt from self.buffer
         
         self.remote_state = DaqConnection.COMMAND_PROMPT
@@ -273,7 +262,7 @@ class DaqConnection:
         leftover_data = ""
         while not done:
             data = self.socket.recv(DaqConnection.BUFSIZE)
-            lines = string.split(data,DaqConnection.CRLF)
+            lines = data.split(DaqConnection.CRLF)
 
             # due to buffering not being lined up with lines:
             lines[0] = leftover_data + lines[0] # use last incomplete line
@@ -299,7 +288,7 @@ class DaqConnection:
                         waves = []
                         getting_waves = 0
                     else: # The data!
-                        this_row = map(int,string.split(line))
+                        this_row = map(int,line.split())
                         if len(this_row) > 0:
                             waves.append(this_row)
         self.current_data_array = Numeric.transpose(self.current_data_array)
