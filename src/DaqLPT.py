@@ -1,5 +1,16 @@
-#!/usr/bin/env python
-"""Data acquisition and triggering over the parallel port.
+# The Vision Egg: DaqLPT
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Data acquisition and triggering over the parallel port.
 
 This module was programmed using information from "Interfacing the
 Standard Parallel Port" by Craig Peacock,
@@ -10,10 +21,18 @@ You may also be interested in http://www.lvr.com/files/ibmlpt.txt.
 This module only uses the Standard Parallel Port (SPP) protocol, not
 ECP or EPP.  You may have to set your computer's BIOS accordingly.
 
-"""
+You may need to be root or otherwise have permission to access the
+parallel port.
 
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL)
+Example usage:
+
+>>> from VisionEgg.DaqLPT import raw_lpt_module
+>>> address = 0x378
+>>> out_value = 0
+>>> raw_lpt_module.out( address, out_value )
+>>> in_value = raw_lpt_module.inp( address+1 )
+
+"""
 
 ####################################################################
 #
@@ -179,22 +198,3 @@ class LPTTriggerInController(VisionEgg.FlowControl.Controller):
     def between_go_eval(self):
         value = self.trigger_in_channel.constant_parameters.functionality.get_data()
         return (value & self.mask)
-
-if __name__ == '__main__':
-    
-    # If this module is run as a standalone script, run perpetual loop
-    # testing the parallel port.
-    
-    import time
-    print "Press Ctrl-C to stop"
-    address = 0x378
-    out_value = 0
-    while 1:
-        print "out: 0x%x"%out_value,
-        raw_lpt_module.out( address, out_value )
-        out_value += 1
-        if out_value > 255:
-            out_value = 0
-        in_value = raw_lpt_module.inp( address+1 )
-        print "in: 0x%x"%in_value
-        time.sleep(1.0)

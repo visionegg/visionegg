@@ -1,7 +1,18 @@
-"""Stimuli drawn as texture maps on inside of sphere"""
+# The Vision Egg: SphereMap
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+"""
+Stimuli on spheres, including texture maps.
+
+"""
 
 import math, types
 
@@ -35,6 +46,54 @@ except NameError:
     False = 1==0
 
 class AzElGrid(VisionEgg.Core.Stimulus):
+    """Spherical grid of iso-azimuth and iso-elevation lines.
+
+    Parameters
+    ==========
+    anti_aliasing    -- (Boolean)
+                        Default: True
+    center_azimuth   -- (Real)
+                        Default: 0.0
+    center_elevation -- (Real)
+                        Default: 0.0
+    major_line_color -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (0.0, 0.0, 0.0)
+    major_line_width -- (Real)
+                        Default: 2.0
+    minor_line_color -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (0.0, 0.0, 1.0)
+    minor_line_width -- (Real)
+                        Default: 1.0
+    my_viewport      -- (Instance of <class 'VisionEgg.Core.Viewport'>)
+                        Default: (determined at instantiation)
+    on               -- (Boolean)
+                        Default: True
+    text_offset      -- (Sequence2 of Real)
+                        Default: (3, -2)
+
+    Constant Parameters
+    ===================
+    az_major_spacing       -- (Real)
+                              Default: 30.0
+    az_minor_spacing       -- (Real)
+                              Default: 10.0
+    el_major_spacing       -- (Real)
+                              Default: 30.0
+    el_minor_spacing       -- (Real)
+                              Default: 10.0
+    font_size              -- (UnsignedInteger)
+                              Default: 24
+    num_samples_per_circle -- (UnsignedInteger)
+                              Default: 100
+    radius                 -- (Real)
+                              Default: 1.0
+    text_anchor            -- (String)
+                              Default: lowerleft
+    text_color             -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                              Default: (0.0, 0.0, 0.0)
+    use_text               -- (Boolean)
+                              Default: True
+    """
 
     parameters_and_defaults = {
         'on':(True,
@@ -299,7 +358,49 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                 my_view.make_current() # restore viewport
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
-    """Mercator mapping of rectangular texture onto sphere."""
+    """Mercator mapping of rectangular texture onto sphere.
+
+    Parameters
+    ==========
+    center_azimuth     -- (Real)
+                          Default: 0.0
+    center_elevation   -- (Real)
+                          Default: 0.0
+    contrast           -- (Real)
+                          Default: 1.0
+    on                 -- (Boolean)
+                          Default: True
+    radius             -- (Real)
+                          Default: 1.0
+    slices             -- (UnsignedInteger)
+                          Default: 30
+    stacks             -- (UnsignedInteger)
+                          Default: 30
+    texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                          Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                          Default: (determined at instantiation)
+    texture_mag_filter -- OpenGL filter enum (Integer)
+                          Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                          Default: GL_LINEAR
+    texture_min_filter -- OpenGL filter enum (Integer)
+                          Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_s     -- OpenGL texture wrap enum (Integer)
+                          Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_t     -- OpenGL texture wrap enum (Integer)
+                          Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+
+    Constant Parameters
+    ===================
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Default: False
+    """
 
     parameters_and_defaults = {
         'on':(True,
@@ -447,7 +548,48 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             gl.glCallList(self.cached_display_list)
 
 class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
-    """Map 2D sinusoidal grating onto sphere."""
+    """Map 2D sinusoidal grating onto sphere.
+
+    Parameters
+    ==========
+    bit_depth                       -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
+                                       Inherited from VisionEgg.Gratings.LuminanceGratingCommon
+                                       Default: 8
+    check_texture_size              -- (Boolean)
+                                       Default: True
+    contrast                        -- (Real)
+                                       Default: 1.0
+    grating_center_azimuth          -- (Real)
+                                       Default: 0.0
+    grating_center_elevation        -- (Real)
+                                       Default: 0.0
+    ignore_time                     -- (Boolean)
+                                       Default: False
+    lowpass_cutoff_cycles_per_texel -- (Real)
+                                       Default: 0.15
+    min_filter                      -- OpenGL filter enum (Integer)
+                                       Default: GL_LINEAR
+    num_samples                     -- (UnsignedInteger)
+                                       Default: 1024
+    on                              -- (Boolean)
+                                       Default: True
+    orientation                     -- (Real)
+                                       Default: 0.0
+    phase_at_t0                     -- (Real)
+                                       Default: 0.0
+    radius                          -- (Real)
+                                       Default: 1.0
+    slices                          -- (UnsignedInteger)
+                                       Default: 30
+    spatial_freq_cpd                -- (Real)
+                                       Default: 0.0277777777778
+    stacks                          -- (UnsignedInteger)
+                                       Default: 30
+    t0_time_sec_absolute            -- (Real)
+                                       Default: (determined at instantiation)
+    temporal_freq_hz                -- (Real)
+                                       Default: 5.0
+    """
 
     parameters_and_defaults = {
         'on':(True,
@@ -475,7 +617,9 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         'lowpass_cutoff_cycles_per_texel':(0.15,
                                            ve_types.Real),
         'min_filter':(gl.GL_LINEAR,
-                      ve_types.Integer),
+                      ve_types.Integer,
+                      "OpenGL filter enum",
+                      VisionEgg.ParameterDefinition.OPENGL_ENUM),
         # changing this parameters causes re-drawing of the texture object and may cause frame skipping
         'num_samples':(1024,  # number of spatial samples, should be a power of 2
                        ve_types.UnsignedInteger),
@@ -712,7 +856,36 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     This is useful when you need to have a viewport on a 3D scene.
 
     Note that the bit depth of the alpha component of the framebuffer
-    is important for producing smooth transitions in color."""
+    is important for producing smooth transitions in color.
+
+    Parameters
+    ==========
+    bit_depth                     -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
+                                     Inherited from VisionEgg.Gratings.LuminanceGratingCommon
+                                     Default: 8
+    num_s_samples                 -- (UnsignedInteger)
+                                     Default: 512
+    num_t_samples                 -- (UnsignedInteger)
+                                     Default: 512
+    on                            -- (Boolean)
+                                     Default: True
+    opaque_color                  -- (Sequence4 of Real)
+                                     Default: (0.5, 0.5, 0.5, 0.0)
+    radius                        -- (Real)
+                                     Default: 1.0
+    slices                        -- (UnsignedInteger)
+                                     Default: 30
+    stacks                        -- (UnsignedInteger)
+                                     Default: 30
+    window_center_azimuth         -- (Real)
+                                     Default: 0.0
+    window_center_elevation       -- (Real)
+                                     Default: 0.0
+    window_shape                  -- (String)
+                                     Default: gaussian
+    window_shape_radius_parameter -- (Real)
+                                     Default: 36.0
+    """
 
     parameters_and_defaults = {
         'on':(True,

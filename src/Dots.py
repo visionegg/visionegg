@@ -1,9 +1,18 @@
-"""Random dot stimuli"""
+# The Vision Egg: Dots
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+"""
+Random dot stimuli.
 
-all = ['DotArea2D', 'draw_dots',]
+"""
 
 ####################################################################
 #
@@ -56,6 +65,40 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     Every dot has the same velocity. Some fraction of the dots all
     move in the one direction, while the rest move in random
     directions. Dots wrap around edges. Each dot has a lifespan.
+
+    This is just one example of the endless variations on drawing random dots.
+
+    Parameters
+    ==========
+    anchor                  -- (String)
+                               Default: center
+    anti_aliasing           -- (Boolean)
+                               Default: True
+    color                   -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                               Default: (1.0, 1.0, 1.0)
+    depth                   -- (Real)
+                               Default: (determined at instantiation)
+    dot_lifespan_sec        -- (Real)
+                               Default: 5.0
+    dot_size                -- (Real)
+                               Default: 4.0
+    on                      -- (Boolean)
+                               Default: True
+    position                -- (Sequence2 of Real)
+                               Default: (320.0, 240.0)
+    signal_direction_deg    -- (Real)
+                               Default: 90.0
+    signal_fraction         -- (Real)
+                               Default: 0.5
+    size                    -- (Sequence2 of Real)
+                               Default: (300.0, 300.0)
+    velocity_pixels_per_sec -- (Real)
+                               Default: 10.0
+
+    Constant Parameters
+    ===================
+    num_dots -- (UnsignedInteger)
+                Default: 100
     """
     
     parameters_and_defaults = {
@@ -85,7 +128,9 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         'depth' : ( None, # set for depth testing
                     ve_types.Real ),
         'center' : (None,  # DEPRECATED -- don't use
-                    ve_types.Sequence2(ve_types.Real)),        
+                    ve_types.Sequence2(ve_types.Real),
+                    "",
+                    VisionEgg.ParameterDefinition.DEPRECATED),        
         }
     
     constant_parameters_and_defaults = {

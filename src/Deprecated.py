@@ -1,12 +1,25 @@
+# The Vision Egg: Deprecated
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Bits of code which will be removed in the future.
+
+"""
+
 import VisionEgg
 import sys, os
 try:
     import logging                              # available in Python 2.3
 except ImportError:
     import VisionEgg.py_logging as logging      # use local copy otherwise
-
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]

@@ -1,7 +1,18 @@
-"""Text stimuli"""
+# The Vision Egg: Text
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+"""
+Text stimuli.
+
+"""
 
 ####################################################################
 #
@@ -39,6 +50,73 @@ except NameError:
     False = 1==0
 
 class Text(VisionEgg.Textures.TextureStimulus):
+    """Single line of text rendered using pygame/SDL true type fonts.
+
+    Parameters
+    ==========
+    anchor                -- specifies how position parameter is interpreted (String)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: lowerleft
+    angle                 -- units: degrees, 0=right, 90=up (Real)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: 0.0
+    color                 -- texture environment color. alpha ignored (if given) for max_alpha parameter (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (1.0, 1.0, 1.0)
+    depth_test            -- perform depth test? (Boolean)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: False
+    ignore_size_parameter -- (Boolean)
+                             Default: True
+    mask                  -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (determined at instantiation)
+    max_alpha             -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: 1.0
+    on                    -- draw stimulus? (Boolean)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: True
+    position              -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (0.0, 0.0)
+    size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (determined at instantiation)
+    text                  -- (String)
+                             Default: the string to display
+    texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (determined at instantiation)
+    texture_mag_filter    -- OpenGL filter enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: GL_LINEAR
+    texture_min_filter    -- OpenGL filter enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+    texture_wrap_s        -- OpenGL texture wrap enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+    texture_wrap_t        -- OpenGL texture wrap enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+
+    Constant Parameters
+    ===================
+    font_name         -- (String)
+                         Default: (determined at instantiation)
+    font_size         -- (UnsignedInteger)
+                         Default: 30
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: False
+    """
 
     parameters_and_defaults = {
         'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
@@ -100,10 +178,22 @@ class Text(VisionEgg.Textures.TextureStimulus):
         VisionEgg.Textures.TextureStimulus.draw(self) # call base class
 
 class GlutTextBase(VisionEgg.Core.Stimulus):
-    """Deprecated base class. Don't instantiate this class directly.
+    """DEPRECATED. Base class: don't instantiate this class directly.
 
     Base class that defines the common interface between the
-    other glut-based text stimuli."""
+    other glut-based text stimuli.
+
+    Parameters
+    ==========
+    color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                 Default: (1.0, 1.0, 1.0)
+    lowerleft -- (Sequence2 of Real)
+                 Default: (320, 240)
+    on        -- (Boolean)
+                 Default: True
+    text      -- (String)
+                 Default: the string to display
+    """
 
     parameters_and_defaults = {
         'on':(True,
@@ -128,7 +218,25 @@ class GlutTextBase(VisionEgg.Core.Stimulus):
             VisionEgg.Core.Stimulus.__init__(self,**kw)
 
 class BitmapText(GlutTextBase):
-    """This class is deprecated.  Don't use it anymore."""
+    """DEPRECATED. Bitmap fonts from GLUT.
+
+    Parameters
+    ==========
+    color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                 Inherited from GlutTextBase
+                 Default: (1.0, 1.0, 1.0)
+    font      -- (Integer)
+                 Default: 5
+    lowerleft -- (Sequence2 of Real)
+                 Inherited from GlutTextBase
+                 Default: (320, 240)
+    on        -- (Boolean)
+                 Inherited from GlutTextBase
+                 Default: True
+    text      -- (String)
+                 Inherited from GlutTextBase
+                 Default: the string to display
+    """
 
     parameters_and_defaults = {
         'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
@@ -159,6 +267,31 @@ class BitmapText(GlutTextBase):
                 glut.glutBitmapCharacter(self.parameters.font,ord(char))
 
 class StrokeText(GlutTextBase):
+    """DEPRECATED. Text rendered by GLUT using stroke fonts.
+
+    Parameters
+    ==========
+    anti_aliasing -- (Boolean)
+                     Default: True
+    color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                     Inherited from GlutTextBase
+                     Default: (1.0, 1.0, 1.0)
+    font          -- (Integer)
+                     Default: 0
+    linewidth     -- (Real)
+                     Default: 3.0
+    lowerleft     -- (Sequence2 of Real)
+                     Inherited from GlutTextBase
+                     Default: (320, 240)
+    on            -- (Boolean)
+                     Inherited from GlutTextBase
+                     Default: True
+    orientation   -- (Real)
+                     Default: 0.0
+    text          -- (String)
+                     Inherited from GlutTextBase
+                     Default: the string to display
+    """
 
     parameters_and_defaults = {
         'font':(glut.GLUT_STROKE_ROMAN,
