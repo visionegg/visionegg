@@ -121,6 +121,6 @@ class ClassWithParameters:
         for kw_parameter_name in kw.keys():
             # Make sure this parameter exists already
             if not hasattr(self.parameters,kw_parameter_name):
-                raise ValueError("parameter '%s' unknown"%kw_parameter_name)
+                raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
             else:
                 setattr(self.parameters,kw_parameter_name,kw[kw_parameter_name])
