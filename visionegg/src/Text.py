@@ -14,8 +14,7 @@ import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 
-import OpenGL.GL
-gl = OpenGL.GL
+gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
 import OpenGL.GLUT
 glut = OpenGL.GLUT
