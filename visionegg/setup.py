@@ -25,10 +25,8 @@ if sys.platform == "darwin" and not skip_macosx_c_compilation:
     extensions.append(Extension(name='_darwin_sync_swap',
                                 sources=['src/_darwin_sync_swap.m'],
                                 include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
-                                              '/System/Library/Frameworks/Carbon.framework/Headers',
                                               '/System/Library/Frameworks/Cocoa.framework/Headers',
                                               ],
-                                extra_compile_args=['-fpascal-strings'],
                                 extra_link_args=['-framework','OpenGL'],
                                 ))
 
@@ -78,7 +76,7 @@ experiments."""
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.9.2a0",
+      version = "0.9.2a1",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
