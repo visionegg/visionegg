@@ -610,7 +610,23 @@ class MovingTarget(Stimulus):
                  color=(1.0,1.0,1.0,1.0),
                  bgcolor=(0.0,0.0,0.0,0.0),
                  anti_aliasing=0,
-                 projection=OrthographicProjection(left=-100.0,right=100.0,top=100.0,bottom=-100.0)):
+                 projection=None):
+
+        if projection == None:
+            # Create an orthogonal projection that where square units
+            # will create square objects on screen
+            global screen_width, screen_height
+
+            projection_width = 200.0
+            projection_height = projection_width * screen_height / screen_width
+            l = -0.5*projection_width
+            r = 0.5*projection_width
+            t = 0.5*projection_height
+            b = -0.5*projection_height
+            projection=OrthographicProjection(left=l,
+                                              right=r,
+                                              top=t,
+                                              bottom=b)
         self.position_function = position_function
         self.width = width
         self.height = height
@@ -653,13 +669,20 @@ class MovingTarget(Stimulus):
         glEndList()
 
         if self.anti_aliasing:
-            # Calculate coverage value for each pixel and store as alpha
-            glEnable(GL_POLYGON_SMOOTH) 
+            # GL_POLYGON_SMOOTH doesn't seem to work
+            # so we'll first draw a filled polygon (aliased)
+            # then draw the outline of the polygon (with anti-aliasing)
+            # and finally the corners of the polygon (with anti-aliasing)
             
+            # Calculate coverage value for each pixel of outline and corners
+            # and store as alpha
+            glEnable(GL_LINE_SMOOTH)
+            glEnable(GL_POINT_SMOOTH)
+                    
             # Now specify how to use the alpha value
-            glBlendFunc(GL_SRC_ALPHA_SATURATE,GL_ONE)
+            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
             glEnable(GL_BLEND)
-        
+
     def drawGLScene(self):
         glClear(GL_COLOR_BUFFER_BIT) # clear the framebuffer
         glLoadIdentity() # clear the modelview matrix
@@ -667,9 +690,21 @@ class MovingTarget(Stimulus):
         position = self.position_function(self.cur_time)
         glTranslatef(position[0],position[1],-1.0) # center the modelview matrix where we want the target
         glRotatef(self.orientation,0.0,0.0,-1.0) # rotate the modelview matrix to our orientation
-        
+
         glCallList(self.displayListId) # draw the target (precompiled display list)
         
+        if self.anti_aliasing:
+            # Draw a second polygon in line mode, so the edges are anti-aliased
+            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+            glCallList(self.displayListId)
+
+            # Draw a third polygon in point mode, so the corners are anti-aliased
+            glPolygonMode(GL_FRONT_AND_BACK,GL_POINT)
+            glCallList(self.displayListId) # draw the target (precompiled display list)
+
+            # Set the polygon mode back to fill mode
+            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
+
         if self.spotOn: # probably never on for a moving target stimulus, but still...
             self.drawFixationSpot()
 
