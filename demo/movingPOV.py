@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+"""A demonstration of 2 viewports.
 
+Depth testing is turned off, so the viewport on the right looks a
+little bit strange."""
 import math
 
 import VisionEgg
