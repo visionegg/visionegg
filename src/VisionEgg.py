@@ -784,10 +784,14 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
     found_mode = 0
     for bpp in try_bpps:
         modeList = pygame.display.list_modes( bpp, flags )
-        if modeList == -1: # equal to -1 if any resolution will work
-            found_mode = 1
+        print bpp
+        print modeList
+        if modeList == -1: # equal to -1 if no resolution will work
+            found_mode = 0
         else:
-            if len(modeList) >= 1:
+            if len(modeList) == 0: # any resolution is OK
+                found_mode = 1
+            else:
                 if (screen_width,screen_height) in modeList:
                     found_mode = 1
                 else:
