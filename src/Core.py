@@ -15,6 +15,7 @@ Message -- Handling of messages/warnings/errors
 Subclasses of Projection:
 
 OrthographicProjection
+OrthographicProjectionNoZClip
 SimplePerspectiveProjection
 PerspectiveProjection
 
@@ -47,11 +48,11 @@ message -- Instance of Message class
 all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
         'EvalStringController', 'ExecStringController', 'FixationSpot',
         'FrameTimer', 'FunctionController', 'Message',
-        'OrthographicProjection', 'PerspectiveProjection', 'Presentation',
-        'Projection', 'Screen', 'SimplePerspectiveProjection', 'Stimulus',
-        'Viewport', 'add_gl_assumption', 'post_gl_init',
-        'get_default_screen', 'message', 'swap_buffers',
-        'init_gl_extension' ]
+        'OrthographicProjection', 'OrthographicProjectionNoZClip',
+        'PerspectiveProjection', 'Presentation', 'Projection', 'Screen',
+        'SimplePerspectiveProjection', 'Stimulus', 'Viewport',
+        'add_gl_assumption', 'post_gl_init', 'get_default_screen', 'message',
+        'swap_buffers', 'init_gl_extension' ]
 
 ####################################################################
 #
@@ -59,7 +60,7 @@ all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
 #
 ####################################################################
 
-import sys, types, string, math, time, os       # standard Python modules
+import sys, types, math, time, os               # standard Python modules
 import warnings
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
@@ -417,15 +418,28 @@ class Screen(VisionEgg.ClassWithParameters):
         gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
         gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
         gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
-        framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_BGRA,gl.GL_UNSIGNED_INT_8_8_8_8_REV)
+        if hasattr(gl,'GL_BGRA'):
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_BGRA,gl.GL_UNSIGNED_INT_8_8_8_8_REV)
+            raw_format = 'BGRA'
+        else:
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],size[0],size[1],gl.GL_RGBA,gl.GL_UNSIGNED_BYTE)
+            raw_format = 'RGBA'
         fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
         fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
+        # XXX there's something bizarre going on here:
+        # Why do these all work (at least on Mac OS X/PPC)?
         if format == gl.GL_RGB:
-            fb_array = fb_array[:,:,1:]
+            if raw_format == 'BGRA':
+                fb_array = fb_array[:,:,1:]
+            elif raw_format == 'RGBA':
+                fb_array = fb_array[:,:,:3]
         elif format == gl.GL_RGBA:
-            alpha = fb_array[:,:,0,Numeric.NewAxis]
-            fb_array = fb_array[:,:,1:]
-            fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
+            if raw_format == 'BGRA':
+                alpha = fb_array[:,:,0,Numeric.NewAxis]
+                fb_array = fb_array[:,:,1:]
+                fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
+            elif raw_format == 'RGBA':
+                pass
         else:
             raise NotImplementedError("Only RGB and RGBA formats currently supported")
         return fb_array
@@ -611,7 +625,7 @@ class Screen(VisionEgg.ClassWithParameters):
         if screen is None:
             raise RuntimeError("Screen open failed. Check your error log for a traceback.")
 
-        gamma_source = string.lower(VisionEgg.config.VISIONEGG_GAMMA_SOURCE)
+        gamma_source = VisionEgg.config.VISIONEGG_GAMMA_SOURCE.lower()
         if gamma_source != 'none':
             if gamma_source == 'invert':
                 native_red = VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED
@@ -829,10 +843,12 @@ class OrthographicProjection(Projection):
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
         """Create an orthographic projection.
 
-        Defaults to map x eye coordinates in the range [0,640] to clip
-        coordinates in the range [0,1] and y eye coordinates [0,480]
-        -> [0,1].  Therefore, if the viewport is 640 x 480, eye
-        coordinates correspond 1:1 with window (pixel) coordinates."""
+        Defaults to map x eye coordinates in the range [0,640], y eye
+        coordinates [0,480] and clip coordinates [0,1] to [0,1].
+        Therefore, if the viewport is 640 x 480, eye coordinates
+        correspond 1:1 with window (pixel) coordinates.  Only points
+        between these clipping planes will be displayed.
+        """
 
         # using Numeric (from the OpenGL spec):
         matrix = Numeric.array([[ 2./(right-left), 0.,              0.,                           -(right+left)/(right-left)],
@@ -849,6 +865,26 @@ class OrthographicProjection(Projection):
         #matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         #gl.glPopMatrix() # restore original matrix
             
+        Projection.__init__(self,**{'matrix':matrix})
+
+class OrthographicProjectionNoZClip(Projection):
+    """An orthographic projection without Z clipping"""
+    def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0):
+        """Create an orthographic projection without Z clipping.
+
+        Defaults to map x eye coordinates in the range [0,640] and y
+        eye coordinates [0,480] -> [0,1].  Therefore, if the viewport
+        is 640 x 480, eye coordinates correspond 1:1 with window
+        (pixel) coordinates.
+        """
+
+        # using Numeric (from the OpenGL spec):
+        matrix = Numeric.array([[ 2./(right-left), 0,               0, -(right+left)/(right-left)],
+                                [ 0,               2./(top-bottom), 0, -(top+bottom)/(top-bottom)],
+                                [ 0,               0,              -1, -1.],
+                                [ 0,               0,               0,  1]])
+        matrix = Numeric.transpose(matrix) # convert to OpenGL format
+
         Projection.__init__(self,**{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
@@ -1095,10 +1131,8 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     def make_new_pixel_coord_projection(self):
         """Create instance of Projection mapping eye coordinates 1:1 with pixel coordinates."""
-        return OrthographicProjection(left=0,right=self.parameters.size[0],
-                                      bottom=0,top=self.parameters.size[1],
-                                      z_clip_near=0.0,
-                                      z_clip_far=1.0)
+        return OrthographicProjectionNoZClip(left=0,right=self.parameters.size[0],
+                                             bottom=0,top=self.parameters.size[1])
 
     def make_current(self):
         """Called by Presentation. Set the viewport and draw stimuli."""
@@ -1504,9 +1538,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         self.last_go_loop_start_time_absolute_sec = self.time_sec_absolute
         self.time_sec_since_go = 0.0
-        self._true_time_go_start = VisionEgg.true_time_func()
-        self._true_time_last_frame = self._true_time_go_start
-        true_time_now = self._true_time_go_start
         self.frames_since_go = 0
 
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
@@ -1601,13 +1632,14 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        true_time_since_go = true_time_now - self._true_time_go_start
-        if true_time_since_go != 0.0:
-            calculated_fps = self.frames_since_go / true_time_since_go
-            mean_frame_time_msec = 1000.0 / calculated_fps
-        else:
+        try:
+            mean_frame_time_sec = frame_timer.get_average_ifi_sec()
+            calculated_fps = 1.0/mean_frame_time_sec
+        except:
+            # the above fails when no frames were drawn
+            mean_frame_time_sec = 0.0
             calculated_fps = 0.0
-            mean_frame_time_msec = 0.0
+
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
@@ -2509,6 +2541,8 @@ class FrameTimer:
             raise RuntimeError("running_average_num_frames not set when creating FrameTimer instance")
     
     def get_average_ifi_sec(self):
+        if self._true_time_last_frame is None:
+            raise RuntimeError("No frames were drawn")
         return (self._true_time_last_frame - self.first_tick_sec)/sum( self.timing_histogram )
     
     def print_histogram(self,fd=sys.stdout):
@@ -2657,7 +2691,7 @@ class Message:
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
         min_line_length = 70
-        in_list = string.split(in_str)
+        in_list = in_str.split()
         out_str = ""
         cur_line = ""
         for word in in_list:
@@ -2665,7 +2699,7 @@ class Message:
             if len(cur_line) > min_line_length:
                 out_str = out_str + cur_line[:-1] + "\n"
                 cur_line = "    "
-        if string.strip(cur_line):
+        if cur_line.strip():
             # only add another newline if the last line done is non-empty
             out_str = out_str + cur_line + "\n"
         return out_str
@@ -2720,7 +2754,6 @@ def add_gl_assumption(gl_variable,required_value,failure_callback):
 
 def init_gl_extension(prefix,name):
     global gl # interpreter knows when we're up to something funny with GLTrace
-
     if gl is VisionEgg.GLTrace:
         gl = VisionEgg.GLTrace.gl # restore original module for now
         watched = True
@@ -2734,11 +2767,15 @@ def init_gl_extension(prefix,name):
         warnings.warn("Could not import %s -- some features "%(module_name,)+
                       "will be missing.",
                       UserWarning,stacklevel=2)
-        return
+        return False
     module = eval(module_name)
     init_function_name = "glInit"+name.title().replace('_','')+prefix
     init_function = getattr(module,init_function_name)
-    init_function()
+    if not init_function():
+        warnings.warn("Could not initialize %s -- some features "%(module_name,)+
+                      "will be missing.",
+                      UserWarning,stacklevel=2)
+        return False
     for attr_name in dir(module):
         # put attributes from module into "gl" module dictionary
         # (Namespace overlap as you'd get OpenGL apps written in C)
@@ -2759,6 +2796,7 @@ def init_gl_extension(prefix,name):
     if watched:
         VisionEgg.GLTrace.attach() # (re)scan namespace
         gl = VisionEgg.GLTrace # reinstall GLTrace
+    return True # success!
             
 def post_gl_init():
     """Called by Screen instance. Requires OpenGL context to be created."""
@@ -2767,10 +2805,11 @@ def post_gl_init():
     if gl_version < '1.3':
         init_gl_extension('ARB','multitexture')
         init_gl_extension('ARB','texture_env_combine')
-
+        
     if gl_version < '1.2':
-        init_gl_extension('EXT','bgra')
-        gl.GL_BGRA = gl.GL_BGRA_EXT
+        if init_gl_extension('EXT','bgra'):
+            # make sure gl.GL_BRGA is defined
+            gl.GL_BGRA = gl.GL_BGRA_EXT
 
     for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
@@ -2778,20 +2817,20 @@ def post_gl_init():
             if required_value == "linux_nvidia_or_new_ATI":
                 ok = 0
                 # Test for nVidia
-                if "nvidia" == string.lower(string.split(gl_vendor)[0]):
+                if "nvidia" == gl_vendor.split()[0].lower():
                     ok = 1 # yes it is
                 if gl_renderer.startswith('Mesa DRI Radeon'):
-                    date = string.split(gl_renderer)[3]
+                    date = gl_renderer.split()[3]
                     if date > "20021216": # not sure about exact date
                         ok=1
                 if not ok:
                     failure_callback()
             else:
                 raise RuntimeError("Unknown gl_assumption: %s == %s"%(gl_variable,required_value))
-        elif string.upper(gl_variable) == "GL_VERSION":
-            value_str = string.split(gl_version)[0]
-            value_ints = map(int,string.split(value_str,'.'))
-            value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
+        elif gl_variable.upper() == "GL_VERSION":
+            value_str = gl_version.split()[0]
+            value_ints = map(int,value_str.split('.'))
+            value = float( str(value_ints[0]) + "." + ''.join(map(str,value_ints[1:])))
             if value < required_value:
                 failure_callback()
         else:
