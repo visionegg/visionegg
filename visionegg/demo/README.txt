@@ -55,6 +55,7 @@ plaid.py -- Multiple sinusoidal gratings (with mask)
 sphereMap.py -- Mapping of texture onto sphere
 target.py -- A moving target
 targetBackground.py -- Moving target over a spinning drum
+targetBackground2D.py -- Moving target over a 2D spinning drum
 texture.py -- Load a texture from a file
 textureDrum.py -- A texture-mapped spinning drum
 visual_jitter.py -- Retinal slip demonstration
