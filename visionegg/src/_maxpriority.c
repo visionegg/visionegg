@@ -65,6 +65,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   PyObject * core_Message_INFO; // attribute
 
   PyObject * core_message; // instance
+  PyObject * core_message_add; // method
   PyObject * temp_result;
 
   PyObject * darwin_period_denom_py;
@@ -76,6 +77,9 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   int darwin_computation_denom;
   int darwin_constraint_denom;
   int darwin_preemptible;
+
+  PyObject * info_string;
+
 #if defined(__APPLE__)
   struct thread_time_constraint_policy ttcpolicy;
   int ret;
@@ -184,6 +188,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   /* Destroy Python variables we don't need */
   Py_DECREF(configInstance);  configInstance = NULL;
 
+  /* Now get VisionEgg.Core.message to pass message */
   coreModule = PyImport_ImportModule("VisionEgg.Core");
   if (coreModule == NULL) {
     return NULL;
@@ -217,20 +222,23 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
     Py_DECREF(coreModule);
     return NULL;
   }
-  
-  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority.", core_Message_INFO );
-  if (temp_result == NULL) {
+
+  core_message_add = PyObject_GetAttrString(core_message,"add");
+  if (core_message_add == NULL) {
     Py_DECREF(core_Message_INFO);
     Py_DECREF(coreModule);
     return NULL;
   }
 
-  // Done with python stuff
-  Py_DECREF(temp_result);
-  Py_XDECREF(temp_result);  // PyObject_CallMethod incremented refcount, but not sure if method decremented it, so using XDECREF
-  Py_DECREF(core_Message_INFO);
-  Py_DECREF(coreModule);
-
+  if (!PyCallable_Check(core_message_add)) {
+    PyErr_SetString(PyExc_SystemError,"VisionEgg.Core.message.add not callable.");
+    Py_DECREF(core_message_add);
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+    
+  
 #if defined(__APPLE__)
   /* The Apple Mac OS X specific version */
 
@@ -241,6 +249,34 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   ttcpolicy.computation=bus_speed / darwin_computation_denom;
   ttcpolicy.constraint=bus_speed / darwin_constraint_denom;
   ttcpolicy.preemptible= darwin_preemptible ;
+
+  info_string = PyString_FromFormat("Setting maximum priority on darwin platform.\n"
+				    "( period_denom=%d,\n"
+				    "computation_denom=%d,\n"
+				    "constraint_denom=%d,\n"
+				    "preemptible=%d )",
+				    darwin_period_denom,
+				    darwin_computation_denom,
+				    darwin_constraint_denom,
+				    darwin_preemptible);
+
+  if (info_string == NULL) {
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+  
+  temp_result = PyObject_CallObject(core_message_add,Py_BuildValue("(O)",info_string));
+
+  //temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority.", core_Message_INFO );
+  if (temp_result == NULL) {
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+  Py_DECREF(temp_result);
+  Py_XDECREF(temp_result);  // PyObject_CallMethod incremented refcount, but not sure if method decremented it, so using XDECREF
+  Py_DECREF(info_string);
 
   ret=thread_policy_set(mach_thread_self(),
 			THREAD_TIME_CONSTRAINT_POLICY,
@@ -253,9 +289,27 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 
 #elif defined(_WIN32)
+  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority on win32 platform.", core_Message_INFO );
+  if (temp_result == NULL) {
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+  Py_DECREF(temp_result);
+  Py_XDECREF(temp_result);  // PyObject_CallMethod incremented refcount, but not sure if method decremented it, so using XDECREF
+
   SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #else
+
+  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority on POSIX platform.", core_Message_INFO );
+  if (temp_result == NULL) {
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+  Py_DECREF(temp_result);
+  Py_XDECREF(temp_result);  // PyObject_CallMethod incremented refcount, but not sure if method decremented it, so using XDECREF
 
   /* This should work on all POSIX non-Apple platforms. */
 
@@ -311,6 +365,11 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 #endif /* closes ifdef MCL_FUTURE */
 #endif /* closes ifdef MCL_CURRENT */
 #endif /* closes all precompiler conditionals */
+
+  // Done with python variables
+  Py_DECREF(core_Message_INFO);
+  Py_DECREF(coreModule);
+  Py_DECREF(core_message_add);
 
   Py_INCREF(Py_None);
   return Py_None;  /* It worked OK. */
