@@ -29,7 +29,7 @@
 
 */
 
-#include "darwin_pthread_modified.h"
+#include "darwin_pthread_modified.h" // Had problems with original...
 #include <mach/mach.h>
 #include <sys/sysctl.h>
 #endif /* closes ifndef __APPLE__ */
@@ -37,10 +37,28 @@
 #define TRY(E)     if(! (E)) return NULL
 
 static char set_realtime__doc__[] = 
-"Raise the Vision Egg to maximum priority.";
+"Raise the Vision Egg to maximum priority.
 
-static PyObject *set_realtime(PyObject * self, PyObject * args)
+The following optional keyword arguments only have an effect
+on the darwin (Mac OS X) platform:
+
+  darwin_period_denom = 120;
+  darwin_computation_denom = 2400;
+  darwin_constraint_denom = 1200;
+  darwin_preemptible = 0;";
+
+static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 {
+  static char *kwlist[] = {"darwin_period_denom",
+			   "darwin_computation_denom",
+			   "darwin_constraint_denom",
+			   "darwin_preemptible",
+			   NULL};
+
+  int darwin_period_denom;
+  int darwin_computation_denom;
+  int darwin_constraint_denom;
+  int darwin_preemptible;
 #ifndef __APPLE__
   struct sched_param params;
   int policy;
@@ -51,7 +69,18 @@ static PyObject *set_realtime(PyObject * self, PyObject * args)
   size_t len;
 #endif /* ifndef __APPLE__ */
 
-  TRY(PyArg_ParseTuple(args,""));
+  /* Default values for keyword arguments */
+  darwin_period_denom = 120;
+  darwin_computation_denom = 2400;
+  darwin_constraint_denom = 1200;
+  darwin_preemptible = 0;
+
+  /* Get keyword arguments */
+  TRY(PyArg_ParseTupleAndKeywords(args,kw,"|iiii",kwlist,
+				  &darwin_period_denom,
+				  &darwin_computation_denom,
+				  &darwin_constraint_denom,
+				  &darwin_preemptible));
 
 #ifndef __APPLE__
 
@@ -117,10 +146,10 @@ static PyObject *set_realtime(PyObject * self, PyObject * args)
   len = sizeof(bus_speed);
   sysctl( mib, 2, &bus_speed, &len, NULL, 0);
 
-  ttcpolicy.period= bus_speed/120;
-  ttcpolicy.computation=bus_speed / 2400;
-  ttcpolicy.constraint=bus_speed/1200;
-  ttcpolicy.preemptible=0;
+  ttcpolicy.period= bus_speed / darwin_period_denom;
+  ttcpolicy.computation=bus_speed / darwin_computation_denom;
+  ttcpolicy.constraint=bus_speed / darwin_constraint_denom;
+  ttcpolicy.preemptible= darwin_preemptible ;
 
   ret=thread_policy_set(mach_thread_self(),
 			THREAD_TIME_CONSTRAINT_POLICY,
