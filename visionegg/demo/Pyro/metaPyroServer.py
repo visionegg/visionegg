@@ -41,6 +41,9 @@ class GratingExperimentMetaController( Pyro.core.ObjBase ):
 
         self.p.add_controller(self.stim,'on',VisionEgg.Core.FunctionController(during_go_func=self.on_function))
 
+    def turn_off(self):
+        self.stim.parameters.on = 0
+
     def get_parameters(self):
         return self.meta_params
 
