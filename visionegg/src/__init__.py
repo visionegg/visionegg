@@ -212,18 +212,7 @@ def timing_func():
 class Parameters:
     """Parameter container.
 
-    This parameter container is useful so that parameters can be
-    controlled via any number of means: evaluating a python function,
-    acquiring some data with a digital or analog input, etc.
-
-    Any class which has parameters should be subclass of
-    ClassWithParameters, which will create an instance of this
-    (Parameters) class automatically based on the default parameters
-    and arguments.
-
-    All parameters (such as contrast, position, etc.) which should be
-    modifiable in runtime should be attributes of an instance of this
-    class, which serves as a nameholder for just this purpose."""
+    Simple empty class to act something like a C struct."""
     pass
 
 class ClassWithParameters:
@@ -231,9 +220,7 @@ class ClassWithParameters:
 
     Any class that uses parameters potentially modifiable in realtime
     should be a subclass of ClassWithParameters.  This class enforces
-    a standard system of parameter specification with type checking
-    and default value setting.  See classes Screen, Viewport, or any
-    daughter class of Stimulus for examples.
+    type checking and sets default values.
 
     Any subclass of ClassWithParameters can define two class (not
     instance) attributes, "parameters_and_defaults" and
@@ -241,9 +228,12 @@ class ClassWithParameters:
     the key is a string containing the name of the parameter and the
     the value is a tuple of length 2 containing the default value and
     the type.  For example, an acceptable dictionary would be
-    {"parameter1" : (1.0, types.FloatType)}
+    {"parameter1" : (1.0, ve_types.Real)}
+
+    See the ParameterTypes module for more information about types.
 
     """
+    
     parameters_and_defaults = {} # empty for base class
     constant_parameters_and_defaults = {} # empty for base class
 
@@ -362,6 +352,15 @@ class ClassWithParameters:
         # The for loop only completes if parameter_name is not in any subclass
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
 
+    def verify_parameters(self):
+        """Perform type check on all parameters"""
+        for parameter_name in dir(self.parameters):
+            if parameter_name.startswith('__'):
+                continue
+            require_type = self.get_specified_type(parameter_name)
+            this_type = ve_types.get_type(getattr(self.parameters,parameter_name))
+            ve_types.assert_type(this_type,require_type)
+            
 def get_type(value):
     warnings.warn("VisionEgg.get_type() has been moved to "+\
                   "VisionEgg.ParameterTypes.get_type()",
