@@ -452,9 +452,9 @@ class TextureObject:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
         # determine size and make sure its power of 2
-        def next_power_of_2(f):
-            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
         def check_power_of_2(f):
+            def next_power_of_2(f):
+                return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
             if f != next_power_of_2(f):
                 raise ValueError("image_data does not have all dimensions == n^2")
         if self.dimensions == 1:
