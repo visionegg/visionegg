@@ -4,6 +4,11 @@ This module allows Vision Egg programs to use 3D models in the .3DS
 file format.  We thank the lib3ds project at
 http://lib3ds.sourceforge.net/ for providing the library used.
 
+Several aspects of .3ds files are not yet implemented.  The most
+important of these is that only the first texture map is used from the
+material properties of an object.  Lighting is not used, so the
+specular, ambient and diffuse material properties will have no effect.
+
 It is a known limitation that this module does not currently work on
 Mac OS X.
 
