@@ -10,7 +10,7 @@
 #
 ####################################################################
 
-import sys,types,string
+import sys,types,string, math                   # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
@@ -32,9 +32,6 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-__all__ = ['Screen','Viewport','Projection','OrthographicProjection',
-           'SimplePerspectiveProjection','PerspectiveProjection',
-           'Stimulus','FixationSpot','Presentation','EggError']
 
 ####################################################################
 #
@@ -195,7 +192,10 @@ class Screen(VisionEgg.ClassWithParameters):
                     possible by manually adjusting video
                     drivers. (Look for "Enable Vertical Sync" or
                     similar.)  If buffer swapping is not synchronized,
-                    frame by frame control will not be possible.""",
+                    frame by frame control will not be possible.
+                    Because of this, you will probably get a warning
+                    about calculated frames per second different than
+                    specified.""",
                     level=Message.INFO)
 
         # Check previously made OpenGL assumptions now that we have OpenGL window
@@ -934,7 +934,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                     level=Message.ERROR
                     )
 
-        if math.abs( calculated_fps / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) ) > 0.1:
+        if abs( calculated_fps / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) ) > 0.1:
             # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
             # and only print this warning if that variable is true
             message.add(
@@ -1107,7 +1107,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
 class Controller:
     """Abstract base class that defines interface to any controller."""
-    # Possible temporal variable class:
+    # Possible temporal variable types:
     TIME_SEC_ABSOLUTE = 1
     TIME_SEC_SINCE_GO = 2
     FRAMES_SINCE_GO = 3
@@ -1118,19 +1118,21 @@ class Controller:
     DEPRECATED_TRANSITIONAL = 3 # only for deprecated behavior, don't use!
     
     def __init__(self,
-                 parameter_type = types.NoneType,
+                 return_type = None,
                  temporal_variable_type = TIME_SEC_SINCE_GO,
                  eval_frequency = EVERY_FRAME):
-        if type(parameter_type) not in [types.TypeType,types.ClassType]:
-            raise TypeError("argument 'parameter_type' must specify a type or class.")
-        self.parameter_type = parameter_type
+        if return_type is None:
+            raise ValueError("Must set argument 'return_type' in Controller.")
+        if type(return_type) not in [types.TypeType,types.ClassType]:
+            raise TypeError("argument 'return_type' must specify a type or class.")
+        self.return_type = return_type
         
         self.temporal_variable = None
         self.temporal_variable_type = temporal_variable_type
         self.eval_frequency = eval_frequency
 
     def returns_type(self):
-        return self.parameter_type
+        return self.return_type
     
     def during_go_eval(self):
         raise NotImplementedError("Definition in abstract base class Contoller must be overriden.")
@@ -1140,15 +1142,21 @@ class Controller:
     
 class ConstantController(Controller):
     def __init__(self,
-                 during_go_value = 1,
-                 between_go_value = 0,
+                 during_go_value = None,
+                 between_go_value = None,
                  **kw
                  ):
+        if during_go_value is None:
+            raise ValueError("Must specify during_go_value")
+        if between_go_value is None:
+            between_go_value = during_go_value
+        if 'return_type' not in kw.keys():
+            kw['return_type'] = type(during_go_value)
         apply(Controller.__init__,(self,),kw)
-        if type(going_value) is not self.parameter_type:
-            raise TypeError("going_value must be of type parameter_type.")
-        if type(between_go_value) is not self.parameter_type:
-            raise TypeError("between_go_value must be of type parameter_type.")
+        if type(during_go_value) is not self.return_type:
+            raise TypeError("going_value must be of type %s"%return_type)
+        if type(between_go_value) is not self.return_type:
+            raise TypeError("between_go_value must be of type %s"%return_type)
         self.during_go_value = during_go_value
         self.between_go_value = between_go_value
         
@@ -1159,25 +1167,43 @@ class ConstantController(Controller):
         return self.between_go_value
 
 class EvalStringController(Controller):
-    # Todo: restrict namespace available to avoid clashes
     def __init__(self,
                  during_go_eval_string = "",
                  between_go_eval_string = "",
                  **kw
                  ):
+        # Create a namespace for eval_strings to use
+        self.eval_globals = {}
+        # Make Numeric and math modules available
+        self.eval_globals['Numeric'] = Numeric
+        self.eval_globals['math'] = math
+        # Make Numeric and math modules available without module name
+        for key in dir(Numeric):
+            self.eval_globals[key] = getattr(Numeric,key)
+        for key in dir(math):
+            self.eval_globals[key] = getattr(math,key)
+
+        # Check to make sure return_type is set
+        if 'return_type' not in kw.keys():
+            message.add('Evaluating "%s" to test for return type.'%(during_go_eval_string,),
+                        Message.TRIVIAL)
+            # XXX Todo - make 't' dependent on temporal variable type and other stuff?
+            eval_locals = {'t':0.0}
+            test_result = eval(during_go_eval_string,self.eval_globals,eval_locals)
+            kw['return_type'] = type(test_result)
+
+        # Call base class __init__ and copy eval_strings
         apply(Controller.__init__,(self,),kw)
         self.during_go_eval_string = during_go_eval_string
         self.between_go_eval_string = between_go_eval_string
 
     def during_go_eval(self):
-        # a shortcut until namespace stuff worked out
-        t = self.temporal_variable
-        return eval(self.during_go_eval_string)
+        eval_locals = {'t':self.temporal_variable}
+        return eval(self.during_go_eval_string,self.eval_globals,eval_locals)
 
     def between_go_eval(self):
-        # a shortcut until namespace stuff worked out
-        t = self.temporal_variable
-        return eval(self.between_go_eval_string)
+        eval_locals = {'t':self.temporal_variable}
+        return eval(self.between_go_eval_string,self.eval_globals,eval_locals)
 
 class DeprecatedCompatibilityController(Controller):
     """DEPRECATED. Allows emulation of purely function-based controllers."""
@@ -1199,11 +1225,11 @@ class DeprecatedCompatibilityController(Controller):
         else:
             my_type = result_type
         
-        if 'parameter_type' in kw.keys():
-            if kw['parameter_type'] != my_type:
-                raise ValueError("parameter_type for DeprecatedCompatibilityController must be type(eval_func(-1))")
+        if 'return_type' in kw.keys():
+            if kw['return_type'] != my_type:
+                raise ValueError("return_type for DeprecatedCompatibilityController must be type(eval_func(-1))")
         else:
-            kw['parameter_type'] = my_type
+            kw['return_type'] = my_type
 
         apply(Controller.__init__,(self,),kw)
         self.eval_func = eval_func
