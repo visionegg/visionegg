@@ -864,7 +864,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         current_time_absolute = start_time_absolute
         current_time = 0.0
         current_frame = 0
-        if p.duration[1] == 'seconds': # duration units
+        if p.duration[0] == 'forever': # forever
+            current_duration_value = 0
+        elif p.duration[1] == 'seconds': # duration units
             current_duration_value = current_time
         elif p.duration[1] == 'frames': # duration units
             current_duration_value = current_frame
@@ -1020,6 +1022,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             current_duration_value = current_time
         elif p.duration[1] == 'frames':
             current_duration_value = current_frame
+        elif p.duration[1] == 'forever':
+            current_duration_value = 0
+            duration_value = 1
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
         while (current_duration_value < duration_value):
