@@ -28,6 +28,7 @@ ConstantController -- constant value
 EvalStringController -- use dynamically interpreted Python string
 ExecStringController -- use potentially complex Python string
 FunctionController -- use a Python function
+EncapsulatedController -- use a controller to control a controller
 
 Exceptions:
 
@@ -178,7 +179,7 @@ class Screen(VisionEgg.ClassWithParameters):
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,self.constant_parameters.preferred_bpp) # try the preferred size first
 
-        if sys.platform[:4]=='linux' or sys.platform[:3]=='irix':
+        if sys.platform[:5]=='linux' or sys.platform[:4]=='irix':
             # SDL doesn't like to give a 32 bpp depth, even if it works
             try:
                 while 1:
@@ -217,9 +218,13 @@ class Screen(VisionEgg.ClassWithParameters):
         self.size = self.constant_parameters.size
 
         append_str = ""
+        if self.constant_parameters.fullscreen:
+            screen_mode = "fullscreen"
+        else:
+            screen_mode = "window"
         if hasattr(pygame.display,"gl_set_attribute"):
             append_str = " (%d %d %d %d RGBA)."%(r,g,b,a)
-        message.add("Initializing graphics at %d x %d, %d bpp%s"%(self.size[0],self.size[1],try_bpp,append_str))
+        message.add("Requesting %s %d x %d %d bpp%s"%(screen_mode,self.size[0],self.size[1],try_bpp,append_str))
 
         try:
             pygame.display.set_mode(self.size, flags, try_bpp )
@@ -485,6 +490,10 @@ class Viewport(VisionEgg.ClassWithParameters):
     For details of the projection and clipping process, see the
     section 'Coordinate Transformations' in the book/online document
     'The OpenGL Graphics System: A Specification'
+
+    User methods:
+
+    make_new_pixel_coord_projection -- Create a projection with pixel coordinates
 
     Parameters:
 
@@ -757,6 +766,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     trigger_armed -- Int (boolean) to gate the trigger on the 'go' loop
     trigger_go_if_armed -- Int (boolean) the trigger on the 'go' loop
     enter_go_loop -- Int (boolean) used by run_forever to enter 'go' loop
+    quit -- Int (boolean) quits the run_forever loop if set
+    warn_mean_fps_threshold -- Float (fraction) threshold to print observered vs. expected frame rate warning
+    warn_longest_frame_threshold -- Float (fraction) threshold to print frame skipped warning
     
     Methods:
 
@@ -780,7 +792,14 @@ class Presentation(VisionEgg.ClassWithParameters):
                                'trigger_go_if_armed':(1, #boolean
                                                       types.IntType),
                                'enter_go_loop':(0, #boolean
-                                                types.IntType)}
+                                                types.IntType),
+                               'quit':(0, #boolean
+                                       types.IntType),
+                               'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
+                                                          types.FloatType),
+                               'warn_longest_frame_threshold':(1.5, # fraction
+                                                               types.FloatType),
+                               }
     
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
@@ -794,6 +813,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
 
+        self.time_sec_absolute=VisionEgg.timing_func()
+        self.frames_absolute=0
+
     def add_controller( self, class_with_parameters, parameter_name, controller ):
         """Add a controller"""
         # Check if type checking needed
@@ -801,12 +823,14 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Check if return type of controller eval is same as parameter type
             if class_with_parameters.is_constant_parameter(parameter_name):
                 raise TypeError("Attempt to control constant parameter '%s' of class %s."%(parameter_name,class_with_parameters))
-            if controller.returns_type() != class_with_parameters.get_specified_type(parameter_name):
-                if not issubclass( controller.returns_type(), class_with_parameters.get_specified_type(parameter_name) ):
-                    raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
-                        parameter_name,
-                        class_with_parameters.get_specified_type(parameter_name),
-                        controller.returns_type()))
+            require_type = class_with_parameters.get_specified_type(parameter_name)
+            try:
+                VisionEgg.assert_type(controller.returns_type(),require_type)
+            except TypeError,x:
+                raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
+                    parameter_name,
+                    class_with_parameters.get_specified_type(parameter_name),
+                    controller.returns_type()))                
             if not hasattr(class_with_parameters.parameters,parameter_name):
                 raise AttributeError("%s has no instance '%s'"%parameter_name)
             self.controllers.append( (class_with_parameters.parameters,parameter_name, controller) )
@@ -815,7 +839,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             if not (type(class_with_parameters) == types.NoneType and type(parameter_name) == types.NoneType):
                 raise ValueError("Neither or both of class_with_parameters and parameter_name must be None.")
             self.controllers.append( (None,None,controller) )
-        if controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+        if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
             self.num_frame_controllers = self.num_frame_controllers + 1
 
     def remove_controller( self, class_with_parameters, parameter_name, controller ):
@@ -833,7 +857,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                     del self.controllers[i]
-                    if orig_controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+                    if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
                     i = i + 1
@@ -843,52 +867,53 @@ class Presentation(VisionEgg.ClassWithParameters):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
                     del controller_list[i]
-                    if orig_controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+                    if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
                     i = i + 1
 
     def __call_controllers(self,
-                         time_sec_absolute=None,
-                         time_sec_since_go=None,
-                         frames_since_go=None,
                          go_started=None,
                          doing_transition=None):
-        switch_to_transitional = [] # list of contollers
+        done_once = [] # list of ONCE contollers to switch status of
         for (parameters_instance, parameter_name, controller) in self.controllers:
-            if doing_transition:
-                if controller.eval_frequency == Controller.TRANSITIONS or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS: # or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
-                    if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
-                        # We evaluated it once, switch to TRANSITIONS mode
-                        switch_to_transitional.append(controller)
-                    if go_started:
+            evaluate = 0
+            if controller.eval_frequency & Controller.ONCE:
+                evaluate = 1
+                done_once.append(controller)
+            elif doing_transition and (controller.eval_frequency & Controller.TRANSITIONS):
+                evaluate = 1
+            elif controller.eval_frequency & Controller.EVERY_FRAME:
+                evaluate = 1
+
+            if evaluate:
+                if controller.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+                    controller.time_sec_absolute = self.time_sec_absolute
+                if controller.temporal_variables & Controller.FRAMES_ABSOLUTE:
+                    controller.frames_absolute = self.frames_absolute
+
+                if go_started:
+                    if not (controller.eval_frequency & Controller.NOT_DURING_GO):
+                        if controller.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                            controller.time_sec_since_go = self.time_sec_since_go
+                        if controller.temporal_variables & Controller.FRAMES_SINCE_GO:
+                            controller.frames_since_go = self.frames_since_go
                         result = controller.during_go_eval()
                         if parameter_name is not None:
                             setattr(parameters_instance, parameter_name, result)
-                    else:
+                else:
+                    if not (controller.eval_frequency & Controller.NOT_BETWEEN_GO):
+                        if controller.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                            controller.time_sec_since_go = None
+                        if controller.temporal_variables & Controller.FRAMES_SINCE_GO:
+                            controller.frames_since_go = None
                         result = controller.between_go_eval()
                         if parameter_name is not None:
                             setattr(parameters_instance, parameter_name, result)
-            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
-                if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
-                    switch_to_transitional.append(controller)
-                if controller.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
-                    controller.temporal_variable = time_sec_since_go
-                elif controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
-                    controller.temporal_variable = frames_since_go
-                elif controller.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
-                    controller.temporal_variable = time_sec_absolute
-                    
-                if go_started:
-                    result = controller.during_go_eval()
-                    if parameter_name is not None:
-                        setattr(parameters_instance, parameter_name, result)
-                else:
-                    result = controller.between_go_eval()
-                    if parameter_name is not None:
-                        setattr(parameters_instance, parameter_name, result)
-        for controller in switch_to_transitional:
-            controller.eval_frequency = Controller.TRANSITIONS
+
+        for controller in done_once:
+            #Unset ONCE flag
+            controller.eval_frequency = controller.eval_frequency & ~Controller.ONCE
         
     def go(self,collect_timing_info=0):
         """Main control loop during stimulus presentation.
@@ -921,32 +946,31 @@ class Presentation(VisionEgg.ClassWithParameters):
             self.between_presentations()
 
         # Go!
+
+        longest_frame_draw_time_sec = 0.0
             
+        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_since_go = 0.0
+        self.frames_since_go = 0
+        
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
-            time_sec_absolute=VisionEgg.timing_func(),
             go_started=1,
             doing_transition=1)
 
         # Do the main loop
-        start_time_absolute = VisionEgg.timing_func()
-        current_time_absolute = start_time_absolute
-        current_time = 0.0
-        current_frame = 0
+        start_time_absolute = self.time_sec_absolute
         if p.go_duration[0] == 'forever': # forever
             current_duration_value = 0
         elif p.go_duration[1] == 'seconds': # duration units
-            current_duration_value = current_time
+            current_duration_value = self.time_sec_since_go
         elif p.go_duration[1] == 'frames': # duration units
-            current_duration_value = current_frame
+            current_duration_value = self.frames_since_go
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
         while (current_duration_value < p.go_duration[0]):
             # Update all the realtime parameters
             self.__call_controllers(
-                time_sec_absolute=current_time_absolute,
-                time_sec_since_go=current_time,
-                frames_since_go=current_frame,
                 go_started=1,
                 doing_transition=0)
             
@@ -970,22 +994,28 @@ class Presentation(VisionEgg.ClassWithParameters):
             
             # If wanted, save time this frame was drawn for
             if collect_timing_info:
-                self.frame_draw_times.append(current_time)
+                self.frame_draw_times.append(self.time_sec_since_go)
                 
-            # Get the time for the next frame
-            current_time_absolute = VisionEgg.timing_func()
-            current_time = current_time_absolute-start_time_absolute
-            current_frame = current_frame + 1
-            
+            # Set the time variables for the next frame
+            self.time_sec_absolute=VisionEgg.timing_func()
+            last_time_sec_since_go = self.time_sec_since_go
+            self.time_sec_since_go = self.time_sec_absolute - start_time_absolute
+            self.frames_absolute = self.frames_absolute+1
+            self.frames_since_go = self.frames_since_go+1
+
+            longest_frame_draw_time_sec = max(longest_frame_draw_time_sec,self.time_sec_since_go-last_time_sec_since_go)
+        
             # Make sure we use the right value to check if we're done
             if p.go_duration[0] == 'forever': # forever
                 pass # current_duration_value already set to 0
             elif p.go_duration[1] == 'seconds':
-                current_duration_value = current_time
+                current_duration_value = self.time_sec_since_go
             elif p.go_duration[1] == 'frames':
-                current_duration_value = current_frame
+                current_duration_value = self.frames_since_go
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
+
+            # Check events if requested
             if p.check_events:
                 for event in pygame.event.get():
                     for event_type, event_callback in p.handle_event_callbacks:
@@ -994,13 +1024,12 @@ class Presentation(VisionEgg.ClassWithParameters):
             
         # Tell transitional controllers a presentation has ended
         self.__call_controllers(
-            time_sec_absolute=VisionEgg.timing_func(),
             go_started=0,
             doing_transition=1)
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        calculated_fps = current_frame / current_time
+        calculated_fps = self.frames_since_go / self.time_sec_since_go
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
@@ -1014,8 +1043,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                     level=Message.ERROR
                     )
                 
-        # Warn if > 10% error in frame rate
-        if abs(calculated_fps-VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) > 0.05:
+        # Warn if > warn_mean_fps_threshold error in frame rate
+        if abs(calculated_fps-VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) > self.parameters.warn_mean_fps_threshold:
             # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
             # and only print this warning if that variable is true
             message.add(
@@ -1023,6 +1052,27 @@ class Presentation(VisionEgg.ClassWithParameters):
                 VisionEgg.config specified %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
                 level=Message.WARNING
                 )
+
+        frame_skip_fraction = self.parameters.warn_longest_frame_threshold
+        inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
+
+        if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
+            message.add(
+
+                """One or more frames took %.1f msec, which is
+                signficantly longer than the expected inter frame
+                interval of %.1f msec for your frame rate (%.1f Hz)."""%(
+         
+                longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
+                level=Message.WARNING)
+        else:
+            message.add(
+
+                """Longest frame update was %.1f msec.  Your expected
+                inter frame interval is %f msec."""%(
+
+                longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
+                level=Message.TRIVIAL)
                 
         if collect_timing_info:
             self.__print_frame_timing_stats()
@@ -1035,19 +1085,22 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Create shorthand notation, which speeds the main loop
         # slightly by not performing name lookup each time.
         p = self.parameters
-
-        current_time = 0.0
-        current_time_absolute = current_time
-        current_frame = 0
-
+        
+        # Switch function VisionEgg.timing_func
+        self.time_sec_absolute=VisionEgg.timing_func() # Set for real once
         real_timing_func = VisionEgg.timing_func
         def fake_timing_func():
-            return current_time_absolute
+            return self.time_sec_absolute
         VisionEgg.timing_func = fake_timing_func
+        
+        # Go!
+            
+        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_since_go = 0.0
+        self.frames_since_go = 0
         
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
-            time_sec_absolute=0.0,
             go_started=1,
             doing_transition=1)
 
@@ -1056,17 +1109,14 @@ class Presentation(VisionEgg.ClassWithParameters):
         if p.go_duration[0] == 'forever': # forever
             current_duration_value = 0
         elif p.go_duration[1] == 'seconds': # duration units
-            current_duration_value = current_time
+            current_duration_value = self.time_sec_since_go
         elif p.go_duration[1] == 'frames': # duration units
-            current_duration_value = current_frame
+            current_duration_value = self.frames_since_go
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
         while (current_duration_value < p.go_duration[0]):
             # Update all the realtime parameters
             self.__call_controllers(
-                time_sec_absolute=current_time,
-                time_sec_since_go=current_time,
-                frames_since_go=current_frame,
                 go_started=1,
                 doing_transition=0)
             
@@ -1098,18 +1148,24 @@ class Presentation(VisionEgg.ClassWithParameters):
             message.add("Saving '%s'"%filename)
             fb_image.save( savepath )
             image_no = image_no + 1
-            current_time = current_time + 1.0/frames_per_sec
-            current_time_absolute = current_time
-            current_frame = current_frame + 1
+
+            # Set the time variables for the next frame
+            self.time_sec_absolute= self.time_sec_absolute + 1.0/frames_per_sec
+            self.time_sec_since_go = self.time_sec_since_go + 1.0/frames_per_sec
+            self.frames_absolute = self.frames_absolute+1
+            self.frames_since_go = self.frames_since_go+1
+
+            # Make sure we use the right value to check if we're done
             if p.go_duration[0] == 'forever':
-                current_duration_value = 0
+                pass # current_duration_value already set to 0
             elif p.go_duration[1] == 'seconds':
-                current_duration_value = current_time
+                current_duration_value = self.time_sec_since_go
             elif p.go_duration[1] == 'frames':
-                current_duration_value = current_frame
+                current_duration_value = self.frames_since_go
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
-
+            
+            # Check events if requested
             if p.check_events:
                 for event in pygame.event.get():
                     for event_type, event_callback in p.handle_event_callbacks:
@@ -1118,7 +1174,6 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # Tell transitional controllers a presentation has ended
         self.__call_controllers(
-            time_sec_absolute=current_time,
             go_started=0,
             doing_transition=1)
 
@@ -1139,12 +1194,17 @@ class Presentation(VisionEgg.ClassWithParameters):
                     """Only saved 8 bit per pixel movie, even
                     though your framebuffer supports more!""",
                     level=Message.WARNING)
-                    
+
+        # Restore VisionEgg.timing_func
         VisionEgg.timing_func = real_timing_func
 
     def run_forever(self):
         p = self.parameters
-        while 1:
+        # enter with transitional contoller call
+        self.__call_controllers(
+            go_started=0,
+            doing_transition=1)
+        while not p.quit:
             self.between_presentations()
             if self.parameters.enter_go_loop:
                 self.parameters.enter_go_loop = 0
@@ -1165,10 +1225,10 @@ class Presentation(VisionEgg.ClassWithParameters):
         controllers, this routine is very similar to the inside of the
         main loop in the go method.
         """
+        
+        self.time_sec_absolute=VisionEgg.timing_func()
+        
         self.__call_controllers(
-            time_sec_absolute=VisionEgg.timing_func(),
-            time_sec_since_go=None,
-            frames_since_go=None,
             go_started=0,
             doing_transition=0)
 
@@ -1188,6 +1248,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         for viewport in viewports:
             viewport.draw()
         swap_buffers()
+        self.frames_absolute = self.frames_absolute+1
         
     def __print_frame_timing_stats(self):
         """Print a histogram of the last recorded frame drawing times.
@@ -1255,57 +1316,106 @@ class Controller:
     """Control parameters.
 
     This abstract base class defines interface to any controller.
+
+    A Controller instance's attribute "eval_frequency" controls when a
+    controller is evaluated. This variable is a bitwise "or" of the
+    following flags:
+
+    Controller.NEVER          -- never
+    Controller.EVERY_FRAME    -- every frame
+    Controller.TRANSITIONS    -- on enter and exit from go loop
+    Controller.ONCE           -- as above and at the next chance possible
+    Controller.NOT_DURING_GO  -- as above, but never during go loop
+    Controller.NOT_BETWEEN_GO -- as above, but never between go loops
+
+    The Controller.ONCE flag is automatically unset after evaluation,
+    hence its name.
+
+    As an example, if eval_frequency is set to Controller.ONCE |
+    Controller.TRANSITIONS (the bitwise "or"), it will be evaluated
+    before drawing the next frame and then only before and after the
+    go loop.
+
+    A Controller instance's attribute "temporal_variables" controls
+    what time variables are set for use. This variable is a bitwise
+    "or" of the following flags:
+
+    Controller.TIME_SEC_ABSOLUTE -- seconds, continuously increasing
+    Controller.TIME_SEC_SINCE_GO -- seconds, reset to 0.0 each go loop
+    Controller.FRAMES_ABSOLUTE   -- frames, continuously increasing
+    Controller.FRAMES_SINCE_GO   -- frames, reset to 0 each go loop
+
+    Attributes:
+
+    return_type -- type of the value returned by the eval functions
+    eval_frequency -- when eval functions called (see above)
+    temporal_variables -- what time variables used (see above)
     
-    Possible values for eval_frequency:
-    
-    Controller.EVERY_FRAME
-    Controller.TRANSITIONS
-    Controller.NOW_THEN_TRANSITIONS
-
-    Possible values for temporal_variable_type:
-
-    Controller.TIME_SEC_ABSOLUTE
-    Controller.TIME_SEC_SINCE_GO
-    Controller.FRAMES_SINCE_GO
-
     Methods:
     
-    returns_type -- Get the return type of this controller
+    returns_type -- Get the type of the value returned by the eval functions
     during_go_eval -- Evaluate controller during the main 'go' loop.
     between_go_eval -- Evaluate controller between runs of the main 'go' loop.
     
     """
-    # Possible temporal variable types:
-    TIME_SEC_ABSOLUTE = 1
-    TIME_SEC_SINCE_GO = 2
-    FRAMES_SINCE_GO = 3
+    # temporal_variables flags:
+    TIME_INDEPENDENT  = 0x00
+    TIME_SEC_ABSOLUTE = 0x01
+    TIME_SEC_SINCE_GO = 0x02
+    FRAMES_ABSOLUTE   = 0x04
+    FRAMES_SINCE_GO   = 0x08
 
-    # Possible eval frequency:
-    EVERY_FRAME = 1
-    TRANSITIONS = 2
-    NOW_THEN_TRANSITIONS = 3 # evaluate as soon as possible, then switch to TRANSITIONS
+    # eval_frequency flags:
+    NEVER          = 0x00
+    EVERY_FRAME    = 0x01
+    TRANSITIONS    = 0x02
+    ONCE           = 0x04
+    NOT_DURING_GO  = 0x08
+    NOT_BETWEEN_GO = 0x10
+
+    flag_dictionary = {
+        'TIME_INDEPENDENT'  : TIME_INDEPENDENT,
+        'TIME_SEC_ABSOLUTE' : TIME_SEC_ABSOLUTE,
+        'TIME_SEC_SINCE_GO' : TIME_SEC_SINCE_GO,
+        'FRAMES_ABSOLUTE'   : FRAMES_ABSOLUTE,
+        'FRAMES_SINCE_GO'   : FRAMES_SINCE_GO,
+        
+        'NEVER'             : NEVER,
+        'EVERY_FRAME'       : EVERY_FRAME,
+        'TRANSITIONS'       : TRANSITIONS,
+        'ONCE'              : ONCE,
+        'NOT_DURING_GO'     : NOT_DURING_GO,
+        'NOT_BETWEEN_GO'    : NOT_BETWEEN_GO}
     
     def __init__(self,
-                 return_type = None,
-                 temporal_variable_type = TIME_SEC_SINCE_GO,
-                 eval_frequency = EVERY_FRAME):
-        """Arguments:
+                 eval_frequency = EVERY_FRAME,
+                 temporal_variables = TIME_SEC_SINCE_GO,
+                 return_type = None):
+        """Create instance of Controller. 
 
-        eval_frequency -- Int (pseudo-enum)
-        temporal_variable_type -- Int (pseudo-enum)
-        return_type -- Set to the type of the parameter under control
+        Arguments:
+
+        eval_frequency -- Int, bitwise "or" of flags
+        temporal_variables -- Int, bitwise "or" of flags
+        return_type -- Set to type() of the parameter under control
         
         """
-        if return_type is None:
+        if return_type is None: # Can be types.NoneType, but not None!
             raise ValueError("Must set argument 'return_type' in Controller.")
         if type(return_type) not in [types.TypeType,types.ClassType]:
             raise TypeError("argument 'return_type' must specify a type or class.")
         self.return_type = return_type
         
-        self.temporal_variable = None
-        self.temporal_variable_type = temporal_variable_type
+        self.temporal_variables = temporal_variables
         self.eval_frequency = eval_frequency
 
+    def evaluate_now(self):
+        """Call this after updating the values of a controller if it's not evaluated EVERY_FRAME."""
+        self.eval_frequency = self.eval_frequency | Controller.ONCE
+
+    def set_eval_frequency(self,eval_frequency):
+        self.eval_frequency = eval_frequency
+        
     def returns_type(self):
         """Called by Presentation. Get the return type of this controller."""
         return self.return_type
@@ -1321,6 +1431,34 @@ class Controller:
         
         Override this method in base classes.""" 
         raise NotImplementedError("Definition in abstract base class Controller must be overriden.")
+
+    def _test_self(self,go_started):
+        """Test whether a controller works.
+        
+        This method performs everything the Presentation go() or
+        run_forever() methods do when calling controllers, except that
+        the temporal variables are set to -1 and that the return value
+        is not used to set parameters."""
+        
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            self.time_sec_absolute = -1.0
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            self.frames_absolute = -1
+
+        if go_started:
+            if not (self.eval_frequency & Controller.NOT_DURING_GO):
+                if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                    self.time_sec_since_go = -1.0
+                if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+                    self.frames_since_go = -1
+                return self.during_go_eval()
+        else:
+            if not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
+                if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                    self.time_sec_since_go = None
+                if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+                    self.frames_since_go = None
+                return self.between_go_eval()
     
 class ConstantController(Controller):
     """Set parameters to a constant value."""
@@ -1330,19 +1468,31 @@ class ConstantController(Controller):
                  **kw
                  ):
         if 'return_type' not in kw.keys():
-            kw['return_type'] = type(during_go_value)
+            kw['return_type'] = VisionEgg.get_type(during_go_value)
+        if 'eval_frequency' not in kw.keys():
+            kw['eval_frequency'] = Controller.ONCE | Controller.TRANSITIONS
         apply(Controller.__init__,(self,),kw)
         if self.return_type is not types.NoneType and during_go_value is None:
             raise ValueError("Must specify during_go_value")
         if between_go_value is None:
             between_go_value = during_go_value
-        if type(during_go_value) is not self.return_type:
-            raise TypeError("going_value must be of type %s"%return_type)
-        if type(between_go_value) is not self.return_type:
-            raise TypeError("between_go_value must be of type %s"%return_type)
+        VisionEgg.assert_type(VisionEgg.get_type(during_go_value),self.return_type)
+        VisionEgg.assert_type(VisionEgg.get_type(between_go_value),self.return_type)
         self.during_go_value = during_go_value
         self.between_go_value = between_go_value
+
+    def set_during_go_value(self,during_go_value):
+        if type(during_go_value) is not self.return_type:
+            raise TypeError("during_go_value must be of type %s"%return_type)
+        else:
+            self.during_go_value = during_go_value
         
+    def set_between_go_value(self,between_go_value):
+        if type(between_go_value) is not self.return_type:
+            raise TypeError("between_go_value must be of type %s"%return_type)
+        else:
+            self.between_go_value = between_go_value
+            
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         return self.during_go_value
@@ -1352,7 +1502,24 @@ class ConstantController(Controller):
         return self.between_go_value
 
 class EvalStringController(Controller):
-    """Set parameters using dynamically interpreted Python string."""
+    """Set parameters using dynamically interpreted Python string.
+    
+    To increase speed, the string is compiled to Python's bytecode
+    format.
+    
+    The string can make use of temporal variables, which are made
+    available depending on the controller's temporal_variables
+    attribute. Note that only the absolute temporal variables are
+    available when the go loop is not running.
+
+    flag(s) present    variable  description
+    
+    TIME_SEC_ABSOLUTE  t_abs     seconds, continuously increasing
+    TIME_SEC_SINCE_GO  t         seconds, reset to 0.0 each go loop
+    FRAMES_ABSOLUTE    f_abs     frames, continuously increasing
+    FRAMES_SINCE_GO    f         frames, reset to 0 each go loop
+    
+    """
     def __init__(self,
                  during_go_eval_string = None,
                  between_go_eval_string = None,
@@ -1363,8 +1530,6 @@ class EvalStringController(Controller):
 
         if during_go_eval_string is None:
             raise ValueError("'during_go_eval_string' is a required argument")
-        if between_go_eval_string is None:
-            between_go_eval_string = during_go_eval_string
         
         # Make Numeric and math modules available
         self.eval_globals['Numeric'] = Numeric
@@ -1375,52 +1540,82 @@ class EvalStringController(Controller):
         for key in dir(math):
             self.eval_globals[key] = getattr(math,key)
 
-        # Check to make sure return_type is set
-        if 'return_type' not in kw.keys():
-            message.add('Evaluating "%s" to test for return type.'%(during_go_eval_string,),
-                        Message.TRIVIAL)
-            temporal_variable_name = 't' # temporal_variable_type defaults to TIME_SEC_SINCE_GO
-            initial_value = 0.0
-            if 'temporal_variable_type' in kw.keys():
-                if kw['temporal_variable_type'] == Controller.TIME_SEC_ABSOLUTE:
-                    temporal_variable_name = 't_abs'
-                    initial_value = VisionEgg.timing_func()
-                elif kw['temporal_variable_type'] == Controller.TIME_SEC_SINCE_GO:
-                    pass # don't change the default
-                elif kw['temporal_variable_type'] == Controller.FRAMES_SINCE_GO:
-                    temporal_variable_name = 'f'
-                    initial_value = 0
-                else:
-                    raise ValueError("Unknown value for temporal_variable_type")
-            eval_locals = {temporal_variable_name:initial_value}
-            test_result = eval(during_go_eval_string,self.eval_globals,eval_locals)
-            kw['return_type'] = type(test_result)
-
-        # Call base class __init__ and copy eval_strings
-        apply(Controller.__init__,(self,),kw)
-
-        if self.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
-            self.temporal_variable_name = 't_abs'
-        elif self.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
-            self.temporal_variable_name = 't'
-        elif self.temporal_variable_type == Controller.FRAMES_SINCE_GO:
-            self.temporal_variable_name = 'f'
-
         self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
+        not_between_go = 0
+        if between_go_eval_string is None:
+            not_between_go = 1
+        else:
+            self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
+            
+        # Check to make sure return_type is set
+        set_return_type = 0
+        if 'return_type' not in kw.keys():
+            set_return_type = 1
+            kw['return_type'] = types.NoneType
+            
+        # Call base class __init__
+        apply(Controller.__init__,(self,),kw)
+        if not_between_go:
+            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
+        if set_return_type:
+            if not (self.eval_frequency & Controller.NOT_DURING_GO):
+                message.add('Executing "%s" to test for return type.'%(during_go_eval_string,),
+                            Message.TRIVIAL)
+                self.return_type = type(self._test_self(go_started=1))
+            elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
+                message.add('Executing "%s" to test for return type.'%(between_go_eval_string,),
+                            Message.TRIVIAL)
+                self.return_type = type(self._test_self(go_started=0))
+                
+    def set_during_go_eval_string(self,during_go_eval_string):
+        self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
+
+    def set_between_go_eval_string(self,between_go_eval_string):
         self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
+        self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
-        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        eval_locals = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            eval_locals['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+            eval_locals['t'] = self.time_sec_since_go
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            eval_locals['f_abs'] = self.frames_absolute
+        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+            eval_locals['f'] = self.frames_since_go
         return eval(self.during_go_eval_code,self.eval_globals,eval_locals)
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
-        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        eval_locals = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            eval_locals['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            eval_locals['f_abs'] = self.frames_absolute
         return eval(self.between_go_eval_code,self.eval_globals,eval_locals)
     
 class ExecStringController(Controller):
-    """Set parameters using potentially complex Python string."""
+    """Set parameters using potentially complex Python string.
+
+    You can execute arbitrarily complex Python code with this
+    controller.  To increase speed, the string is compiled to Python's
+    bytecode format.
+
+    The string can make use of temporal variables, which are made
+    available depending on the controller's temporal_variables
+    attribute. Note that only the absolute temporal variables are
+    available when the go loop is not running.
+
+    flag(s) present    variable  description
+    
+    TIME_SEC_ABSOLUTE  t_abs     seconds, continuously increasing
+    TIME_SEC_SINCE_GO  t         seconds, reset to 0.0 each go loop
+    FRAMES_ABSOLUTE    f_abs     frames, continuously increasing
+    FRAMES_SINCE_GO    f         frames, reset to 0 each go loop
+
+    """
     def __init__(self,
                  during_go_exec_string = None,
                  between_go_exec_string = None,
@@ -1432,8 +1627,6 @@ class ExecStringController(Controller):
 
         if during_go_exec_string is None:
             raise ValueError("'during_go_exec_string' is a required argument")
-        if between_go_exec_string is None:
-            between_go_exec_string = during_go_exec_string
 
         self.restricted_namespace = restricted_namespace
 
@@ -1447,103 +1640,200 @@ class ExecStringController(Controller):
             for key in dir(math):
                 self.eval_globals[key] = getattr(math,key)
 
-        # Check to make sure return_type is set
-        if 'return_type' not in kw.keys():
-            message.add('Executing "%s" to test for return type.'%(during_go_exec_string,),
-                        Message.TRIVIAL)
-            temporal_variable_name = 't' # temporal_variable_type defaults to TIME_SEC_SINCE_GO
-            initial_value = 0.0
-            if 'temporal_variable_type' in kw.keys():
-                if kw['temporal_variable_type'] == Controller.TIME_SEC_ABSOLUTE:
-                    temporal_variable_name = 't_abs'
-                    initial_value = VisionEgg.timing_func()
-                elif kw['temporal_variable_type'] == Controller.TIME_SEC_SINCE_GO:
-                    pass # don't change the default
-                elif kw['temporal_variable_type'] == Controller.FRAMES_SINCE_GO:
-                    temporal_variable_name = 'f'
-                    initial_value = 0
-                else:
-                    raise ValueError("Unknown value for temporal_variable_type")
-            if self.restricted_namespace:
-                eval_locals = {temporal_variable_name:initial_value}
-                exec during_go_exec_string in self.eval_globals,eval_locals
-                test_result = eval_locals['x']
-            else:
-                exec temporal_variable_name + "=" + repr(initial_value)
-                exec during_go_exec_string
-                test_result = x
-            kw['return_type'] = type(test_result)
-        
-        # Call base class __init__ and copy eval_strings
-        apply(Controller.__init__,(self,),kw)
-
-        if self.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
-            self.temporal_variable_name = 't_abs'
-        elif self.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
-            self.temporal_variable_name = 't'
-        elif self.temporal_variable_type == Controller.FRAMES_SINCE_GO:
-            self.temporal_variable_name = 'f'
-
         self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
+        not_between_go = 0
+        if between_go_exec_string is None:
+            not_between_go = 1
+        else:
+            self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
+
+        # Check to make sure return_type is set
+        set_return_type = 0
+        if 'return_type' not in kw.keys():
+            set_return_type = 1
+            kw['return_type'] = types.NoneType
+
+        # Call base class __init__
+        apply(Controller.__init__,(self,),kw)
+        if not_between_go:
+            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO        
+        if set_return_type:
+            if not (self.eval_frequency & Controller.NOT_DURING_GO):
+                message.add('Executing "%s" to test for return type.'%(during_go_exec_string,),
+                            Message.TRIVIAL)
+                self.return_type = type(self._test_self(go_started=1))
+            elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
+                message.add('Executing "%s" to test for return type.'%(between_go_exec_string,),
+                            Message.TRIVIAL)
+                self.return_type = type(self._test_self(go_started=0))
+
+    def set_during_go_exec_string(self,during_go_exec_string):
+        self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
+
+    def set_between_go_exec_string(self,between_go_exec_string):
         self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
+        self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
+        eval_locals = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            eval_locals['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+            eval_locals['t'] = self.time_sec_since_go
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            eval_locals['f_abs'] = self.frames_absolute
+        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+            eval_locals['f'] = self.frames_since_go
         if self.restricted_namespace:
-            eval_locals = {self.temporal_variable_name:self.temporal_variable}
-            exec self.during_go_exec_code in self.eval_globals,eval_locals        
+            exec self.during_go_exec_code in self.eval_globals,eval_locals
             return eval_locals['x']
         else:
-            exec self.temporal_variable_name + "=" + repr(self.temporal_variable)
+            setup_locals_str = "\n"
+            for local_variable_name in eval_locals.keys():
+                setup_locals_str = setup_locals_str + local_variable_name + "=" + repr(eval_locals[local_variable_name]) + "\n"
+                exec setup_locals_str
             exec self.during_go_exec_code
             return x
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
+        eval_locals = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            eval_locals['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            eval_locals['f_abs'] = self.frames_absolute
         if self.restricted_namespace:
-            eval_locals = {self.temporal_variable_name:self.temporal_variable}
             exec self.between_go_exec_code in self.eval_globals,eval_locals
             return eval_locals['x']
         else:
-            exec self.temporal_variable_name + "=" + repr(self.temporal_variable)
+            setup_locals_str = "\n"
+            for local_variable_name in eval_locals.keys():
+                setup_locals_str = setup_locals_str + local_variable_name + "=" + repr(eval_locals[local_variable_name]) + "\n"
+                exec setup_locals_str
             exec self.between_go_exec_code
             return x
     
 class FunctionController(Controller):
-    """Set parameters using a Python function."""
+    """Set parameters using a Python function.
+
+    This is a very commonly used subclass of Controller, because it is
+    very intuitive and requires a minimum of code to set up.  Many of
+    the Vision Egg demo programs create instances of
+    FunctionController.
+
+    """
     def __init__(self,
                  during_go_func = None,
                  between_go_func = None,
                  **kw
                  ):
+        """Create an instance of FunctionController.
+
+        Arguments:
+    
+        during_go_func -- function evaluted during go loop
+        between_go_func -- function evaluted not during go loop
+        
+        """
         if during_go_func is None:
             raise ValueError("Must specify during_go_func")
-        if between_go_func is None:
-            between_go_func = during_go_func
+            
+        # Set default value if not set
+        if 'temporal_variables' not in kw.keys():
+            kw['temporal_variables'] = Controller.TIME_SEC_SINCE_GO # default value
+
+        # Check to make sure return_type is set
         if 'return_type' not in kw.keys():
-            try:
-                # try a float for temporal variable
-                # emulate modes TIME_SEC_ABSOLUTE and TIME_SEC_SINCE_GO
-                kw['return_type'] = type(during_go_func(0.0))
-            except:
-                try:
-                    # try an int for temporal variable
-                    # emulate mode FRAMES_SINCE_GO
-                    kw['return_type'] = type(during_go_func(0))
-                except:
-                    raise
+            message.add('Evaluating %s to test for return type.'%(str(during_go_func),),
+                        Message.INFO)
+            call_args = {}
+            if kw['temporal_variables'] & Controller.TIME_SEC_ABSOLUTE:
+                call_args['t_abs'] = VisionEgg.timing_func()
+            if kw['temporal_variables'] & Controller.TIME_SEC_SINCE_GO:
+                call_args['t'] = 0.0
+            if kw['temporal_variables'] & Controller.FRAMES_ABSOLUTE:
+                call_args['f_abs'] = 0
+            if kw['temporal_variables'] & Controller.FRAMES_SINCE_GO:
+                call_args['f'] = 0
+            # Call the function with time variables
+            kw['return_type'] = type(apply(during_go_func,(),call_args))
         apply(Controller.__init__,(self,),kw)
         self.during_go_func = during_go_func
         self.between_go_func = between_go_func
-        
+        if between_go_func is None:
+            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
+
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
-        return self.during_go_func(self.temporal_variable)
+        call_args = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            call_args['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+            call_args['t'] = self.time_sec_since_go
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            call_args['f_abs'] = self.frames_absolute
+        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+            call_args['f'] = self.frames_since_go
+        return apply(self.during_go_func,(),call_args)
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
-        return self.between_go_func(self.temporal_variable)
+        call_args = {}
+        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+            call_args['t_abs'] = self.time_sec_absolute
+        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+            call_args['f_abs'] = self.frames_absolute
+        return apply(self.between_go_func,(),call_args)
 
+class EncapsulatedController(Controller):
+    """Set parameters by encapsulating another Controller.
+
+    Allows a new instance of Controller to control the same parameter
+    as an old instance.
+
+    You probably won't ever have to use this class directly.  Both the
+    VisionEgg.TCPController.TCPController and
+    VisionEgg.PyroHelpers.PyroEncapsulatedController classes subclass
+    this class.
+
+    """
+    def __init__(self,initial_controller):
+        # Initialize base class without raising error for no return_type
+        apply(Controller.__init__,(self,),{'return_type':types.NoneType})
+        self.contained_controller = initial_controller
+        self.__sync_mimic()
+        
+    def __sync_mimic(self):
+        self.return_type = self.contained_controller.return_type
+        self.temporal_variables = self.contained_controller.temporal_variables
+        self.eval_frequency = self.contained_controller.eval_frequency
+        
+    def set_new_controller(self,new_controller):
+        """Call this to encapsulate a (new) controller."""
+        self.contained_controller = new_controller
+        self.__sync_mimic()
+
+    def during_go_eval(self):
+        """Called by Presentation. Overrides method in Controller base class."""
+        if self.temporal_variables & VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE:
+            self.contained_controller.time_sec_absolute = self.time_sec_absolute
+        if self.temporal_variables & VisionEgg.Core.Controller.TIME_SEC_SINCE_GO:
+            self.contained_controller.time_sec_since_go = self.time_sec_since_go
+        if self.temporal_variables & VisionEgg.Core.Controller.FRAMES_ABSOLUTE:
+            self.contained_controller.frames_absolute = self.frames_absolute
+        if self.temporal_variables & VisionEgg.Core.Controller.FRAMES_SINCE_GO:
+            self.contained_controller.frames_since_go = self.frames_since_go
+        return self.contained_controller.during_go_eval()
+
+    def between_go_eval(self):
+        """Called by Presentation. Overrides method in Controller base class."""
+        if self.temporal_variables & VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE:
+            self.contained_controller.time_sec_absolute = self.time_sec_absolute
+        if self.temporal_variables & VisionEgg.Core.Controller.FRAMES_ABSOLUTE:
+            self.contained_controller.frames_absolute = self.frames_absolute
+        return self.contained_controller.between_go_eval()
+        
 ####################################################################
 #
 #        Error handling and assumption checking
@@ -1565,7 +1855,7 @@ class Message:
     def __init__(self,
                  prefix="VisionEgg",
                  exception_level=ERROR,
-                 print_level=INFO,
+                 print_level=VisionEgg.config.VISIONEGG_MESSAGE_LEVEL,
                  output_stream=sys.stderr):
         self.prefix = prefix
         self.message_queue = []
