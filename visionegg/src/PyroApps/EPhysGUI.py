@@ -25,6 +25,7 @@ except NameError:
     False = 1==0
 
 import sys, socket, re, time, string, types, os
+import parser, symbol, token, compiler
 import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import StringIO
@@ -45,6 +46,10 @@ import VisionEgg.PyroApps.SphereGratingGUI
 import VisionEgg.PyroApps.SpinningDrumGUI
 import VisionEgg.PyroApps.GridGUI
 import VisionEgg.PyroApps.ColorCalGUI
+# Added:
+import VisionEgg.PyroApps.DropinGUI
+import VisionEgg.PyroApps.AST_ext as AST_ext
+import VisionEgg.PyroApps.VarTypes as VarTypes
 
 client_list = []
 client_list.extend( VisionEgg.PyroApps.TargetGUI.get_control_list() )
@@ -54,6 +59,8 @@ client_list.extend( VisionEgg.PyroApps.SphereGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SpinningDrumGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.GridGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.ColorCalGUI.get_control_list() )
+# Added:
+client_list.extend( VisionEgg.PyroApps.DropinGUI.get_control_list() )
 
 class ContainedObjectBase:
     """Base class to encapsulate objects, provides useful methods when used in GUI"""
@@ -82,7 +89,7 @@ class ScrollListFrame(Tkinter.Frame):
         # The frame that has the list and the vscroll
         self.frame = Tkinter.Frame(self,borderwidth=2)
         self.frame.grid(row=0,sticky="nwes")
-        
+
         # allow column to expand
         self.frame.columnconfigure(0,weight=1)
 
@@ -117,7 +124,7 @@ class ScrollListFrame(Tkinter.Frame):
         self.frame.title.grid(row=1,column=0,ipady=0,pady=0,sticky='we')
         self.frame.list.grid(row=2,column=0,sticky='nwes')
         self.frame.list.bind('<Double-Button-1>',self.edit_selected)
-        
+
         # The buttons on bottom
         self.bar = Tkinter.Frame(self,borderwidth=2)
         self.bar.grid(row=1,sticky="we")
@@ -137,7 +144,7 @@ class ScrollListFrame(Tkinter.Frame):
     def delegate_hscroll(self,*args,**kw):
         self.frame.title.xview(*args,**kw)
         self.frame.list.xview(*args,**kw)
-        
+
     def get_list_uncontained(self):
         results = []
         for contained_object_item in self.list:
@@ -299,7 +306,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         else:
             self.orig_values = None
         return tkSimpleDialog.Dialog.__init__(self, *args, **kw )
-        
+
     def body(self,master):
         Tkinter.Label(master,
                       text="Add sequence of automatic variable values",
@@ -326,7 +333,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                       font=("Helvetica",12,"bold"),).grid(row=var_frame_row,
                                                           column=0,
                                                           columnspan=num_cols)
-        
+
         self.var_name = Tkinter.StringVar()
         self.var_name.set("<repeat>")
         var_names = loopable_variables[:] # copy
@@ -357,7 +364,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         Tkinter.Label(sequence_frame,
                       text="Sequence values",
                       font=("Helvetica",12,"bold"),).grid(row=seq_row,column=0,columnspan=2)
-        
+
         seq_row += 1
         self.sequence_type = Tkinter.StringVar()
         self.sequence_type.set("manual")
@@ -460,14 +467,14 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         Tkinter.Checkbutton( rest_dur_frame,
                              text="Shuffle sequence order",
                              variable=self.shuffle_tk_var).grid(row=2,column=0,columnspan=2)
-                             
+
         if self.orig_values is not None:
             self.var_name.set( self.orig_values.parameters.variable )
-            
+
             self.sequence_manual_string.set( str(self.orig_values.parameters.sequence) )
-            
+
             self.rest_dur.set( self.orig_values.parameters.rest_duration_sec )
-            
+
 
     def validate(self):
         if self.sequence_type.get() == "manual":
@@ -535,12 +542,12 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
 
         if self.shuffle_tk_var.get():
             random.shuffle(seq)
-            
+
         self.result = Loop(variable=self.var_name.get(),
                            sequence=seq,
                            rest_duration_sec=rest_dur_sec)
         return 1
-    
+
     def destroy(self):
         # clear tk variables
         self.var_name = None
@@ -555,7 +562,7 @@ def get_server(hostname="",port=7766):
         def __init__(self,master=None,hostname="",port=7766,**kw):
             # Allow VisionEgg Tkinter exception window
             VisionEgg.config._Tkinter_used = True
-            
+
             Tkinter.Frame.__init__(self,master, **kw)
             self.winfo_toplevel().title("EPhysGUI Connect - Vision Egg")
             current_row = 0
@@ -572,7 +579,7 @@ def get_server(hostname="",port=7766):
             current_row += 1
             Tkinter.Label(self,text="Hostname:").grid(row=current_row, column=0)
             Tkinter.Entry(self,textvariable=self.hostname_tk).grid(row=current_row, column=1)
-          
+
             self.port_tk = Tkinter.IntVar()
             self.port_tk.set(port)
             current_row += 1
@@ -588,12 +595,12 @@ def get_server(hostname="",port=7766):
             ok.bind('<Return>',self.ok)
             Tkinter.Button(bf,text="Cancel",command=self.quit).grid(row=0,column=1)
             self.result = None
-            
+
         def ok(self,dummy_arg=None):
             self.result = (self.hostname_tk.get(),self.port_tk.get())
             self.destroy()
             self.quit()
-            
+
     connect_win = ConnectWindow(hostname=hostname,port=port)
     connect_win.pack()
     connect_win.mainloop()
@@ -606,7 +613,7 @@ class GammaFrame(Tkinter.Frame):
         Tkinter.Frame.__init__(self,master,**kw)
         self.winfo_toplevel().title("Gamma - Vision Egg")
         self.ephys_server = ephys_server
-        
+
         self.columnconfigure(0,weight=1)
 
         row = 0
@@ -756,7 +763,7 @@ class GammaFrame(Tkinter.Frame):
         except Exception,x:
             self.success_label.configure(text="Failed: %s: %s"%(x.__class__,str(x)))
             raise
-            
+
 class ImageSequenceLauncher(Tkinter.Toplevel):
     def __init__(self,master=None,ephys_server=None,**cnf):
         Tkinter.Toplevel.__init__(self,master,**cnf)
@@ -765,7 +772,7 @@ class ImageSequenceLauncher(Tkinter.Toplevel):
         self.ephys_server = ephys_server
 
         self.columnconfigure(1,weight=1)
-        
+
         row = 0
         Tkinter.Label(self,text="Frames per second").grid(row=row,column=0)
         self.fps_var = Tkinter.DoubleVar()
@@ -801,7 +808,7 @@ class ImageSequenceLauncher(Tkinter.Toplevel):
                                               filename_suffix=filename_suffix,
                                               save_dir=server_save_dir)
         self.destroy()
-        
+
 class AppWindow(Tkinter.Frame):
     def __init__(self,
                  master=None,
@@ -819,7 +826,7 @@ class AppWindow(Tkinter.Frame):
 
         # Allow VisionEgg Tkinter exception window
         VisionEgg.config._Tkinter_used = True
-        
+
         # create myself
         Tkinter.Frame.__init__(self,master, **cnf)
         self.winfo_toplevel().title("EPhysGUI - Vision Egg")
@@ -828,7 +835,7 @@ class AppWindow(Tkinter.Frame):
 
         self.server_hostname = server_hostname
         self.server_port = server_port
-        
+
         self.pyro_client = VisionEgg.PyroClient.PyroClient(self.server_hostname,self.server_port)
         self.ephys_server = self.pyro_client.get("ephys_server")
         self.ephys_server.first_connection()
@@ -838,14 +845,14 @@ class AppWindow(Tkinter.Frame):
 
         self.autosave_dir = Tkinter.StringVar()
         self.autosave_dir.set( os.path.abspath(os.curdir) )
-        
+
         self.autosave_basename = Tkinter.StringVar()
 
         # create menu bar
         self.bar = Tkinter.Menu(tearoff=0)
         top = self.winfo_toplevel()
         top.configure(menu=self.bar)
-        
+
         self.bar.file_menu = Tkinter.Menu(self.bar, name="file_menu")
         self.bar.add_cascade(label="File",menu=self.bar.file_menu)
 
@@ -854,6 +861,9 @@ class AppWindow(Tkinter.Frame):
         self.bar.file_menu.add_command(label='Load configuration file...', command=self.load_config)
         self.bar.file_menu.add_command(label='Load auto-saved .py parameter file...', command=self.load_params)
         self.bar.file_menu.add_separator()
+        self.bar.file_menu.add_command(label='Load Vision Egg script...', command=self.load_demoscript)
+        self.bar.file_menu.add_separator()
+
         self.quit_server_too = Tkinter.BooleanVar()
         self.quit_server_too.set(1)
         self.bar.file_menu.add_checkbutton(label='Quit server too',
@@ -861,7 +871,7 @@ class AppWindow(Tkinter.Frame):
         self.bar.file_menu.add_command(label='Quit',
                                        command=self.quit,
                                        )
-        
+
         stimkey = self.ephys_server.get_stimkey()
         self.stimulus_tk_var = Tkinter.StringVar()
         self.stimulus_tk_var.set( stimkey )
@@ -877,7 +887,7 @@ class AppWindow(Tkinter.Frame):
         self.bar.calibration_menu = Tkinter.Menu(self.bar, name="calibration_menu")
         self.bar.add_cascade(label="Configure/Calibrate",
                              menu=self.bar.calibration_menu)
-        
+
         self.bar.calibration_menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
         self.bar.calibration_menu.add_command(label='Stimulus onset timing...', command=self.launch_stim_onset_cal)
         self.bar.calibration_menu.add_command(label='Load gamma table...', command=self.launch_gamma_panel)
@@ -885,10 +895,10 @@ class AppWindow(Tkinter.Frame):
         self.notify_on_dropped_frames.set(1)
         self.bar.calibration_menu.add_checkbutton(label='Warn on frame skip',
                                                   variable=self.notify_on_dropped_frames)
-        
+
         self.override_t_abs_sec = Tkinter.StringVar() # Tkinter DoubleVar loses precision
         self.override_t_abs_sec.set("0.0")
-        
+
         self.override_t_abs_on = Tkinter.BooleanVar()
         self.override_t_abs_on.set(0)
         self.bar.calibration_menu.add_checkbutton(label='Override server absolute time (CAUTION)',
@@ -901,7 +911,7 @@ class AppWindow(Tkinter.Frame):
                                'column':0,
                                'columnspan':2,
                                'sticky':'nwes'}
-        
+
         row += 1
         Tkinter.Label(self,
                       text="Sequence information",
@@ -944,7 +954,7 @@ class AppWindow(Tkinter.Frame):
                                  value="Matlab format",
                                  variable=self.param_file_type_tk_var)
         filetype_bar['menu'] = filetype_bar.menu
-        
+
         asf.grid_row += 1
         Tkinter.Label(asf,
                       text="Parameter file directory:").grid(row=asf.grid_row,column=0,sticky="e")
@@ -959,7 +969,7 @@ class AppWindow(Tkinter.Frame):
                       textvariable=self.autosave_basename).grid(row=asf.grid_row,column=1,sticky="we")
         Tkinter.Button(asf,
                        text="Reset",command=self.reset_autosave_basename).grid(row=asf.grid_row,column=2)
-        
+
         row += 1
         Tkinter.Button(self, text='Do single trial', command=self.do_single_trial).grid(row=row,column=0)
         Tkinter.Button(self, text='Do sequence', command=self.do_loops).grid(row=row,column=1)
@@ -1004,9 +1014,13 @@ class AppWindow(Tkinter.Frame):
             del self.stim_frame
 
         self.stim_frame = control_frame_klass(self,suppress_go_buttons=1)
+        ######## ADDED:
+        if stimkey == "dropin_server":
+            self.stim_frame.gen_var_widgets(self.demoscript_filename, self.vars_list)
+        ########
         self.stim_frame.connect(self.server_hostname,self.server_port)
         self.stim_frame.grid( **self.stim_frame_cnf )
-        
+
         global loopable_variables
         loopable_variables = self.stim_frame.get_loopable_variable_names()
         if hasattr(self, 'loop_frame'):
@@ -1018,7 +1032,7 @@ class AppWindow(Tkinter.Frame):
         self.loop_frame.grid( **self.loop_frame_cnf )
 
         self.autosave_basename.set( self.stim_frame.get_shortname() )
-        
+
         self.stimulus_tk_var.set( self.stim_frame.get_shortname() ) # set menuitem
 
         self.progress.labelText = "Ready"
@@ -1039,9 +1053,10 @@ class AppWindow(Tkinter.Frame):
 
         if not found:
             raise RuntimeError("Don't know about stimkey %s"%new_stimkey)
-        
-        if new_control_frame_klass != self.stim_frame.__class__:
-                                
+
+        ##################### MODIFIED CONDITION:
+        if new_control_frame_klass != self.stim_frame.__class__ or new_stimkey == "dropin_server":
+        #####################
             # make wait cursor
             root = self.winfo_toplevel()
             old_cursor = root["cursor"]
@@ -1064,10 +1079,10 @@ class AppWindow(Tkinter.Frame):
                 #restore cursor
                 root["cursor"] = old_cursor
                 root.update()
-            
+
     def save_image_sequence(self):
         ImageSequenceLauncher(self,ephys_server=self.ephys_server)
-        
+
     def save_config(self):
         self.stim_frame.send_values() # copy values from Tkinter to self.stim_frame.meta_params and send to server
         if self.config_dir is not None:
@@ -1109,7 +1124,7 @@ class AppWindow(Tkinter.Frame):
         file_contents = fd.read()
         file_contents = file_contents.replace('\r\n','\n') # deal with Windows newlines
         memory_file = StringIO.StringIO(file_contents)
-        load_dict = pickle.load(memory_file)       
+        load_dict = pickle.load(memory_file)
         if load_dict['stim_type'] != self.stim_frame.get_shortname():
             self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
         self.loop_frame.list = load_dict['loop_list']
@@ -1118,7 +1133,7 @@ class AppWindow(Tkinter.Frame):
         self.autosave.set(load_dict['autosave'])
         self.autosave_dir.set(load_dict['autosave_dir'])
         self.autosave_basename.set(load_dict['autosave_basename'])
-        
+
         self.stim_frame.update_tk_vars()
 
     def load_params(self,orig_load_dict={}):
@@ -1166,9 +1181,97 @@ class AppWindow(Tkinter.Frame):
                                          "/ Calibrate menu) when done.",
                                          parent=self)
             self.override_t_abs_sec.set(repr(override_t_abs_sec)) # make string
-        
+
         self.stim_frame.update_tk_vars()
         return load_dict # return unused variables
+
+
+############################################################################ NEW:
+    def load_demoscript(self):
+        self.demoscript_filename = tkFileDialog.askopenfilename(
+            parent=self,
+            defaultextension=".py",
+            filetypes=[('Vision Egg Demo Script','*.py')])
+
+        if not self.demoscript_filename:
+            #self.success_label.configure(text="No file given")
+            return
+        else:
+            # make wait cursor
+            root = self.winfo_toplevel()
+            old_cursor = root["cursor"]
+            root["cursor"] = "watch"
+            root.update()
+
+
+            fd1 = open(self.demoscript_filename, 'r')
+            demoscript = ""
+
+            # List of all variables.
+            # Each variable is a tuple of the form [x, y, z] where:
+            # x: variable type ID,
+            # y: variable name,
+            # z: variable value.
+            self.vars_list = []
+
+            myString = fd1.readline()
+
+            while myString != "":
+                if string.find(myString, "get_default_screen()") != -1:
+                    append_flag = 0
+                elif string.find(myString, "watch_exceptions()") != -1:
+                    append_flag = 0
+                elif string.find(myString, "start_default_logging()") != -1:
+                    append_flag = 0
+                elif string.find(myString, "#%f") == 0:
+                    self.vars_list.append([VarTypes.getID("float"), myString.replace("#%f", "").split()[0]])
+                    append_flag = 0
+                elif string.find(myString, "#%i") == 0:
+                    self.vars_list.append([VarTypes.getID("integer"), myString.replace("#%i", "").split()[0]])
+                    append_flag = 0
+                elif string.find(myString, "#%s") == 0:
+                    self.vars_list.append([VarTypes.getID("string"), myString.replace("#%s", "").split()[0]])
+                    append_flag = 0
+                else:
+                    append_flag = 1
+
+                if append_flag == 1:
+                    demoscript = demoscript + myString
+                myString = fd1.readline()
+
+            fd1.close()
+
+            # Client side AST. Only used to extract default values of elected variables:
+            try:
+                AST = parser.suite(demoscript)
+
+                for var in self.vars_list:
+                    var_val = AST_ext.extract_from_AST(AST, var[1])
+                    if var[0] == VarTypes.getID("string"):
+                        var_val = var_val[1:len(var_val) - 1]
+                    var.append(var_val)
+
+                del AST # save memory
+
+                # unfortunately, sending an AST object over a Pyro connection has its complications... so we don't do it
+                self.ephys_server.build_AST(demoscript)
+
+                self.change_stimulus(new_stimkey="dropin_server")
+
+            except parser.ParserError:
+                tkMessageBox.showerror("Error", "Invalid demo script!")
+
+            #restore cursor
+            root["cursor"] = old_cursor
+            root.update()
+
+############################################################################ END NEW
+
+
+
+
+
+
 
     def launch_screen_pos(self, dummy_arg=None):
         dialog = Tkinter.Toplevel(self)
@@ -1206,7 +1309,7 @@ class AppWindow(Tkinter.Frame):
         self.stim_onset_width.set(width)
         self.stim_onset_height = Tkinter.DoubleVar()
         self.stim_onset_height.set(height)
-        
+
         Tkinter.Label( location_frame, text="Center X:").grid(row=0,column=0)
         Tkinter.Entry( location_frame, textvariable=self.stim_onset_x,width=5).grid(row=0,column=1)
         Tkinter.Label( location_frame, text="Center Y:").grid(row=0,column=2)
@@ -1244,7 +1347,7 @@ class AppWindow(Tkinter.Frame):
         width = self.stim_onset_width.get()
         height = self.stim_onset_height.get()
         self.ephys_server.set_stim_onset_cal_location(center=(x,y),size=(width,height))
-        
+
     def do_loops(self):
         loop_list = self.loop_frame.get_list_uncontained()
         global need_rest_period
@@ -1254,11 +1357,11 @@ class AppWindow(Tkinter.Frame):
             return
 
         def process_loops(depth): # recursive processing of loops
-            
+
             class LoopInfoFrame(Tkinter.Frame):
                 def __init__(self, master=None, **kw):
                     Tkinter.Frame.__init__(self,master,**kw)
-                    Tkinter.Label(self, 
+                    Tkinter.Label(self,
                         text="Doing sequence").grid(row=0,column=0)
                     self.status_tk_var = Tkinter.StringVar()
                     Tkinter.Label(self,
@@ -1270,7 +1373,7 @@ class AppWindow(Tkinter.Frame):
                     self.grab_set()
                 def cancel(self, dummy_arg=None):
                     self.cancel_asap = 1
-        
+
             global need_rest_period
 
             global loop_info_frame
@@ -1278,7 +1381,7 @@ class AppWindow(Tkinter.Frame):
                 top = Tkinter.Toplevel(self)
                 loop_info_frame = LoopInfoFrame(top)
                 loop_info_frame.pack()
-                        
+
             loop = loop_list[depth]
             max_depth = len(loop_list)-1
             while not loop.is_done() and not loop_info_frame.cancel_asap:
@@ -1300,36 +1403,41 @@ class AppWindow(Tkinter.Frame):
                 top.destroy()
 
         process_loops(0) # start recursion on top level
-        
-    def do_single_trial(self):
-        # Get filename to save parameters
-        if not self.autosave.get():
-            file_stream = None # not saving file
-        else:
-            duration_sec = self.stim_frame.get_duration_sec()
-            (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
-            trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
-            if self.param_file_type_tk_var.get() == "Python format":
-                # Figure out filename to save parameters in
-                filename = self.autosave_basename.get() + trial_time_str + "_params.py"
-                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                file_stream = open(fullpath_filename,"w")
-            elif self.param_file_type_tk_var.get() == "Matlab format":
-                # Figure out filename to save results in
-                filename = self.autosave_basename.get() + trial_time_str + "_params.m"
-                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                file_stream = open(fullpath_filename,"w")
-            else:
-                raise ValueError('Unknown file format: "%s"'%(self.param_file_type_tk_var.get(),))
-            
-        # this class is broken into parts so it can be subclassed more easily
-        self.do_single_trial_pre(file_stream)
-        self.do_single_trial_work()
-        self.do_single_trial_post(file_stream)
 
-        # Close parameter save file
-        if self.autosave.get():
-            file_stream.close()
+    def do_single_trial(self):
+        ###########################  ADDED THIS:
+        if self.ephys_server.get_stimkey() == "dropin_server":
+            self.do_single_trial_work()
+        ###########################
+        else:
+            # Get filename to save parameters
+            if not self.autosave.get():
+                file_stream = None # not saving file
+            else:
+                duration_sec = self.stim_frame.get_duration_sec()
+                (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
+                trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
+                if self.param_file_type_tk_var.get() == "Python format":
+                    # Figure out filename to save parameters in
+                    filename = self.autosave_basename.get() + trial_time_str + "_params.py"
+                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                    file_stream = open(fullpath_filename,"w")
+                elif self.param_file_type_tk_var.get() == "Matlab format":
+                    # Figure out filename to save results in
+                    filename = self.autosave_basename.get() + trial_time_str + "_params.m"
+                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                    file_stream = open(fullpath_filename,"w")
+                else:
+                    raise ValueError('Unknown file format: "%s"'%(self.param_file_type_tk_var.get(),))
+
+            # this class is broken into parts so it can be subclassed more easily
+            self.do_single_trial_pre(file_stream)
+            self.do_single_trial_work()
+            self.do_single_trial_post(file_stream)
+
+            # Close parameter save file
+            if self.autosave.get():
+                file_stream.close()
 
     def do_single_trial_pre(self, file_stream):
         # Ensure that we have the most up-to-date values
@@ -1353,7 +1461,7 @@ class AppWindow(Tkinter.Frame):
                     file_stream.write("%s = %s;\n"%(parameter_name, parameter_value))
             else:
                 raise RuntimeError("Unknown parameter file type") # Should never get here
-                
+
     def do_single_trial_work(self):
         # make wait cursor
         root = self.winfo_toplevel()
@@ -1366,20 +1474,37 @@ class AppWindow(Tkinter.Frame):
             self.progress.updateProgress(0)
 
             duration_sec = self.stim_frame.get_duration_sec()
+            ##### MODIFIED CONDITION:
+            if duration_sec > 0:
+            #####
+                if self.override_t_abs_on.get():
+                    new_t_abs_str = self.override_t_abs_sec.get()
+                    self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
 
-            if self.override_t_abs_on.get():
-                new_t_abs_str = self.override_t_abs_sec.get()
-                self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
+                self.stim_frame.go() # start server going, but this return control immediately
+                self.sleep_with_progress(duration_sec)
+                while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
+                    time.sleep(0.1) # wait 100 msec for end of go loop and try again
 
-            self.stim_frame.go() # start server going, but this return control immediately
-            self.sleep_with_progress(duration_sec)
-            while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
-                time.sleep(0.1) # wait 100 msec for end of go loop and try again
-            if self.notify_on_dropped_frames.get():
-                if self.ephys_server.were_frames_dropped_in_last_go_loop():
-                    tkMessageBox.showwarning("Dropped frame(s)",
-                                             "During the last trial, at least 1 frame was dropped.",
-                                             parent=self)
+                if self.notify_on_dropped_frames.get():
+                    if self.ephys_server.were_frames_dropped_in_last_go_loop():
+                        tkMessageBox.showwarning("Dropped frame(s)",
+                                                 "During the last trial, at least 1 frame was dropped.",
+                                                  parent=self)
+            ##### MODIFIED (needs work):
+            else:
+                # Vision Egg script:
+                if self.stim_frame.send_values():
+                    self.ephys_server.run_demoscript()
+                    self.stim_frame.quit_server()
+                #if self.notify_on_dropped_frames.get():
+                    #if self.ephys_server.script_dropped_frames != -1:
+                        #tkMessageBox.showwarning("Dropped frame(s)",
+                                                 #"During the last trial, at least 1 frame was dropped.",
+                                                  #parent=self)
+
+
+            #####
         finally:
             root["cursor"] = self.old_cursor
             root.update()
@@ -1401,7 +1526,7 @@ class AppWindow(Tkinter.Frame):
                 file_stream.write("go_loop_start_time_abs_sec = %s;\n"%repr(go_loop_start_time))
             else:
                 raise RuntimeError("Unknown parameter file type") # Should never get here
-                
+
     def sleep_with_progress(self, duration_sec):
         if duration_sec == 0.0:
             return # don't do anything
@@ -1427,7 +1552,7 @@ class AppWindow(Tkinter.Frame):
         except:
             pass
         Tkinter.Frame.destroy(self)
-        
+
 class BarButton(Tkinter.Menubutton):
     # Taken from Guido van Rossum's Tkinter svkill demo
         def __init__(self, master=None, **cnf):
@@ -1435,7 +1560,7 @@ class BarButton(Tkinter.Menubutton):
             self.pack(side=Tkinter.LEFT)
             self.menu = Tkinter.Menu(self, name='menu', tearoff=0)
             self['menu'] = self.menu
-                
+
 if __name__ == '__main__':
     hostname = os.getenv("ephys_server_hostname","")
     port = int(os.getenv("ephys_server_port","7766"))
