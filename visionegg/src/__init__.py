@@ -114,8 +114,8 @@ if not sys.argv[0]: # Interactive mode
 
 class _ExceptionHookKeeper:
     def handle_exception(self, exc_type, exc_value, exc_traceback):
-
-        # send exception to log file
+        global config # XXX hmm -- I don't know why this is necessary.  (Because we're in an exception?)
+        # send exception to log file (if it's open yet)
         if hasattr(config,"_message"):
             traceback_stream = StringIO.StringIO()
             traceback.print_exception(exc_type,exc_value,exc_traceback,None,traceback_stream)
@@ -149,7 +149,9 @@ class _ExceptionHookKeeper:
                 GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
 
         # continue on with normal exception processing:
+        __keep_config__ = config # bizarre that the exception handler changes our values...
         self.orig_hook(exc_type, exc_value, exc_traceback)
+        config = __keep_config__ # but we work around it!
 
     def __init__(self):
         self._sys = sys # preserve ref to sys module
@@ -360,16 +362,6 @@ class ClassWithParameters:
         # The for loop only completes if parameter_name is not in any subclass
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
 
-class StaticClassMethod:
-    """Used within the Vision Egg to create static class methods.
-
-    This comes from Alex Martelli's recipe at
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52304
-    Static class methods are methods which do not require the class to
-    be instantiated.  In fact, they are often used as constructors."""
-    def __init__(self,method):
-        self.__call__ = method
-
 def get_type(value):
     warnings.warn("VisionEgg.get_type() has been moved to "+\
                   "VisionEgg.ParameterTypes.get_type()",
@@ -405,3 +397,5 @@ def _get_lowerleft(position,anchor,size):
     else:
         raise ValueError("No anchor position %s"%anchor)
     return lowerleft
+
+
