@@ -85,5 +85,6 @@ B 	Process Priority Class	Thread Priority Level
 */
 
 /* in win32_maxpriority.c */
-extern void set_self_process_priority_class( int priority_class );
-extern void set_self_thread_priority( int priority );
+// Should raise exception (after calling Win32 GetLastError) if these return zero
+extern unsigned short set_self_process_priority_class( int priority_class );
+extern unsigned short set_self_thread_priority( int priority );

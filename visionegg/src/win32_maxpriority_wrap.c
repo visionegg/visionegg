@@ -625,19 +625,20 @@ static swig_type_info *swig_types[1];
 #include <WINDOWS.H> // winbase.h is all we really want, but it doesn't include all the headers it needs
 #include <WINBASE.H>
 
-extern void set_self_process_priority_class(int);
-extern void set_self_thread_priority(int);
+extern unsigned short set_self_process_priority_class(int);
+extern unsigned short set_self_thread_priority(int);
 #ifdef __cplusplus
 extern "C" {
 #endif
 static PyObject *_wrap_set_self_process_priority_class(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     int arg1 ;
+    unsigned short result;
     
     if(!PyArg_ParseTuple(args,(char *)"i:set_self_process_priority_class",&arg1)) goto fail;
-    set_self_process_priority_class(arg1);
+    result = (unsigned short)set_self_process_priority_class(arg1);
     
-    Py_INCREF(Py_None); resultobj = Py_None;
+    resultobj = PyInt_FromLong((long)result);
     return resultobj;
     fail:
     return NULL;
@@ -647,11 +648,12 @@ static PyObject *_wrap_set_self_process_priority_class(PyObject *self, PyObject 
 static PyObject *_wrap_set_self_thread_priority(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     int arg1 ;
+    unsigned short result;
     
     if(!PyArg_ParseTuple(args,(char *)"i:set_self_thread_priority",&arg1)) goto fail;
-    set_self_thread_priority(arg1);
+    result = (unsigned short)set_self_thread_priority(arg1);
     
-    Py_INCREF(Py_None); resultobj = Py_None;
+    resultobj = PyInt_FromLong((long)result);
     return resultobj;
     fail:
     return NULL;
