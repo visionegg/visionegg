@@ -92,9 +92,11 @@ class Screen(ClassWithParameters):
             requested_alpha = 1
         else:
             requested_alpha = 0
-            print "WARNING: Could not request alpha in framebuffer because"
-            print "you have an old version of pygame. This is only of concern"
-            print "if you need to use alpha in the framebuffer (unlikely)."
+            print "WARNING: Could not request alpha in framebuffer"
+            print "because you need pygame version 1.5 or greater (or the"
+            print "latest 1.4-cvs). This is only of concern if you use a"
+            print "stimulus that needs this feature. In that case, it should"
+            print "verify the presence of alpha."
             
         pygame.display.set_caption("Vision Egg")
         
@@ -435,7 +437,13 @@ class Stimulus(ClassWithParameters):
     viewport). Therefore the default parameters for a stimulus should
     specify pixel coordinates if possible (such as for a 2D
     stimulus). Assuming a window size of 640 by 480 for the default
-    parameters is a pretty safe way to do things.  """
+    parameters is a pretty safe way to do things.
+
+    Also, be sure to check for any assumptions made about the system
+    in the __init__ method.  For example, if your stimulus needs alpha
+    in the framebuffer, check the value of
+    glGetIntegerv(GL_ALPHA_BITS) and raise an exception if it is not
+    available."""
     
     parameters_and_defaults = {} # empty for base Stimulus class
 
