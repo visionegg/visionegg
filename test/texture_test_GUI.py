@@ -22,20 +22,18 @@ from OpenGL.GL import * # PyOpenGL packages
 from Numeric import *
 import Tkinter
 
-import VisionEgg
+import VisionEgg.Core
 import VisionEgg.GUI
+import VisionEgg.AppHelper
+import VisionEgg.Textures
 
-class TextureTestFrame(Tkinter.Frame):
+class TextureTestFrame(VisionEgg.GUI.AppWindow):
     def __init__(self,master=None,**cnf):
-        apply(Tkinter.Frame.__init__,(self,master),cnf)
-        self.winfo_toplevel().title('Texture Test')
-        self.pack()
-
-        self.vid_info_frame = VisionEgg.GUI.VideoInfoFrame(self)
-        self.vid_info_frame.pack()
+        apply(VisionEgg.GUI.AppWindow.__init__,(self,master),cnf)
+        self.winfo_toplevel().title('Vision Egg - Texture Test')
 
         self.tex_compression = Tkinter.BooleanVar()
-        self.tex_compression.set(VisionEgg.video_info.tex_compress)
+        self.tex_compression.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
         Tkinter.Checkbutton(self,
                             text="Texture compression",
                             variable=self.tex_compression,
@@ -62,14 +60,13 @@ class TextureTestFrame(Tkinter.Frame):
     def do_blit_speed(self):
         glEnable( GL_TEXTURE_2D )
         print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
-        VisionEgg.video_info.tex_compress = self.tex_compression.get()
         
-        tex1 = VisionEgg.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get())))
+        tex1 = VisionEgg.Textures.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get())))
         tex_id = tex1.load() # initialize the original texture
         tex_buf = tex1.get_texture_buffer()
 
         # show the texture first
-        VisionEgg.OrthographicProjection().set_GL_projection_matrix()
+        VisionEgg.Core.OrthographicProjection().set_GL_projection_matrix()
         glClearColor(0.0, 0.0, 0.0, 0.0)
         glClear(GL_COLOR_BUFFER_BIT)
         glBegin(GL_QUADS)
@@ -82,7 +79,7 @@ class TextureTestFrame(Tkinter.Frame):
         glTexCoord2f(0.0, tex1.buf_tf)
         glVertex3f(-1.0,1.0,-6.0)
         glEnd()
-        VisionEgg.swap_buffers()
+        VisionEgg.Core.swap_buffers()
 
         texture_dest = tex1.get_texture_buffer()
         texture_source = tex1.get_pil_image()
@@ -96,14 +93,13 @@ class TextureTestFrame(Tkinter.Frame):
 
         print "Did %d calls to glTexSubImage2D in %f seconds."%(num,stop-start)
         
-        print "blit speed!"
+        print "blit speed=(BROKEN)"
         tex_buf.free()
 
     def do_resident_textures(self):
         glEnable( GL_TEXTURE_2D )
         print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
-        VisionEgg.video_info.tex_compress = self.tex_compression.get()
-        orig =  VisionEgg.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get()))) 
+        orig =  VisionEgg.Textures.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get()))) 
 
         texs = []
         tex_ids = []
@@ -134,15 +130,15 @@ class TextureTestFrame(Tkinter.Frame):
 
     def set_tex_compression(self):
         """Callback for tick button"""
-        VisionEgg.video_info.tex_compress = self.tex_compression.get()
-        self.vid_info_frame.update()
+        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compression.get()
+        self.update()
+        self.info_frame.update()
     
-app_window = []
-def start_texture_test_menu():
-    app_window.texture_test_frame = TextureTestFrame(app_window)
-    app_window.texture_test_frame.pack()
-
 if __name__ == '__main__':
-    app_window = VisionEgg.GUI.StartGraphicsFrame(callback = start_texture_test_menu)
-    app_window.mainloop()
+    screen = VisionEgg.AppHelper.get_default_screen()
+    
+    app = TextureTestFrame()
+    app.pack()
+    app.mainloop()
+
 
