@@ -83,7 +83,7 @@ class Texture:
         draw.line((0,0) + self.orig.size, fill=(255,255,255))
         draw.line((0,self.orig.size[1],self.orig.size[0],0), fill=(255,255,255))
 
-    def load(self):
+    def load(self, build_mipmaps=1):
         """Load texture into OpenGL."""
         # Someday put all this in a texture buffer manager.
         # The buffer manager will do a much better job of putting
@@ -93,31 +93,65 @@ class Texture:
 
         # Create a buffer whose sides are a power of 2
         def next_power_of_2(f):
-            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
+            return max(math.pow(2.0,math.ceil(math.log(f)/math.log(2.0))),1.0)
 
-        width_pow2  = int(next_power_of_2(self.orig.size[0]))
-        height_pow2  = int(next_power_of_2(self.orig.size[1]))
+        width = self.orig.size[0]
+        height = self.orig.size[1]
 
-        self.buf = TextureBuffer( (width_pow2, height_pow2) )
-        self.buf.im.paste(self.orig,(0,0,self.orig.size[0],self.orig.size[1]))
+        width_pow2  = int(next_power_of_2(width))
+        height_pow2  = int(next_power_of_2(height))
 
-        # location of myself in the buffer, in pixels
-        self.buf_l = 0
-        self.buf_r = self.orig.size[0]
-        self.buf_t = 0
-        self.buf_b = self.orig.size[1]
+        self.buf = TextureBuffer( size=(width_pow2, height_pow2) )
+        self.buf.im.paste(self.orig,(0,0,width,height))
+
+        # Location of myself in the buffer, in pixels
+        # This is a semi-private variable: you should probably use the
+        # fractional variables (see below), because those will be the
+        # same, regardless of mipmap level, while the absolute
+        # position in pixels (these variables) will vary.
+        self._buf_l = 0
+        self._buf_r = width
+        self._buf_t = 0
+        self._buf_b = height
 
         # my size
-        self.width = self.buf_r - self.buf_l
-        self.height = self.buf_b - self.buf_t
+        self.width = width
+        self.height = height
         
         # location of myself in the buffer, in fraction
         self.buf_lf = 0.0
-        self.buf_rf = float(self.orig.size[0])/float(self.buf.im.size[0])
+        self.buf_rf = float(width)/float(width_pow2)
         self.buf_tf = 0.0
-        self.buf_bf = float(self.orig.size[1])/float(self.buf.im.size[1])
+        self.buf_bf = float(width)/float(width_pow2)
 
         texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
+
+        if build_mipmaps:
+            # Could use GLU to do this, but let's do it ourselves for more control
+            this_width = width
+            this_height = height
+            biggest_dim = max(this_width,this_height)
+            mipmap_level = 1
+            while biggest_dim > 1:
+                this_width = this_width/2.0
+                this_height = this_height/2.0
+
+                width_pix = int(math.ceil(this_width))
+                height_pix = int(math.ceil(this_height))
+                shrunk = self.orig.resize((width_pix,height_pix),Image.BICUBIC)
+                
+                width_pow2  = int(next_power_of_2(this_width))
+                height_pow2  = int(next_power_of_2(this_height))
+
+                im = Image.new( mode="RGB",size=(width_pow2,height_pow2), color=(127,127,127))
+                im.paste(shrunk,(0,0,width_pix,height_pix))
+
+                self.buf.im = im
+                self.buf.load(mipmap_level=mipmap_level)
+                
+                mipmap_level += 1
+                biggest_dim = max(this_width,this_height)
+        
         #del self.orig # clear Image from system RAM
         return texId
 
@@ -155,11 +189,16 @@ class TextureBuffer:
         if next_power_of_2(size[0]) != size[0] or next_power_of_2(size[1]) != size[1]:
             raise ValueError("TextureBuffer size must be power of 2.")
         self.im = Image.new(mode,size,color)
-    def load(self):
+            
+    def load(self,mipmap_level=0):
         """This loads the texture into OpenGL's texture memory."""
-        self.gl_id = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-        gl.glEnable( gl.GL_TEXTURE_2D )
+        if mipmap_level == 0: # Normal case
+            self.gl_id = gl.glGenTextures(1)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
+            gl.glEnable( gl.GL_TEXTURE_2D )
+        else: # special case, make you've called mipmap_level 0 beforehand
+            gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
+            gl.glEnable( gl.GL_TEXTURE_2D )
         if self.im.mode == "RGB":
             image_data = self.im.tostring("raw","RGB")
 
@@ -174,7 +213,7 @@ class TextureBuffer:
             # "proxy textures".
             if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
                 gl.glTexImage2D(gl.GL_PROXY_TEXTURE_2D,            # target
-                                0,                                 # level
+                                mipmap_level,                                 # level
                                 gl.GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
                                 self.im.size[0],                   # width
                                 self.im.size[1],                   # height
@@ -184,7 +223,7 @@ class TextureBuffer:
                                 image_data)                        # image data
             else:
                 gl.glTexImage2D(gl.GL_PROXY_TEXTURE_2D,            # target
-                                0,                                 # level
+                                mipmap_level,                                 # level
                                 gl.GL_RGB,                         # video RAM internal format: RGB
                                 self.im.size[0],                   # width
                                 self.im.size[1],                   # height
@@ -202,7 +241,7 @@ class TextureBuffer:
 
             if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
                 gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
-                                0,                                 # level
+                                mipmap_level,                                 # level
                                 gl.GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
                                 self.im.size[0],                   # width
                                 self.im.size[1],                   # height
@@ -212,7 +251,7 @@ class TextureBuffer:
                                 image_data)                        # image data
             else:
                 gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
-                                0,                                 # level
+                                mipmap_level,                                 # level
                                 gl.GL_RGB,                         # video RAM internal format: RGB                             self.im.size[0],                # width
                                 self.im.size[0],                   # width
                                 self.im.size[1],                   # height
@@ -274,8 +313,16 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
     Don't instantiate this class directly."""
-    parameters_and_defaults = {'texture_scale_linear_interp':(1,types.IntType),
-                               'texture_repeat':(0,types.IntType)}    # if 0 clamp to edge
+    parameters_and_defaults = {'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
+                               'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,types.IntType),
+                               'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,types.IntType),
+                               'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,types.IntType),
+                               }
+    
+    constant_parameters_and_defaults = {'mipmaps_enabled':(1,types.IntType),
+                                        }
+    _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
+                     gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
 
 class TextureStimulus(TextureStimulusBaseClass):
     parameters_and_defaults = {'on':(1,types.IntType),
@@ -290,7 +337,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             self.texture = Texture(size=(256,16))
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load()
+            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
@@ -302,7 +349,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load()
+                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
                     loaded_ok = 1
                 except TextureTooLargeError,x:
                     w = self.texture.orig.size[0]/2
@@ -316,7 +363,8 @@ class TextureStimulus(TextureStimulusBaseClass):
                 self.parameters.size = (w,h)
 
     def draw(self):
-        if self.parameters.on:
+        p = self.parameters
+        if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
@@ -326,23 +374,17 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glEnable(gl.GL_TEXTURE_2D)
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
             
-            if self.parameters.texture_scale_linear_interp:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
-            else:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_NEAREST)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_NEAREST)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
+            if not self.constant_parameters.mipmaps_enabled:
+                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
                 
-            if self.parameters.texture_repeat:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
-            else:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
             
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
-            p = self.parameters
             l = p.lowerleft[0]
             r = l + p.size[0]
             b = p.lowerleft[1]
@@ -390,7 +432,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture = Texture(size=(256,16))
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load()
+            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
@@ -402,7 +444,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load()
+                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
                     loaded_ok = 1
                 except TextureTooLargeError,x:
                     w = self.texture.orig.size[0]/2
@@ -422,7 +464,8 @@ class SpinningDrum(TextureStimulusBaseClass):
     def draw(self):
     	"""Redraw the scene on every frame.
         """
-        if self.parameters.on:
+        p = self.parameters
+        if p.on:
             # Set OpenGL state variables
             gl.glEnable( gl.GL_DEPTH_TEST )
             gl.glEnable( gl.GL_TEXTURE_2D )  # Make sure textures are drawn
@@ -452,31 +495,25 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            gl.glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
+            gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
             gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
             # Make sure texture object parameters set the way we want
-            if self.parameters.texture_scale_linear_interp:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
-            else:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_NEAREST)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_NEAREST)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
+            if not self.constant_parameters.mipmaps_enabled:
+                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
+                
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
 
-            if self.parameters.texture_repeat:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
-            else:
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
-                gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
-            
-
-            if self.parameters.flat: # draw as flat texture on a rectange
+            if p.flat: # draw as flat texture on a rectange
                 w = self.texture.width
                 h = self.texture.height
 
                 # calculate texture coordinates based on current angle
-                tex_phase = self.parameters.angular_position/360.0
+                tex_phase = p.angular_position/360.0
                 tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
                 TINY = 1.0e-10
@@ -537,9 +574,9 @@ class SpinningDrum(TextureStimulusBaseClass):
             else: # draw as cylinder
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
-                gl.glRotatef(self.parameters.angular_position,0.0,1.0,0.0)
+                gl.glRotatef(p.angular_position,0.0,1.0,0.0)
 
-                if self.parameters.num_sides != self.cached_display_list_num_sides:
+                if p.num_sides != self.cached_display_list_num_sides:
                     self.rebuild_display_list()
                 gl.glCallList(self.cached_display_list)
 
@@ -568,8 +605,8 @@ class SpinningDrum(TextureStimulusBaseClass):
             theta1 = i*deltaTheta
             theta2 = (i+1)*deltaTheta
             # fraction of texture
-            frac1 = (self.texture.buf_l + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
-            frac2 = (self.texture.buf_l + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
+            frac1 = (self.texture.buf_lf + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
+            frac2 = (self.texture.buf_lf + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
             # location of sides
             x1 = r*math.cos(theta1)
             z1 = r*math.sin(theta1)
