@@ -962,6 +962,8 @@ class AppWindow(Tkinter.Frame):
 
         self.switch_to_stimkey( stimkey )
 
+        self.config_dir = None
+
     def __del__( self ):
         self._tk.report_callback_exception = self._orig_report_callback_exception
 
@@ -1046,11 +1048,15 @@ class AppWindow(Tkinter.Frame):
         ImageSequenceLauncher(self,ephys_server=self.ephys_server)
         
     def save_config(self):
+        if self.config_dir is not None:
+            initialdir = self.config_dir
+        else:
+            initialdir = VisionEgg.config.VISIONEGG_USER_DIR
         filename = tkFileDialog.asksaveasfilename(
             parent=self,
             defaultextension=".ve_cfg",
             filetypes=[('Configuration file','*.ve_cfg')],
-            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
+            initialdir=initialdir)
         if not filename:
             return
         fd = open(filename,"wb")
@@ -1061,15 +1067,22 @@ class AppWindow(Tkinter.Frame):
                      'autosave_dir':self.autosave_dir.get(),
                      'autosave_basename':self.autosave_basename.get()}
         pickle.dump( save_dict, fd )
+        self.config_dir = os.path.split(filename)[0] # get dir
 
     def load_config(self):
+        if self.config_dir is not None:
+            initialdir = self.config_dir
+        else:
+            initialdir = VisionEgg.config.VISIONEGG_USER_DIR
         filename = tkFileDialog.askopenfilename(
             parent=self,
             defaultextension=".ve_cfg",
             filetypes=[('Configuration file','*.ve_cfg')],
-            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
+            initialdir=initialdir,
+            )
         if not filename:
             return
+        self.config_dir = os.path.split(filename)[0] # get dir
         fd = open(filename,"rb")
         file_contents = fd.read()
         file_contents = file_contents.replace('\r\n','\n') # deal with Windows newlines
