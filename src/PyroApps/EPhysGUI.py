@@ -878,10 +878,11 @@ class AppWindow(Tkinter.Frame):
         self.bar.stimuli_menu = Tkinter.Menu(self.bar, name="stimuli_menu")
         self.bar.add_cascade(label="Stimuli",menu=self.bar.stimuli_menu)
         for maybe_stimkey, maybe_control_frame, maybe_title in self.client_list:
-            self.bar.stimuli_menu.add_radiobutton(label=maybe_title,
-                                                  command=self.change_stimulus,
-                                                  variable=self.stimulus_tk_var,
-                                                  value=maybe_stimkey)
+            if maybe_title != "Vision Egg Script":
+                self.bar.stimuli_menu.add_radiobutton(label=maybe_title,
+                                                      command=self.change_stimulus,
+                                                      variable=self.stimulus_tk_var,
+                                                      value=maybe_stimkey)
 
         self.bar.calibration_menu = Tkinter.Menu(self.bar, name="calibration_menu")
         self.bar.add_cascade(label="Configure/Calibrate",
@@ -1068,6 +1069,10 @@ class AppWindow(Tkinter.Frame):
 
                 # new stimulus type
                 self.stim_frame.quit_server() # disconnect
+                
+                # in case of loaded Vision Egg script, quit_server()
+                # sends a signal to stop the "wait" loop, WITHOUT
+                # raising a flag to run the script
 
                 self.ephys_server.get_stimkey() # wait for server to load
 
