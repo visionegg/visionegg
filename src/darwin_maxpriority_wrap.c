@@ -654,10 +654,9 @@ static swig_type_info *swig_types[1];
 extern int get_bus_speed(void);
 extern int set_self_thread_time_constraint_policy(unsigned int,unsigned int,unsigned int,unsigned int);
 extern int set_self_pthread_priority(int,int);
-extern int errno;
 extern int getpriority(int,int);
-extern int setpriority(int,int,int);
 extern int sched_get_priority_max(int);
+extern int setpriority(int,int,int);
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -721,27 +720,6 @@ static PyObject *_wrap_set_self_pthread_priority(PyObject *self, PyObject *args)
 }
 
 
-static int _wrap_errno_set(PyObject *_val) {
-    {
-        long temp = PyInt_AsLong(_val);
-        if (PyErr_Occurred()) {
-            PyErr_SetString(PyExc_TypeError, "C variable 'errno (int)'");
-            return 1;
-        }
-        errno = (int) temp;
-    }
-    return 0;
-}
-
-
-static PyObject *_wrap_errno_get() {
-    PyObject *pyobj;
-    
-    pyobj = PyInt_FromLong((long)errno);
-    return pyobj;
-}
-
-
 static PyObject *_wrap_getpriority(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     int arg1 ;
@@ -749,8 +727,35 @@ static PyObject *_wrap_getpriority(PyObject *self, PyObject *args) {
     int result;
     
     if(!PyArg_ParseTuple(args,(char *)"ii:getpriority",&arg1,&arg2)) goto fail;
-    result = (int)getpriority(arg1,arg2);
+    {
+        errno = 0;
+        result = (int)getpriority(arg1,arg2);
+        
+        if (errno) {
+            return PyErr_SetFromErrno(PyExc_OSError);
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_sched_get_priority_max(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    int arg1 ;
+    int result;
     
+    if(!PyArg_ParseTuple(args,(char *)"i:sched_get_priority_max",&arg1)) goto fail;
+    {
+        errno = 0;
+        result = (int)sched_get_priority_max(arg1);
+        
+        if (errno) {
+            return PyErr_SetFromErrno(PyExc_OSError);
+        }
+    }
     resultobj = PyInt_FromLong((long)result);
     return resultobj;
     fail:
@@ -766,23 +771,14 @@ static PyObject *_wrap_setpriority(PyObject *self, PyObject *args) {
     int result;
     
     if(!PyArg_ParseTuple(args,(char *)"iii:setpriority",&arg1,&arg2,&arg3)) goto fail;
-    result = (int)setpriority(arg1,arg2,arg3);
-    
-    resultobj = PyInt_FromLong((long)result);
-    return resultobj;
-    fail:
-    return NULL;
-}
-
-
-static PyObject *_wrap_sched_get_priority_max(PyObject *self, PyObject *args) {
-    PyObject *resultobj;
-    int arg1 ;
-    int result;
-    
-    if(!PyArg_ParseTuple(args,(char *)"i:sched_get_priority_max",&arg1)) goto fail;
-    result = (int)sched_get_priority_max(arg1);
-    
+    {
+        errno = 0;
+        result = (int)setpriority(arg1,arg2,arg3);
+        
+        if (errno) {
+            return PyErr_SetFromErrno(PyExc_OSError);
+        }
+    }
     resultobj = PyInt_FromLong((long)result);
     return resultobj;
     fail:
@@ -795,8 +791,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"set_self_thread_time_constraint_policy", _wrap_set_self_thread_time_constraint_policy, METH_VARARGS },
 	 { (char *)"set_self_pthread_priority", _wrap_set_self_pthread_priority, METH_VARARGS },
 	 { (char *)"getpriority", _wrap_getpriority, METH_VARARGS },
-	 { (char *)"setpriority", _wrap_setpriority, METH_VARARGS },
 	 { (char *)"sched_get_priority_max", _wrap_sched_get_priority_max, METH_VARARGS },
+	 { (char *)"setpriority", _wrap_setpriority, METH_VARARGS },
 	 { NULL, NULL }
 };
 
@@ -812,10 +808,10 @@ static swig_type_info *swig_types_initial[] = {
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (END) -------- */
 
 static swig_const_info swig_const_table[] = {
-{ SWIG_PY_INT,     (char *)"PRIO_PROCESS", (long) 0, 0, 0, 0},
-{ SWIG_PY_INT,     (char *)"SCHED_OTHER", (long) 1, 0, 0, 0},
-{ SWIG_PY_INT,     (char *)"SCHED_RR", (long) 2, 0, 0, 0},
-{ SWIG_PY_INT,     (char *)"SCHED_FIFO", (long) 4, 0, 0, 0},
+{ SWIG_PY_INT,     (char *)"PRIO_PROCESS", (long) PRIO_PROCESS, 0, 0, 0},
+{ SWIG_PY_INT,     (char *)"SCHED_OTHER", (long) SCHED_OTHER, 0, 0, 0},
+{ SWIG_PY_INT,     (char *)"SCHED_RR", (long) SCHED_RR, 0, 0, 0},
+{ SWIG_PY_INT,     (char *)"SCHED_FIFO", (long) SCHED_FIFO, 0, 0, 0},
 {0}};
 
 #ifdef __cplusplus
@@ -842,7 +838,5 @@ SWIGEXPORT(void) SWIG_init(void) {
     }
     SWIG_InstallConstants(d,swig_const_table);
     
-    PyDict_SetItemString(d,(char*)"cvar", SWIG_globals);
-    SWIG_addvarlink(SWIG_globals,(char*)"errno",_wrap_errno_get, _wrap_errno_set);
 }
 
