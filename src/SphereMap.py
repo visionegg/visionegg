@@ -1,6 +1,6 @@
 # The Vision Egg: SphereMap
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw.
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -856,9 +856,6 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
     This is useful when you need to have a viewport on a 3D scene.
 
-    Note that the bit depth of the alpha component of the framebuffer
-    is important for producing smooth transitions in color.
-
     Parameters
     ==========
     bit_depth                     -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
@@ -882,9 +879,11 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                                      Default: 0.0
     window_center_elevation       -- (Real)
                                      Default: 0.0
-    window_shape                  -- (String)
+    window_shape                  -- can be 'circle', 'gaussian', or 'lat-long rectangle' (String)
                                      Default: gaussian
-    window_shape_radius_parameter -- (Real)
+    window_shape_parameter2       -- (currently only used for) height of lat-long rectangle (in degrees) (Real)
+                                     Default: 30.0
+    window_shape_radius_parameter -- radius of circle, sigma of gaussian, width of lat-long rectangle (in degrees) (Real)
                                      Default: 36.0
     """
 
@@ -899,15 +898,23 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                         ve_types.Sequence4(ve_types.Real)),
         # changing these parameters causes re-drawing of the texture object and may cause frame skipping
         'window_shape':('gaussian', # can be 'circle' or 'gaussian'
-                        ve_types.String), 
+                        ve_types.String,
+                        "can be 'circle', 'gaussian', or 'lat-long rectangle'",
+                        ), 
         'window_shape_radius_parameter':(36.0,
-                                         ve_types.Real), # radius (degrees) for circle, sigma (degrees) for gaussian
+                                         ve_types.Real,
+                                         'radius of circle, sigma of gaussian, width of lat-long rectangle (in degrees)',
+                                         ), 
+        'window_shape_parameter2':(30.0,
+                                   ve_types.Real,
+                                   '(currently only used for) height of lat-long rectangle (in degrees)',
+                                   ), 
         'num_s_samples':(512,  # number of horizontal spatial samples, should be a power of 2
                          ve_types.UnsignedInteger),
         'num_t_samples':(512,  # number of vertical spatial samples, should be a power of 2
                          ve_types.UnsignedInteger),
         # Changing these parameters will cause re-computation of display list (may cause frame skip)
-        'radius':(1.0,
+        'radius':(1.0, # XXX could modify code below to use scaling, thus avoiding need for recomputation
                   ve_types.Real),
         'slices':(30,
                   ve_types.UnsignedInteger),
@@ -926,10 +933,19 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         '_cached_radius',
         '_cached_slices',
         '_cached_stacks',
+        '_texture_s_is_azimuth',
         )
     
     def __init__(self, **kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self, **kw )
+
+        p = self.parameters
+
+        # set self._texture_s_is_azimuth in advance
+        if p.window_shape == 'lat-long rectangle':
+            self._texture_s_is_azimuth = True
+        else:
+            self._texture_s_is_azimuth = False
         
         self.texture_object_id = gl.glGenTextures(1)
         self.__rebuild_texture_object()
@@ -953,23 +969,24 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         self.gl_internal_format = gl.GL_ALPHA # change from luminance to alpha
         self.format = gl.GL_ALPHA
 
-        if p.window_shape == 'circle':
-            # XXX slow, aliased way of calculating circle
-            cartesian_radius = 0.5*math.sin(p.window_shape_radius_parameter/180.0*math.pi)
-            cartesian_radius2 = cartesian_radius**2
-            floating_point_window = Numeric.zeros((p.num_s_samples,p.num_t_samples),'f')
-            for s in range(p.num_s_samples):
-                s_frac = float(s)/p.num_s_samples
-                s_dist2 = (s_frac-0.5)**2
-                for t in range(p.num_t_samples):
-                    t_frac = float(t)/p.num_t_samples
-                    t_dist2 = (t_frac-0.5)**2
+        # texture coordinates are Mercator: (determined when building display list)
+        #   s: x within sphere
+        #   t: z within sphere
 
-                    if s_dist2 + t_dist2 <= cartesian_radius2:
-                        floating_point_window[s,t] = 1.0
-                    else:
-                        floating_point_window[s,t] = 0.0
+        if p.window_shape == 'circle':
+            if self._texture_s_is_azimuth:
+                self.__rebuild_display_lists()
+                
+            # XXX this is aliased
+            s_axis = (Numeric.arange(p.num_s_samples)/float(p.num_s_samples)-0.5)**2
+            t_axis = (Numeric.arange(p.num_t_samples)/float(p.num_t_samples)-0.5)**2
+            mask = s_axis[Numeric.NewAxis,:] + t_axis[:,Numeric.NewAxis]
+            cartesian_radius = 0.5*math.sin(p.window_shape_radius_parameter/180.0*math.pi)
+            floating_point_window = Numeric.less(mask,cartesian_radius**2)
         elif p.window_shape == 'gaussian':
+            if self._texture_s_is_azimuth:
+                self.__rebuild_display_lists()
+                
             MIN_EXP = -745.0
             MAX_EXP =  709.0
             
@@ -991,10 +1008,23 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             except OverflowError:
                 check_t = Numeric.clip(check_t,MIN_EXP,MAX_EXP)
                 val_t = Numeric.exp( check_t )
-            floating_point_window = Numeric.outerproduct(val_s,val_t)
+            floating_point_window = Numeric.outerproduct(val_t,val_s)
+        elif  p.window_shape == 'lat-long rectangle':
+            if not self._texture_s_is_azimuth:
+                self.__rebuild_display_lists()
+
+            # s coordinate represents -90 to +90 degrees (azimuth).
+            s_axis = (Numeric.arange(p.num_s_samples)/float(p.num_s_samples)-0.5)*180
+            s_axis = Numeric.less( abs(s_axis), p.window_shape_radius_parameter*0.5 )
+
+            # t coordinate represents height.
+            # Convert angle to height.
+            desired_height = math.sin(p.window_shape_parameter2/180.0*math.pi)*0.25
+            t_axis = Numeric.arange(p.num_t_samples)/float(p.num_t_samples)-0.5
+            t_axis = Numeric.less(abs(t_axis),desired_height)
+            floating_point_window = Numeric.outerproduct(t_axis,s_axis)
         else:
             raise RuntimeError('Unknown window_shape "%s"'%(p.window_shape,))
-
         texel_data = (floating_point_window * self.max_int_val).astype(self.numeric_type).tostring()
    
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -1039,6 +1069,11 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
 
         p = self.parameters
 
+        if p.window_shape == 'lat-long rectangle':
+            self._texture_s_is_azimuth = True
+        else:
+            self._texture_s_is_azimuth = False
+
         gl.glNewList(self.windowed_display_list_id,gl.GL_COMPILE)
 
         gl.glBegin(gl.GL_QUADS)
@@ -1069,22 +1104,30 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                 o = 0.5
                 g = 0.5 / p.radius
 
-                gl.glTexCoord2f(x_start_upper*g+o,y_upper*g+o)
+                if self._texture_s_is_azimuth:
+                    tex_s_start = slice_start_frac*2-1
+                    tex_s_stop = slice_stop_frac*2-1
+                else:
+                    tex_s_start = x_start_upper*g+o
+                    tex_s_stop = x_stop_upper*g+o
+
+                gl.glTexCoord2f(tex_s_start,y_upper*g+o)
                 gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
-                gl.glTexCoord2f(x_stop_upper*g+o,y_upper*g+o)
+                gl.glTexCoord2f(tex_s_stop,y_upper*g+o)
                 gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
 
-                gl.glTexCoord2f(x_stop_lower*g+o,y_lower*g+o)
+                gl.glTexCoord2f(tex_s_stop,y_lower*g+o)
                 gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
 
-                gl.glTexCoord2f(x_start_lower*g+o,y_lower*g+o)
+                gl.glTexCoord2f(tex_s_start,y_lower*g+o)
                 gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
                 
         gl.glEnd()
         gl.glEndList()
 
         gl.glNewList(self.opaque_display_list_id,gl.GL_COMPILE)
+        
         gl.glBegin(gl.GL_QUADS)
             
         for stack in range(p.stacks):
@@ -1139,6 +1182,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             self.__rebuild_texture_object()
             
         if p.on:
+            #gl.glPolygonMode( gl.GL_FRONT_AND_BACK, gl.GL_LINE )
             if p.bit_depth != self.cached_bit_depth:
                 self.calculate_bit_depth_dependencies()
                 self.gl_internal_format = gl.GL_ALPHA # change from luminance to alpha
@@ -1163,5 +1207,5 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 
             gl.glCallList(self.windowed_display_list_id)
-            gl.glEnable( gl.GL_TEXTURE_2D )
             gl.glCallList(self.opaque_display_list_id)
+
