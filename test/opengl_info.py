@@ -14,7 +14,7 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import time
+import time, sys
 import pygame
 from pygame.locals import *
 from OpenGL.GL import * # PyOpenGL packages
@@ -25,8 +25,10 @@ exts = ['matrix_palette','multisample','multitexture','point_parameters',
         'texture_env_add','texture_env_combine','texture_env_crossbar',
         'texture_env_dot3','transpose_matrix','vertex_blend']
 
-#from OpenGL.GLU import *
-#from OpenGL.GLUT import *
+if sys.platform == 'win32':
+    time_func = time.clock
+else:
+    time_func = time.time
 
 ### Setup graphics
 
@@ -109,9 +111,9 @@ for w in try_dims:
         print " GL_PROXY_TEXTURE_2D trying (%d x %d):"%(w,h),
         data = resize(3.0*arange(w)*2.0*math.pi/w,(w,h)).astype('b')
         
-        tic = time.time()
+        tic = time_func()
         glTexImage2D(GL_PROXY_TEXTURE_2D,0,GL_RGB,w,h,0,GL_RGB,GL_UNSIGNED_BYTE,data)
-        toc = time.time()
+        toc = time_func()
         if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) != 0:
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) != 0:
                 print "OK (%.1f msec)"%((toc-tic)*1000.0,)
