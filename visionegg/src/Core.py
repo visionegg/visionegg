@@ -62,7 +62,7 @@ class Screen:
             flags = flags | pygame.locals.FULLSCREEN
 
         # Choose an appropriate framebuffer pixel representation
-        try_bpps = [24,32,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
+        try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
     
         found_mode = 0
