@@ -72,6 +72,10 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+PlatformDependent.set_icon(os.path.abspath(
+    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                 'data/visionegg.tif')))
+
 ####################################################################
 #
 #        Screen
@@ -196,8 +200,11 @@ class Screen(VisionEgg.ClassWithParameters):
             flags = flags | pygame.locals.NOFRAME
 
         # Choose an appropriate framebuffer pixel representation
-        try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
-        try_bpps.insert(0,self.constant_parameters.preferred_bpp) # try the preferred size first
+        # set bits per pixel (32 = 8 bits R, 8 G, 8 B, 8 Alpha, 0 = any)
+        try_bpps = [32,24,0]
+        
+        # try the preferred size first
+        try_bpps.insert(0,self.constant_parameters.preferred_bpp)
 
         if sys.platform[:5]=='linux' or sys.platform[:4]=='irix':
             # SDL doesn't like to give a 32 bpp depth, even if it works
@@ -222,7 +229,9 @@ class Screen(VisionEgg.ClassWithParameters):
                         self.constant_parameters.size = modeList[0]
                         message.add(
                             """WARNING: Using Screen size %dx%d instead
-                            of requested size."""%(self.constant_parameters.size[0],self.constant_parameters.size[1]),
+                            of requested size."""%
+                            (self.constant_parameters.size[0],
+                             self.constant_parameters.size[1]),
                             level=Message.WARNING)
                             
             if found_mode: # found the color depth to tell pygame
@@ -244,25 +253,29 @@ class Screen(VisionEgg.ClassWithParameters):
             screen_mode = "window"
         if hasattr(pygame.display,"gl_set_attribute"):
             append_str = " (%d %d %d %d RGBA)."%(r,g,b,a)
-        message.add("Requesting %s %d x %d %d bpp%s"%(screen_mode,self.size[0],self.size[1],try_bpp,append_str))
+        message.add("Requesting %s %d x %d %d bpp%s"%
+                    (screen_mode,self.size[0],self.size[1],try_bpp,append_str))
+
+        pygame.display.set_mode(self.size, flags, try_bpp )
+        # set a global variable so we know workaround avoid pygame bug        
+        VisionEgg.config._pygame_started = 1
 
         try:
-            pygame.display.set_mode(self.size, flags, try_bpp )
-            VisionEgg.config._pygame_started = 1 # set a global variable so we know workaround avoid pygame bug
-        except pygame.error, x:
-            message.add("Failed execution of pygame.display.set_mode():%s"%x,
-                        level=Message.FATAL)
-
-        try:
-            pygame.display.set_icon(pygame.transform.scale(pygame.image.load(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp')).convert(),(32,32)))
+            if sys.platform != 'darwin':
+                pygame.display.set_icon(pygame.transform.scale(pygame.image.load(
+                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                                 'data/visionegg.bmp')).convert(),(32,32)))
         except Exception,x:
-            message.add("Error while trying to set_icon: %s: %s"%(str(x.__class__),str(x)))
+            message.add("Error while trying to set_icon: %s: %s"%
+                        (str(x.__class__),str(x)),
+                        level=Message.INFO)
 
         vendor = gl.glGetString(gl.GL_VENDOR)
         renderer = gl.glGetString(gl.GL_RENDERER)
         version = gl.glGetString(gl.GL_VERSION)
 
-        message.add("OpenGL %s, %s, %s"%(version, renderer, vendor),Message.INFO)
+        message.add("OpenGL %s, %s, %s"%
+                    (version, renderer, vendor),Message.INFO)
 
         if renderer == "GDI Generic" and vendor == "Microsoft Corporation":
             message.add("Using default Microsoft Windows OpenGL drivers. "
