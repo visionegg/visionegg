@@ -25,15 +25,14 @@ though!"""
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
-import string
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.FlowControl
 import VisionEgg.ParameterTypes as ve_types
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import Pyro.core
