@@ -96,49 +96,49 @@ class Texture:
 
     A reference to the original image data is maintained."""
     
-    def __init__(self,pixels=None):
+    def __init__(self,texels=None):
 
-        if pixels is None: # draw default white "X" on blue background
-            self.size = (256,256) # default size
-            pixels = Image.new("RGB",self.size,(0,0,255))
-            draw = ImageDraw.Draw(pixels)
-            draw.line((0,0) + self.size, fill=(255,255,255))
-            draw.line((0,self.size[1]) + (self.size[0],0), fill=(255,255,255))
+        if texels is None: # no texel data: make default
+            self.size = (256,256) # an arbitrary default size
+            texels = Image.new("RGB",self.size,(255,255,255)) # white
+##            draw = ImageDraw.Draw(texels)
+##            draw.line((0,0) + self.size, fill=(255,255,255))
+##            draw.line((0,self.size[1]) + (self.size[0],0), fill=(255,255,255))
 
-        if type(pixels) == types.FileType:
-            pixels = Image.open(pixels) # Attempt to open as an image file
-        elif type(pixels) == types.StringType:
+        if type(texels) == types.FileType:
+            texels = Image.open(texels) # Attempt to open as an image file
+        elif type(texels) == types.StringType:
             # is this string a filename or raw image data?
-            if os.path.isfile(pixels):
+            if os.path.isfile(texels):
                 # cache filename and file stream for later use (if possible)
-                self._filename = pixels
-                self._file_stream = open(pixels,"rb")
-            pixels = Image.open(pixels) # Attempt to open as an image stream
-            
-        if isinstance(pixels, Image.Image): # PIL Image
-            self.size = pixels.size
-        elif type(pixels) == Numeric.ArrayType: # Numeric Python array
-            if len(pixels.shape) == 3:
-                if pixels.shape[2] not in [3,4]:
+                self._filename = texels
+                self._file_stream = open(texels,"rb")
+            texels = Image.open(texels) # Attempt to open as an image stream
+
+        if isinstance(texels, Image.Image): # PIL Image
+            self.size = texels.size
+        elif type(texels) == Numeric.ArrayType: # Numeric Python array
+            if len(texels.shape) == 3:
+                if texels.shape[2] not in [3,4]:
                     raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
-            elif len(pixels.shape) != 2:
+            elif len(texels.shape) != 2:
                 raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
-            self.size = ( pixels.shape[1], pixels.shape[0] )
+            self.size = ( texels.shape[1], texels.shape[0] )
         else:
             raise TypeError("pixel data could not be recognized. (Use a PIL Image or a Numeric array.)")
 
-        self.pixels = pixels
+        self.texels = texels
         self.texture_object = None
 
     def make_half_size(self):
         if self.texture_object is not None:
             raise RuntimeError("make_half_size() only available BEFORE texture loaded to OpenGL.")
         
-        if isinstance(self.pixels,Image.Image):
+        if isinstance(self.texels,Image.Image):
             w = self.size[0]/2
             h = self.size[1]/2
-            small_pixels = self.pixels.resize((w,h),Image.BICUBIC)
-            self.pixels = small_pixels
+            small_texels = self.texels.resize((w,h),Image.BICUBIC)
+            self.texels = small_texels
             self.size = (w,h)
         else:
             raise RuntimeError("Texture too large, but auto-rescaling of Numeric arrays not supported.")
@@ -153,11 +153,11 @@ class Texture:
         
         self.texture_object = None
 
-    def get_pixels_as_image(self):
-        """Return pixel data as PIL image"""
-        if type(self.pixels) == Numeric.ArrayType:
-            if len(self.pixels.shape) == 2:
-                a = self.pixels
+    def get_texels_as_image(self):
+        """Return texel data as PIL image"""
+        if type(self.texels) == Numeric.ArrayType:
+            if len(self.texels.shape) == 2:
+                a = self.texels
                 if a.typecode() == Numeric.UnsignedInt8:
                     mode = "L"
                 elif a.typecode() == Numeric.Float32:
@@ -167,12 +167,17 @@ class Texture:
                 return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
             else:
                 raise NotImplementedError("Currently only luminance data can be converted to images")
-        elif isinstance(pixels, Image.Image):
-            return self.pixels
+        elif isinstance(texels, Image.Image):
+            return self.texels
         else:
             raise NotImplementedError("Don't know how to convert pixel data to PIL image")
 
-    def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0):
+    def get_pixels_as_image(self):
+        VisionEgg.Core.message.add( "Using old method get_pixels_as_image().  Use get_texels_as_image() instead.",
+                                    level=VisionEgg.Core.Message.DEPRECATION )
+        return self.get_texels_as_image()
+
+    def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0, internal_format=gl.GL_RGB):
         """Load texture data to video texture memory.
 
         This will cause the texture data to become resident in OpenGL
@@ -199,7 +204,7 @@ class Texture:
         height_pow2  = int(next_power_of_2(height))
 
         if rescale_original_to_fill_texture_object:
-            if type(self.pixels) == Numeric.ArrayType:
+            if type(self.texels) == Numeric.ArrayType:
                 raise NotImplementedError("Automatic rescaling of Numeric arrays not implemented.")
 
         # fractional coverage
@@ -215,15 +220,15 @@ class Texture:
         self._buf_t = height
 
         if width != width_pow2 or height != height_pow2:
-            if type(self.pixels) == Numeric.ArrayType:
-                if len(self.pixels.shape) == 2:
-                    buffer = Numeric.zeros( (height_pow2,width_pow2), self.pixels.typecode() )
-                    buffer[0:height,0:width] = self.pixels
-                elif len(self.pixels.shape) == 3:
-                    buffer = Numeric.zeros( (height_pow2,width_pow2,self.pixels.shape[2]), self.pixels.typecode() )
-                    buffer[0:height,0:width,:] = self.pixels
+            if type(self.texels) == Numeric.ArrayType:
+                if len(self.texels.shape) == 2:
+                    buffer = Numeric.zeros( (height_pow2,width_pow2), self.texels.typecode() )
+                    buffer[0:height,0:width] = self.texels
+                elif len(self.texels.shape) == 3:
+                    buffer = Numeric.zeros( (height_pow2,width_pow2,self.texels.shape[2]), self.texels.typecode() )
+                    buffer[0:height,0:width,:] = self.texels
                 else:
-                    raise RuntimeError("Unexpected shape for self.pixels")
+                    raise RuntimeError("Unexpected shape for self.texels")
             else:
                 if rescale_original_to_fill_texture_object:
                     # reset coverage values
@@ -237,21 +242,21 @@ class Texture:
                     self._buf_t = 0
                     self._buf_b = height_pow2
                     
-                    buffer = self.pixels.resize((width_pow2,height_pow2),Image.BICUBIC)
+                    buffer = self.texels.resize((width_pow2,height_pow2),Image.BICUBIC)
 
                     self.size = (width_pow2, height_pow2)
                 else:
-                    buffer = Image.new(self.pixels.mode,(width_pow2, height_pow2))
-                    buffer.paste( self.pixels, (0,height_pow2-height,width,height_pow2))
+                    buffer = Image.new(self.texels.mode,(width_pow2, height_pow2))
+                    buffer.paste( self.texels, (0,height_pow2-height,width,height_pow2))
         else:
-            buffer = self.pixels
+            buffer = self.texels
 
         # Put data in texture object
-        texture_object.put_new_image( buffer, mipmap_level=0 )
+        texture_object.put_new_image( buffer, internal_format=internal_format, mipmap_level=0 )
         if build_mipmaps:
             # Mipmap generation could be done in the TextureObject
             # class by GLU, but here we have more control
-            if type(self.pixels) == Numeric.ArrayType:
+            if type(self.texels) == Numeric.ArrayType:
                 raise NotImplementedError("Building of mipmaps not implemented for Numeric arrays.")
             this_width, this_height = self.size
             biggest_dim = max(this_width,this_height)
@@ -262,7 +267,7 @@ class Texture:
                 
                 width_pix = int(math.ceil(this_width))
                 height_pix = int(math.ceil(this_height))
-                shrunk = self.pixels.resize((width_pix,height_pix),Image.BICUBIC)
+                shrunk = self.texels.resize((width_pix,height_pix),Image.BICUBIC)
                 
                 width_pow2  = int(next_power_of_2(width_pix))
                 height_pow2  = int(next_power_of_2(height_pix))
@@ -270,8 +275,8 @@ class Texture:
                 im = Image.new(shrunk.mode,(width_pow2,height_pow2))
                 im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
                 
-                texture_object.put_new_image( im, mipmap_level=mipmap_level )
-                
+                texture_object.put_new_image( im, mipmap_level=mipmap_level, internal_format = internal_format)
+
                 mipmap_level += 1
                 biggest_dim = max(this_width,this_height)
                 
@@ -780,7 +785,8 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                                'texture_wrap_t':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
                                }
                                
-    constant_parameters_and_defaults = {'mipmaps_enabled':(1,types.IntType), # boolean
+    constant_parameters_and_defaults = {'internal_format':(gl.GL_RGB,types.IntType),
+                                        'mipmaps_enabled':(1,types.IntType), # boolean
                                         'shrink_texture_ok':(0,types.IntType), # boolean
                                         }
                                         
@@ -789,6 +795,10 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                      
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
+
+        if self.parameters.texture is None:
+            # generate default texture
+            self.parameters.texture = Texture()
 
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -815,6 +825,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if not self.constant_parameters.shrink_texture_ok:
             # send texture to OpenGL
             p.texture.load( self.texture_object,
+                            internal_format = self.constant_parameters.internal_format,
                             build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
@@ -827,7 +838,8 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                 try:
                     # send texture to OpenGL
                     p.texture.load( self.texture_object,
-                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
+                                    internal_format = self.constant_parameters.internal_format,
+                                    build_mipmaps = self.constant_parameters.mipmaps_enabled )
                 except TextureTooLargeError:
                     p.texture.make_half_size()
                     resized = 1
@@ -847,13 +859,13 @@ class Mask2D(VisionEgg.ClassWithParameters):
     # All of these parameters are constant -- if you need a new mask, create a new instance
     constant_parameters_and_defaults = {'function':('gaussian',types.StringType), # can be 'gaussian' or 'circle'
                                         'radius_parameter':(25.0,types.FloatType), # radius for circle, sigma for gaussian, same units as num_samples
-                                        'num_samples':((256,256),types.TupleType), # size of mask data in pixels
+                                        'num_samples':((256,256),types.TupleType), # size of mask data in texels
                                         }
-    def __init__(self,*args,**kw):
+    def __init__(self,**kw):
         def next_power_of_2(f):
             return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
         
-        VisionEgg.ClassWithParameters.__init__(*(self,)+args,**kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         cp = self.constant_parameters # shorthand
         width,height = cp.num_samples
@@ -950,23 +962,36 @@ class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
     parameters_and_defaults = {'on':(1,types.IntType),
                                'mask':(None, Mask2D), # masks texture before application
-                               'lowerleft':((0.0,0.0),types.TupleType), # in eye coordinates
+                               'position':((0.0,0.0),types.TupleType), # in eye coordinates
+                               'anchor':('lowerleft',types.StringType),
+                               'lowerleft':(None,types.TupleType), # DEPRECATED
                                'size':((640.0,480.0),types.TupleType), # in eye coordinates
                                'max_alpha':(1.0,types.FloatType), # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
+                               'color':((1.0,1.0,1.0,1.0), types.TupleType), # texture environment color. alpha is ignored for max_alpha parameter
                                }
     
-    def __init__(self,*args,**kw):
+    def __init__(self,**kw):
         if 'mask' in kw.keys():
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
-        TextureStimulusBaseClass.__init__(*(self,)+args,**kw)
-            
+        TextureStimulusBaseClass.__init__(self,**kw)
+
     def draw(self):
         p = self.parameters
         if p.mask:
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
             self._reload_texture()
+        if p.lowerleft != None:
+            if not hasattr(VisionEgg.config,"_GAVE_LOWERLEFT_DEPRECATION"):
+                VisionEgg.Core.message.add("Specifying texture by 'lowerleft' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
+                                           level=VisionEgg.Core.Message.DEPRECATION)
+                VisionEgg.config._GAVE_LOWERLEFT_DEPRECATION = 1
+            p.anchor = 'lowerleft'
+            p.position = p.lowerleft
         if p.on:
+            # calculate lowerleft corner
+            lowerleft = self._get_lowerleft()
+            
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
@@ -987,14 +1012,14 @@ class TextureStimulus(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
-            l = p.lowerleft[0]
+            l = lowerleft[0]
             r = l + p.size[0]
-            b = p.lowerleft[1]
+            b = lowerleft[1]
             t = b + p.size[1]
 
             tex = p.texture
             
-            gl.glColor(1.0,1.0,1.0,p.max_alpha)
+            gl.glColor(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
             if p.mask:
                 p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
@@ -1013,6 +1038,30 @@ class TextureStimulus(TextureStimulusBaseClass):
                 gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
                 gl.glVertex2f(l,t)
                 gl.glEnd() # GL_QUADS
+
+    def _get_lowerleft(self):
+        p = self.parameters
+        if p.anchor == 'lowerleft':
+            lowerleft = p.position
+        elif p.anchor == 'center':
+            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1] - p.size[1]/2.0)
+        elif p.anchor == 'lowerright':
+            lowerleft = (p.position[0] - p.size[0],p.position[1])
+        elif p.anchor == 'upperright':
+            lowerleft = (p.position[0] - p.size[0],p.position[1] - p.size[1])
+        elif p.anchor == 'upperleft':
+            lowerleft = (p.position[0],p.position[1] - p.size[1])
+        elif p.anchor == 'left':
+            lowerleft = (p.position[0],p.position[1] - p.size[1]/2.0)
+        elif p.anchor == 'right':
+            lowerleft = (p.position[0] - p.size[0],p.position[1] - p.size[1]/2.0)
+        elif p.anchor == 'bottom':
+            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1])
+        elif p.anchor == 'top':
+            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1] - p.size[1])
+        else:
+            raise ValueError("No anchor position %s"%p.anchor)
+        return lowerleft
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
@@ -1117,7 +1166,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             #
             # In the final "textured fragment" (before being blended
             # to the framebuffer), the color values are equal to those
-            # of the texture (with the exception of pixels around the
+            # of the texture (with the exception of texels around the
             # edges which have their amplitudes reduced due to
             # anti-aliasing and are intermediate between the color of
             # the texture and mid-gray), and the alpha value is set to
