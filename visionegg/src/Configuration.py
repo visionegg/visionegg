@@ -74,8 +74,12 @@ class Config:
     def __init__(self):
         reader = ConfigReader(defaults)
 
-        self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
-        self.VISIONEGG_USER_DIR = os.path.expanduser("~/VisionEgg")
+        if sys.executable == sys.argv[0]: # Windows binary
+            self.VISIONEGG_SYSTEM_DIR = os.curdir
+            self.VISIONEGG_USER_DIR = os.curdir
+        else:
+            self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
+            self.VISIONEGG_USER_DIR = os.path.expanduser("~/VisionEgg")
 
         # See if there's an environment variable for the config file
         if 'VISIONEGG_CONFIG_FILE' in os.environ.keys():
