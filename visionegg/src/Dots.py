@@ -19,10 +19,10 @@ try:
     import VisionEgg._draw_in_c
     draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
 except ImportError, x:
-    VisionEgg.Core.message.add("Could not import VisionEgg._draw_in_c module, random dots will be drawn in Python (slow).",
+    VisionEgg.Core.message.add("Could not import VisionEgg._draw_in_c module, dots will be drawn in Python.",
                                level=VisionEgg.Core.Message.WARNING)
-else:
     def draw_dots(xs,ys,zs):
+        """Python method for drawing dots.  Slower than C version"""
         if not (len(xs) == len(ys) == len(zs)):
             raise ValueError("All input arguments must be same length")
         gl.glBegin(gl.GL_POINTS)
