@@ -6,10 +6,7 @@ Standard Parallel Port" by Craig Peacock,
 http://www.senet.com.au/~cpeacock.
 
 This module only uses the Standard Parallel Port (SPP) protocol, not
-ECP or EPP.
-
-This module has not been extensively tested or used, and should be
-considered unstable.
+ECP or EPP.  You may have to set your computer's BIOS accordingly.
 
 """
 
@@ -35,8 +32,9 @@ if sys.platform == 'win32':
     import winioport as raw_lpt_module
 elif sys.platform == 'linux2':
     import VisionEgg._raw_lpt_linux as raw_lpt_module
+elif sys.platform[:4] == 'irix':
 ### IRIX implementation not done, but possible
-##elif sys.platform[:4] == 'irix':
+    raise NotImplementedError("VisionEgg.DaqLPT not implemented on IRIX")
 ##    import VisionEgg._raw_plp_irix
 ##    raw_lpt_module = VisionEgg._raw_plp_irix
 else:
