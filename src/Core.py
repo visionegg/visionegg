@@ -142,9 +142,16 @@ class Viewport:
         self.parameters = Parameters()
         self.parameters.projection = projection
 
-    def add_stimulus(self,stimulus):
-        """Add a stimulus to the list of those drawn in the viewport"""
-        self.stimuli.append(stimulus)
+    def add_stimulus(self,stimulus,draw_order=-1):
+        """Add a stimulus to the list of those drawn in the viewport
+
+        By default, the stimulus is drawn last, but this behavior
+        can be changed with the draw_order argument.
+        """
+        if draw_order == -1:
+            self.stimuli.append(stimulus)
+        else:
+            self.stimuli.insert(draw_order,stimulus)
 
     def draw(self):
         """Set the viewport and draw stimuli."""
