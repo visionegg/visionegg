@@ -273,7 +273,7 @@ class LoopContainedObject(ContainedObjectBase):
 class LoopParamDialog(tkSimpleDialog.Dialog):
     def __init__(self,*args,**kw):
         #intercept orig_values argument
-        if 'orig_values' in kw.keys():
+        if kw.has_key('orig_values'):
             self.orig_values = kw['orig_values']
             del kw['orig_values']
         else:
@@ -285,7 +285,9 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                       text="Add sequence of automatic variable values",
                       font=("Helvetica",12,"bold"),).grid(row=0,column=0,columnspan=2)
 
-        var_frame = Tkinter.Frame(master)
+        var_frame = Tkinter.Frame(master,
+                                  relief=Tkinter.GROOVE,
+                                  borderwidth=2)
         var_frame.grid(row=1,column=0)
 
         sequence_frame = Tkinter.Frame(master)
@@ -295,14 +297,18 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         rest_dur_frame.grid(row=2,column=0,columnspan=2)
 
         # loopable variable frame stuff
+        global loopable_variables
+        num_cols = int(math.ceil(len(loopable_variables)/10.0)) # 10 variables per column
+
         var_frame_row = 0
         Tkinter.Label(var_frame,
                       text="Select a variable",
-                      font=("Helvetica",12,"bold"),).grid(row=var_frame_row)
+                      font=("Helvetica",12,"bold"),).grid(row=var_frame_row,
+                                                          column=0,
+                                                          columnspan=num_cols)
         
         self.var_name = Tkinter.StringVar()
         self.var_name.set("<repeat>")
-        global loopable_variables
         var_names = loopable_variables[:] # copy
         var_names.sort()
 
@@ -311,14 +317,19 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                      text="Repeat (Average)",
                      variable=self.var_name,
                      value="<repeat>",
-                     anchor=Tkinter.W).grid(row=var_frame_row,sticky="w")
+                     anchor=Tkinter.W).grid(row=var_frame_row,
+                                            column=0,
+                                            sticky="w")
         var_frame_row += 1
         for var_name in var_names:
+            use_row = var_frame_row%10+1
             Tkinter.Radiobutton( var_frame,
                                  text=var_name,
                                  variable=self.var_name,
                                  value=var_name,
-                                 anchor=Tkinter.W).grid(row=var_frame_row,sticky="w")
+                                 anchor=Tkinter.W).grid(row=use_row,
+                                                        column=int(math.floor(var_frame_row/10.)),
+                                                        sticky="w")
             var_frame_row += 1
 
         # sequence entry frame
