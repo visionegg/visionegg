@@ -24,7 +24,7 @@ class ScreenPositionParameters:
         self.top = 0.2
         self.bottom = -0.2
         self.near = 0.2
-        self.far = 2.0
+        self.far = 20.0
         
         # position/orientation
         self.eye = (0.0, 0.0, 0.0) # observer position
