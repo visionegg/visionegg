@@ -9,13 +9,14 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import sys, socket, re, time, string, types, os, pickle, random
+import sys, socket, re, time, string, types, os, pickle, random, math
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import Pyro
 
 import VisionEgg
 import VisionEgg.PyroClient
 import VisionEgg.PyroApps.ScreenPositionGUI
+import VisionEgg.GUI
 
 # Add your client modules here
 import VisionEgg.PyroApps.TargetGUI
@@ -340,6 +341,29 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         Tkinter.Label(log_frame,text="  N:").grid(row=0,column=4)
         Tkinter.Entry(log_frame,textvariable=self.log_n_tk,width=6).grid(row=0,column=5)
 
+        seq_row += 1
+        Tkinter.Radiobutton( sequence_frame,
+                     text="Log:",
+                     variable=self.sequence_type,
+                     value="logb",
+                     anchor=Tkinter.W).grid(row=seq_row,column=0,sticky="w")
+
+        self.logb_start_tk = Tkinter.DoubleVar()
+        self.logb_start_tk.set(0.1)
+        self.logb_stop_tk = Tkinter.DoubleVar()
+        self.logb_stop_tk.set(100.0)
+        self.logb_n_tk = Tkinter.IntVar()
+        self.logb_n_tk.set(5)
+
+        logb_frame = Tkinter.Frame( sequence_frame)
+        logb_frame.grid(row=seq_row,column=1)
+        Tkinter.Label(logb_frame,text="start:").grid(row=0,column=0)
+        Tkinter.Entry(logb_frame,textvariable=self.logb_start_tk,width=6).grid(row=0,column=1)
+        Tkinter.Label(logb_frame,text="  stop:").grid(row=0,column=2)
+        Tkinter.Entry(logb_frame,textvariable=self.logb_stop_tk,width=6).grid(row=0,column=3)
+        Tkinter.Label(logb_frame,text="  N:").grid(row=0,column=4)
+        Tkinter.Entry(logb_frame,textvariable=self.logb_n_tk,width=6).grid(row=0,column=5)
+
         # rest duration frame
         Tkinter.Label(rest_dur_frame,
                       text="Other sequence parameters",
@@ -425,6 +449,31 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                     value += incr
             for i in range(len(seq)):
                 seq[i] = 10.0**seq[i]
+        elif self.sequence_type.get() == "logb":
+            start = self.logb_start_tk.get()
+            stop = self.logb_stop_tk.get()
+            start = math.log10(start)
+            stop = math.log10(stop)
+            n = self.logb_n_tk.get()
+            if n < 2:
+                tkMessageBox.showwarning("Invalid sequence parameters",
+                                         "Must have n >= 2.",
+                                         parent=self)
+                return 0
+
+            incr = (stop-start)/float(n-1)
+            seq = []
+            value = start
+            if incr > 0.0:
+                while value <= stop:
+                    seq.append(value)
+                    value += incr
+            else:
+                while value >= stop:
+                    seq.append(value)
+                    value += incr
+            for i in range(len(seq)):
+                seq[i] = 10.0**seq[i]
         else:
             tkMessageBox.showwarning("Invalid sequence parameters",
                                      "Invalid sequence type.",
@@ -449,18 +498,69 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         # call master's destroy method
         tkSimpleDialog.Dialog.destroy(self)
 
+def get_server():
+    class ConnectWindow(Tkinter.Frame):
+        def __init__(self,master=None,hostname="",port=7766,**kw):
+            apply( Tkinter.Frame.__init__, (self,master), kw)
+            current_row = 0
+            Tkinter.Message(self,\
+                            text='Welcome to the "uber GUI" of the Vision Egg!\n\n'+\
+                            'Please enter the hostname '+\
+                            'and port number '+\
+                            'of the computer on which you have the '+\
+                            '"uber server" running.').grid(row=current_row,column=0,columnspan=2)
+            hostname = socket.getfqdn(hostname)
+
+            self.hostname_tk = Tkinter.StringVar()
+            self.hostname_tk.set(hostname)
+            current_row += 1
+            Tkinter.Label(self,text="Hostname:").grid(row=current_row, column=0)
+            Tkinter.Entry(self,textvariable=self.hostname_tk).grid(row=current_row, column=1)
+          
+            self.port_tk = Tkinter.IntVar()
+            self.port_tk.set(port)
+            current_row += 1
+            Tkinter.Label(self,text="Port:").grid(row=current_row, column=0)
+            Tkinter.Entry(self,textvariable=self.port_tk).grid(row=current_row, column=1)
+
+            current_row += 1
+            bf = Tkinter.Frame(self)
+            bf.grid(row=current_row,column=0,columnspan=2)
+            ok=Tkinter.Button(bf,text="OK",command=self.ok)
+            ok.grid(row=0,column=0)
+            ok.focus_force()
+            ok.bind('<Return>',self.ok)
+            Tkinter.Button(bf,text="Cancel",command=self.quit).grid(row=0,column=1)
+            self.result = None
+            
+        def ok(self,dummy_arg=None):
+            self.result = (self.hostname_tk.get(),self.port_tk.get())
+            self.destroy()
+            self.quit()
+            
+    connect_win = ConnectWindow()
+    connect_win.pack()
+    connect_win.mainloop()
+    return connect_win.result
+        
 class AppWindow(Tkinter.Frame):
     def __init__(self,
                  master=None,
                  client_list=None,
+                 server_hostname='',
+                 server_port=7766,
                  **cnf):
         # create myself
         apply(Tkinter.Frame.__init__, (self,master), cnf)
 
         self.client_list = client_list
+
+        self.server_hostname = server_hostname
+        self.server_port = server_port
         
-        self.pyro_client = VisionEgg.PyroClient.PyroClient()
+        self.pyro_client = VisionEgg.PyroClient.PyroClient(self.server_hostname,self.server_port)
         self.uber_server = self.pyro_client.get("uber_server")
+        self.uber_server.first_connection()
 
         self.autosave_dir = Tkinter.StringVar()
         self.autosave_dir.set( os.path.abspath(os.curdir) )
@@ -566,6 +666,27 @@ class AppWindow(Tkinter.Frame):
         self.do_single_trial_button.grid(row=row,column=0)
         Tkinter.Button(self, text='Do sequence', command=self.do_loops).grid(row=row,column=1)
 
+        row += 1
+        self.progress = VisionEgg.GUI.ProgressBar(self,
+                                                  width=300,
+                                                  relief="sunken",
+                                                  doLabel=0,
+                                                  labelFormat="%s")
+        self.progress.labelText = "Starting..."
+        self.progress.updateProgress(0)
+        self.progress.grid(row=row,column=0,columnspan=2)#,sticky='we')
+
+##        status_bar = Tkinter.Frame(self, relief=Tkinter.SUNKEN, borderwidth=2)
+##        status_bar.grid(row=row,column=0,columnspan=2,sticky='we')
+##        Tkinter.Label(status_bar,text="Status:").grid(row=0,column=0)
+##        self.status_tk_var = Tkinter.StringVar()
+##        self.status_tk_var.set("Starting...")
+##        Tkinter.Label(status_bar,textvariable=self.status_tk_var).grid(row=0,column=1)
+
+##        status_bar.columnconfigure(0,weight=0)
+##        status_bar.columnconfigure(1,weight=2)
+##        status_bar.columnconfigure(2,weight=0)
+            
         # Allow rows and columns to expand
         for i in range(2):
             self.columnconfigure(i,weight=1)
@@ -590,7 +711,7 @@ class AppWindow(Tkinter.Frame):
             del self.stim_frame
 
         self.stim_frame = control_frame_klass(self,suppress_uber_buttons=1)
-        self.stim_frame.connect()
+        self.stim_frame.connect(self.server_hostname,self.server_port)
         apply( self.stim_frame.grid, [], self.stim_frame_cnf )
         
         global loopable_variables
@@ -604,6 +725,9 @@ class AppWindow(Tkinter.Frame):
         apply( self.loop_frame.grid, [], self.loop_frame_cnf )
 
         self.autosave_basename.set( self.stim_frame.get_shortname() )
+
+        self.progress.labelText = "Ready"
+        self.progress.updateProgress(0)
 
     def change_stimulus(self, dummy_arg=None, new_stimkey=None ):
         # if new_stimkey is None, get from the tk variable
@@ -628,6 +752,9 @@ class AppWindow(Tkinter.Frame):
             old_cursor = root["cursor"]
             root["cursor"] = "watch"
             root.update()
+
+            self.progress.labelText = "Changing stimulus..."
+            self.progress.updateProgress(0)
             
             self.uber_server.set_next_stimkey( new_stimkey )
 
@@ -673,7 +800,10 @@ class AppWindow(Tkinter.Frame):
 
     def launch_screen_pos(self, dummy_ary=None):
         dialog = Tkinter.Toplevel(self)
-        frame = VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame(dialog,auto_connect=1)
+        frame = VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame(dialog,
+                                                                                auto_connect=1,
+                                                                                server_hostname=self.server_hostname,
+                                                                                server_port=self.server_port)
         frame.pack(expand=1,fill=Tkinter.BOTH)
 
     def set_autosave_dir(self):
@@ -708,9 +838,11 @@ class AppWindow(Tkinter.Frame):
         
             global need_rest_period
 
-            top = Tkinter.Toplevel(self)
-            loop_info_frame = LoopInfoFrame(top)
-            loop_info_frame.pack()
+            global loop_info_frame
+            if depth == 0: # only make one LoopInfoFrame
+                top = Tkinter.Toplevel(self)
+                loop_info_frame = LoopInfoFrame(top)
+                loop_info_frame.pack()
                         
             loop = loop_list[depth]
             max_depth = len(loop_list)-1
@@ -728,10 +860,11 @@ class AppWindow(Tkinter.Frame):
                     raise RuntimeError("Called with max_depth==-1:")
                 loop.advance()
             loop.reset()
-            top.destroy()
+            if depth == 0: # destroy LoopInfoFrame
+                top.destroy()
 
         process_loops(0) # start recursion on top level
-
+        
     def do_single_trial(self):
         self.do_single_trial_pre()
         self.do_single_trial_work()
@@ -770,18 +903,49 @@ class AppWindow(Tkinter.Frame):
     def do_single_trial_work(self):
         # make wait cursor
         root = self.winfo_toplevel()
-        old_cursor = root["cursor"]
+        self.old_cursor = root["cursor"]
         root["cursor"] = "watch"
         root.update()
+
+        self.progress.labelText = "Doing trial..."
+        self.progress.updateProgress(0)
         
         duration_sec = self.stim_frame.get_duration_sec()
         
-        self.stim_frame.go()
+        self.stim_frame.go() # start server going, but this return control immediately
         time.sleep(duration_sec)
-
-        #restore cursor
-        root["cursor"] = old_cursor
+##        self.start_time = time.time()
+##        self.end_time = self.start_time + duration_sec
+##        self.after(20, self.during_go_loop)
+        
+        root["cursor"] = self.old_cursor
         root.update()
+
+        # restore status bar
+        self.progress.labelText = "Ready"
+        self.progress.updateProgress(0)
+        
+    def during_go_loop(self):
+        time_elapsed = time.time() - self.start_time
+        percent = time_elapsed / (self.end_time - self.start_time) * 100.0
+        self.progress.updateProgress(int(percent))
+        if percent >= 100: # done
+            # restore cursor
+            root = self.winfo_toplevel()
+            root["cursor"] = self.old_cursor
+            root.update()
+
+            # restore status bar
+            self.progress.labelText = "Ready"
+            self.progress.updateProgress(0)
+
+            # delete variables unused elsewhere
+            del self.old_cursor
+            del self.start_time
+            del self.end_time
+        else:
+            # repeat this function again in 20 msec
+            self.after(20, self.during_go_loop)
 
     def quit(self):
         self.uber_server.set_quit_status(1)
@@ -804,27 +968,14 @@ class BarButton(Tkinter.Menubutton):
             self['menu'] = self.menu
                 
 if __name__ == '__main__':
-    try:
-        app_window = AppWindow(master=None,client_list=client_list)
-    except Pyro.errors.PyroError, x:
-        uber_server_error = 0
-        if isinstance(x, Pyro.errors.ProtocolError) and str(x) == 'connection failed': # Can't find UberServer running on network
-            uber_server_error = 1
-        if isinstance(x, Pyro.errors.NamingError) and str(x) == 'name not found': # Can't find UberServer running on network
-            uber_server_error = 1
-        if uber_server_error:
-            tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
-            sys.exit(1)
-        elif str(x) in ["Name Server not responding","connection failed"]:
-            try:
-                tkMessageBox.showerror("Can't find Pyro Name Server","Can't find Pyro Name Server on network.")
-                sys.exit(1)
-            except:
-                raise # Can't find Pyro Name Server on network
-        else:
-            raise        
-    app_window.winfo_toplevel().wm_iconbitmap()
-    app_window.pack(expand=1,fill=Tkinter.BOTH)
-    app_window.winfo_toplevel().title("Vision Egg")
-    app_window.winfo_toplevel().minsize(1,1)
-    app_window.mainloop()
+    result = get_server()
+    if result:
+        hostname,port = result
+        app_window = AppWindow(client_list=client_list,
+                               server_hostname=hostname,
+                               server_port=port)
+
+        app_window.winfo_toplevel().wm_iconbitmap()
+        app_window.pack(expand=1,fill=Tkinter.BOTH)
+        app_window.winfo_toplevel().title("Vision Egg")
+        app_window.mainloop()
