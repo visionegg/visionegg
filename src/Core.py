@@ -61,7 +61,13 @@ all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
 ####################################################################
 
 import sys, types, math, time, os               # standard Python modules
-import warnings
+import StringIO, warnings
+
+try:
+    import logging                              # available in Python 2.3
+except ImportError:
+    import VisionEgg.py_logging as logging      # use local copy otherwise
+
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
 import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
@@ -87,6 +93,14 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+# Define "sum" if it's not available as Python function
+try:
+    sum
+except NameError:
+    import operator
+    def sum( values ):
+        return reduce(operator.add, values )
 
 def swap_buffers():
     VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
@@ -234,29 +248,7 @@ class Screen(VisionEgg.ClassWithParameters):
         if self.constant_parameters.frameless:
             flags = flags | pygame.locals.NOFRAME
 
-        try_bpps = [self.constant_parameters.preferred_bpp]
-        
-        found_mode = False
-        for bpp in try_bpps: # try_bpps is ordered by preference
-            modeList = pygame.display.list_modes( bpp, flags )
-            if modeList == -1: # equal to -1 if any resolution will work
-                found_mode = True
-                try_bpp = bpp
-                break
-            else:
-                if len(modeList) == 0: # any resolution is OK
-                    found_mode = False
-                else:
-                    if self.constant_parameters.size in modeList:
-                        found_mode = True
-                        try_bpp = bpp
-                        break
-        if not found_mode:
-            message.add(
-                """Could not find video mode using preferred bit
-                depth.  Trying with bpp=0.""",
-                level=Message.WARNING)
-            try_bpp = 0 # At least try something!
+        try_bpp = self.constant_parameters.preferred_bpp
 
         append_str = ""
         if self.constant_parameters.fullscreen:
@@ -1312,6 +1304,9 @@ class FrameTimer:
         else:
             self.first_tick_sec = true_time_now
         self._true_time_last_frame = true_time_now # set for next frame
+
+    def get_longest_frame_duration_sec(self):
+        return self.longest_frame_draw_time_sec
         
     def get_running_average_ifi_sec(self):
         if self.running_average_num_frames:
@@ -1327,25 +1322,33 @@ class FrameTimer:
     def get_average_ifi_sec(self):
         if self._true_time_last_frame is None:
             raise RuntimeError("No frames were drawn")
-        return (self._true_time_last_frame - self.first_tick_sec)/sum( self.timing_histogram )
+        return (self._true_time_last_frame - self.first_tick_sec) / sum( self.timing_histogram )
+
+    def print_histogram(self):
+        warnings.warn("print_histogram() method of FrameTimer will stop being supported. "+\
+                      "Use log_histogram() instead.",
+                      DeprecationWarning,stacklevel=2)
+        self.log_histogram()
     
-    def print_histogram(self,fd=sys.stdout):
+    def log_histogram(self):
+        buffer = StringIO.StringIO()
+
         if self.first_tick_sec is None:
-            print >> fd, '0 frames were drawn.'
+            print >> buffer, '0 frames were drawn.'
             return
         average_ifi_sec = self.get_average_ifi_sec()
-        print >> fd, '%d frames were drawn.'%int(sum(self.timing_histogram)+1)
-        print >> fd, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
+        print >> buffer, '%d frames were drawn.'%int(sum(self.timing_histogram)+1)
+        print >> buffer, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
             average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
         
         h = hist = self.timing_histogram # shorthand
         maxhist = float(max(h))
         if maxhist == 0:
-            print >> fd, "No frames were drawn."
+            print >> buffer, "No frames were drawn."
             return
         lines = min(10,int(math.ceil(maxhist)))
         hist = hist/maxhist*float(lines) # normalize to number of lines
-        print >> fd, "histogram:"
+        print >> buffer, "histogram:"
         for line in range(lines):
             val = float(lines)-1.0-float(line)
             timing_string = "%6d   "%(round(maxhist*val/lines),)
@@ -1355,7 +1358,7 @@ class FrameTimer:
                 if qi:
                     s = '*'
                 timing_string += "%4s "%(s,)
-            print >> fd, timing_string
+            print >> buffer, timing_string
         timing_string = " Time: "
         timing_string += "%4d "%(0,)
         for bin in self.bins[:-1]:
@@ -1368,7 +1371,11 @@ class FrameTimer:
             else:
                 num_str = " +++ "
             timing_string += num_str
-        print >> fd, timing_string
+        print >> buffer, timing_string
+        
+        buffer.seek(0)
+        logger = logging.getLogger('VisionEgg')
+        logger.info(buffer.read())
         
 ####################################################################
 #
@@ -1377,7 +1384,7 @@ class FrameTimer:
 ####################################################################
 
 class Message:
-    """Handles message/warning/error printing, exception raising."""
+   """DEPRECATED Handles message/warning/error printing, exception raising."""
 
     # Levels are:
     TRIVIAL = 0
@@ -1388,89 +1395,30 @@ class Message:
     ERROR = 5
     FATAL = 6
 
-    class Tee:
-        """Private class internal to class Message"""
-        def __init__(self,*streams):
-            self.streams = []
-            for stream in streams:
-                if not hasattr(stream,"write"):
-                    raise ValueError("stream must have write method")
-                if hasattr(stream,"flush"):
-                    self.streams.append(stream)
-                else:
-                    stream.flush = lambda : None # no-op
-                    self.streams.append(stream)
-            self._sys = sys # keeps a ref that stays even when deleted from namespace
-        def write(self,*args,**kw):
-            # Hack to prevent writing to sys.stderr when not necessary
-            if kw.has_key('_no_sys_stderr'):
-                no_sys_stderr = kw['_no_sys_stderr']
-                del kw["_no_sys_stderr"]
-            else:
-                no_sys_stderr = 0
-            for stream in self.streams:
-                if stream != self._sys.stderr or not no_sys_stderr:
-                    stream.write(*args,**kw)
-
-        def flush(self,*args,**kw):
-            for stream in self.streams:
-                stream.flush(*args,**kw)
-    
-    def __init__(self,
-                 prefix="VisionEgg",
-                 exception_level=ERROR,
-                 print_level=VisionEgg.config.VISIONEGG_MESSAGE_LEVEL,
-                 main_global_instance=0):
-        self.prefix = prefix
-        self.message_queue = []
-        self.exception_level = exception_level
-        self.print_level = print_level
-        self.orig_stderr = sys.stderr
-        self._sent_initial_newline = 0
+    def __init__(self):
+        self.logger = logging.getLogger('VisionEgg.Core')
+        script_name = sys.argv[0]
+        if not script_name:
+            script_name = "(interactive shell)"
         try:
             self.pid = os.getpid()
         except:
             self.pid = None
-        output_streams = []
-        if VisionEgg.config.VISIONEGG_LOG_FILE:
-            try:
-                log_file_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
-            except:
-                print "VISIONEGG WARNING: Could not open log file '%s'"\
-                      %(VisionEgg.config.VISIONEGG_LOG_FILE,)
-                print " Writing only to stderr."
-            else:
-                output_streams.append(log_file_stream)
+        self.logger.info("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,self.pid))
 
-        if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
-            use_stderr = 1
-            if sys.platform == "win32":
-                # Windows doesn't allow printing to console when there is none
-                if sys.executable == sys.argv[0]:
-                    # Binary executables are console-free by default
-                    use_stderr = 0
-                elif os.path.splitext(sys.argv[0])[1] == ".pyw":
-                    use_stderr = 0
-            if use_stderr:
-                output_streams.append(sys.stderr)
-
-        self.output_stream = Message.Tee(*output_streams)
-
-        if main_global_instance:
-            VisionEgg.config._message = self
-
-        script_name = sys.argv[0]
-        if not script_name:
-            script_name = "(interactive shell)"
-        self.add("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,self.pid),level=Message.INFO)
-
-    def __del__(self):
-        self.output_stream.write("\n",_no_sys_stderr=1)
-        
     def add(self,message,level=INFO,preserve_formatting=0,no_sys_stderr=0):
-        date_str = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.message_queue.append((level,message,preserve_formatting,date_str,no_sys_stderr))
-        self.handle()
+        level_translate = {
+            # convert from old VisionEgg levels to new logging module levels
+            Message.TRIVIAL : logging.DEBUG,
+            Message.NAG : logging.DEBUG,
+            Message.INFO : logging.INFO,
+            Message.DEPRECATION : logging.WARNING,
+            Message.WARNING : logging.WARNING,
+            Message.ERROR : logging.ERROR,
+            Message.FATAL : logging.CRITICAL,
+            }
+        new_level = level_translate[ level ]
+        self.logger.log(new_level,message + '\n(sent using deprecated VisionEgg.Core.Message class)')
         
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
@@ -1526,7 +1474,8 @@ class Message:
             if level == Message.FATAL:
                 sys.exit(-1)
 
-message = Message(main_global_instance=1) # create instance of Message class for everything to use
+message = Message() # create instance of Message class for everything to use
+##message = Message(main_global_instance=1) # create instance of Message class for everything to use
     
 gl_assumptions = []
 
