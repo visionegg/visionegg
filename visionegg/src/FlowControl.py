@@ -596,13 +596,14 @@ class Presentation(VisionEgg.ClassWithParameters):
         if len(screens) > 1:
             logger.warning("Only saved movie from last screen.")
 
-        if screen.red_bits is not None:
+        scp = screen.constant_parameters
+        if scp.red_bits is not None:
             warn_about_movie_depth = 0
-            if screen.red_bits > 8:
+            if scp.red_bits > 8:
                 warn_about_movie_depth = 1
-            elif screen.green_bits > 8:
+            elif scp.green_bits > 8:
                 warn_about_movie_depth = 1
-            elif screen.blue_bits > 8:
+            elif scp.blue_bits > 8:
                 warn_about_movie_depth = 1
             if warn_about_movie_depth:
                 logger.warning("Only saved 8 bit per pixel movie, even "
