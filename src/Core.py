@@ -394,6 +394,7 @@ class Screen(VisionEgg.ClassWithParameters):
         elif format == gl.GL_RGBA:
             pil_mode = 'RGBA'
         fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
+        fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
         return fb_image
 
     def get_framebuffer_as_array(self,
