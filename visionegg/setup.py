@@ -55,9 +55,14 @@ if not skip_c_compilation:
     # _lib3ds
     lib3ds_sources = glob.glob('lib3ds/*.c')
     lib3ds_sources.append('src/_lib3ds.c')
+    if sys.platform == 'darwin':
+        extra_link_args = ['-framework','OpenGL']
+    else:
+        extra_link_args = []
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
+                                 extra_link_args=extra_link_args
                                  ))
         
     if compile_syncmaster:
