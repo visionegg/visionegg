@@ -18,7 +18,8 @@ screen = get_default_screen()
 #  Create sinusoidal grating object  #
 ######################################
 
-stimulus = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+stimulus = SinGrating2D(position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        anchor           = 'center',
                         size             = ( 300.0 , 300.0 ),
                         spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
                         temporal_freq_hz = 1.0,
