@@ -57,6 +57,23 @@ class VETestCase(unittest.TestCase):
         VisionEgg.Core.swap_buffers() # just for a brief flash...
         del self.screen
 
+    def pickle_test(self, pickleable):
+        import pickle
+        a = pickleable
+        a_pickle = pickle.dumps(a)
+        a_test = pickle.loads(a_pickle)
+        for attr_name in dir(a):
+            if hasattr(a,attr_name):
+                attr_orig = getattr(a,attr_name)
+                attr_test = getattr(a_test,attr_name)
+                self.failUnless(type(attr_orig) == type(attr_test))
+                if hasattr(attr_orig,'__dict__'):
+                    for k in attr_orig.__dict__.keys():
+                        self.failUnless(type(attr_orig.__dict__[k]) == type(attr_test.__dict__[k]))
+
+    def test_ClassWithParameters_pickle_ability(self):
+        self.pickle_test( VisionEgg.ClassWithParameters() )
+            
     def test_parameter_types_simple(self):
         ve_types = VisionEgg.ParameterTypes
         b = ve_types.Boolean
@@ -133,7 +150,6 @@ class VETestCase(unittest.TestCase):
         p = VisionEgg.FlowControl.Presentation(go_duration=(0,'frames'))
         p.go() # make sure it works with 0 duration
 
-
     def test_presentation_frame_drop_test(self):
         p = VisionEgg.FlowControl.Presentation(go_duration=(0,'frames'))
         p.go() # make sure it works with 0 duration
@@ -154,7 +170,6 @@ class VETestCase(unittest.TestCase):
         
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = orig_framerate_setting
         p.parameters.warn_longest_frame_threshold = orig_threshold
-        
         self.failUnless(p.were_frames_dropped_in_last_go_loop(),'missed simulated dropped frame')
 
     def test_core_screen_query_refresh_rate(self):
@@ -378,6 +393,7 @@ class VETestCase(unittest.TestCase):
         
 def suite():
     ve_test_suite = unittest.TestSuite()
+    ve_test_suite.addTest( VETestCase("test_ClassWithParameters_pickle_ability") )
     ve_test_suite.addTest( VETestCase("test_parameter_types_simple") )
     ve_test_suite.addTest( VETestCase("test_parameter_types_sequence") )
     ve_test_suite.addTest( VETestCase("test_parameter_types_instance") )
