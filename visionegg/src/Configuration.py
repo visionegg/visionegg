@@ -50,6 +50,7 @@ defaults= {
     'VISIONEGG_REQUEST_ALPHA_BITS':   8,
     'VISIONEGG_TKINTER_OK':           1,
     'VISIONEGG_MESSAGE_LEVEL':        1,
+    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" means sys.stdout
     }
 
 ####################################################################
@@ -110,8 +111,7 @@ class ConfigReader:
                 match=self.matcher.match(l)
                 if match:
                     if defaults.has_key(match.group(1)):
-                        if match.group(2):
-                            self.items[match.group(1)] = match.group(2)
+                        self.items[match.group(1)] = match.group(2)
                     else:
                         raise KeyError('Unknown config in configfile: '+match.group(1))
 
@@ -121,9 +121,9 @@ class ConfigReader:
         # Now fix up all other items:
         for i in self.items.keys():
             # fix the type if it's an integer
-            if type(defaults[i]) == type(42):
+            if type(defaults[i]) == type(42): # int
                 self.items[i] = int(self.items[i])
-            if type(defaults[i]) == type(42.0):
+            elif type(defaults[i]) == type(42.0): # float
                 self.items[i] = float(self.items[i])
 
     def processEnv(self, keys):
