@@ -17,15 +17,16 @@ except NameError:
     True = 1==1
     False = 1==0
 
-class ParameterTypeDef:
+class ParameterTypeDef(object):
     """Base class for all parameter type definitions"""
+    
     def verify(value):
         # override this method with type-checking code
-        pass
+        raise RuntimeError('must override base class method verify')
     verify = staticmethod(verify)
-
+    
 def get_all_classes_list(klass):
-    assert(type(klass) == types.ClassType)
+    #assert(type(klass) == types.ClassType)
     result = [klass]
     for base_klass in klass.__bases__:
         result.extend(get_all_classes_list(base_klass))
@@ -38,6 +39,8 @@ def is_parameter_type_def(item_type):
         else:
             return ParameterTypeDef in get_all_classes_list(item_type)
     elif isinstance(item_type,ParameterTypeDef):
+        return True
+    elif issubclass(item_type,ParameterTypeDef): # for new style classes
         return True
     elif item_type == types.NoneType:
         warnings.warn("types.NoneType will stop being a supported type "+\
@@ -97,7 +100,7 @@ class SubClass(ParameterTypeDef):
 
 class Instance(ParameterTypeDef):
     def __init__(self,class_type):
-        if type(class_type) != types.ClassType:
+        if type(class_type) not in (types.ClassType, types.TypeType):
             raise TypeError("expected a class type")
         self.class_type = class_type
     def __str__(self):
@@ -210,7 +213,10 @@ def get_type(value):
     elif py_type == bool:
         return Boolean
     elif py_type == int:
-        return Integer
+        if py_type >= 0:
+            return UnsignedInteger
+        else:
+            return Integer
     elif py_type == float:
         return Real
     elif py_type == types.InstanceType:
@@ -246,7 +252,13 @@ def get_type(value):
                 return Sequence4(sequence_type)
             else:
                 return Sequence(sequence_type)
-    raise TypeError("Unable to determine type for '%s'"%value)
+    # finally, one last check:
+    if isinstance(value, object):
+        # new style class
+        # hmm, impossible to figure out appropriate class of all possible base classes
+        return Instance(value.__class__)
+    else:
+        raise TypeError("Unable to determine type for '%s'"%value)
 
 def assert_type(check_type,require_type):
     if not is_parameter_type_def(check_type):
@@ -255,30 +267,40 @@ def assert_type(check_type,require_type):
         raise ValueError("require a ParameterTypeDef as argument (not %s)"%require_type)
     if check_type == require_type:
         return
+
+    if check_type in (Integer,UnsignedInteger) and require_type == Boolean:
+        return # let integers pass as booleans
+    # XXX doesn't check if Instance is actually instance of proper class
+    if isinstance(check_type,ParameterTypeDef):
+        check_class = check_type.__class__
     else:
-        if check_type in (Integer,UnsignedInteger) and require_type == Boolean:
-            return # let integers pass as booleans
-        # XXX doesn't check if Instance is actually instance of proper class
-        if isinstance(check_type,ParameterTypeDef):
-            check_class = check_type.__class__
-        else:
-            check_class = check_type
+        check_class = check_type
 
-        if isinstance(require_type,ParameterTypeDef):
-            if isinstance(require_type,AnyOf):
-                passed = False
-                for ok_type in require_type.get_item_types():
-                    try:
-                        assert_type(check_type, ok_type )
-                        return # it's ok
-                    except:
-                        pass
-            else:
-                require_class = require_type.__class__
+    if isinstance(require_type,ParameterTypeDef):
+        if isinstance(require_type,AnyOf):
+            passed = False
+            for ok_type in require_type.get_item_types():
+                try:
+                    assert_type(check_type, ok_type )
+                    return # it's ok
+                except:
+                    pass
         else:
-            require_class = require_type
+            require_class = require_type.__class__
+    else:
+        require_class = require_type
 
-        if require_class in get_all_classes_list(check_class):
+    if require_class in get_all_classes_list(check_class):
+        return
+
+    if issubclass(require_class,Real):
+        if issubclass(check_class,Boolean):
             return
-            
+        elif issubclass(check_class,Integer):
+            return
+        
+    if issubclass(require_class,Integer):
+        if issubclass(check_class,Boolean):
+            return
+        
     raise TypeError("%s not of type %s"%(check_type,require_type))
