@@ -8,7 +8,7 @@ from distutils.core import setup, Extension
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.7.0",
+      version = "0.7.1",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",
