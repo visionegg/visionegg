@@ -138,4 +138,6 @@ class ClassWithParameters:
         for klass in classes:
             if parameter_name in klass.parameters_and_defaults.keys():
                 return klass.parameters_and_defaults[parameter_name][1]
+        # The for loop only completes if parameter_name is not in any subclass
+        raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
 
