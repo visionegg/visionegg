@@ -1145,7 +1145,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 w,h = p.texture.size
 
                 # calculate texture coordinates based on current angle
-                tex_phase = p.angular_position/-360.0 + 0.5 # offset to match non-flat
+                tex_phase = p.angular_position/360.0 + 0.5 # offset to match non-flat
                 tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
                 TINY = 1.0e-10
@@ -1216,7 +1216,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
-                gl.glRotatef(p.angular_position,0.0,1.0,0.0)
+                gl.glRotatef(p.angular_position,0.0,-1.0,0.0)
 
                 if p.num_sides != self.cached_display_list_num_sides:
                     self.rebuild_display_list()
