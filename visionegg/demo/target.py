@@ -26,7 +26,8 @@ viewport = Viewport(screen=screen)
 
 # Create an instance of the Target2D class with appropriate parameters.
 target = Target2D(size  = (25.0,10.0),
-                  color      = (0.0,0.0,0.0,1.0)) # Set the target color (RGBA) black
+                  color      = (0.0,0.0,0.0,1.0), # Set the target color (RGBA) black
+                  orientation = 135.0)
 
 # Tell the viewport to draw the target.
 viewport.add_stimulus(target)
@@ -51,22 +52,11 @@ def xy_as_function_of_time(t):
     return ( max_vel*math.sin(0.1*2.0*math.pi*t) + mid_x , # x
              max_vel*math.sin(0.1*2.0*math.pi*t) + mid_y ) # y
 
-def orientation(dummy_argument):
-    return 135.0
-
-def on_during_experiment(t):
-    if t < 0.0:
-        return 0 # off between stimuli
-    else:
-        return 1 # on during stimulus presentation
-
 #############################################################
 #  Connect the controllers with the variables they control  #
 #############################################################
 
 p.add_realtime_time_controller(target,'center', xy_as_function_of_time)
-p.add_transitional_controller(target,'orientation', orientation)
-p.add_transitional_controller(target,'on', on_during_experiment)
 
 #######################
 #  Run the stimulus!  #

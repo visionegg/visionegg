@@ -85,9 +85,9 @@ def angle_as_function_of_time(t):
 # Control anything that should be off between presentations:
 def one_during_experiment(t):
     if t < 0.0:
-        return 0.0
+        return 0
     else:
-        return 1.0
+        return 1
 
 #############################################################
 #  Connect the controllers with the variables they control  #
@@ -96,7 +96,6 @@ def one_during_experiment(t):
 p.add_realtime_time_controller(target,'center', xy_as_function_of_time)
 p.add_realtime_time_controller(drum,'angular_position', angle_as_function_of_time)
 p.add_transitional_controller(target,'on', one_during_experiment)
-p.add_transitional_controller(drum,'contrast', one_during_experiment)
 
 #######################
 #  Run the stimulus!  #
