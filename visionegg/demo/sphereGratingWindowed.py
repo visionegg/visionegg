@@ -9,6 +9,7 @@ from VisionEgg.Gratings import *
 from VisionEgg.SphereMap import *
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
+import VisionEgg.ParameterTypes as ve_types
 import math, os
 import pygame
 
@@ -23,7 +24,7 @@ class MousePositionController( Controller ):
     def __init__(self):
         global mouse_position
         Controller.__init__(self,
-                            return_type=type(None),
+                            return_type=ve_types.get_type(None),
                             eval_frequency=Controller.EVERY_FRAME)
         self.between_go_eval = self.during_go_eval # duplicate reference to function
         
