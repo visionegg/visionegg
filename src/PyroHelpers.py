@@ -25,80 +25,35 @@ though!"""
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-import os
-import VisionEgg
-import VisionEgg.Core
-import string
+import os, string, math
 import Numeric
-import math
+import VisionEgg
+
+try:
+    import VisionEgg.Core # not required
+except:
+    if "Core" in dir(VisionEgg):
+        del VisionEgg.Core
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-try:
-    import Pyro.core
-    import Pyro.naming
-    import Pyro.errors
-except ImportError,x:
-    print "ERROR: Could not import Pyro. Download from http://pyro.sourceforge.net/"
-    import sys
-    sys.exit(1)
+import Pyro.core
+import Pyro.naming
+import Pyro.errors
+
+##try:
+##    import Pyro.core
+##    import Pyro.naming
+##    import Pyro.errors
+##except ImportError,x:
+##    print "ERROR: Could not import Pyro. Download from http://pyro.sourceforge.net/"
+##    import sys
+##    sys.exit(1)
 
 Pyro.config.PYRO_MULTITHREADED = 0 # No multithreading!
-
-class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
-    def __init__(self, **kw):
-        apply(VisionEgg.Core.ConstantController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
-        
-class PyroEvalStringController(VisionEgg.Core.EvalStringController,Pyro.core.ObjBase):
-    def __init__(self, **kw):
-        apply(VisionEgg.Core.EvalStringController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
-
-class PyroExecStringController(VisionEgg.Core.ExecStringController,Pyro.core.ObjBase):
-    def __init__(self, **kw):
-        apply(VisionEgg.Core.ExecStringController.__init__,(self,),kw)
-        apply(Pyro.core.ObjBase.__init__,(self,))
-
-class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
-    """Create the instance of Controller on client, and send it to server.
-
-    This class is analagous to VisionEgg.TCPController.TCPController.
-    """
-    def __init__(self,initial_controller=None,**kw):
-        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
-        apply(Pyro.core.ObjBase.__init__,(self,))
-
-class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
-    """Contain several dictionary entries, set controller accordingly.
-    """
-    def __init__(self, dict=None, key=None, **kw):
-        if dict is None:
-            self.dict = {}
-            initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
-                                                                   between_go_value=0,
-                                                                   eval_frequency=VisionEgg.Core.Controller.NEVER)
-        else:
-            self.dict = dict
-        if key is None:
-            if len(self.dict.keys()):
-                key = self.dict.keys()[0]
-                initial_controller = self.dict[key]
-            else:
-                initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
-                                                                       between_go_value=0,
-                                                                       eval_frequency=VisionEgg.Core.Controller.NEVER)
-        else:
-            initial_controller = dict[key]
-        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
-        apply(Pyro.core.ObjBase.__init__,(self,))
-    def use_controller(self,key):
-        self.set_new_controller(self.dict[key])
-    def add_controller(self,key,new_controller):
-        self.dict[key] = new_controller
 
 class PyroServer:
     """Set up a Pyro server for your PyroControllers and PyroGoClass.
@@ -112,24 +67,7 @@ class PyroServer:
         self.daemon = Pyro.core.Daemon()
         # locate the Pyro name server
         locator = Pyro.naming.NameServerLocator()
-        VisionEgg.Core.message.add('Searching for Pyro Name Server.',VisionEgg.Core.Message.INFO)
-        try:
-            self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        except Pyro.errors.PyroError, x:
-            if hasattr(os,"fork"):
-                if str(x) == "Name Server not responding":
-                    # Attempt to spawn another copy of Python running name server
-                    print "Spawning Pyro Name Server."
-                    VisionEgg.Core.message.add("Spawning Pyro Name Server.")
-                    pid = os.fork()
-                    if pid == 0: # in the child, run name server
-                        Pyro.naming.main()
-                    else: # in the parent
-                        import time
-                        time.sleep(0.2) # wait a bit for name server to start
-                        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-            else:
-                raise
+        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
         self.daemon.useNameServer(self.ns)
         self.ok_to_run = 1
         
@@ -147,35 +85,6 @@ class PyroServer:
         self.listen_controller = PyroListenController(self)
         return self.listen_controller
 
-class PyroListenController(VisionEgg.Core.Controller):
-    """Handle connection from remote machine, control PyroControllers.
-
-    This meta controller handles a Pyro daemon, which checks the TCP
-    socket for new input and acts accordingly.
-
-    This class is analagous to VisionEgg.TCPController.SocketListenController.
-
-    """
-    
-    def __init__(self,server=None,**kw):
-        """Called by PyroServer. Creates a PyroListenerController instance."""
-        if not isinstance(server,PyroServer):
-            raise ValueError("Must specify a Pyro Server.") 
-        if 'eval_frequency' not in kw.keys():
-            kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
-        if 'return_type' not in kw.keys():
-            kw['return_type'] = type(None)
-        apply(VisionEgg.Core.Controller.__init__,(self,),kw)
-        self.server=server
-
-    def during_go_eval(self):
-        # setting timeout = 0 means return ASAP
-        self.server.daemon.handleRequests(timeout=0)
-
-    def between_go_eval(self):
-        # setting timeout = 0 means return ASAP
-        self.server.daemon.handleRequests(timeout=0)
-
 class PyroClient:
     """Simplifies getting PyroControllers from a remote computer."""
     def __init__(self):
@@ -192,3 +101,85 @@ class PyroClient:
         URI=self.ns.resolve(name)
         return Pyro.core.getProxyForURI(URI)
 
+if "Core" in dir(VisionEgg): # we have VisionEgg.Core and therefore can make Controllers
+
+    class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
+        def __init__(self, **kw):
+            apply(VisionEgg.Core.ConstantController.__init__,(self,),kw)
+            apply(Pyro.core.ObjBase.__init__,(self,))
+
+    class PyroEvalStringController(VisionEgg.Core.EvalStringController,Pyro.core.ObjBase):
+        def __init__(self, **kw):
+            apply(VisionEgg.Core.EvalStringController.__init__,(self,),kw)
+            apply(Pyro.core.ObjBase.__init__,(self,))
+
+    class PyroExecStringController(VisionEgg.Core.ExecStringController,Pyro.core.ObjBase):
+        def __init__(self, **kw):
+            apply(VisionEgg.Core.ExecStringController.__init__,(self,),kw)
+            apply(Pyro.core.ObjBase.__init__,(self,))
+
+    class PyroEncapsulatedController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+        """Create the instance of Controller on client, and send it to server.
+
+        This class is analagous to VisionEgg.TCPController.TCPController.
+        """
+        def __init__(self,initial_controller=None,**kw):
+            apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
+            apply(Pyro.core.ObjBase.__init__,(self,))
+
+    class PyroLocalDictController(VisionEgg.Core.EncapsulatedController,Pyro.core.ObjBase):
+        """Contain several dictionary entries, set controller accordingly.
+        """
+        def __init__(self, dict=None, key=None, **kw):
+            if dict is None:
+                self.dict = {}
+                initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+                                                                       between_go_value=0,
+                                                                       eval_frequency=VisionEgg.Core.Controller.NEVER)
+            else:
+                self.dict = dict
+            if key is None:
+                if len(self.dict.keys()):
+                    key = self.dict.keys()[0]
+                    initial_controller = self.dict[key]
+                else:
+                    initial_controller = VisionEgg.Core.ConstantController(during_go_value=0,
+                                                                           between_go_value=0,
+                                                                           eval_frequency=VisionEgg.Core.Controller.NEVER)
+            else:
+                initial_controller = dict[key]
+            apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
+            apply(Pyro.core.ObjBase.__init__,(self,))
+        def use_controller(self,key):
+            self.set_new_controller(self.dict[key])
+        def add_controller(self,key,new_controller):
+            self.dict[key] = new_controller
+
+    class PyroListenController(VisionEgg.Core.Controller):
+        """Handle connection from remote machine, control PyroControllers.
+
+        This meta controller handles a Pyro daemon, which checks the TCP
+        socket for new input and acts accordingly.
+
+        This class is analagous to VisionEgg.TCPController.SocketListenController.
+
+        """
+
+        def __init__(self,server=None,**kw):
+            """Called by PyroServer. Creates a PyroListenerController instance."""
+            if not isinstance(server,PyroServer):
+                raise ValueError("Must specify a Pyro Server.") 
+            if 'eval_frequency' not in kw.keys():
+                kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
+            if 'return_type' not in kw.keys():
+                kw['return_type'] = type(None)
+            apply(VisionEgg.Core.Controller.__init__,(self,),kw)
+            self.server=server
+
+        def during_go_eval(self):
+            # setting timeout = 0 means return ASAP
+            self.server.daemon.handleRequests(timeout=0)
+
+        def between_go_eval(self):
+            # setting timeout = 0 means return ASAP
+            self.server.daemon.handleRequests(timeout=0)
