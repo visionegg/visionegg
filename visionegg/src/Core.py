@@ -541,7 +541,7 @@ class FixationSpot(Stimulus):
             gl.glLoadIdentity()
 
             c = self.parameters.color
-            glColor(c[0],c[1],c[2],c[3])
+            gl.glColor(c[0],c[1],c[2],c[3])
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
@@ -608,7 +608,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     parameters_and_defaults = {'viewports' : ([],
                                               types.ListType),
                                'duration' : ((5.0,'seconds'),
-                                             types.TupleType) }
+                                             types.TupleType),
+                               'check_events' : (0, # May cause performance hit
+                                                 types.IntType)}
     
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
@@ -649,11 +651,12 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Check if type checking needed
         if type(class_with_parameters) != types.NoneType or type(parameter_name) != types.NoneType:
             # Check if return type of controller eval is same as parameter type
-            if controller.get_controlled_type() != class_with_parameters.get_specified_type(parameter_name):
-                raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
-                    parameter_name,
-                    class_with_parameters.get_specified_type(parameter_name),
-                    controller.get_controlled_type()))
+            if controller.returns_type() != class_with_parameters.get_specified_type(parameter_name):
+                if not issubclass( controller.returns_type(), class_with_parameters.get_specified_type(parameter_name) ):
+                    raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
+                        parameter_name,
+                        class_with_parameters.get_specified_type(parameter_name),
+                        controller.returns_type()))
             if not hasattr(class_with_parameters.parameters,parameter_name):
                 raise AttributeError("%s has no instance '%s'"%parameter_name)
             self.controllers.append( (class_with_parameters.parameters,parameter_name, controller) )
@@ -861,8 +864,9 @@ class Presentation(VisionEgg.ClassWithParameters):
                 current_duration_value = current_frame
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-            for event in pygame.event.get():
-                pass
+            if self.parameters.check_events:
+                for event in pygame.event.get():
+                    pass
             
         # Tell transitional controllers a presentation is starting
         self.call_controllers(go_started=0,doing_transition=1)
@@ -1083,7 +1087,7 @@ class Controller:
         self.temporal_variable_type = temporal_variable_type
         self.eval_frequency = eval_frequency
 
-    def get_controlled_type(self):
+    def returns_type(self):
         return self.parameter_type
     
     def during_go_eval(self):
@@ -1141,13 +1145,17 @@ class CompatibilityController(Controller):
                  **kw
                  ):
 
-        if type(eval_func) != types.FunctionType:
-            raise TypeError("Must pass function to CompatibilityController.")
+        if not (isinstance(eval_func,types.FunctionType) or isinstance(eval_func,types.MethodType)):
+            raise TypeError("Must pass function to CompatibilityController, not type %s"%type(eval_func))
 
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = Controller.EVERY_FRAME
 
-        my_type = type(eval_func(-1))
+        temp_result = eval_func(-1)
+        if type(temp_result) is types.InstanceType:
+            my_type = temp_result.__class__
+        else:
+            my_type = type(temp_result)
         
         if 'parameter_type' in kw.keys():
             if kw['parameter_type'] != my_type:
