@@ -2588,3 +2588,17 @@ def check_gl_assumptions():
                 failure_callback()
         else:
             raise RuntimeError("Unknown gl_assumption")
+        
+    # Make sure gl.GL_CLAMP_TO_EDGE_WORKS
+    try:
+        gl.glTexParameteri( gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE )
+    except (gl.GLerror, AttributeError):
+        VisionEgg.Core.message.add(
+
+            """You do not have GL_CLAMP_TO_EDGE available.  It may
+            be impossible to get exact 1:1 reproduction of your
+            textures.  Using GL_CLAMP instead of
+            GL_CLAMP_TO_EDGE.""",
+
+            level=VisionEgg.Core.Message.WARNING)
+        gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
