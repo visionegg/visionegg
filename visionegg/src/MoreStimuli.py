@@ -50,7 +50,7 @@ class Target2D(VisionEgg.Core.Stimulus):
 
     Parameters
     ==========
-    anchor        -- specifies how position parameter is interpreted (String) (String)
+    anchor        -- specifies how position parameter is interpreted (String)
                      Default: center
     anti_aliasing -- (Boolean)
                      Default: True
@@ -86,7 +86,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                        "units: eye coordinates"),
         'anchor' : ('center',
                     ve_types.String,
-                    "specifies how position parameter is interpreted (String)"),
+                    "specifies how position parameter is interpreted"),
         'size':((64.0,16.0),
                 ve_types.Sequence2(ve_types.Real),
                 "units: eye coordinates"),
