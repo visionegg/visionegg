@@ -1,6 +1,5 @@
-# This is the python source code for GUI bits of the Vision Egg package.
-#
-#
+"""GUI bits of the Vision Egg package."""
+
 # Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
@@ -31,8 +30,8 @@ class AppWindow(Tkinter.Frame):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg')
 
-        info_frame = InfoFrame(self)
-        info_frame.pack()
+        self.info_frame = InfoFrame(self)
+        self.info_frame.pack()
         
         self.idle_func = idle_func
         self.after(1,self.idle) # register idle function with Tkinter
