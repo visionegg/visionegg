@@ -54,7 +54,7 @@ message -- Instance of Message class
 #
 ####################################################################
 
-import sys,types,string, math                   # standard Python modules
+import sys,types,string, math, time             # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
@@ -1746,7 +1746,7 @@ class FunctionController(Controller):
         # Check to make sure return_type is set
         if 'return_type' not in kw.keys():
             message.add('Evaluating %s to test for return type.'%(str(during_go_func),),
-                        Message.INFO)
+                        Message.TRIVIAL)
             call_args = {}
             if kw['temporal_variables'] & Controller.TIME_SEC_ABSOLUTE:
                 call_args['t_abs'] = VisionEgg.timing_func()
@@ -1856,37 +1856,68 @@ class Message:
                  prefix="VisionEgg",
                  exception_level=ERROR,
                  print_level=VisionEgg.config.VISIONEGG_MESSAGE_LEVEL,
-                 output_stream=sys.stderr):
+                 output_stream=None):
         self.prefix = prefix
         self.message_queue = []
         self.exception_level = exception_level
         self.print_level = print_level
-        self.output_stream = output_stream
+        if output_stream is None:
+            if VisionEgg.config.VISIONEGG_LOG_FILE:
+                try:
+                    self.output_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
+                except:
+                    self.output_stream = sys.stderr
+                    self.add(message="Could not open log file %s, writing to stderr instead.",
+                             level=Message.WARNING)
+            else:
+                self.output_stream = sys.stderr
+        else:
+            if hasattr(output_stream,"write") and hasattr(output_stream,"flush"):
+                self.output_stream = output_stream
+            else:
+                raise TypeError("argument output_stream must have write and flush methods.")
         
     def add(self,text,level=INFO):
         self.message_queue.append((level,text))
         self.handle()
-
+        
+    def format_string(self,in_str):
+        # This probably a slow way to do things, but it works!
+        min_line_length = 60
+        in_list = string.split(in_str)
+        out_str = ""
+        cur_line = ""
+        for word in in_list:
+            cur_line = cur_line + word + " "
+            if len(cur_line) > min_line_length:
+                out_str = out_str + cur_line[:-1] + "\n"
+                cur_line = "    "
+        out_str = out_str + cur_line + "\n"
+        return out_str
+            
     def handle(self):
         while len(self.message_queue) > 0:
+            my_str = ""
             level, text = self.message_queue.pop(0)
             if level >= self.print_level:
-                self.output_stream.write(self.prefix)
+                my_str=my_str+self.prefix+" "
                 if level == Message.TRIVIAL:
-                    self.output_stream.write(" trivial")
+                    my_str=my_str+" trivial"
                 elif level == Message.INFO:
-                    self.output_stream.write(" info")
+                    my_str=my_str+" info"
                 elif level == Message.NAG:
-                    self.output_stream.write(" nag")
+                    my_str=my_str+" nag"
                 elif level == Message.DEPRECATION:
-                    self.output_stream.write(" deprecation")
+                    my_str=my_str+" deprecation"
                 elif level == Message.WARNING:
-                    self.output_stream.write(" WARNING")
+                    my_str=my_str+" WARNING"
                 elif level == Message.ERROR:
-                    self.output_stream.write(" ERROR")
+                    my_str=my_str+" ERROR"
                 elif level == Message.FATAL:
-                    self.output_stream.write(" FATAL")
-                self.output_stream.write(" message: "+text+"\n")
+                    my_str=my_str+" FATAL"
+                my_str=my_str+" ("+time.strftime("%Y-%m-%d %H:%M:%S")+"): "+text
+                my_str = self.format_string(my_str)
+                self.output_stream.write(my_str)
                 self.output_stream.flush()
             if level >= self.exception_level:
                 raise EggError(text)
