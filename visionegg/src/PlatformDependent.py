@@ -162,9 +162,9 @@ def linux_but_unknown_drivers():
     # If you've added support for other drivers to sync with VBLANK under
     # linux, please let me know how!
     VisionEgg.Core.message.add(
-        """VISIONEGG WARNING: Could not sync buffer swapping to vblank
-        because you are running linux but not known/supported drivers
-        (nVidia or recent Mesa DRI Radeon)."""
+        """Could not sync buffer swapping to vblank because you are
+        running linux but not known/supported drivers (only nVidia and
+        recent Mesa DRI Radeon currently supported)."""
         , level=VisionEgg.Core.Message.WARNING)
     
 def sync_swap_with_vbl_pre_gl_init():
