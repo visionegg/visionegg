@@ -410,7 +410,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
     def darwin_maxpriority_tune(self):
         class DarwinFineTuneDialog(ToplevelDialog):
             def __init__(self,parent,**cnf):
-                # Bugs in Tk 8.4a4 for Darwin prevent use of "grid" in this dialog
+                # Bugs in Tk 8.4a4 for Darwin seem to prevent use of "grid" in this dialog
                 apply(ToplevelDialog.__init__,(self,),cnf)
                 self.title("Fine tune maximum priority")
                 f = Tkinter.Frame(self)
@@ -550,9 +550,6 @@ class ToplevelDialog(Tkinter.Toplevel):
     def __init__(self,**kw):
         apply(Tkinter.Toplevel.__init__,(self,),kw)
         self.transient(self)
-        self.frame = Tkinter.Frame(self)
-        self.frame.pack(padx=100,pady=70,ipadx=20,ipady=10,expand=1)
-        self.frame.focus_set()
 
     def destroy(self):
         Tkinter.Toplevel.destroy(self)
