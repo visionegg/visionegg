@@ -35,32 +35,33 @@ else:
 width = 640
 height = 480
 
+size = (width,height)
+
 pygame.init()
 pygame.display.set_caption("OpenGL Test")
 
-try_bpps = [24,32,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
+try_bpps = [0,32,24] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
 flags = OPENGL | DOUBLEBUF
 found_mode = 0
 for bpp in try_bpps:
     modeList = pygame.display.list_modes( bpp, flags )
-    if modeList == -1: 
-        found_mode = -1
+    if modeList == -1: # equal to -1 if any resolution will work
+        found_mode = 1
     else:
         if len(modeList) == 0: # any resolution is OK
             found_mode = 1
         else:
-            if (width,height) in modeList:
+            if size in modeList:
                 found_mode = 1
             else:
-                width = modeList[0][0]
-                height = modeList[0][1]
-                print "WARNING: Using %dx%d video mode instead of requested size."%(width,height)
+                size = modeList[0]
+                print "WARNING: Using %dx%d video mode instead of requested size."%(size[0],size[1])
     if found_mode:
         break
 if found_mode == 0:
     print "WARNING: Could not find acceptable video mode! Trying anyway..."
 
-print "Initializing graphics at %d x %d ( %d bpp )."%(width,height,bpp)
+print "Initializing graphics at %d x %d ( %d bpp )."%(size[0],size[1],bpp)
 pygame.display.set_mode((width,height), flags, bpp )
 
 print
