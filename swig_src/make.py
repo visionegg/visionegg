@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import os, shutil
+import os, shutil, sys
+
+swig_src_dir = os.path.split(sys.argv[0])[0]
+os.chdir(swig_src_dir)
 
 interfaces = ["darwin_maxpriority",
               "win32_maxpriority",
