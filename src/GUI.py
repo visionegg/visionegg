@@ -101,7 +101,7 @@ class OpenScreenDialog(Tkinter.Frame):
                                              VisionEgg.config.VISIONEGG_SCREEN_H),
                                        fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
                                        preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                                       bgcolor=VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR)
+                                       bgcolor=(0.5,0.5,0.5,0.0))
 
         for child in self.children.values():
             child.destroy()
