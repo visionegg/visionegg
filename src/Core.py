@@ -1544,9 +1544,23 @@ def post_gl_init():
     global gl_vendor, gl_renderer, gl_version # set above
     logger = logging.getLogger('VisionEgg.Core')
     
-    # OpenGL 1.3 has this extension built-in, but doing this
-    # regardless of OpenGL version allows use of ARB names.
-    init_gl_extension('ARB','multitexture') 
+    if gl_version < '1.3':
+        if not init_gl_extension('ARB','multitexture'):
+            logger.warning("multitexturing not available.  Some features "
+                           "will not be available")
+    else:
+        if not hasattr(gl,'glActiveTexture'):
+            logger.debug("PyOpenGL bug: OpenGL multitexturing not available "
+                         "even though OpenGL is 1.3 or greater. "
+                         "Attempting ctypes-based workaround.")
+            VisionEgg.PlatformDependent.attempt_to_load_multitexturing()
+        if hasattr(gl,'glActiveTexture'): # the above worked or PyOpenGL fixed
+            # OpenGL 1.3 has this extension built-in,
+            # but doing this allows use of ARB names.
+            gl.glActiveTextureARB = gl.glActiveTexture
+            gl.glMultiTexCoord2fARB = gl.glMultiTexCoord2f
+            gl.GL_TEXTURE0_ARB = gl.GL_TEXTURE0
+            gl.GL_TEXTURE1_ARB = gl.GL_TEXTURE1
         
     if gl_version < '1.2':
         if init_gl_extension('EXT','bgra'):
@@ -1586,11 +1600,11 @@ def post_gl_init():
         if gl_version >= '1.2':
             # If OpenGL version >= 1.2, this should be defined
             # It seems to be a PyOpenGL bug that it's not.
-            logger.warning("GL_CLAMP_TO_EDGE is not defined. "
-                           "Because you have OpenGL version 1.2 or "
-                           "greater, this is probably a bug in "
-                           "PyOpenGL.  Assigning GL_CLAMP_TO_EDGE to "
-                           "the value that is usually used.")
+            logger.debug("GL_CLAMP_TO_EDGE is not defined. "
+                         "Because you have OpenGL version 1.2 or "
+                         "greater, this is probably a bug in "
+                         "PyOpenGL.  Assigning GL_CLAMP_TO_EDGE to "
+                         "the value that is usually used.")
             gl.GL_CLAMP_TO_EDGE = 0x812F
         else:
             try:

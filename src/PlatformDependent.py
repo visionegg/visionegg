@@ -29,6 +29,8 @@ import sys, os
 import VisionEgg
 import VisionEgg.Core
 
+import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
+
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
@@ -209,4 +211,52 @@ def query_refresh_rate(screen):
         return darwin_getrefresh.getrefresh()
     else:
         raise NotImplementedError("Platform dependent code to query frame rate not implemented on this platform.")
+
+def attempt_to_load_multitexturing():
+    """Attempt to load multitexturing functions and constants.
+
+    Inserts the results into the gl module, which makes them globally
+    available."""
+    logger = logging.getLogger('VisionEgg.PlatformDependent')
+    try:
+        import ctypes
+        if sys.platform.startswith('linux'):
+            libGL = ctypes.cdll.LoadLibrary('/usr/lib/libGL.so')
+        elif sys.platform == 'win32':
+            libGL = ctypes.cdll.LoadLibrary('opengl32.dll')
+        else:
+            raise NotImplementedError("ctypes support not added for this platform")
+
+        # make sure libGL has the appropriate functions
+        libGL.glGetString.restype = ctypes.c_char_p
+        vers = libGL.glGetString( ctypes.c_int( gl.GL_VERSION ) )
+        logger.debug("ctypes loaded OpenGL %s"%vers)
+        
+        gl.glActiveTexture = libGL.glActiveTexture
+        gl.glActiveTexture.argtypes = [ctypes.c_int]
+        
+        gl.glMultiTexCoord2f = libGL.glMultiTexCoord2f
+        gl.glMultiTexCoord2f.argtypes = [ctypes.c_int, ctypes.c_float, ctypes.c_float]
+        
+        # assign constants found by looking at gl.h
+        gl.GL_TEXTURE0 = 0x84C0
+        gl.GL_TEXTURE1 = 0x84C1
+
+        logger.debug("ctypes loaded OpenGL library and multitexture names "
+                     "are present.  Workaround appears successful. ")
+    except Exception, x:
+        logger.debug("ctypes loading of OpenGL library failed %s: "
+                     "%s"%(x.__class__, str(x)))
+
+        if VisionEgg.Core.init_gl_extension('ARB','multitexture'):
+            # copy from extenstion
+            gl.glActiveTexture = gl.glActiveTextureARB
+            gl.glMultiTexCoord2f = gl.glMultiTexCoord2fARB
+            gl.GL_TEXTURE0 = gl.GL_TEXTURE0_ARB
+            gl.GL_TEXTURE1 = gl.GL_TEXTURE1_ARB
+            logger.debug("loaded multitexturing ARB extension")
+        else:
+            logger.warning("multitexturing not available after trying "
+                           "ctypes and the OpenGL ARB extension. Some "
+                           "features will not be available")
 
