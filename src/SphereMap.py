@@ -5,6 +5,11 @@
 
 import math, types
 
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.Text
@@ -199,25 +204,27 @@ class AzElGrid(VisionEgg.Core.Stimulus):
             if p.anti_aliasing:
                 if len(p.minor_line_color) == 4 and not self._gave_alpha_warning:
                     if p.minor_line_color[3] != 1.0:
-                        VisionEgg.Core.message.add(
-                            """The parameter anti_aliasing is set to
-                            true in the AzElGrid stimulus class, but
-                            the color parameter specifies an alpha
-                            value other than 1.0.  To acheive the best
-                            anti-aliasing, ensure that the alpha value
-                            for the color parameter is 1.0.""",
-                            level=VisionEgg.Core.Message.WARNING)
+                        logger = logging.getLogger('VisionEgg.SphereMap')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the AzElGrid "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive the best anti-aliasing, "
+                                       "ensure that the alpha value for "
+                                       "the color parameter is 1.0.")
                         self._gave_alpha_warning = 1
                 if len(p.major_line_color) == 4 and not self._gave_alpha_warning:
                     if p.major_line_color[3] != 1.0:
-                        VisionEgg.Core.message.add(
-                            """The parameter anti_aliasing is set to
-                            true in the AzElGrid stimulus class, but
-                            the color parameter specifies an alpha
-                            value other than 1.0.  To acheive the best
-                            anti-aliasing, ensure that the alpha value
-                            for the color parameter is 1.0.""",
-                            level=VisionEgg.Core.Message.WARNING)
+                        logger = logging.getLogger('VisionEgg.SphereMap')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the AzElGrid "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive the best anti-aliasing, "
+                                       "ensure that the alpha value for "
+                                       "the color parameter is 1.0.")
                         self._gave_alpha_warning = 1
                 gl.glEnable( gl.GL_LINE_SMOOTH )
                 # allow max_alpha value to control blending
