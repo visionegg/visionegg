@@ -63,8 +63,12 @@ class VETestCase(unittest.TestCase):
         try:
             self.screen = VisionEgg.Core.Screen( **kw_params )
         except Exception, x:
-            kw_params['preferred_bpp'] = 24
-            self.screen = VisionEgg.Core.Screen( **kw_params )
+            try:
+                kw_params['preferred_bpp'] = 24
+                self.screen = VisionEgg.Core.Screen( **kw_params )
+            except Exception, x:
+                kw_params['preferred_bpp'] = 0
+                self.screen = VisionEgg.Core.Screen( **kw_params )
         self.screen.clear()
         VisionEgg.Core.swap_buffers()
         self.ortho_viewport = VisionEgg.Core.Viewport( screen = self.screen )
