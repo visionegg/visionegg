@@ -1021,8 +1021,15 @@ class Presentation(VisionEgg.ClassWithParameters):
         # slightly by not performing name lookup each time.
         p = self.parameters
 
-        # Go!
-            
+        current_time = 0.0
+        current_time_absolute = current_time
+        current_frame = 0
+
+        real_timing_func = VisionEgg.timing_func
+        def fake_timing_func():
+            return current_time_absolute
+        VisionEgg.timing_func = fake_timing_func
+        
         # Tell transitional controllers a presentation is starting
         self.call_controllers(
             time_sec_absolute=0.0,
@@ -1030,9 +1037,6 @@ class Presentation(VisionEgg.ClassWithParameters):
             doing_transition=1)
 
         # Do the main loop
-        current_time = 0.0
-        current_time_absolute = current_time
-        current_frame = 0
         image_no = 1
         if p.duration[0] == 'forever': # forever
             current_duration_value = 0
@@ -1080,6 +1084,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             fb_image.save( savepath )
             image_no = image_no + 1
             current_time = current_time + 1.0/frames_per_sec
+            current_time_absolute = current_time
             current_frame = current_frame + 1
             if p.duration[0] == 'forever':
                 current_duration_value = 0
@@ -1101,6 +1106,8 @@ class Presentation(VisionEgg.ClassWithParameters):
             time_sec_absolute=current_time,
             go_started=0,
             doing_transition=1)
+
+        VisionEgg.timing_func = real_timing_func
         
     def print_frame_timing_stats(self):
         """Print a histogram of the last recorded frame drawing times.
@@ -1288,7 +1295,75 @@ class EvalStringController(Controller):
     def between_go_eval(self):
         eval_locals = {self.temporal_variable_name:self.temporal_variable}
         return eval(self.between_go_eval_code,self.eval_globals,eval_locals)
+    
+class ExecStringController(Controller):
+    def __init__(self,
+                 during_go_exec_string = None,
+                 between_go_exec_string = None,
+                 **kw
+                 ):
+        # Create a namespace for eval_strings to use
+        self.eval_globals = {}
 
+        if during_go_exec_string is None:
+            raise ValueError("'during_go_exec_string' is a required argument")
+        if between_go_exec_string is None:
+            between_go_exec_string = during_go_exec_string
+        
+        # Make Numeric and math modules available
+        self.eval_globals['Numeric'] = Numeric
+        self.eval_globals['math'] = math
+        # Make Numeric and math modules available without module name
+        for key in dir(Numeric):
+            self.eval_globals[key] = getattr(Numeric,key)
+        for key in dir(math):
+            self.eval_globals[key] = getattr(math,key)
+
+        # Check to make sure return_type is set
+        if 'return_type' not in kw.keys():
+            message.add('Executing "%s" to test for return type.'%(during_go_exec_string,),
+                        Message.TRIVIAL)
+            temporal_variable_name = 't' # temporal_variable_type defaults to TIME_SEC_SINCE_GO
+            initial_value = 0.0
+            if 'temporal_variable_type' in kw.keys():
+                if kw['temporal_variable_type'] == Controller.TIME_SEC_ABSOLUTE:
+                    temporal_variable_name = 't_abs'
+                    initial_value = VisionEgg.timing_func()
+                elif kw['temporal_variable_type'] == Controller.TIME_SEC_SINCE_GO:
+                    pass # don't change the default
+                elif kw['temporal_variable_type'] == Controller.FRAMES_SINCE_GO:
+                    temporal_variable_name = 'f'
+                    initial_value = 0
+                else:
+                    raise ValueError("Unknown value for temporal_variable_type")
+            eval_locals = {temporal_variable_name:initial_value}
+            exec during_go_exec_string in self.eval_globals,eval_locals
+            test_result = eval_locals['x']
+            kw['return_type'] = type(test_result)
+        
+        # Call base class __init__ and copy eval_strings
+        apply(Controller.__init__,(self,),kw)
+
+        if self.temporal_variable_type == Controller.TIME_SEC_ABSOLUTE:
+            self.temporal_variable_name = 't_abs'
+        elif self.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
+            self.temporal_variable_name = 't'
+        elif self.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+            self.temporal_variable_name = 'f'
+
+        self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
+        self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
+
+    def during_go_eval(self):
+        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        exec self.during_go_exec_code in self.eval_globals,eval_locals        
+        return eval_locals['x']
+
+    def between_go_eval(self):
+        eval_locals = {self.temporal_variable_name:self.temporal_variable}
+        exec self.between_go_exec_code in self.eval_globals,eval_locals
+        return eval_locals['x']
+    
 class FunctionController(Controller):
     def __init__(self,
                  during_go_func = None,
