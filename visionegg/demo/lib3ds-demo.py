@@ -11,6 +11,8 @@ from Numeric import *
 
 building_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/bldskyl1.3ds")
 fly_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/a3dwasp.3ds")
+truck_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/a3dsemi.3ds")
+car_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/autshdm1.3DS")
 
 # Because we can't include the .3ds files with the Vision Egg
 # (licensing issues), check to see if they are there and give warning
@@ -20,7 +22,11 @@ fly_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/a3dwasp.3ds")
 if not os.access(building_file,os.R_OK):
     raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(building_file,))
 if not os.access(fly_file,os.R_OK):
-    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(building_file,))
+    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(fly_file,))
+if not os.access(truck_file,os.R_OK):
+    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(truck_file,))
+if not os.access(car_file,os.R_OK):
+    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(car_file,))
     
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.3,0.0)
@@ -28,6 +34,16 @@ screen.parameters.bgcolor = (0.0,0.0,0.3,0.0)
 aspect = float(screen.size[0]) / (screen.size[1] / 2.0)
 
 buildings = Model3DS(filename=building_file)
+truck = Model3DS(filename=truck_file,
+                 position=array((-2000.0,0.0,-1000.0)),
+                 orient_angle=90.0,
+                 orient_axis=array((0.0,1.0,0.0))                 
+                 )
+car = Model3DS(filename=car_file,
+                 position=array((-2000.0,0.0,-1100.0)),
+                 orient_angle=90.0,
+                 orient_axis=array((0.0,1.0,0.0))                 
+                 )
 fly = Model3DS(filename=fly_file,
                scale=array((10.0,10.0,10.0)),
                orient_angle=90.0,
@@ -47,7 +63,7 @@ viewport1 = Viewport(screen=screen,
                      lowerleft=(0,screen.size[1]/2),
                      size=(screen.size[0],screen.size[1]/2),
                      projection=projection1,
-                     stimuli=[ground,buildings,fly])
+                     stimuli=[ground,buildings,car,truck,fly])
 
 # The bottom viewport is the fly eye view of the world
 
@@ -56,13 +72,20 @@ viewport2 = Viewport(screen=screen,
                      lowerleft=(0,0),
                      size=(screen.size[0],screen.size[1]/2),
                      projection=projection2,
-                     stimuli=[ground,buildings])
+                     stimuli=[ground,buildings,car,truck])
 
-p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
+p = Presentation(go_duration=(15.0,'seconds'),viewports=[viewport1,viewport2])
 
 # This defines the fly's position in space as a function of time
 def fly_pos_f(t):
-    return Numeric.array((1000.0-t*300.0,400.0,-1000.0))
+    if t <=10.0:
+        return array((1000.0-t*300.0,50.0,-1000.0))
+    else:
+        t = 10.0
+        return array((1000.0-t*300.0,50.0,-1000.0))
+
+def car_pos_f(t):
+    return Numeric.array((-3000.0+t*330.0,0.0,-1100.0))
 
 # This defines the perspective projection of the top viewport
 def projection_matrix1_f(t):
@@ -89,5 +112,6 @@ def projection_matrix2_f(t):
 p.add_controller(projection1,'matrix', FunctionController(during_go_func=projection_matrix1_f))
 p.add_controller(projection2,'matrix', FunctionController(during_go_func=projection_matrix2_f))
 p.add_controller(fly,'position', FunctionController(during_go_func=fly_pos_f))
+p.add_controller(car,'position', FunctionController(during_go_func=car_pos_f))
 
 p.go()
