@@ -10,6 +10,7 @@ import OpenGL.GL as gl
 import VisionEgg.ParameterTypes
 import VisionEgg.Dots
 import VisionEgg.Gratings
+import VisionEgg.MoreStimuli
 import VisionEgg.SphereMap
 import VisionEgg.Textures
 import Numeric
@@ -86,6 +87,200 @@ class VETestCase(unittest.TestCase):
                     for k in attr_orig.__dict__.keys():
                         self.failUnless(type(attr_orig.__dict__[k]) == type(attr_test.__dict__[k]))
 
+    def test_feedback_mode(self):
+        l = 250
+        r = 300
+        b = 200
+        t = 350
+        
+        stimulus = VisionEgg.MoreStimuli.Target2D(
+            position=(l,b),
+            anchor='lowerleft',
+            size=(r-l,t-b),
+            )
+        
+        self.ortho_viewport.parameters.stimuli = [ stimulus ]
+
+        gl.glFeedbackBuffer(1000,gl.GL_3D)
+        
+        gl.glRenderMode( gl.GL_FEEDBACK )
+        self.ortho_viewport.draw()
+        feedback_buffer = gl.glRenderMode( gl.GL_RENDER )
+
+        sent_verts = [(l,b,0),
+                      (r,b,0),
+                      (r,t,0),
+                      (l,t,0)]
+        recv_verts = feedback_buffer[0][1]
+
+        self.failUnless( len(sent_verts) == len(recv_verts),
+                         'feedback received wrong number of verts')
+
+        for s,r in zip(sent_verts,recv_verts):
+            s=Numeric.asarray(s)
+            r=Numeric.asarray(r)
+            diff = abs(s-r)
+            err = sum(diff)
+            self.failUnless( err < 1e-10,
+                             'verts changed')
+            
+    def test_ve3d_simple(self):
+        import VisionEgg.ThreeDeeMath as ve3d
+
+        l = 250
+        r = 300
+        b = 200
+        t = 350
+        
+        sent_verts = [(l,b,0),
+                      (r,b,0),
+                      (r,t,0),
+                      (l,t,0)]
+
+        recv_verts = self.ortho_viewport.eye_2_window(sent_verts)
+        for s,r in zip(sent_verts,recv_verts):
+            s=Numeric.asarray(s[:2]) # only testing 2D
+            r=Numeric.asarray(r[:2]) # only testing 2D
+            diff = abs(s-r)
+            err = sum(diff)
+            self.failUnless( err < 1e-10,
+                             'verts changed')
+            
+    def test_ve3d_transforms1(self):
+        import VisionEgg.ThreeDeeMath as ve3d
+        
+        gl.glMatrixMode(gl.GL_PROJECTION)
+
+        # identity
+        M = ve3d.TransformMatrix()
+        ve3d_m = M.matrix
+
+        gl.glLoadIdentity()
+        gl_m = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+                                                
+        self.failUnless( Numeric.allclose(ve3d_m, gl_m),
+                         'identity matrix different')
+
+        # translate
+        args=(10,20,30)
+        M = ve3d.TransformMatrix()
+        M.translate(*args)
+        ve3d_m = M.matrix
+
+        gl.glLoadIdentity()
+        gl.glTranslatef(*args)
+        gl_m = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+                                                
+        self.failUnless( Numeric.allclose(ve3d_m, gl_m),
+                         'translation matrix different')
+        
+        # rotate
+        args=(-22.5,10,20,-30)
+        M = ve3d.TransformMatrix()
+        M.rotate(*args)
+        ve3d_m = M.matrix
+
+        gl.glLoadIdentity()
+        gl.glRotatef(*args)
+        gl_m = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+                                                
+        self.failUnless( Numeric.allclose(ve3d_m, gl_m),
+                         'rotation matrix different')
+
+        # scale
+        args=(1,10.5,123.2)
+        M = ve3d.TransformMatrix()
+        M.scale(*args)
+        ve3d_m = M.matrix
+
+        gl.glLoadIdentity()
+        gl.glScalef(*args)
+        gl_m = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+                                                
+        self.failUnless( Numeric.allclose(ve3d_m, gl_m),
+                         'scale matrix different')        
+        
+    def test_ve3d_transforms2(self):
+        import VisionEgg.ThreeDeeMath as ve3d
+        
+        translate1 = (1,2,3)
+        rotate = (45, 2, 5, 10)
+        scale = (.1, 2.0, 4.0)
+        translate2 = (-10,25,300)
+
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
+        gl.glTranslatef(*translate1)
+        gl.glRotatef(*rotate)
+        gl.glScalef(*scale)
+        gl.glTranslatef(*translate2)
+        gl_m = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+
+        M = ve3d.TransformMatrix()
+        M.translate(*translate1)
+        M.rotate(*rotate)
+        M.scale(*scale)
+        M.translate(*translate2)
+        ve3d_m = M.matrix
+
+        diff = abs(gl_m-ve3d_m)
+        err = sum(diff)
+        self.failUnless( err < 1e-10,
+                         'matrices different')
+        
+    def test_ve3d_mixed_transforms(self):
+        import VisionEgg.ThreeDeeMath as ve3d
+
+        l = 250
+        r = 300
+        b = 200
+        t = 350
+        
+        stimulus = VisionEgg.MoreStimuli.Target2D(
+            position=(l,b),
+            anchor='lowerleft',
+            size=(r-l,t-b),
+            )
+
+        # M mimics the projection matrix (modelview matrix is effectively identity)
+        M = self.ortho_viewport.parameters.projection.get_matrix().copy()
+        M = ve3d.TransformMatrix(M)
+        M.translate(10,20,0)
+        self.ortho_viewport.parameters.projection.translate(10,20,0)
+        
+        self.ortho_viewport.parameters.stimuli = [ stimulus ]
+
+        gl.glFeedbackBuffer(1000,gl.GL_3D)
+        
+        gl.glRenderMode( gl.GL_FEEDBACK )
+        self.ortho_viewport.draw()
+        feedback_buffer = gl.glRenderMode( gl.GL_RENDER )
+
+        sent_verts = [(l,b,0),
+                      (r,b,0),
+                      (r,t,0),
+                      (l,t,0)]
+        gl_recv_verts = feedback_buffer[0][1]
+
+        clip_coords = M.transform_vertices( sent_verts )
+        norm_device = ve3d.normalize_homogeneous_rows(clip_coords)
+        ve3d_recv_verts = self.ortho_viewport.norm_device_2_window(norm_device)
+
+        # check x and y coords
+        for g,v in zip(gl_recv_verts,ve3d_recv_verts):
+            g=Numeric.asarray(g[:2])
+            v=Numeric.asarray(v[:2])
+            diff = abs(g-v)
+            err = sum(diff)
+            self.failUnless( err < 1e-10,
+                             'VisionEgg.ThreeDeeMath calculated window position wrong')
+        
+        # check z coord
+        for g,v in zip(gl_recv_verts,ve3d_recv_verts):
+            err = abs(g[2]-v[2])
+            self.failUnless( err < 1e-10,
+                             'VisionEgg.ThreeDeeMath calculated window depth wrong')
+        
     def test_ClassWithParameters_pickle_ability(self):
         self.pickle_test( VisionEgg.ClassWithParameters() )
             
@@ -409,6 +604,11 @@ class VETestCase(unittest.TestCase):
         
 def suite():
     ve_test_suite = unittest.TestSuite()
+    ve_test_suite.addTest( VETestCase("test_feedback_mode") )
+    ve_test_suite.addTest( VETestCase("test_ve3d_simple") )
+    ve_test_suite.addTest( VETestCase("test_ve3d_transforms1") )
+    ve_test_suite.addTest( VETestCase("test_ve3d_transforms2") )
+    ve_test_suite.addTest( VETestCase("test_ve3d_mixed_transforms") )
     ve_test_suite.addTest( VETestCase("test_ClassWithParameters_pickle_ability") )
     ve_test_suite.addTest( VETestCase("test_parameter_types_simple") )
     ve_test_suite.addTest( VETestCase("test_parameter_types_sequence") )
