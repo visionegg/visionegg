@@ -69,7 +69,6 @@ _raw_lpt_linux_methods[] = {
 DL_EXPORT(void)
 init_raw_lpt_linux(void)
 {
-  PyObject *module;
-  module = Py_InitModule("_raw_lpt_linux", _raw_lpt_linux_methods);
+  Py_InitModule("_raw_lpt_linux", _raw_lpt_linux_methods);
   return;
 }
