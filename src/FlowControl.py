@@ -140,7 +140,20 @@ class Presentation(VisionEgg.ClassWithParameters):
                               ve_types.Real,
                               "Override t_abs. Set only when reconstructing experiments. (units: seconds)"),
         }
-    
+
+    __slots__ = (
+        'controllers',
+        'num_frame_controllers',
+        'frame_draw_times',
+        'time_sec_absolute',
+        'frames_absolute',
+        'in_go_loop',
+        'frames_dropped_in_last_go_loop',
+        'last_go_loop_start_time_absolute_sec',
+        'time_sec_since_go',
+        'frames_since_go',
+        )
+
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
@@ -153,7 +166,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.controllers = []
         self.num_frame_controllers = 0 # reference counter for controllers that are called on frame by frame basis
 
-        # An list that optionally records when frames were drawn by go() method.
+        # A list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
         
         self.time_sec_absolute=VisionEgg.time_func()
@@ -340,6 +353,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
         if synclync_connection:
+            import synclync
             synclync_connection.next_control_packet.action_flags += (synclync.SL_CLEAR_VSYNC_COUNT +
                                                                      synclync.SL_CLEAR_NOTIFY_SWAPPED_COUNT +
                                                                      synclync.SL_CLEAR_FRAMESKIP_COUNT)
@@ -505,12 +519,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_since_go = 0.0
         self.frames_since_go = 0
         
-        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
-        if synclync_connection:
-            synclync_connection.next_control_packet.action_flags += (synclync.SL_CLEAR_VSYNC_COUNT +
-                                                                     synclync.SL_CLEAR_NOTIFY_SWAPPED_COUNT +
-                                                                     synclync.SL_CLEAR_FRAMESKIP_COUNT)
-        
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
             go_started=1,
@@ -548,11 +556,6 @@ class Presentation(VisionEgg.ClassWithParameters):
                 viewport.draw()
 
             # Swap the buffers
-            if synclync_connection:
-                # Notify SyncLync device if present
-                synclync_connection.next_control_packet.action_flags += (synclync.SL_NOTIFY_SWAPPED_BUFFERS +
-                                                                         synclync.SL_NOTIFY_IN_GO_LOOP)
-                synclync_connection.send_control_packet()
             VisionEgg.Core.swap_buffers()
             
             # Now save the contents of the framebuffer
@@ -590,10 +593,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.__call_controllers(
             go_started=0,
             doing_transition=1)
-
-        # Tell SyncLync we're not in go loop anymore
-        if synclync_connection:
-            synclync_connection.send_control_packet() # nothing in action_flags -- finishes go loop
 
         if len(screens) > 1:
             logger.warning("Only saved movie from last screen.")
@@ -664,10 +663,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Draw each viewport, including each stimulus
         for viewport in viewports:
             viewport.draw()
-        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
-        if synclync_connection:
-            synclync_connection.next_control_packet.action_flags += synclync.SL_NOTIFY_SWAPPED_BUFFERS
-            synclync_connection.send_control_packet()
         VisionEgg.Core.swap_buffers()
         self.frames_absolute += 1
         
