@@ -63,10 +63,17 @@ if Image.VERSION >= '1.1.3':
 else:
     shrink_filter = Image.BICUBIC # Fallback filtering
 
+# Allow use of numarray Texture data without requiring numarray
+array_types = [Numeric.ArrayType]
+try:
+    import numarray
+    array_types.append( numarray.numarraycore.NumArray )
+except ImportError:
+    pass
+
 ####################################################################
 #
 # XXX ToDo:
-#
 
 # The main remaining feature to add to this module is automatic
 # management of texture objects.  This would allow many small images
@@ -82,6 +89,10 @@ else:
 # glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,image_ptr);
 # Update the texture with:
 # glTexSubImage2D(target, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,image_ptr);
+
+# Include support for numarray data without converting to
+# Numeric. (Possibly like matplotlib's numerix both-supported
+# approach.)
 
 ####################################################################
 
@@ -165,7 +176,7 @@ class Texture(object):
             self.size = texels.size
         elif isinstance(texels, pygame.surface.Surface): # pygame surface
             self.size = texels.get_size()
-        elif type(texels) == Numeric.ArrayType: # Numeric Python array
+        elif type(texels) in array_types: # Numeric or numarray data
             if len(texels.shape) == 3:
                 if texels.shape[2] not in [3,4]:
                     raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
@@ -218,7 +229,7 @@ class Texture(object):
 
     def get_texels_as_image(self):
         """Return texel data as PIL image"""
-        if type(self.texels) == Numeric.ArrayType:
+        if type(self.texels) in array_types:
             if len(self.texels.shape) == 2:
                 a = self.texels
                 if a.typecode() == Numeric.UInt8:
@@ -283,7 +294,7 @@ class Texture(object):
         self._buf_t = height
 
         if width != width_pow2 or height != height_pow2:
-            if type(self.texels) == Numeric.ArrayType:
+            if type(self.texels) in array_types:
                 if len(self.texels.shape) == 2:
                     buffer = Numeric.zeros( (height_pow2,width_pow2), self.texels.typecode() )
                     buffer[0:height,0:width] = self.texels
@@ -532,7 +543,7 @@ class TextureObject(object):
             else:
                 texel_data = image_data
 
-        if type(texel_data) == Numeric.ArrayType:
+        if type(texel_data) in array_types:
             if self.dimensions != 'cube':
                 assert(cube_side == None)
                 data_dimensions = len(texel_data.shape)
@@ -551,7 +562,7 @@ class TextureObject(object):
 
         # Determine the data_format, data_type and rescale the data if needed
         if data_format is None: # guess the format of the data
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(texel_data.shape) == (self.dimensions+1):
@@ -582,12 +593,12 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 if texel_data.typecode() == Numeric.Float:
                     texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
@@ -598,7 +609,7 @@ class TextureObject(object):
             width = texel_data.shape[0]
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         else:
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 width = texel_data.shape[1]
                 height = texel_data.shape[0]
             elif isinstance(texel_data,Image.Image):
@@ -613,7 +624,7 @@ class TextureObject(object):
                 if not is_power_of_2(depth): raise ValueError("texel_data does not have all dimensions == n^2")
 
         if self.dimensions in [2,'cube']:
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 raw_data = texel_data.tostring()
             elif isinstance(texel_data,Image.Image):
                 raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
@@ -724,7 +735,7 @@ class TextureObject(object):
         if self.dimensions != 2:
             raise ValueError("can only handle 2D texel data for automatic mipmap building")
         
-        if type(texel_data) == Numeric.ArrayType:
+        if type(texel_data) in array_types:
             assert(cube_side == None)
             data_dimensions = len(texel_data.shape)
             assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
@@ -740,7 +751,7 @@ class TextureObject(object):
 
         # Determine the data_format, data_type and rescale the data if needed
         if data_format is None: # guess the format of the data
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(texel_data.shape) == (self.dimensions+1):
@@ -771,17 +782,17 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 if texel_data.typecode() == Numeric.Float:
                     texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(texel_data) == Numeric.ArrayType:
+            if type(texel_data) in array_types:
                 texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
-        if type(texel_data) == Numeric.ArrayType:
+        if type(texel_data) in array_types:
             width = texel_data.shape[1]
             height = texel_data.shape[0]
         elif isinstance(texel_data,Image.Image):
@@ -791,7 +802,7 @@ class TextureObject(object):
         if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
 
-        if type(texel_data) == Numeric.ArrayType:
+        if type(texel_data) in array_types:
             raw_data = texel_data.tostring()
         elif isinstance(texel_data,Image.Image):
             raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
@@ -844,7 +855,7 @@ class TextureObject(object):
             else:
                 texel_data = image_data
                 
-        if type(texel_data) == Numeric.ArrayType:
+        if type(texel_data) in array_types:
             if self.dimensions != 'cube':
                 assert(cube_side == None)
                 data_dimensions = len(texel_data.shape)
@@ -865,7 +876,7 @@ class TextureObject(object):
         data = texel_data
         
         if data_format is None: # guess the format of the data
-            if type(data) == Numeric.ArrayType:
+            if type(data) in array_types:
                 if len(data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(data.shape) == (self.dimensions+1):
@@ -896,12 +907,12 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(data) == Numeric.ArrayType:
+            if type(data) in array_types:
                 if data.typecode() == Numeric.Float:
                     data = data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(data) == Numeric.ArrayType:
+            if type(data) in array_types:
                 data = data.astype(Numeric.UInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
@@ -930,7 +941,7 @@ class TextureObject(object):
                 x_offset = y_offset = 0
             else:
                 x_offset, y_offset = offset_tuple
-            if type(data) == Numeric.ArrayType:
+            if type(data) in array_types:
                 width = data.shape[1]
                 height = data.shape[0]
                 raw_data = data.astype(Numeric.UInt8).tostring()
