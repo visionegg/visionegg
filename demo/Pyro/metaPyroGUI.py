@@ -8,7 +8,7 @@
 import sys, os
 import Tkinter
 import Pyro.core
-import VisionEgg.PyroHelpers
+import VisionEgg.PyroClient
 
 class GratingMetaParameters:
     def __init__(self):
@@ -201,7 +201,7 @@ class StimulusControlFrame(Tkinter.Frame):
 ##            self.meta_controller.go()
 
     def connect(self):
-        self.pyro_client = VisionEgg.PyroHelpers.PyroClient()
+        self.pyro_client = VisionEgg.PyroClient.PyroClient()
 
         self.meta_controller = self.pyro_client.get("meta_controller")
         self.meta_params = self.meta_controller.get_parameters()

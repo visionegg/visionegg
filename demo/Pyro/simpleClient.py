@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from VisionEgg.PyroHelpers import *
+from VisionEgg.PyroClient import *
 from VisionEgg.Core import *
 import time
 
