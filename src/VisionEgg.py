@@ -62,12 +62,10 @@ class ChannelParams:
         self.gain = gain
 
 class TriggerMethod:
-    def __init__(self):
-        pass
+    pass
 
 class NoTrigger(TriggerMethod):
-    def __init__(self):
-        TriggerMethod.__init__(self)
+    pass
 
 class TriggerLowToHigh(TriggerMethod):
     pass
@@ -260,9 +258,6 @@ class Stimulus:
         self.duration_sec = duration_sec
         self.fixation_spot_on = 0
         self.bgcolor = bgcolor
-#        self.drawTimes = [] # List of times the frame was drawn
-#        self.drawTimes2 = [] # List of times ?
-#        self.drawTimes3 = [] # List of times ?
         self.daqs = [] # No daqs to start with, add with add_daq method
         self.clear_viewport = clear_viewport
         self.swap_buffers = swap_buffers
@@ -632,7 +627,7 @@ class SpinningDrum(Stimulus):
 
 class MovingTarget(Stimulus):
     def __init__(self,
-                 target_position_function,
+                 target_position_function=lambda t: (0.0,0.0),
                  target_orientation=0.0,
                  target_width=5.0,
                  target_height=5.0,
@@ -641,7 +636,6 @@ class MovingTarget(Stimulus):
                  target_projection=OrthographicProjection(left=-100.0,right=100.0,top=75.0,bottom=-75.0), # For square pixels assumes 4:3 aspect ratio
                  **kwargs
                  ): 
-
         self.target_position_function = target_position_function
         self.target_width = target_width
         self.target_height = target_height
@@ -651,6 +645,18 @@ class MovingTarget(Stimulus):
         self.target_anti_aliasing = target_anti_aliasing
         self.target_projection=target_projection
         apply(Stimulus.__init__,(self,),kwargs)
+
+    def set_target_orientation(self, target_orientation ):
+        self.target_orientation = target_orientation
+
+    def set_target_color(self, target_color ):
+        self.target_color = target_color
+
+    def set_target_height(self, target_height ):
+        self.target_height = target_height
+
+    def set_target_width(self, target_width ):
+        self.target_width = target_width
     
     def init_GL(self):
         self.verify_init_args()
@@ -734,11 +740,12 @@ class MovingTarget(Stimulus):
 #        Graphics initialization
 #
 ####################################################################            
-            
+
 def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,try_sdl=1):
     global use_sdl
     global glut_window
     global screen_width,screen_height
+    global graphicsKeeper
 
     screen_width = width
     screen_height = height
@@ -817,19 +824,36 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,t
     # Initialize OpenGL viewport
     glViewport(0,0,screen_width,screen_height)
 
+    # Initialize digital output to 0 (if supported)
+    set_dout(0)
+    
+    # the next line close the graphics when done
+    graphicsKeeper = __GraphicsKeeper__()
 
-####################################################################
-#
-#        Graphics close
-#
-####################################################################            
+class __GraphicsKeeper__:
+    """Only make an instance of this class from the VisionEgg main module.
 
-def graphicsClose():
-    global use_sdl
-    if use_sdl:
-        SDL_ShowCursor(SDL_ENABLE)
-        SDL_Quit()
-    sys.exit() # Shouldn't do this, but it's the only way I know to quit glutMainLoop
+    The purpose of this class is to close the graphics display properly,
+    even if the application has an unexpected exception.
+
+    Perhaps I should really just move all of graphicsInit into this class
+    and have it intantiated directly."""
+    def __init__(self):
+        # Set all this stuff up so that I can call functions after
+        # their references have been dropped from the global namespace.
+        global use_sdl
+        
+        self.use_sdl = use_sdl
+        self.sdl_showcursor_func = SDL_ShowCursor
+        self.sdl_enable = SDL_ENABLE
+        self.sdl_quit_func = SDL_Quit
+        self.set_dout = set_dout
+        
+    def __del__(self):
+        self.set_dout(0) # set dout to 0 (if supported)
+        if self.use_sdl:
+            self.sdl_showcursor_func(self.sdl_enable)
+            self.sdl_quit_func()
 
 ####################################################################
 #
@@ -848,7 +872,4 @@ def swap_buffers():
         SDL_GL_SwapBuffers()
     else:
         glutSwapBuffers()
-    #toggleDOut()
-    #glFinish() # Apparently this is not a given with double buffering
-    #self.drawTimes2.append(getTime())
-
+    toggleDOut()
