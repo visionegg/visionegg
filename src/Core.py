@@ -324,7 +324,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # thing, not a screen-level thing, but it fits reasonably well
         # here for now.)
         if self.constant_parameters.maxpriority:
-            PlatformDependent.set_realtime()
+            PlatformDependent.set_priority() # defaults to max priority
             
         if hasattr(VisionEgg.config,'_open_screens'):
             VisionEgg.config._open_screens.append(self)
@@ -1016,7 +1016,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             require_type = class_with_parameters.get_specified_type(parameter_name)
             try:
                 VisionEgg.assert_type(controller.returns_type(),require_type)
-            except TypeError,x:
+            except TypeError:
                 raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
                     parameter_name,
                     class_with_parameters.get_specified_type(parameter_name),
@@ -1061,7 +1061,6 @@ class Presentation(VisionEgg.ClassWithParameters):
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
                     if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
-                    del controller_list[i]
                 else:
                     i = i + 1
 
@@ -1979,7 +1978,7 @@ class ExecStringController(Controller):
                 setup_locals_str = setup_locals_str + local_variable_name + "=" + repr(eval_locals[local_variable_name]) + "\n"
                 exec setup_locals_str
             exec self.between_go_exec_code
-            return x
+            return x # x should be assigned by the exec string
     
 class FunctionController(Controller):
     """Set parameters using a Python function.
