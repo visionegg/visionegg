@@ -197,16 +197,16 @@ class ScrollListFrame(Tkinter.Frame):
         keys = p.keys()
         keys.sort()
         for pname in keys:
-            if p[pname][1] == types.StringType:
+            if p[pname][1] == ve_types.String:
                 params[pname] = tkSimpleDialog.askstring(pname,pname,initialvalue=p[pname][0])
-            elif p[pname][1] == types.IntType:
+            elif p[pname][1] == ve_types.Integer:
                 params[pname] = tkSimpleDialog.askinteger(pname,pname,initialvalue=p[pname][0])
-            elif p[pname][1] == types.FloatType:
+            elif p[pname][1] == ve_types.Real:
                 params[pname] = tkSimpleDialog.askfloat(pname,pname,initialvalue=p[pname][0])
-            elif p[pname][1] == types.ListType:
+            elif p[pname][1] == ve_types.Sequence:
                 params[pname] = eval("["+tkSimpleDialog.askstring(pname,pname,initialvalue="1,2,3")+"]")
                 if type(params[pname]) is not types.ListType:
-                    params[pname] = [666] # XXX
+                    raise ValueError("You must enter a list in the form of '[1,2,3]'")
             else:
                 raise NotImplementedError("Don't know about type %s"%(p[pname][1],))
             if params[pname] is None:
