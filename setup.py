@@ -5,7 +5,7 @@
 # GNU Lesser General Public License (LGPL).
 
 name             = "visionegg"
-version          = "0.9.9"
+version          = "1.0-cvs"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
