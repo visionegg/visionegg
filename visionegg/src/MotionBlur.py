@@ -15,9 +15,10 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import math, cPickle
+import math, cPickle, os
 
 from VisionEgg import *
+from VisionEgg.Textures import *
 from imageConvolution import *
 
 import Image, ImageDraw                         # Python Imaging Library packages
@@ -42,17 +43,20 @@ class BlurTextureFamily:
     # 3) Could save images to system RAM, not openGL ram, and use SubTexture
     #    to stick image into GL memory at draw time. (Rather than switching
     #    between textures resident in OpenGL.)
-    def __init__(self,unblurred_texture,target_fps=180.0,maxSpeed=2000.0,numCachedTextures=10,cacheFunction='linear',blurKernel='boxcar'):
+    def __init__(self,unblurred_texture,target_fps=60.0,maxSpeed=2000.0,num_cached_textures=10,cacheFunction='linear',blurKernel='boxcar'):
         if not isinstance(unblurred_texture,Texture):
             raise TypeError("unblurred_texture must be an instance of VisionEgg.Texture")
         self.p = ParamHolder()
         # Compute blur family parameters
         self.orig = unblurred_texture.orig
         self.p.im_width = self.orig.size[0]
+        self.p.im_height = self.orig.size[1]
+        self.p.pix0 = self.orig.getpixel((0,0)) # Primitive image comparison
+        self.p.pix1 = self.orig.getpixel((0,1))
         self.p.target_fps = target_fps
         self.p.sec_per_frame = 1.0/self.p.target_fps
         self.p.maxSpeed = maxSpeed # dps
-        self.p.numCachedTextures = numCachedTextures
+        self.p.num_cached_textures = num_cached_textures
         self.p.blurKernel = blurKernel
         self.p.cacheFunction = cacheFunction
 
@@ -68,9 +72,9 @@ class BlurTextureFamily:
         
     def computeSpeedList(self,p):
         if p.cacheFunction == 'linear':
-            dpsSpeedList = arange(0.0,p.maxSpeed,p.maxSpeed/p.numCachedTextures) # dps
+            dpsSpeedList = arange(0.0,p.maxSpeed,p.maxSpeed/p.num_cached_textures) # dps
         elif p.cacheFunction == 'exp': # exponentially increasing speed look up table
-            dpsSpeedList = arange(float(p.numCachedTextures))/float(p.numCachedTextures)
+            dpsSpeedList = arange(float(p.num_cached_textures))/float(p.num_cached_textures)
             logmax = math.log(p.maxSpeed)
             dpsSpeedList = dpsSpeedList*logmax
             dpsSpeedList = exp(dpsSpeedList)
@@ -88,7 +92,7 @@ class BlurTextureFamily:
             speedList.append( (dpsSpeedList[i], pixSpeedList[i]) )
         return speedList
 
-    def loadToGL(self,p,cache_filename="blur_params.pickle"):
+    def loadToGL(self,p,cache_filename="blur_params.pickle",cache_dir=VisionEgg.config.VISIONEGG_STORAGE):
         # clear OpenGL if needed
         if (len(self.texGLIdList) != 0) or (self.texGLSpeedsDps.shape[0] != 0):
             raise NotImplemetedError("No code yet to clear textures out of OpenGL")
@@ -97,6 +101,11 @@ class BlurTextureFamily:
         
         # check to see if this family has already been computed and is cached
         use_cache = 1
+        orig_dir = os.curdir
+        try:
+            os.chdir(VisionEgg.config.VISIONEGG_STORAGE)
+        except OSError, x:
+            print "Warning: in MotionBlur.py:",x
         try:
             f = open(cache_filename,"rb")
             cached_p = cPickle.load(f)
@@ -113,6 +122,7 @@ class BlurTextureFamily:
         except (IOError, EOFError):
             use_cache = 0
 
+        print "In ",os.path.abspath(os.curdir),":",
         if use_cache:
             print "Found cache file '%s', loading images."%cache_filename
         else:
@@ -168,31 +178,36 @@ class BlurTextureFamily:
                     cPickle.dump(p,f)
                 except IOError:
                     print "Failed to save cache parameters is '%s'"%(cache_filename,)
+
+        # return to original directory
+        try:
+            os.chdir(orig_dir)
+        except OSError, x:
+            print "Warning in MotionBlur.py:",x
                     
 class BlurredDrum(SpinningDrum):
-
     def __init__(self,
-                 numCachedTextures=10,
-                 target_fps=180.0,
-                 maxSpeed=2000.0,
-                 blurKernel='boxcar',
-                 **kwargs):
-        apply(SpinningDrum.__init__,(self,),kwargs)
-        self.texs = BlurTextureFamily(self.drum_texture,
-                                      numCachedTextures=numCachedTextures,
-                                      maxSpeed=maxSpeed,
-                                      blurKernel=blurKernel,
+                 num_cached_textures=VisionEgg.config.VISIONEGG_NUM_CACHED_TEXTURES,
+                 target_fps=VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ,
+                 max_speed=2000.0,
+                 blur_kernel='boxcar',
+                 texture=Texture(size=(256,16)),
+                 num_sides=30):
+        apply(SpinningDrum.__init__,(self,texture,num_sides))
+        self.texs = BlurTextureFamily(self.texture,
+                                      num_cached_textures=num_cached_textures,
+                                      maxSpeed=max_speed,
+                                      blurKernel=blur_kernel,
                                       target_fps=target_fps)
-        self.motion_blur_on = 1
-        self.last_time = 0.0
-        self.last_drum_rotation = self.drum_rotation_function(self.last_time)
+        self.parameters.motion_blur_on = 1
+        self.parameters.cur_time = 0.0 # have to know the time to calculate amount of blur
 
-    def set_motion_blur_on(self,on):
-        self.motion_blur_on = on
-        
+        self.last_time = 0.0
+        self.last_drum_angle = self.parameters.angle
+
     def get_texture_object(self,delta_pos,delta_t):
         """Finds the appropriate texture object for the current velocity."""
-        if self.motion_blur_on: # Find the appropriate texture 
+        if self.parameters.motion_blur_on: # Find the appropriate texture 
             if delta_t < 1.0e-6: # less than 1 microsecond (this should be less than a frame could possibly take to draw)
                 vel_dps = 0
                 speedIndex = 0
@@ -204,19 +219,14 @@ class BlurredDrum(SpinningDrum):
             speedIndex = 0
         return self.texs.texGLIdList[speedIndex]
 
-    def draw_GL_scene(self):
+    def draw(self):
+        delta_drum_angle = self.parameters.angle - self.last_drum_angle # change in position (units: degrees)
+        delta_t = self.parameters.cur_time - self.last_time
 
-        # I know that self.cur_time has been set for me.
-        # Calculate my other variables from that.
-        
-        drum_rotation = self.drum_rotation_function(self.cur_time)
-
-        delta_drum_rotation = drum_rotation - self.last_drum_rotation # change in position (units: degrees)
-        delta_t = self.cur_time - self.last_time
-
-        self.drum_texture_object = self.get_texture_object(delta_drum_rotation,delta_t) # sets the texture object that SpinningDrum uses
-        SpinningDrum.draw_GL_scene(self) # call my base class to do most of the work
+        if delta_t > 0.0: # Keep using the same texture object if we haven't changed time
+            self.texture_object = self.get_texture_object(delta_drum_angle,delta_t) # sets the texture object that SpinningDrum uses
+        SpinningDrum.draw(self) # call my base class to do most of the work
         
         # Set for next cycle
-        self.last_time = self.cur_time
-        self.last_drum_rotation = drum_rotation
+        self.last_time = self.parameters.cur_time
+        self.last_drum_angle = self.parameters.angle
