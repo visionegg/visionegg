@@ -55,6 +55,9 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 			   "darwin_preemptible",
 			   NULL};
 
+  PyObject * rootModule;
+  PyObject * configInstance;
+
   PyObject * coreModule;
   PyObject * coreDict;
 
@@ -63,6 +66,11 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 
   PyObject * core_message; // instance
   PyObject * temp_result;
+
+  PyObject * darwin_period_denom_py;
+  PyObject * darwin_computation_denom_py;
+  PyObject * darwin_constraint_denom_py;
+  PyObject * darwin_preemptible_py;
 
   int darwin_period_denom;
   int darwin_computation_denom;
@@ -74,25 +82,107 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   int bus_speed, mib [2] = { CTL_HW, HW_BUS_FREQ };
   size_t len;
 #elif defined(_WIN32)
-  SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #else
   struct sched_param params;
   int policy;
 #endif
 
   /* Default values for keyword arguments */
-  darwin_period_denom = 120;
-  darwin_computation_denom = 2400;
-  darwin_constraint_denom = 1200;
-  darwin_preemptible = 0;
+  /* borrowed ref */
+  darwin_period_denom_py = Py_None;
+  darwin_computation_denom_py = Py_None;
+  darwin_constraint_denom_py = Py_None;
+  darwin_preemptible_py = Py_None;
 
   /* Get keyword arguments */
-  TRY(PyArg_ParseTupleAndKeywords(args,kw,"|iiii",kwlist,
-				  &darwin_period_denom,
-				  &darwin_computation_denom,
-				  &darwin_constraint_denom,
-				  &darwin_preemptible));
+  TRY(PyArg_ParseTupleAndKeywords(args,kw,"|O!O!O!O!",kwlist,
+				  &PyInt_Type,&darwin_period_denom_py,
+				  &PyInt_Type,&darwin_computation_denom_py,
+				  &PyInt_Type,&darwin_constraint_denom_py,
+				  &PyInt_Type,&darwin_preemptible_py));
+
+  /* Get VisionEgg.config */
+  rootModule = PyImport_ImportModule("VisionEgg");
+  if (rootModule == NULL) {
+    return NULL;
+  }
+  configInstance = PyObject_GetAttrString(rootModule,"config");
+  Py_DECREF(rootModule);
+  if (configInstance == NULL) {
+    return NULL;
+  }
+
+  /* Now set the C types based on the values. */
+  /* darwin_period_denom */
+  if (darwin_period_denom_py != Py_None) {
+    darwin_period_denom = PyInt_AS_LONG(darwin_period_denom_py);
+  } else {
+    /* Get value from VisionEgg.config */
+    temp_result = PyObject_GetAttrString(configInstance,"VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM");
+    if (temp_result == NULL) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }
+    darwin_period_denom = PyInt_AsLong(temp_result);
+    Py_DECREF(temp_result);
+    if (PyErr_Occurred()) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }      
+  }
+  /* darwin_computation_denom */
+  if (darwin_computation_denom_py != Py_None) {
+    darwin_computation_denom = PyInt_AS_LONG(darwin_computation_denom_py);
+  } else {
+    /* Get value from VisionEgg.config */
+    temp_result = PyObject_GetAttrString(configInstance,"VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM");
+    if (temp_result == NULL) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }
+    darwin_computation_denom = PyInt_AsLong(temp_result);
+    Py_DECREF(temp_result);
+    if (PyErr_Occurred()) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }      
+  }
+  /* darwin_constraint_denom */
+  if (darwin_constraint_denom_py != Py_None) {
+    darwin_constraint_denom = PyInt_AS_LONG(darwin_constraint_denom_py);
+  } else {
+    /* Get value from VisionEgg.config */
+    temp_result = PyObject_GetAttrString(configInstance,"VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM");
+    if (temp_result == NULL) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }
+    darwin_constraint_denom = PyInt_AsLong(temp_result);
+    Py_DECREF(temp_result);
+    if (PyErr_Occurred()) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }      
+  }
+  /* darwin_preemptible */
+  if (darwin_preemptible_py != Py_None) {
+    darwin_preemptible = PyInt_AS_LONG(darwin_preemptible_py);
+  } else {
+    /* Get value from VisionEgg.config */
+    temp_result = PyObject_GetAttrString(configInstance,"VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE");
+    if (temp_result == NULL) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }
+    darwin_preemptible = PyInt_AsLong(temp_result);
+    Py_DECREF(temp_result);
+    if (PyErr_Occurred()) {
+      Py_DECREF(configInstance);
+      return NULL;
+    }      
+  }
+  /* Destroy Python variables we don't need */
+  Py_DECREF(configInstance);  configInstance = NULL;
 
   coreModule = PyImport_ImportModule("VisionEgg.Core");
   if (coreModule == NULL) {
@@ -163,6 +253,8 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 
 #elif defined(_WIN32)
+  SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #else
 
   /* This should work on all POSIX non-Apple platforms. */
@@ -226,8 +318,8 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 
 static PyMethodDef
 _maxpriority_methods[] = {
-  { "set_realtime", set_realtime, METH_VARARGS, set_realtime__doc__},
-  { NULL, NULL} /* sentinel */
+  { "set_realtime", (PyCFunction)set_realtime, METH_VARARGS | METH_KEYWORDS, set_realtime__doc__},
+  { NULL, NULL, 0, NULL} /* sentinel */
 };
 
 DL_EXPORT(void)
