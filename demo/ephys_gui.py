@@ -16,5 +16,4 @@ if result:
 
     app_window.winfo_toplevel().wm_iconbitmap()
     app_window.pack(expand=1,fill=Tkinter.BOTH)
-    app_window.winfo_toplevel().title("Vision Egg")
     app_window.mainloop()
