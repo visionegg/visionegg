@@ -30,7 +30,7 @@ See the 'Core' module for the fundamental Vision Egg classes.
 
 """
 
-release_name = '0.9.9'
+release_name = '1.0-cvs'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]
