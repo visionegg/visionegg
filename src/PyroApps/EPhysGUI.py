@@ -1069,6 +1069,7 @@ class AppWindow(Tkinter.Frame):
         ImageSequenceLauncher(self,ephys_server=self.ephys_server)
         
     def save_config(self):
+        self.stim_frame.send_values() # copy values from Tkinter to self.stim_frame.meta_params and send to server
         if self.config_dir is not None:
             initialdir = self.config_dir
         else:
