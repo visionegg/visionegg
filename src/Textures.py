@@ -116,6 +116,11 @@ class Texture:
         width_pow2  = int(next_power_of_2(width))
         height_pow2  = int(next_power_of_2(height))
 
+        
+        if self.orig.mode != "RGB":
+            VisionEgg.Core.message.add("Converting non-RGB texture to RGB (non RGB textures not yet implemented)",
+                                       level=VisionEgg.Core.Message.WARNING)
+
         self.buf = TextureBuffer( size=(width_pow2, height_pow2) )
         if rescale_original_to_fill_texture_object:
             rescaled = self.orig.resize((width_pow2,height_pow2),Image.BICUBIC)
@@ -209,6 +214,21 @@ class TextureFromPILImage(Texture):
         else:
             raise ValueError("TextureFromPILImage expecting instance of Image.Image")
 
+class TextureFromNumpyArray(Texture):
+    """A Texture that is loaded from a Numeric Python array."""
+    def __init__(self,image_data):
+        assert( type(image_data) == Numeric.ArrayType )
+        if len(image_data.shape) != 2:
+            raise NotImplementedError("Only 2D (grayscale) arrays currently supported.")
+        if image_data.typecode() != 'b':
+            scaled_data = image_data*255.0
+            ubyte_data = scaled_data.astype('b')
+        else: # image_data.typecode() == 'b':
+            ubyte_data = image_data
+        rows, cols = ubyte_data.shape
+        self.orig = Image.new('L',(cols,rows))
+        self.orig.fromstring(ubyte_data.tostring())
+
 class TextureBuffer:
     """Pixel data size n^2 b m^2 that can be loaded as an OpenGL texture."""
     def __init__(self,size=(256,256),mode="RGB",color=(127,127,127)):
@@ -228,7 +248,7 @@ class TextureBuffer:
             gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
             gl.glEnable( gl.GL_TEXTURE_2D )
         if self.im.mode == "RGB":
-            image_data = self.im.tostring("raw","RGB") # -1 flips data so it's right side up in OpenGL
+            image_data = self.im.tostring("raw","RGB")
 
             # Do error-checking on texture to make sure it will load
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
@@ -281,7 +301,7 @@ class TextureBuffer:
                                 image_data)                        # image data
             else:
                 gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
-                                mipmap_level,                                 # level
+                                mipmap_level,                      # mipmap level
                                 gl.GL_RGB,                         # video RAM internal format: RGB                             self.im.size[0],                # width
                                 self.im.size[0],                   # width
                                 self.im.size[1],                   # height
@@ -290,7 +310,7 @@ class TextureBuffer:
                                 gl.GL_UNSIGNED_BYTE,               # type of image data
                                 image_data)                        # image data
         else:
-            raise EggError("Unknown image mode '%s'"%(self.im.mode,))
+            raise VisionEgg.Core.EggError("Unsupported image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
         # Set some texture object defaults
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
@@ -299,36 +319,52 @@ class TextureBuffer:
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
         return self.gl_id
 
-    def put_sub_image(self,pil_image,lower_left, size):
-        """This function always segfaults, for some reason!"""
-        # Could it be that the width and height must be a power of 2?
+    def put_sub_image_pil(self,pil_image):#,lower_left, size):
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-        print "bound texture"
-        data = pil_image.tostring("raw","RGB")# ,0,-1) # the -1 will flip the data
-        print "converted data"
-        if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
-            print "trying to put compressed image data"
-            gl.glCompressedTexSubImage2DARB(gl.GL_TEXTURE_2D, # target
-                                         0, # level
-                                         lower_left[0], # x offset
-                                         lower_left[1], # y offset
-                                         gl.GL_RGB,
-                                         size[0], # width
-                                         size[1], # height
-                                         0,
-                                         gl.GL_UNSIGNED_INT,
-                                         data)
+        if pil_image.mode == "RGB":
+            image_data = pil_image.tostring("raw","RGB")
+            # XXX Should do error checking to make sure dimensions are OK
+            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
+                               0,                                 # mipmap level
+                               0,                                 # x offset
+                               0,                                 # y offset
+                               pil_image.size[0],                 # width
+                               pil_image.size[1],                 # height
+                               gl.GL_RGB,                         # format of image data
+                               gl.GL_UNSIGNED_BYTE,               # type of image data
+                               image_data)                        # image data
+        elif pil_image.mode == "L":
+            image_data = pil_image.tostring("raw","L")
+            # XXX Should do error checking to make sure dimensions are OK
+            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
+                               0,                                 # mipmap level
+                               0,                                 # x offset
+                               0,                                 # y offset
+                               pil_image.size[0],                 # width
+                               pil_image.size[1],                 # height
+                               gl.GL_LUMINANCE,                   # format of image data
+                               gl.GL_UNSIGNED_BYTE,               # type of image data
+                               image_data)                        # image data
         else:
-            print "trying to put non-compressed image data"
-            gl.glTexSubImage2D(gl.GL_TEXTURE_2D, # target
-                            0, # level
-                            lower_left[0], # x offset
-                            lower_left[1], # y offset
-                            size[0], # width
-                            size[1], # height
-                            gl.GL_RGB,
-                            gl.GL_UNSIGNED_INT,
-                            data)
+            raise VisionEgg.Core.EggError("Unsupported image mode '%s'"%(pil_image.mode,))
+
+    def put_sub_image_numpy(self,numpy_image):#,lower_left, size):
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
+        assert( type(numpy_image) == Numeric.ArrayType)
+        if len(numpy_image.shape) == 2:
+            texel_data = (numpy_image*255).astype(Numeric.UnsignedInt8).tostring()
+            # XXX Should do error checking to make sure dimensions are OK
+            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
+                               0,                                 # mipmap level
+                               0,                                 # x offset
+                               0,                                 # y offset
+                               numpy_image.shape[0],              # width
+                               numpy_image.shape[1],              # height
+                               gl.GL_LUMINANCE,                         # format of image data
+                               gl.GL_UNSIGNED_BYTE,               # type of image data
+                               texel_data)                        # image data
+        else:
+            raise VisionEgg.Core.EggError("Only luminance arrays supported.")
 
     def free(self):
         gl.glDeleteTextures(self.gl_id)
