@@ -18,6 +18,7 @@ import setup # from local directory
 pkg_name = "visionegg" # Must be short to deal with Stuffit Expander braindead-ness
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
 bdist_dumb_results = "./dist/visionegg-%s.darwin-5.5-Power_Macintosh.tar.gz"%(setup.version,)
+bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
 # Initial screen
 welcome_txt = setup.long_description
