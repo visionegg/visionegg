@@ -83,16 +83,18 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 class Screen(VisionEgg.ClassWithParameters):
     """An OpenGL window, possibly displayed on 2 monitors.
 
-    An easy way to make an instance of screen is to use a helper
-    function in the VisionEgg.AppHelper class:
+    An easy way to make an instance of screen is to use a special
+    static class method of Screen as an alternative construtor.  This
+    gets all parameters from the VISIONEGG parameters specified in the
+    config file and as environment variables.
     
     >>> import VisionEgg.Core
-    >>> VisionEgg.Core.get_default_screen()
+    >>> VisionEgg.Core.Screen.create_default()
 
-    Make an instance of this class to create an OpenGL window for the
-    Vision Egg to draw in.  For an instance of Screen to do anything
-    useful, it must contain one or more instances of the Viewport
-    class and one or more instances of the Stimulus class.
+    A Screen instance is an OpenGL window for the Vision Egg to draw
+    in.  For an instance of Screen to do anything useful, it must
+    contain one or more instances of the Viewport class and one or
+    more instances of the Stimulus class.
 
     Currently, only one OpenGL window is supported by the library with
     which the Vision Egg initializes graphics (pygame/SDL).  However,
