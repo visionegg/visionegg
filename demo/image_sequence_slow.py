@@ -37,10 +37,9 @@ texture_list = map(Texture,image_list) # create instances of Texture from images
 
 screen = get_default_screen()
 
-x = screen.size[0]/2.0 - image_size[0]/2.0
-y = screen.size[1]/2.0 - image_size[1]/2.0
 stimulus = TextureStimulus(texture=texture_list[0],
-                           lowerleft=(x,y),
+                           position = (screen.size[0]/2.0,screen.size[1]/2.0),
+                           anchor='center',
                            size=image_size)
 
 viewport = Viewport(screen=screen,
