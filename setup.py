@@ -146,8 +146,9 @@ if not skip_c_compilation:
                                  ))
     
 data_files = []
-data_dir = os.path.join('VisionEgg','data')
-test_dir = os.path.join('VisionEgg','test')
+data_base_dir = 'VisionEgg' # This becomes VISIONEGG_SYSTEM_DIR
+data_dir = os.path.join(data_base_dir,'data')
+test_dir = os.path.join(data_base_dir,'test')
 data_files.append( (data_dir,[os.path.join('data','water.mov')]) )
 data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
 data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
@@ -155,8 +156,8 @@ data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
 for filename in os.listdir('test'):
     if filename.endswith('.py'):
-        data_files.append( (data_dir,[os.path.join('test',filename)]) )
-data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
+        data_files.append( (test_dir,[os.path.join('test',filename)]) )
+data_files.append( (data_base_dir,['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 global extension_build_failed
 extension_build_failed = 0
