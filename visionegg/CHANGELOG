@@ -36,12 +36,6 @@ Improved auto-setting of video modes.
 
 Added GetKeypressDialog and ToplevelDialog classes to GUI module.
 
-SpinningDrum (and therefore BlurredDrum) can now be drawn flat.  See
-demo/Pyro/blurDemoClientGUI.py.
-
-BlurredDrum re-calculates its blurred imaged without having to be
-deleted and re-loaded.
-
 Changes for 0.8.0:
 ------------------
 
@@ -68,8 +62,6 @@ VisionEgg.Core".
 
 Moved demo scripts into 'demo' directory within the main package.  Now
 there is only one package to maintain.
-
-Motion blur cache uses directory VisionEgg.config.VISIONEGG_STORAGE
 
 Pulled texture stuff into Textures.py.
 
