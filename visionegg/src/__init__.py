@@ -66,8 +66,7 @@ import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
 import traceback
 try:
-    import cStringIO
-    StringIO = cStringIO
+    import cStringIO as StringIO
 except:
     import StringIO
 
