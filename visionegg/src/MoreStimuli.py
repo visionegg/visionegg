@@ -14,9 +14,9 @@ all = ['Rectangle3D', 'Target2D', ]
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
-import OpenGL.GL
 import Numeric
-gl = OpenGL.GL
+
+gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
 import string
 
@@ -74,7 +74,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glRotate(p.orientation,0.0,0.0,1.0)
 
             c = p.color
-            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glColorf(c[0],c[1],c[2],c[3])
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
@@ -158,7 +158,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            gl.glColor(*p.color)
+            gl.glColorf(*p.color)
                 
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
