@@ -1,9 +1,18 @@
-"""Assorted stimuli"""
+# The Vision Egg: MoreStimuli
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+"""
+Assorted stimuli.
 
-all = ['Rectangle3D', 'Target2D', ]
+"""
 
 ####################################################################
 #
@@ -37,6 +46,27 @@ except NameError:
     False = 1==0
 
 class Target2D(VisionEgg.Core.Stimulus):
+    """Rectanglular stimulus.
+
+    Parameters
+    ==========
+    anchor        -- (String)
+                     Default: center
+    anti_aliasing -- (Boolean)
+                     Default: True
+    center        -- (Sequence2 of Real)
+                     Default: (determined at instantiation)
+    color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                     Default: (1.0, 1.0, 1.0)
+    on            -- (Boolean)
+                     Default: True
+    orientation   -- (Real)
+                     Default: 0.0
+    position      -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                     Default: (320.0, 240.0)
+    size          -- (Sequence2 of Real)
+                     Default: (64.0, 16.0)
+    """
     
     parameters_and_defaults = {
         'on':(True,
@@ -51,7 +81,8 @@ class Target2D(VisionEgg.Core.Stimulus):
         'position' : ( ( 320.0, 240.0 ), # in eye coordinates
                        ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
                                       ve_types.Sequence3(ve_types.Real),
-                                      ve_types.Sequence4(ve_types.Real))),
+                                      ve_types.Sequence4(ve_types.Real)),
+                       "units: eye coordinates"),
         'anchor' : ('center',
                     ve_types.String),
         'size':((64.0,16.0), # in eye coordinates
@@ -146,6 +177,23 @@ class Target2D(VisionEgg.Core.Stimulus):
                 gl.glDisable(gl.GL_LINE_SMOOTH)
 
 class Rectangle3D(VisionEgg.Core.Stimulus):
+    """Solid color rectangle positioned explicitly by four vertices.
+
+    Parameters
+    ==========
+    color   -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (1.0, 1.0, 1.0, 1.0)
+    on      -- (Boolean)
+               Default: True
+    vertex1 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (-10.0, 0.0, -10.0)
+    vertex2 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (-10.0, 0.0, 10.0)
+    vertex3 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (10.0, 0.0, 10.0)
+    vertex4 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (10.0, 0.0, -10.0)
+    """
     
     parameters_and_defaults = {
         'on':(True,
@@ -155,16 +203,20 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                                 ve_types.Sequence4(ve_types.Real))),
         'vertex1':(( -10.0, 0.0, -10.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                  ve_types.Sequence4(ve_types.Real))),
+                                  ve_types.Sequence4(ve_types.Real)),
+                 "units: eye coordinates"),
         'vertex2':(( -10.0, 0.0,  10.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                  ve_types.Sequence4(ve_types.Real))),
+                                  ve_types.Sequence4(ve_types.Real)),
+                 "units: eye coordinates"),
         'vertex3':((  10.0, 0.0,  10.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                  ve_types.Sequence4(ve_types.Real))),
+                                  ve_types.Sequence4(ve_types.Real)),
+                 "units: eye coordinates"),
         'vertex4':((  10.0, 0.0, -10.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                  ve_types.Sequence4(ve_types.Real))),
+                                  ve_types.Sequence4(ve_types.Real)),
+                 "units: eye coordinates"),
         }
     
     __slots__ = VisionEgg.Core.Stimulus.__slots__

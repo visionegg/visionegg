@@ -1,4 +1,16 @@
-"""Python Remote Objects support
+# The Vision Egg: PyroHelpers
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Python Remote Objects support.
 
 Use this class if you don't want to deal with TCP directly and Python
 is the program on both ends of the network.
@@ -21,9 +33,6 @@ Just like TCPControllers, don't use this class for realtime control
 unless you think your network is that fast and reliable.  It's great
 for setting up parameters in advance and sending a trigger pulse,
 though!"""
-
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg
 import VisionEgg.Core

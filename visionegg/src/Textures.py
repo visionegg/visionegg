@@ -1,14 +1,18 @@
-"""Texture (images mapped onto polygons) stimuli."""
+# The Vision Egg: Textures
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+"""
+Texture (images mapped onto polygons) stimuli.
 
-all = [ 'FixationCross', 'Mask2D', 'SpinningDrum', 'Texture',
-        'TextureFromFile', 'TextureObject', 'TextureStimulus',
-        'TextureStimulus3D', 'TextureStimulusBaseClass',
-        'TextureTooLargeError',
-        # utilities
-        'next_power_of_2', 'is_power_of_2']
+"""
 
 ####################################################################
 #
@@ -357,6 +361,7 @@ class Texture(object):
         return self.texture_object
 
 class TextureFromFile( Texture ):
+    """DEPRECATED."""
     __slots__ = Texture.__slots__
     def __init__(self, filename ):
         logger = logging.getLogger('VisionEgg.Textures')
@@ -963,28 +968,64 @@ class TextureObject(object):
 class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
-    Don't instantiate this class directly."""
+    Don't instantiate this class directly.
+
+    Parameters
+    ==========
+    texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                          Default: (determined at instantiation)
+    texture_mag_filter -- OpenGL filter enum (Integer)
+                          Default: GL_LINEAR
+    texture_min_filter -- OpenGL filter enum (Integer)
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_s     -- OpenGL texture wrap enum (Integer)
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_t     -- OpenGL texture wrap enum (Integer)
+                          Default: (GL enum determined at instantiation)
+
+    Constant Parameters
+    ===================
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Default: False
+    """
 
     parameters_and_defaults = {
         'texture':(None,
-                   ve_types.Instance(Texture)),
+                   ve_types.Instance(Texture),
+                   "source of texture data"),
         'texture_mag_filter':(gl.GL_LINEAR,
-                              ve_types.Integer),
+                              ve_types.Integer,
+                              "OpenGL filter enum",
+                              VisionEgg.ParameterDefinition.OPENGL_ENUM),
         'texture_min_filter':(None, # defaults to gl.GL_LINEAR_MIPMAP_LINEAR (unless mipmaps_enabled False, then gl.GL_LINEAR)
-                              ve_types.Integer), 
+                              ve_types.Integer,
+                              "OpenGL filter enum",
+                              VisionEgg.ParameterDefinition.OPENGL_ENUM),
         'texture_wrap_s':(None, # set to gl.GL_CLAMP_TO_EDGE below
-                          ve_types.Integer), 
+                          ve_types.Integer,
+                          "OpenGL texture wrap enum",
+                          VisionEgg.ParameterDefinition.OPENGL_ENUM),
         'texture_wrap_t':(None, # set to gl.GL_CLAMP_TO_EDGE below
-                          ve_types.Integer),
+                          ve_types.Integer,
+                          "OpenGL texture wrap enum",
+                          VisionEgg.ParameterDefinition.OPENGL_ENUM),
         }
                                
     constant_parameters_and_defaults = {
         'internal_format':(gl.GL_RGB,
-                           ve_types.Integer),
+                           ve_types.Integer,
+                           "format with which OpenGL uses texture data (OpenGL data type enum)",
+                           VisionEgg.ParameterDefinition.OPENGL_ENUM),
         'mipmaps_enabled':(True,
-                           ve_types.Boolean),
+                           ve_types.Boolean,
+                           "Are mipmaps enabled?"),
         'shrink_texture_ok':(False,
-                             ve_types.Boolean),
+                             ve_types.Boolean,
+                             "Allow automatic shrinking of texture if too big?"),
         }
                                         
     __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
@@ -1063,16 +1104,29 @@ class Mask2D(VisionEgg.ClassWithParameters):
     """A mask for windowing a portion of a texture.
 
     Thanks to the author, Jon Peirce, of the AlphaStim class from the
-    PsychoPy package from which the idea to do this came."""
+    PsychoPy package from which the idea to do this came.
+
+    Constant Parameters
+    ===================
+    function         -- 'gaussian' or 'circle' (String)
+                        Default: gaussian
+    num_samples      -- size of mask texture data (units: number of texels) (Sequence2 of Real)
+                        Default: (256, 256)
+    radius_parameter -- radius for circle, sigma for gaussian (Real)
+                        Default: 25.0
+    """
 
     # All of these parameters are constant -- if you need a new mask, create a new instance
     constant_parameters_and_defaults = {
         'function':('gaussian', # can be 'gaussian' or 'circle'
-                    ve_types.String),
+                    ve_types.String,
+                    "'gaussian' or 'circle'"),
         'radius_parameter':(25.0, # radius for circle, sigma for gaussian, same units as num_samples
-                            ve_types.Real),
+                            ve_types.Real,
+                            "radius for circle, sigma for gaussian"),
         'num_samples':((256,256), # size of mask data in texels
-                       ve_types.Sequence2(ve_types.Real)),
+                       ve_types.Sequence2(ve_types.Real),
+                       "size of mask texture data (units: number of texels)"),
         }
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
@@ -1168,32 +1222,88 @@ class TextureStimulus(TextureStimulusBaseClass):
     This is mainly for 2D use (z coordinate fixed to 0.0 and w
     coordinated fixed to 1.0 if not given).
 
+
+    Parameters
+    ==========
+    anchor             -- specifies how position parameter is interpreted (String)
+                          Default: lowerleft
+    angle              -- units: degrees, 0=right, 90=up (Real)
+                          Default: 0.0
+    color              -- texture environment color. alpha ignored (if given) for max_alpha parameter (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (1.0, 1.0, 1.0)
+    depth_test         -- perform depth test? (Boolean)
+                          Default: False
+    mask               -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
+                          Default: (determined at instantiation)
+    max_alpha          -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
+                          Default: 1.0
+    on                 -- draw stimulus? (Boolean)
+                          Default: True
+    position           -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                          Default: (0.0, 0.0)
+    size               -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
+                          Default: (determined at instantiation)
+    texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (determined at instantiation)
+    texture_mag_filter -- OpenGL filter enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: GL_LINEAR
+    texture_min_filter -- OpenGL filter enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_s     -- OpenGL texture wrap enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_t     -- OpenGL texture wrap enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+
+    Constant Parameters
+    ===================
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Default: False
     """
     
     parameters_and_defaults = {
         'on':(True,
-              ve_types.Boolean),
+              ve_types.Boolean,
+              "draw stimulus?"),
         'mask':(None, # texture mask
-                ve_types.Instance(Mask2D)),
+                ve_types.Instance(Mask2D),
+                "optional masking function"),
         'position':((0.0,0.0), # in eye coordinates
                     ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
                                    ve_types.Sequence3(ve_types.Real),
-                                   ve_types.Sequence4(ve_types.Real))),
+                                   ve_types.Sequence4(ve_types.Real)),
+                    "units: eye coordinates"),
         'anchor':('lowerleft',
-                  ve_types.String),
+                  ve_types.String,
+                  "specifies how position parameter is interpreted"),
         'lowerleft':(None,  # DEPRECATED -- don't use
-                     ve_types.Sequence2(ve_types.Real)),
+                     ve_types.Sequence2(ve_types.Real),
+                     "",
+                     VisionEgg.ParameterDefinition.DEPRECATED),
         'angle':(0.0, # in degrees
-                 ve_types.Real),
+                 ve_types.Real,
+                 "units: degrees, 0=right, 90=up"),
         'size':(None, # in eye coordinates, defaults to texture data's size (if it exists)
-                ve_types.Sequence2(ve_types.Real)),
+                ve_types.Sequence2(ve_types.Real),
+                "defaults to texture data size (units: eye coordinates)"),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
-                     ve_types.Real),
+                     ve_types.Real,
+                     "controls opacity. 1.0=copletely opaque, 0.0=completely transparent"),
         'color':((1.0,1.0,1.0), # texture environment color. alpha is ignored (if given) -- use max_alpha parameter
                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                ve_types.Sequence4(ve_types.Real))),
+                                ve_types.Sequence4(ve_types.Real)),
+                 "texture environment color. alpha ignored (if given) for max_alpha parameter"),
         'depth_test':(False,
-                      ve_types.Boolean),
+                      ve_types.Boolean,
+                      "perform depth test?"),
         }
     
     __slots__ = TextureStimulusBaseClass.__slots__
@@ -1284,24 +1394,69 @@ class TextureStimulus(TextureStimulusBaseClass):
                 gl.glEnd() # GL_QUADS
 
 class TextureStimulus3D(TextureStimulusBaseClass):
-    """A textured rectangle placed arbitrarily in 3 space."""
+    """A textured rectangle placed arbitrarily in 3 space.
+
+    Parameters
+    ==========
+    depth_test         -- perform depth test? (Boolean)
+                          Default: True
+    lowerleft          -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (0.0, 0.0, -1.0)
+    lowerright         -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (1.0, 0.0, -1.0)
+    on                 -- (Boolean)
+                          Default: True
+    texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (determined at instantiation)
+    texture_mag_filter -- OpenGL filter enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: GL_LINEAR
+    texture_min_filter -- OpenGL filter enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_s     -- OpenGL texture wrap enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    texture_wrap_t     -- OpenGL texture wrap enum (Integer)
+                          Inherited from TextureStimulusBaseClass
+                          Default: (GL enum determined at instantiation)
+    upperleft          -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (0.0, 1.0, -1.0)
+    upperright         -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (1.0, 1.0, -1.0)
+
+    Constant Parameters
+    ===================
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Default: False
+    """
 
     parameters_and_defaults = {'on':(True,
                                      ve_types.Boolean),                               
                                'lowerleft':((0.0,0.0,-1.0), # in eye coordinates
                                             ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                                           ve_types.Sequence4(ve_types.Real))),
+                                                           ve_types.Sequence4(ve_types.Real)),
+                                            "vertex position (units: eye coordinates)"),
                                'lowerright':((1.0,0.0,-1.0), # in eye coordinates
                                              ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                                            ve_types.Sequence4(ve_types.Real))),
+                                                            ve_types.Sequence4(ve_types.Real)),
+                                            "vertex position (units: eye coordinates)"),
                                'upperleft':((0.0,1.0,-1.0), # in eye coordinates
                                             ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                                           ve_types.Sequence4(ve_types.Real))),
+                                                           ve_types.Sequence4(ve_types.Real)),
+                                            "vertex position (units: eye coordinates)"),
                                'upperright':((1.0,1.0,-1.0), # in eye coordinates
                                              ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                                            ve_types.Sequence4(ve_types.Real))),
+                                                            ve_types.Sequence4(ve_types.Real)),
+                                            "vertex position (units: eye coordinates)"),
                                'depth_test':(True,
-                                             ve_types.Boolean),
+                                             ve_types.Boolean,
+                                             "perform depth test?"),
                                }
                                                                                 
     __slots__ = TextureStimulusBaseClass.__slots__
@@ -1358,6 +1513,60 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
+    """Panoramic image texture mapped onto flat rectangle or 3D cylinder.
+
+
+    Parameters
+    ==========
+    anchor                -- (String)
+                             Default: lowerleft
+    angular_position      -- (Real)
+                             Default: 0.0
+    contrast              -- (Real)
+                             Default: 1.0
+    drum_center_azimuth   -- (Real)
+                             Default: 0.0
+    drum_center_elevation -- (Real)
+                             Default: 0.0
+    flat                  -- (Boolean)
+                             Default: False
+    flip_image            -- (Boolean)
+                             Default: False
+    num_sides             -- (UnsignedInteger)
+                             Default: 50
+    on                    -- (Boolean)
+                             Default: True
+    orientation           -- (Real)
+                             Default: 0.0
+    position              -- (AnyOf(Sequence2 of Real or Sequence3 of Real))
+                             Default: (0.0, 0.0, 0.0)
+    radius                -- (Real)
+                             Default: 1.0
+    texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                             Inherited from TextureStimulusBaseClass
+                             Default: (determined at instantiation)
+    texture_mag_filter    -- OpenGL filter enum (Integer)
+                             Inherited from TextureStimulusBaseClass
+                             Default: GL_LINEAR
+    texture_min_filter    -- OpenGL filter enum (Integer)
+                             Inherited from TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+    texture_wrap_s        -- OpenGL texture wrap enum (Integer)
+                             Inherited from TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+    texture_wrap_t        -- OpenGL texture wrap enum (Integer)
+                             Inherited from TextureStimulusBaseClass
+                             Default: (GL enum determined at instantiation)
+
+    Constant Parameters
+    ===================
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Default: GL_RGB
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Default: False
+    """
 
     parameters_and_defaults = {
         'on':(True,
@@ -1602,6 +1811,23 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glEndList()
 
 class FixationCross(VisionEgg.Core.Stimulus):
+    """Cross useful for fixation point.
+
+    Parameters
+    ==========
+    on       -- (Boolean)
+                Default: True
+    position -- (Sequence2 of Real)
+                Default: (320, 240)
+    size     -- (Sequence2 of Real)
+                Default: (64, 64)
+
+    Constant Parameters
+    ===================
+    texture_size -- (Sequence2 of Real)
+                    Default: (64, 64)
+    """
+    
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),

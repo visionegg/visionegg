@@ -1,4 +1,16 @@
-"""Allows control of parameter values over the network.
+# The Vision Egg: TCPController
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Allows control of parameter values over the network.
 
 Don't use for realtime control unless you think your network is that
 fast and reliable. Also, this code has not been optimized for speed,
@@ -28,16 +40,7 @@ latency, and providing a network performance and reliability. To
 address security concerns, you could also write code that implements
 IP address checking or other security features.
 
-Classes:
-
-TCPServer -- TCP server to create SocketListenControllers upon connection
-SocketListenController -- Handle connection from remote machine, control TCPControllers
-TCPController -- Control a parameter from a network (TCP) connection
-
 """
-
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg
 import VisionEgg.Core
@@ -65,10 +68,6 @@ class TCPServer:
     """TCP server creates SocketListenController upon connection.
 
     This class is analagous to VisionEgg.PyroHelpers.PyroServer.
-
-    Public methods:
-
-    create_listener_once_connected -- wait and spawn listener
 
     """
     def __init__(self,
@@ -214,12 +213,8 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
 
     This class is analagous to VisionEgg.PyroHelpers.PyroListenController.
 
-    Public methods:
-    
-    create_tcp_controller -- spawn a new TCPController
-    send_raw_text -- send text over the TCP socket
-
-    TCP commands (sent over network socket):
+    TCP commands (sent over network socket)
+    =======================================
     
     close -- close the connection
     exit -- close the connection

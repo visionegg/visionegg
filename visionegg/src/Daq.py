@@ -1,20 +1,25 @@
-"""Definition of data acquisition and triggering interfaces.
+# The Vision Egg: Daq
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Definition of data acquisition and triggering interfaces.
 
 This module provides an interface to abstract data acquisition
 devices.  To interface with real data acquisition devices, use a
 module that subclasses the classes defined here.
 
-This module has not been extensively tested or used, and should be
+*WARNING* This module has not been extensively tested or used, and should be
 considered unstable.
 
 """
-
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL)
-
-all = ['Analog', 'Buffered', 'Channel', 'ChannelParameters',
-       'DaqMode', 'Device', 'Digital', 'Functionality', 'Immediate', 'Input',
-       'Output', 'SignalType', 'Trigger']
 
 import VisionEgg
 import VisionEgg.ParameterTypes as ve_types

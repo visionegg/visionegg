@@ -1,43 +1,20 @@
-"""Core Vision Egg functionality
+# The Vision Egg: Core
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Core Vision Egg functionality.
 
 This module contains the architectural foundations of the Vision Egg.
 
-Classes:
-
-Screen -- An OpenGL window
-Viewport -- Connects stimuli to a screen
-Projection -- Converts stimulus coordinates to viewport coordinates
-Stimulus -- Base class for a stimulus
-
-Subclasses of Projection:
-
-OrthographicProjection
-OrthographicProjectionNoZClip
-SimplePerspectiveProjection
-PerspectiveProjection
-
-Subclasses of Stimulus:
-
-FixationSpot
-
-Public functions:
-
-get_default_screen -- Create instance of Screen
-add_gl_assumption -- Check assumption after OpenGL context created.
-
 """
-
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
-
-all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
-        'EvalStringController', 'ExecStringController', 'FixationSpot',
-        'FrameTimer', 'FunctionController', 'Message',
-        'OrthographicProjection', 'OrthographicProjectionNoZClip',
-        'PerspectiveProjection', 'Presentation', 'Projection', 'Screen',
-        'SimplePerspectiveProjection', 'Stimulus', 'Viewport',
-        'add_gl_assumption', 'post_gl_init', 'get_default_screen', 'message',
-        'swap_buffers', 'init_gl_extension' ]
 
 ####################################################################
 #
@@ -104,7 +81,7 @@ class Screen(VisionEgg.ClassWithParameters):
     static method of Screen as an alternative construtor.  This gets
     all parameters from the VISIONEGG parameters specified in the
     config file and as environment variables.
-    
+
     >>> import VisionEgg.Core
     >>> VisionEgg.Core.Screen.create_default()
 
@@ -122,11 +99,8 @@ class Screen(VisionEgg.ClassWithParameters):
     separate viewports for the portion of the window on each monitor,
     a multiple screen effect can be created.
 
-    Parameters:
-    
-    bgcolor -- Background color. Tuple of 4 RGBA floating point values.
-
-    Public variables:
+    Public variables
+    ================
 
     size -- Tuple of 2 integers specifying width and height
     red_bits -- Integer (or None if not supported) specifying framebuffer depth
@@ -134,31 +108,60 @@ class Screen(VisionEgg.ClassWithParameters):
     blue_bits -- Integer (or None if not supported) specifying framebuffer depth
     alpha_bits -- Integer (or None if not supported) specifying framebuffer depth
 
+    Parameters
+    ==========
+    bgcolor -- background color (AnyOf(Sequence3 of Real or Sequence4 of Real))
+               Default: (0.5, 0.5, 0.5, 0.0)
+
+    Constant Parameters
+    ===================
+    frameless     -- remove standard window frame? (Boolean)
+                     Default: 0
+    fullscreen    -- use full screen? (Boolean)
+                     Default: 0
+    hide_mouse    -- hide the mouse cursor? (Boolean)
+                     Default: 1
+    maxpriority   -- raise priority? (platform dependent) (Boolean)
+                     Default: 0
+    preferred_bpp -- preferred bits per pixel (bit depth) (UnsignedInteger)
+                     Default: 32
+    size          -- size (units: pixels) (Sequence2 of Real)
+                     Default: (640, 480)
+    sync_swap     -- synchronize buffer swaps to vertical sync? (Boolean)
+                     Default: 1
     """
 
-    parameters_and_defaults = {
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'bgcolor':((0.5,0.5,0.5,0.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                  ve_types.Sequence4(ve_types.Real))),
-        }
+                                  ve_types.Sequence4(ve_types.Real)),
+                   'background color',),
+        })
     
-    constant_parameters_and_defaults = {
+    constant_parameters_and_defaults = VisionEgg.ParameterDefinition({
         'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
                  VisionEgg.config.VISIONEGG_SCREEN_H),
-                ve_types.Sequence2(ve_types.Real)),
+                ve_types.Sequence2(ve_types.Real),
+                'size (units: pixels)'),
         'fullscreen':(VisionEgg.config.VISIONEGG_FULLSCREEN,
-                      ve_types.Boolean),
+                      ve_types.Boolean,
+                      'use full screen?'),
         'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                         ve_types.UnsignedInteger),
+                         ve_types.UnsignedInteger,
+                         'preferred bits per pixel (bit depth)'),
         'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                       ve_types.Boolean),
+                       ve_types.Boolean,
+                       'raise priority? (platform dependent)'),
         'hide_mouse':(VisionEgg.config.VISIONEGG_HIDE_MOUSE,
-                      ve_types.Boolean),
+                      ve_types.Boolean,
+                      'hide the mouse cursor?'),
         'frameless':(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
-                     ve_types.Boolean),
+                     ve_types.Boolean,
+                     'remove standard window frame?'),
         'sync_swap':(VisionEgg.config.VISIONEGG_SYNC_SWAP,
-                     ve_types.Boolean),
-        }
+                     ve_types.Boolean,
+                     'synchronize buffer swaps to vertical sync?'),
+        })
     
     __slots__ = VisionEgg.ClassWithParameters.__slots__ + (
         'red_bits',
@@ -689,11 +692,20 @@ class Projection(VisionEgg.ClassWithParameters):
     This class is largely convenience for using OpenGL's
     PROJECTION_MATRIX.
 
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
     """
-    parameters_and_defaults = {
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'matrix':( Numeric.identity(4), # 4x4 identity matrix
-                   ve_types.Sequence4x4(ve_types.Real)),
-        }
+                   ve_types.Sequence4x4(ve_types.Real),
+                   'matrix specifying projection'),
+        })
     
     __slots__ = VisionEgg.ClassWithParameters.__slots__    
                                
@@ -824,7 +836,16 @@ class Projection(VisionEgg.ClassWithParameters):
         return self.clip_2_norm_device(self.eye_2_clip(eye_coords_vertex))
     
 class OrthographicProjection(Projection):
-    """An orthographic projection"""
+    """An orthographic projection.
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
 
     __slots__ = Projection.__slots__
     
@@ -856,7 +877,16 @@ class OrthographicProjection(Projection):
         Projection.__init__(self,**{'matrix':matrix})
 
 class OrthographicProjectionNoZClip(Projection):
-    """An orthographic projection without Z clipping"""
+    """An orthographic projection without Z clipping.
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
     
     __slots__ = Projection.__slots__
     
@@ -879,7 +909,16 @@ class OrthographicProjectionNoZClip(Projection):
         Projection.__init__(self,**{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
-    """A simplified perspective projection"""
+    """A simplified perspective projection.
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
     
     __slots__ = Projection.__slots__
     
@@ -909,7 +948,16 @@ class SimplePerspectiveProjection(Projection):
         return matrix
                                                   
 class PerspectiveProjection(Projection):
-    """A perspective projection"""
+    """A perspective projection.
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
     
     __slots__ = Projection.__slots__
     
@@ -953,14 +1001,14 @@ class Stimulus(VisionEgg.ClassWithParameters):
     would be adding the same instance two times to the same viewport.
     It would also get drawn twice, although at exactly the same
     location.)
-    
+
     OpenGL is a 'state machine', meaning that it has internal
     parameters whose values vary and affect how it operates.  Because
     of this inherent uncertainty, there are only limited assumptions
     about the state of OpenGL that an instance of Stimulus should
     expect when its draw() method is called.  Because the Vision Egg
     loops through stimuli this also imposes some important behaviors:
-    
+
     First, the framebuffer will contain the results of any drawing
     operations performed since the last buffer swap by other instances
     of (subclasses of) Stimulus. Therefore, the order in which stimuli
@@ -1005,7 +1053,8 @@ class Stimulus(VisionEgg.ClassWithParameters):
     in the __init__ method.  For example, if your stimulus needs alpha
     in the framebuffer, check the value of
     glGetIntegerv(GL_ALPHA_BITS) and raise an exception if it is not
-    available."""
+    available.
+    """
 
     __slots__ = VisionEgg.ClassWithParameters.__slots__
 
@@ -1016,19 +1065,15 @@ class Stimulus(VisionEgg.ClassWithParameters):
         stimulus including OpenGL state variables such display lists
         and texture objects.
 
-        In this base class, nothing needs to be done other than set
-        parameter values.
         """
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         
     def draw(self):
-        """Called by Viewport. Draw the stimulus.
+        """Draw the stimulus. (Called by Viewport instance.)
         
         This method is called every frame.  This method actually
         performs the OpenGL calls to draw the stimulus.
         
-        Override this method in a subclass .In this base class it does
-        nothing.
         """
         pass
 
@@ -1066,7 +1111,7 @@ class Viewport(VisionEgg.ClassWithParameters):
     coordinates of a stimulus, the application should specify the a
     projection other than the default.  This is usually the case for
     3D stimuli.
-    
+
     For details of the projection and clipping process, see the
     section 'Coordinate Transformations' in the book/online document
     'The OpenGL Graphics System: A Specification'
@@ -1075,26 +1120,51 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
 
+    Parameters
+    ==========
+    anchor      -- How position parameter is interpreted (String)
+                   Default: lowerleft
+    depth_range -- depth range (in object units) for rendering (Sequence2 of Real)
+                   Default: (0, 1)
+    position    -- Position (in pixel units) within the screen (Sequence2 of Real)
+                   Default: (0, 0)
+    projection  -- projection for coordinate transforms (Instance of <class 'VisionEgg.Core.Projection'>)
+                   Default: (determined at instantiation)
+    screen      -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
+                   Default: (determined at instantiation)
+    size        -- Size (in pixel units) (Sequence2 of Real)
+                   Default: (determined at instantiation)
+    stimuli     -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
+                   Default: (determined at instantiation)
     """
 
-    parameters_and_defaults = {
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'screen':(None,
-                  ve_types.Instance(Screen)),
+                  ve_types.Instance(Screen),
+                  'The screen in which this viewport is drawn'),
         'position':((0,0),
-                    ve_types.Sequence2(ve_types.Real)), 
+                    ve_types.Sequence2(ve_types.Real),
+                    'Position (in pixel units) within the screen'), 
         'anchor':('lowerleft',
-                  ve_types.String),
+                  ve_types.String,
+                  'How position parameter is interpreted'),
         'depth_range':((0,1),
-                       ve_types.Sequence2(ve_types.Real)), 
+                       ve_types.Sequence2(ve_types.Real),
+                       'depth range (in object units) for rendering'), 
         'size':(None, # will use screen.size if not specified
-                ve_types.Sequence2(ve_types.Real)),
+                ve_types.Sequence2(ve_types.Real),
+                'Size (in pixel units)'),
         'projection':(None, # instance of VisionEgg.Core.Projection
-                      ve_types.Instance(Projection)),
+                      ve_types.Instance(Projection),
+                      'projection for coordinate transforms'),
         'stimuli':(None,
-                   ve_types.Sequence(ve_types.Instance(Stimulus))),
+                   ve_types.Sequence(ve_types.Instance(Stimulus)),
+                   'sequence of stimuli to draw in screen'),
         'lowerleft':(None,  # DEPRECATED -- don't use
-                     ve_types.Sequence2(ve_types.Real)), 
-        } 
+                     ve_types.Sequence2(ve_types.Real),
+                     'position (in pixel units) of lower-left viewport corner',
+                     VisionEgg.ParameterDefinition.DEPRECATED), 
+        })
 
     __slots__ = VisionEgg.ClassWithParameters.__slots__ + (
         '_is_drawing',
@@ -1213,25 +1283,46 @@ class Viewport(VisionEgg.ClassWithParameters):
 ####################################################################
 
 class FixationSpot(Stimulus):
-    """A rectangle stimulus, typically used as a fixation spot."""
+    """A rectangle stimulus, typically used as a fixation spot.
 
-    parameters_and_defaults = {
+    Parameters
+    ==========
+    anchor   -- how position parameter is used (String)
+                Default: center
+    color    -- color (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                Default: (1.0, 1.0, 1.0)
+    on       -- draw? (Boolean)
+                Default: True
+    position -- position in eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                Default: (320.0, 240.0)
+    size     -- size in eye coordinates (Sequence2 of Real)
+                Default: (4.0, 4.0)
+    """
+
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'on':(True,
-              ve_types.Boolean),
+              ve_types.Boolean,
+              'draw?'),
         'color':((1.0,1.0,1.0),
                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                ve_types.Sequence4(ve_types.Real))),
+                                ve_types.Sequence4(ve_types.Real)),
+                 'color'),
         'position' : ( ( 320.0, 240.0 ), # in eye coordinates
                        ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
                                       ve_types.Sequence3(ve_types.Real),
-                                      ve_types.Sequence4(ve_types.Real))),
+                                      ve_types.Sequence4(ve_types.Real)),
+                       'position in eye coordinates'),
         'anchor' : ('center',
-                    ve_types.String),
+                    ve_types.String,
+                    'how position parameter is used'),
         'size':((4.0,4.0), # horiz and vertical size
-                ve_types.Sequence2(ve_types.Real)),
+                ve_types.Sequence2(ve_types.Real),
+                'size in eye coordinates'),
         'center' : (None,  # DEPRECATED -- don't use
-                    ve_types.Sequence2(ve_types.Real)),
-        }
+                    ve_types.Sequence2(ve_types.Real),
+                    'position in eye coordinates',
+                    VisionEgg.ParameterDefinition.DEPRECATED),
+        })
     
     __slots__ = Stimulus.__slots__
     
@@ -1285,7 +1376,9 @@ class FixationSpot(Stimulus):
 ####################################################################
 
 class FrameTimer:
+    """Time inter frame intervals and compute frames per second."""
     def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0):
+        """Create instance of FrameTimer."""
         self.bins = Numeric.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
         self.bin_width_msec = float(bin_width_msec)
         self.timing_histogram = Numeric.zeros( self.bins.shape, Numeric.Float ) # make float to avoid (early) overflow errors
@@ -1298,6 +1391,7 @@ class FrameTimer:
             self.last_n_frame_times_sec = [None]*self.running_average_num_frames
         
     def tick(self):
+        """Declare a frame has just been drawn."""
         true_time_now = VisionEgg.true_time_func()
         if self._true_time_last_frame != None:
             this_frame_draw_time_sec = true_time_now - self._true_time_last_frame
@@ -1340,6 +1434,7 @@ class FrameTimer:
         self.log_histogram()
     
     def log_histogram(self):
+        """Send histogram to logger."""
         buffer = StringIO.StringIO()
 
         n_frames = sum( self.timing_histogram )+1

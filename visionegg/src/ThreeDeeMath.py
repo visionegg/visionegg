@@ -1,7 +1,18 @@
-"""Vertex and matrix operations - simulate OpenGL transforms"""
+# The Vision Egg: ThreeDeeMath
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+"""
+Vertex and matrix operations - simulate OpenGL transforms.
+
+"""
 
 import math
 import Numeric, MLab

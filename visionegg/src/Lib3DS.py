@@ -1,4 +1,16 @@
-"""Load .3DS files
+# The Vision Egg: Lib3DS
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Use .3DS files.
 
 This module allows Vision Egg programs to use 3D models in the .3DS
 file format.  We thank the lib3ds project at
@@ -9,13 +21,7 @@ important of these is that only the first texture map is used from the
 material properties of an object.  Lighting is not used, so the
 specular, ambient and diffuse material properties will have no effect.
 
-Classes:
-
-Model3DS -- A 3D model from a .3ds file
 """
-
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
 
 try:
     import logging
@@ -45,7 +51,36 @@ except NameError:
     False = 1==0
     
 class Model3DS(VisionEgg.Core.Stimulus):
-    """Model3DS -- A 3D model from a .3ds file"""
+    """Model3DS -- A 3D model from a .3ds file
+
+    Parameters
+    ==========
+    orient_angle -- (Real)
+                    Default: 0.0
+    orient_axis  -- (Sequence3 of Real)
+                    Default: (0.0, 1.0, 0.0)
+    position     -- (Sequence3 of Real)
+                    Default: (0.0, 0.0, 0.0)
+    scale        -- (Sequence3 of Real)
+                    Default: (1.0, 1.0, 1.0)
+
+    Constant Parameters
+    ===================
+    filename           -- (String)
+                          Default: (determined at instantiation)
+    mipmaps_enabled    -- (Boolean)
+                          Default: True
+    shrink_texture_ok  -- (Boolean)
+                          Default: False
+    texture_mag_filter -- (Integer)
+                          Default: 9729
+    texture_min_filter -- (Integer)
+                          Default: 9987
+    texture_wrap_s     -- (Integer)
+                          Default: (determined at instantiation)
+    texture_wrap_t     -- (Integer)
+                          Default: (determined at instantiation)
+    """
     parameters_and_defaults = {'scale':((1.0, 1.0, 1.0),
                                         ve_types.Sequence3(ve_types.Real)),
                                'position':((0.0, 0.0, 0.0),

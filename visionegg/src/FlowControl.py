@@ -1,17 +1,16 @@
-"""Flow control for the Vision Egg
+# The Vision Egg: FlowControl
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-Classes:
-
-Presentation -- Handles the timing and coordination of stimulus presentation
-Controller -- Control parameters
-
-Subclasses of Controller:
-
-ConstantController -- constant value
-EvalStringController -- use dynamically interpreted Python string
-ExecStringController -- use potentially complex Python string
-FunctionController -- use a Python function
-EncapsulatedController -- use a controller to control a controller
+"""
+Flow control for the Vision Egg.
 
 """
 
@@ -26,9 +25,6 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import VisionEgg.ParameterTypes as ve_types
 import Numeric, math, types
 import pygame
-
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -76,58 +72,73 @@ class Presentation(VisionEgg.ClassWithParameters):
     result in speed gains, but without skipping frames at 200 Hz, why
     bother?
 
-    Parameters:
-
-    viewports -- List of Viewport instances to draw. Order is important.
-    collect_timing_info -- Int (boolean) log timing statistics during go loop.
-    go_duration -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',)
-    check_events -- Int (boolean) to allow input event checking during 'go' loop.
-    handle_event_callbacks -- List of tuples to handle events. (event_type,event_callback_func)
-    trigger_armed -- Int (boolean) to gate the trigger on the 'go' loop
-    trigger_go_if_armed -- Int (boolean) the trigger on the 'go' loop
-    enter_go_loop -- Int (boolean) used by run_forever to enter 'go' loop
-    quit -- Int (boolean) quits the run_forever loop if set
-    warn_mean_fps_threshold -- Float (fraction) threshold to print observered vs. expected frame rate warning
-    warn_longest_frame_threshold -- Float (fraction) threshold to print frame skipped warning
-    
-    Methods:
-
-    go() -- Main control loop during stimulus presentation
-    run_forever() -- Main control loop between go loops
-    add_controller() -- Add a controller
-    remove_controller() -- Remove controller from internal list
-    export_movie_go() -- Emulates method 'go' but saves a movie
-    between_presentations() -- Maintain display between stimulus presentations
-    
+    Parameters
+    ==========
+    check_events                 -- allow input event checking during 'go' loop? (Boolean)
+                                    Default: True
+    collect_timing_info          -- log timing statistics during go loop? (Boolean)
+                                    Default: True
+    enter_go_loop                -- test used by run_forever() to enter go loop (Boolean)
+                                    Default: False
+    go_duration                  -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',) (Sequence of AnyOf(Real or String))
+                                    Default: (5.0, 'seconds')
+    handle_event_callbacks       -- List of tuples to handle events. (event_type,event_callback_func) (Sequence of Sequence2 of AnyOf(Integer or Callable))
+                                    Default: (determined at instantiation)
+    override_t_abs_sec           -- Override t_abs. Set only when reconstructing experiments. (units: seconds) (Real)
+                                    Default: (determined at instantiation)
+    quit                         -- quit the run_forever loop? (Boolean)
+                                    Default: False
+    trigger_armed                -- test trigger on go loop? (Boolean)
+                                    Default: True
+    trigger_go_if_armed          -- trigger go loop? (Boolean)
+                                    Default: True
+    viewports                    -- list of Viewport instances to draw. Order is important. (Sequence of Instance of <class 'VisionEgg.ClassWithParameters'>)
+                                    Default: (determined at instantiation)
+    warn_longest_frame_threshold -- threshold to print frame skipped warning (fraction units) (Real)
+                                    Default: 2.0
+    warn_mean_fps_threshold      -- threshold to print observered vs. expected frame rate warning (fraction units) (Real)
+                                    Default: 0.01
     """
     parameters_and_defaults = {
         'viewports' : (None,
                        # XXX should really require VisionEgg.Core.Viewport
                        # but that would lead to circular import problem
-                       ve_types.Sequence(ve_types.Instance(VisionEgg.ClassWithParameters))),
+                       ve_types.Sequence(ve_types.Instance(VisionEgg.ClassWithParameters)),
+                       'list of Viewport instances to draw. Order is important.'),
         'collect_timing_info' : (True,
-                                 ve_types.Boolean),
+                                 ve_types.Boolean,
+                                 'log timing statistics during go loop?'),
         'go_duration' : ((5.0,'seconds'),
                          ve_types.Sequence(ve_types.AnyOf(ve_types.Real,
-                                                          ve_types.String))),
+                                                          ve_types.String)),
+                         "Tuple to specify 'go' loop duration. Either (value,units) or ('forever',)"),
         'check_events' : (True, # May cause slight performance hit, but probably negligible
-                          ve_types.Boolean),
+                          ve_types.Boolean,
+                          "allow input event checking during 'go' loop?"),
         'handle_event_callbacks' : (None,
-                                    ve_types.Sequence(ve_types.Sequence2(ve_types.AnyOf(ve_types.Integer,ve_types.Callable)))),
+                                    ve_types.Sequence(ve_types.Sequence2(ve_types.AnyOf(ve_types.Integer,ve_types.Callable))),
+                                    "List of tuples to handle events. (event_type,event_callback_func)"),
         'trigger_armed':(True, 
-                         ve_types.Boolean),
+                         ve_types.Boolean,
+                         "test trigger on go loop?"),
         'trigger_go_if_armed':(True,
-                               ve_types.Boolean),
+                               ve_types.Boolean,
+                               "trigger go loop?"),
         'enter_go_loop':(False,
-                         ve_types.Boolean),
+                         ve_types.Boolean,
+                         "test used by run_forever() to enter go loop"),
         'quit':(False,
-                ve_types.Boolean),
+                ve_types.Boolean,
+                "quit the run_forever loop?"),
         'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
-                                   ve_types.Real),
+                                   ve_types.Real,
+                                   "threshold to print observered vs. expected frame rate warning (fraction units)"),
         'warn_longest_frame_threshold': (2.0, # fraction (set to 2.0 for no false alarms)
-                                         ve_types.Real),
+                                         ve_types.Real,
+                                         "threshold to print frame skipped warning (fraction units)"),
         'override_t_abs_sec':(None, # override t_abs (in seconds) -- set only when reconstructing experiments
-                              ve_types.Real),
+                              ve_types.Real,
+                              "Override t_abs. Set only when reconstructing experiments. (units: seconds)"),
         }
     
     def __init__(self,**kw):

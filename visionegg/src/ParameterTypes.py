@@ -1,12 +1,18 @@
-"""Type checking for the Vision Egg"""
+# The Vision Egg: ParameterTypes
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+"""
+Type checking for the Vision Egg.
 
-all = ['AnyOf', 'Boolean', 'Callable', 'AnyClass', 'Instance',
-       'Integer', 'NoneType', 'ParameterTypeDef', 'Real', 'Sequence',
-       'Sequence2', 'Sequence3', 'Sequence4', 'Sequence4x4', 'String',
-       'UnsignedInteger', 'assert_type', 'get_type', 'is_parameter_type_def']
+"""
 
 import VisionEgg
 __version__ = VisionEgg.release_name
@@ -63,7 +69,7 @@ class AnyOf(ParameterTypeDef):
                 raise TypeError("%s is not a valid type definition")
         self.item_types = item_types
     def __str__(self):
-        return 'AnyOf(%s)'%(','.join(map(str,self.item_types)))
+        return 'AnyOf(%s)'%(' or '.join(map(str,self.item_types)))
     def verify(self,is_any_of):
         for item_type in self.item_types:
             if item_type.verify(is_any_of):
@@ -72,12 +78,22 @@ class AnyOf(ParameterTypeDef):
     def get_item_types(self):
         return self.item_types
 
+class NoneMC(type):
+    def __str__(self):
+        return 'None'
+    
 class NoneType(ParameterTypeDef):
+    __metaclass__ = NoneMC
     def verify(is_none):
         return is_none is None
     verify = staticmethod(verify)
 
+class BooleanMC(type):
+    def __str__(self):
+        return 'Boolean'
+    
 class Boolean(ParameterTypeDef):
+    __metaclass__ = BooleanMC
     def verify(is_boolean):
         if type(is_boolean) in (type(1==1), int):
             return True
@@ -85,12 +101,22 @@ class Boolean(ParameterTypeDef):
             return False
     verify = staticmethod(verify)
 
+class CallableMC(type):
+    def __str__(self):
+        return 'Callable'
+    
 class Callable(ParameterTypeDef):
+    __metaclass__ = CallableMC
     def verify(is_callable):
         return callable(is_callable)
     verify = staticmethod(verify)
 
+class AnyClassMC(type):
+    def __str__(self):
+        return 'AnyClass'
+    
 class AnyClass(ParameterTypeDef):
+    __metaclass__ = AnyClassMC
     def verify(is_class):
         return type(is_class) == types.ClassType
     verify = staticmethod(verify)
@@ -104,6 +130,8 @@ class SubClass(ParameterTypeDef):
         if type(self.base_class) != types.ClassType:
             return False
         return self.base_class in get_all_classes_list(is_class)
+    def __str__(self):
+        return 'SubClass of %s'%str(self.base_class)
 
 class Instance(ParameterTypeDef):
     def __init__(self,class_type):
@@ -112,23 +140,38 @@ class Instance(ParameterTypeDef):
         self.class_type = class_type
     def __str__(self):
         contained_string = str(self.class_type)
-        return 'Instance of (%s)'%contained_string
+        return 'Instance of %s'%contained_string
     def verify(self,is_instance):
         return isinstance(is_instance,self.class_type)
 
+class IntegerMC(type):
+    def __str__(self):
+        return 'Integer'
+    
 class Integer(ParameterTypeDef):
+    __metaclass__ = IntegerMC
     def verify(is_integer):
         return type(is_integer) == int
     verify = staticmethod(verify)
 
+class UnsignedIntegerMC(IntegerMC):
+    def __str__(self):
+        return 'UnsignedInteger'
+    
 class UnsignedInteger(Integer):
+    __metaclass__ = UnsignedIntegerMC
     def verify(is_unsigned_integer):
         if not Integer.verify(is_unsigned_integer):
             return False
         return is_unsigned_integer >= 0
     verify = staticmethod(verify)
+
+class RealMC(type):
+    def __str__(self):
+        return 'Real'
     
 class Real(ParameterTypeDef):
+    __metaclass__ = RealMC
     def verify(is_real):
         if type(is_real) in (int, float):
             return True
@@ -144,7 +187,7 @@ class Sequence(ParameterTypeDef):
         self.item_type = item_type
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence of (%s)'%contained_string
+        return 'Sequence of %s'%contained_string
     def verify(self,is_sequence):
         try:
             len(is_sequence)
@@ -158,7 +201,7 @@ class Sequence(ParameterTypeDef):
 class Sequence2(Sequence):
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence2 of (%s)'%contained_string
+        return 'Sequence2 of %s'%contained_string
     def verify(self,is_sequence2):
         if not Sequence.verify(self,is_sequence2):
             return False
@@ -169,7 +212,7 @@ class Sequence2(Sequence):
 class Sequence3(Sequence):
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence3 of (%s)'%contained_string
+        return 'Sequence3 of %s'%contained_string
     def verify(self,is_sequence3):
         if not Sequence.verify(self,is_sequence3):
             return False
@@ -180,7 +223,7 @@ class Sequence3(Sequence):
 class Sequence4(Sequence):
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence4 of (%s)'%contained_string    
+        return 'Sequence4 of %s'%contained_string    
     def verify(self,is_sequence4):
         if not Sequence.verify(self,is_sequence4):
             return False
@@ -191,7 +234,7 @@ class Sequence4(Sequence):
 class Sequence4x4(Sequence4):
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence4x4 of (%s)'%contained_string
+        return 'Sequence4x4 of %s'%contained_string
     def verify(self,is_sequence4x4):
         try:
             len(is_sequence4x4)
@@ -204,7 +247,12 @@ class Sequence4x4(Sequence4):
                 return False
         return True
 
+class StringMC(type):
+    def __str__(self):
+        return 'String'
+    
 class String(ParameterTypeDef):
+    __metaclass__ = StringMC
     def verify(is_string):
         if type(is_string) == type(''):
             return True

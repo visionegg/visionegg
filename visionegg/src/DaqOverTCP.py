@@ -1,4 +1,16 @@
-"""Implements data acquisition over TCP.
+# The Vision Egg: DaqOverTCP
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
+
+"""
+Implements data acquisition over TCP.
 
 This module controls data acquisition hardware running on a (probably)
 different computer. The data acquisition server must be implement the
@@ -17,9 +29,6 @@ This module has not been extensively tested or used, and should be
 considered unstable.
 
 """
-
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL)
 
 ####################################################################
 #

@@ -1,6 +1,16 @@
-"""The Vision Egg package.
+# The Vision Egg
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-See the 'Core' module for the fundamental Vision Egg classes.
+"""
+The Vision Egg package.
 
 The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
@@ -16,75 +26,11 @@ graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
 
-Modules:
-
-Core -- Core Vision Egg functionality
-Configuration -- Load config values
-Daq -- Definition of data acquisition and triggering interfaces
-DaqLPT -- Data acquisition and triggering over the parallel port
-DaqOverTCP -- Implements data acquisition over TCP
-Dots -- Random dot stimuli
-FlowControl -- Flow control (presentation and control)
-GL -- Lump all OpenGL names in one namespace
-GLTrace -- Trace calls to OpenGL
-GUI -- Graphical user interface classes and functions
-Gratings -- Grating stimuli
-Lib3DS -- Load .3DS files
-MoreStimuli -- Assorted stimuli
-ParameterTypes -- Type checking for the Vision Egg
-PlatformDependent -- Set priority and other functions
-PyroClient -- Python Remote Objects support - Client side
-PyroHelpers -- Python Remote Objects support
-QuickTime -- QuickTime support
-SphereMap -- Stimuli drawn as texture maps on inside of sphere
-TCPController -- Allows control of parameter values over the network
-Text -- Text stimuli
-Textures -- Texture (images mapped onto polygons) stimuli
-ThreeDeeMath -- Simulate OpenGL transforms
-__init__ -- Loaded with 'import VisionEgg' (This module)
-darwin_getrefresh -- (Platform dependent) wrappers for low-level C code
-darwin_maxpriority -- (Platform dependent) wrappers for low-level C code
-gl_qt -- (Platform dependent) wrappers for low-level C code
-posix_maxpriority -- (Platform dependent) wrappers for low-level C code
-win32_maxpriority -- (Platform dependent) wrappers for low-level C code
-
-Subpackages:
-
-PyroApps -- Support for demo applications based on Pyro
-
-Classes:
-
-Parameters -- Parameter container
-ClassWithParameters -- Base class for any class that uses parameters
-
-Functions:
-
-time_func() -- Most accurate timing function available on a platform
-start_default_logging() -- Create and add log handlers
-watch_exceptions() -- Catch exceptions, log them, and optionally open GUI
-stop_watching_exceptions() -- Stop catching exceptions, returning to previous state
-
-Less used functions:
-
-set_time_func_to_true_time() -- time_func() returns true time (Normal)
-set_time_func_to_frame_locked() -- time_func() returns framecount/framerate
-recursive_base_class_finder() -- A function to find all base classes
-
-Deprecated functions:
-
-timing_func() -- Use time_func() instead
-assert_type() -- Use VisionEgg.ParameterTypes.assert_type() instead
-
-Public variables:
-
-release_name -- Version information
-config -- Instance of Config class from Configuration module
+See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5b4'
+release_name = '0.9.9'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -224,12 +170,12 @@ class _ExceptionHookKeeper:
         self._sys.excepthook = self.orig_hook # restore original
 
 def watch_exceptions():
-    """Catch exceptions, log them, and optionally open GUI"""
+    """Catch exceptions, log them, and optionally open GUI."""
     global _exception_hook_keeper
     _exception_hook_keeper = _ExceptionHookKeeper()
     
 def stop_watching_exceptions():
-    """Stop catching exceptions, returning to previous state"""
+    """Stop catching exceptions, returning to previous state."""
     global _exception_hook_keeper
     del _exception_hook_keeper
 
@@ -299,6 +245,12 @@ class Parameters:
     Simple empty class to act something like a C struct."""
     pass
 
+class ParameterDefinition( dict ):
+    """Define parameters used in ClassWithParameters
+    """
+    DEPRECATED = 1
+    OPENGL_ENUM = 2
+
 class ClassWithParameters( object ):
     """Base class for any class that uses parameters.
 
@@ -318,8 +270,8 @@ class ClassWithParameters( object ):
 
     """
     
-    parameters_and_defaults = {} # empty for base class
-    constant_parameters_and_defaults = {} # empty for base class
+    parameters_and_defaults = ParameterDefinition({}) # empty for base class
+    constant_parameters_and_defaults = ParameterDefinition({}) # empty for base class
 
     __slots__ = ('parameters','constant_parameters') # limit access only to specified attributes
 
@@ -349,11 +301,7 @@ class ClassWithParameters( object ):
                     if hasattr(self.parameters,parameter_name):
                         raise ValueError("More than one definition of parameter '%s'"%parameter_name)
                     # Get default value and the type
-                    if type(klass.parameters_and_defaults[parameter_name]) != types.TupleType:
-                        raise ValueError("Definition of parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
-                    if len(klass.parameters_and_defaults[parameter_name]) != 2:
-                        raise ValueError("Definition of parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
-                    value,tipe = klass.parameters_and_defaults[parameter_name]
+                    value,tipe = klass.parameters_and_defaults[parameter_name][:2]
                     # Check tipe is valid
                     if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
@@ -390,11 +338,7 @@ class ClassWithParameters( object ):
                     if hasattr(self.constant_parameters,parameter_name):
                         raise ValueError("More than one definition of constant parameter '%s'"%parameter_name)
                     # Get default value and the type
-                    if type(klass.constant_parameters_and_defaults[parameter_name]) != types.TupleType:
-                        raise ValueError("Definition of constant parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
-                    if len(klass.constant_parameters_and_defaults[parameter_name]) != 2:
-                        raise ValueError("Definition of constant parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
-                    value,tipe = klass.constant_parameters_and_defaults[parameter_name]
+                    value,tipe = klass.constant_parameters_and_defaults[parameter_name][:2]
                     
                     if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of constant parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))

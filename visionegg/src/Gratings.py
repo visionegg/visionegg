@@ -1,10 +1,18 @@
-"""Grating stimuli"""
+# The Vision Egg: Gratings
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+"""
+Grating stimuli.
 
-all = ['AlphaGratingCommon', 'LuminanceGratingCommon',
-       'NumSamplesTooLargeError', 'SinGrating2D', ]
+"""
 
 ####################################################################
 #
@@ -56,12 +64,19 @@ def _get_type_info( bitdepth ):
     return gl_type, numeric_type, max_int_val
 
 class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
-    """Base class with common code to all ways of drawing luminance gratings."""
+    """Base class with common code to all ways of drawing luminance gratings.
 
-    parameters_and_defaults = {
+    Parameters
+    ==========
+    bit_depth -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
+                 Default: 8
+    """
+
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'bit_depth':(8,
-                     ve_types.UnsignedInteger),
-        }
+                     ve_types.UnsignedInteger,
+                     'precision with which grating is calculated and sent to OpenGL'),
+        })
     
     __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
         'gl_internal_format',
@@ -94,12 +109,19 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
 class AlphaGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing gratings in alpha.
 
-    This class is currently not used by any other classes."""
+    This class is currently not used by any other classes.
 
-    parameters_and_defaults = {
+    Parameters
+    ==========
+    bit_depth -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
+                 Default: 8
+    """
+
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'bit_depth':(8,
-                     ve_types.UnsignedInteger),
-        }
+                     ve_types.UnsignedInteger,
+                     'precision with which grating is calculated and sent to OpenGL'),
+        })
     
     __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
         'gl_internal_format',
@@ -131,21 +153,70 @@ class SinGrating2D(LuminanceGratingCommon):
     generator. To acheive an arbitrary orientation, this class rotates
     a textured quad.  To draw a grating with sides that always remain
     horizontal and vertical, draw a large grating in a small viewport.
-    (The viewport will clip anything beyond its edges.)"""
+    (The viewport will clip anything beyond its edges.)
 
-    parameters_and_defaults = {
+    Parameters
+    ==========
+    anchor                      -- specifies how position parameter is interpreted (String)
+                                   Default: center
+    bit_depth                   -- precision with which grating is calculated and sent to OpenGL (UnsignedInteger)
+                                   Inherited from LuminanceGratingCommon
+                                   Default: 8
+    color1                      -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                                   Default: (1.0, 1.0, 1.0)
+    color2                      -- optional color with which to perform interpolation with color1 in RGB space (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                                   Default: (determined at instantiation)
+    contrast                    -- (Real)
+                                   Default: 1.0
+    depth                       -- (Real)
+                                   Default: (determined at instantiation)
+    ignore_time                 -- (Boolean)
+                                   Default: False
+    mask                        -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
+                                   Default: (determined at instantiation)
+    max_alpha                   -- (Real)
+                                   Default: 1.0
+    num_samples                 -- (UnsignedInteger)
+                                   Default: 512
+    on                          -- draw stimulus? (Boolean)
+                                   Default: True
+    orientation                 -- (Real)
+                                   Default: 0.0
+    pedestal                    -- (Real)
+                                   Default: 0.5
+    phase_at_t0                 -- (Real)
+                                   Default: 0.0
+    position                    -- (units: eye coordinates) (Sequence2 of Real)
+                                   Default: (320.0, 240.0)
+    recalculate_phase_tolerance -- (Real)
+                                   Default: (determined at instantiation)
+    size                        -- (Sequence2 of Real)
+                                   Default: (640.0, 480.0)
+    spatial_freq                -- (Real)
+                                   Default: 0.0078125
+    t0_time_sec_absolute        -- (Real)
+                                   Default: (determined at instantiation)
+    temporal_freq_hz            -- (Real)
+                                   Default: 5.0
+    """
+
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
         'on':(True,
-              ve_types.Boolean),
+              ve_types.Boolean,
+              "draw stimulus?"),
         'mask':(None, # allows window onto otherwise (tilted) rectangular grating
-                ve_types.Instance(VisionEgg.Textures.Mask2D)),
+                ve_types.Instance(VisionEgg.Textures.Mask2D),
+                "optional masking function"),
         'contrast':(1.0,
                     ve_types.Real),
         'pedestal':(0.5,
                     ve_types.Real),
         'position':((320.0,240.0), # in eye coordinates
-                    ve_types.Sequence2(ve_types.Real)),
+                    ve_types.Sequence2(ve_types.Real),
+                    "(units: eye coordinates)"),
         'anchor':('center',
-                  ve_types.String),
+                  ve_types.String,
+                  "specifies how position parameter is interpreted"),
         'depth':(None, # if not None, turns on depth testing and allows for occlusion
                  ve_types.Real),
         'size':((640.0,480.0), # in eye coordinates
@@ -171,12 +242,15 @@ class SinGrating2D(LuminanceGratingCommon):
                                  ve_types.Sequence4(ve_types.Real))),
         'color2':(None, # perform interpolation with color1 in RGB space.
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                 ve_types.Sequence4(ve_types.Real))),
+                                 ve_types.Sequence4(ve_types.Real)),
+                  "optional color with which to perform interpolation with color1 in RGB space"),
         'recalculate_phase_tolerance':(None, # only recalculate texture when phase is changed by more than this amount, None for always recalculate. (Saves time.)
                                        ve_types.Real), 
         'center':(None,  # DEPRECATED -- don't use
-                  ve_types.Sequence2(ve_types.Real)),
-        }
+                  ve_types.Sequence2(ve_types.Real),
+                  "",
+                  VisionEgg.ParameterDefinition.DEPRECATED),
+        })
     
     __slots__ = LuminanceGratingCommon.__slots__ + (
         '_texture_object_id',

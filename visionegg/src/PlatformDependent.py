@@ -1,15 +1,18 @@
-"""Set priority and other functions
+# The Vision Egg: PlatformDependent
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-Functions:
-
-set_priority() -- Change the Vision Egg priority
-linux_but_unknown_drivers() -- Warn that platform is linux, but drivers unknown
-sync_swap_with_vbl_pre_gl_init() -- Try to synchronize buffer swapping and vertical retrace before starting OpenGL
-sync_swap_with_vbl_post_gl_init() -- Try to synchronize buffer swapping and vertical retrace after starting OpenGL
 """
+Implementations of functions which vary by platform.
 
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+"""
 
 ####################################################################
 #
