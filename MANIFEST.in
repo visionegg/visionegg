@@ -1,6 +1,9 @@
 include LICENSE
 include CHANGELOG
-exclude src/Daq.py
-exclude src/DaqOverTCP.py
 include doc/*.pdf
 include doc/*.html
+include demo/*.py
+include demo/daq/*.py
+include demo/tcp/*.py
+include demo/GUI/*.py
+include demo/Pyro/*.py
