@@ -53,18 +53,16 @@ SCRIPTDIR=$INSTALLDIR/VisionEgg
 LIBDIR=$INSTALLDIR/lib/python2.2/site-packages/VisionEgg
 
 # Make a local user copy of the Vision Egg scripts
-echo "Copying to ~/VisionEgg"
+echo "Copying to /Applications/VisionEgg"
 cp -p -r $SCRIPTDIR ~
 
 # Make the local copies owned by the user
-chown -R $USER ~/VisionEgg
+#chown -R $USER ~/Applications/VisionEgg
+#chmod -R a+r ~/Applications/VisionEgg
 
 # Make sure system directories owned by root (an Installer bug changes them to user on upgrade)
 chown -R root:admin $SCRIPTDIR
 chown -R root:admin $LIBDIR
-
-# Create a link on the Desktop
-ln -fhs ~/VisionEgg ~/Desktop
 
 # Make the link owned by the user
 #chown $USER ~/Desktop/VisionEgg
@@ -135,7 +133,7 @@ os.system(cmd)
 ##os.system(cmd)
 os.chdir(orig_dir)
 
-pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/2.2")
+pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/Current")
 
 if not os.path.isdir(dist_dir):
     os.mkdir(dist_dir)
