@@ -55,6 +55,15 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 			   "darwin_preemptible",
 			   NULL};
 
+  PyObject * coreModule;
+  PyObject * coreDict;
+
+  PyObject * core_Message; // class
+  PyObject * core_Message_INFO; // attribute
+
+  PyObject * core_message; // instance
+  PyObject * temp_result;
+
   int darwin_period_denom;
   int darwin_computation_denom;
   int darwin_constraint_denom;
@@ -81,6 +90,53 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 				  &darwin_computation_denom,
 				  &darwin_constraint_denom,
 				  &darwin_preemptible));
+
+  coreModule = PyImport_ImportModule("VisionEgg.Core");
+  if (coreModule == NULL) {
+    return NULL;
+  }
+
+  coreDict = PyModule_GetDict(coreModule);
+  /* coreDict is a borrowed ref */
+  if (coreDict == NULL) {
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+
+  /* Get VisionEgg.Core.Message (the class) */
+  core_Message = PyDict_GetItemString(coreDict, "Message");
+  /* core_Message is a borrowed ref */
+  if (core_Message == NULL) {
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+
+  /* Get VisionEgg.Core.message (the instance) */
+  core_message = PyDict_GetItemString(coreDict, "message");
+  /* core_message is a borrowed ref */
+  if (core_message == NULL) {
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+
+  core_Message_INFO = PyObject_GetAttrString(core_Message, "INFO" );
+  if (core_Message_INFO == NULL) {
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+  
+  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority.", core_Message_INFO );
+  if (temp_result == NULL) {
+    Py_DECREF(core_Message_INFO);
+    Py_DECREF(coreModule);
+    return NULL;
+  }
+
+  // Done with python stuff
+  Py_DECREF(temp_result);
+  Py_XDECREF(temp_result);  // PyObject_CallMethod incremented refcount, but not sure if method decremented it, so using XDECREF
+  Py_DECREF(core_Message_INFO);
+  Py_DECREF(coreModule);
 
 #ifndef __APPLE__
 
