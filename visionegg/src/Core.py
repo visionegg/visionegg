@@ -70,27 +70,28 @@ class Screen(VisionEgg.ClassWithParameters):
     # List of stuff to be improved in this class:
     # Better configurability of number of bits per pixel, including alpha.
     
+    constant_parameters_and_defaults = {'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
+                                                 VisionEgg.config.VISIONEGG_SCREEN_H),
+                                                types.TupleType),
+                                        'fullscreen':(VisionEgg.config.VISIONEGG_FULLSCREEN,
+                                                      types.IntType),
+                                        'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                                                         types.IntType),
+                                        'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                                                       types.IntType)}
+
     parameters_and_defaults = {'bgcolor':(VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR,
                                           types.TupleType),
                                'gamma_ramps':(None,
                                               Numeric.ArrayType)}
     
-    def __init__(self,
-                 size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                       VisionEgg.config.VISIONEGG_SCREEN_H),
-                 fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                 preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                 maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                 **kw):
+    def __init__(self,**kw):
         
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
         if self.parameters.gamma_ramps != None:
             raise NotImplementedError()
         
-        self.size = size
-        self.fullscreen = fullscreen
-
         # Attempt to synchronize buffer swapping with vertical sync
         sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
@@ -121,12 +122,12 @@ class Screen(VisionEgg.ClassWithParameters):
         pygame.display.set_caption("Vision Egg")
         
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
-        if self.fullscreen:
+        if self.constant_parameters.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
 
         # Choose an appropriate framebuffer pixel representation
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
-        try_bpps.insert(0,preferred_bpp) # try the preferred size first
+        try_bpps.insert(0,self.constant_parameters.preferred_bpp) # try the preferred size first
 
         if sys.platform=='linux2':
             # linux (at least nVidia drivers) doesn't like to give a
@@ -146,13 +147,13 @@ class Screen(VisionEgg.ClassWithParameters):
                 if len(modeList) == 0: # any resolution is OK
                     found_mode = 1
                 else:
-                    if self.size in modeList:
+                    if self.constant_parameters.size in modeList:
                         found_mode = 1
                     else:
-                        self.size = modeList[0]
+                        self.constant_parameters.size = modeList[0]
                         message.add(
-                            """WARNING: Using %dx%d video mode instead
-                            of requested size."""%(self.size[0],self.size[1]),
+                            """WARNING: Using Screen size %dx%d instead
+                            of requested size."""%(self.constant_parameters.size[0],self.constant_parameters.size[1]),
                             level=Message.WARNING)
                             
             if found_mode: # found the color depth to tell pygame
@@ -165,10 +166,10 @@ class Screen(VisionEgg.ClassWithParameters):
                 level=Message.WARNING)
             try_bpp = 0 # At least try something!
 
-        message.add("Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],try_bpp))
+        message.add("Initializing graphics at %d x %d ( %d bpp )."%(self.constant_parameters.size[0],self.constant_parameters.size[1],try_bpp))
 
         try:
-            pygame.display.set_mode(self.size, flags, try_bpp )
+            pygame.display.set_mode(self.constant_parameters.size, flags, try_bpp )
         except pygame.error, x:
             message.add("Failed execution of pygame.display.set_mode():%s"%x,
                         level=Message.FATAL)
@@ -184,7 +185,6 @@ class Screen(VisionEgg.ClassWithParameters):
         # Save the address of these function so they can be called
         # when closing the screen.
         self.cursor_visible_func = pygame.mouse.set_visible
-        self.set_dout = PlatformDependent.set_dout
 
         # Attempt to synchronize buffer swapping with vertical sync again
         if not sync_success:
@@ -201,15 +201,17 @@ class Screen(VisionEgg.ClassWithParameters):
         # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
         
-        if self.fullscreen:
-            self.cursor_visible_func(0)
+        #if self.constant_parameters.fullscreen:
+        self.cursor_visible_func(0)
 
         # Attempt to set maximum priority (This may not be the best
         # place in the code to do it because it's an application-level
         # thing, not a screen-level thing, but it fits reasonably well
         # here for now.)
-        if maxpriority: 
+        if self.constant_parameters.maxpriority: 
             PlatformDependent.set_realtime()
+
+        self.size = self.constant_parameters.size # deprecated to use this, but for backwards compatibility
 
     def clear(self):
         """Clear the screen.
@@ -227,8 +229,6 @@ class Screen(VisionEgg.ClassWithParameters):
         pass
 
     def __del__(self):
-        # Make sure the TTL signal is low when screen closed.
-        self.set_dout(0)
         # Make sure mouse is visible after screen closed.
         self.cursor_visible_func(1)
         
@@ -241,11 +241,11 @@ class Screen(VisionEgg.ClassWithParameters):
 class Projection(VisionEgg.ClassWithParameters):
     """Abstract base class to define interface for OpenGL projection matrices"""
     parameters_and_defaults = {'matrix':(
-        [[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
-         [0.0, 1.0, 0.0, 0.0],
-         [0.0, 0.0, 1.0, 0.0],
-         [0.0, 0.0, 0.0, 1.0]],
-        types.ListType) }
+        Numeric.array([[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
+                       [0.0, 1.0, 0.0, 0.0],
+                       [0.0, 0.0, 1.0, 0.0],
+                       [0.0, 0.0, 0.0, 1.0]]),
+                      Numeric.ArrayType) }
                                
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
@@ -364,52 +364,64 @@ class Viewport(VisionEgg.ClassWithParameters):
     viewport's projection from the default.  This is typically the
     case for 3D stimuli.    
     """
-    parameters_and_defaults = {'lowerleft':((0,0), # tuple of length 2
+    parameters_and_defaults = {'screen':(None,
+                                         Screen),
+                               'lowerleft':((0,0), # tuple of length 2
                                             types.TupleType), 
                                'size':(None,       # tuple of length 2, will use screen.size if not specified
                                        types.TupleType),
                                'projection':(None, # instance of VisionEgg.Core.Projection
-                                             Projection)} 
+                                             Projection),
+                               'stimuli':(None,
+                                          types.ListType)} 
 
-    def __init__(self,screen,**kw):
+    def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+
+        if self.parameters.screen is None:
+            raise EggError("Must specify screen when creating an instance of Viewport.")
         
-        self.screen = screen
         self.stimuli = []
         if self.parameters.size is None:
-            self.parameters.size = self.screen.size
+            self.parameters.size = self.parameters.screen.constant_parameters.size
         if self.parameters.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             self.parameters.projection = self.make_new_pixel_coord_projection()
+        if self.parameters.stimuli is None:
+            self.parameters.stimuli = []
 
     def make_new_pixel_coord_projection(self):
         return OrthographicProjection(left=0,right=self.parameters.size[0],
                                       bottom=0,top=self.parameters.size[1],
                                       z_clip_near=0.0,
                                       z_clip_far=1.0)
-    
+
+    __add_stimulus_warning_sent = 0
     def add_stimulus(self,stimulus,draw_order=-1):
         """Add a stimulus to the list of those drawn in the viewport
 
         By default, the stimulus is drawn last, but this behavior
         can be changed with the draw_order argument.
         """
+        if not self.__add_stimulus_warning_sent:
+            message.add("Viewport.add_stumulus() called.",Message.DEPRECATION)
+            __add_stimulus_warning_sent = 1
         if draw_order == -1:
-            self.stimuli.append(stimulus)
+            self.parameters.stimuli.append(stimulus)
         else:
-            self.stimuli.insert(draw_order,stimulus)
+            self.parameters.stimuli.insert(draw_order,stimulus)
 
     def remove_stimulus(self,stimulus):
-        self.stimuli.remove(stimulus)
+        self.parameters.stimuli.remove(stimulus)
 
     def draw(self):
         """Set the viewport and draw stimuli."""
-        self.screen.make_current()
+        self.parameters.screen.make_current()
         gl.glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
 
         self.parameters.projection.set_gl_projection()
         
-        for stimulus in self.stimuli:
+        for stimulus in self.parameters.stimuli:
             stimulus.draw()
 
 ####################################################################
@@ -613,13 +625,19 @@ class Presentation(VisionEgg.ClassWithParameters):
                                'duration' : ((5.0,'seconds'),
                                              types.TupleType),
                                'check_events' : (0, # May cause performance hit
-                                                 types.IntType)}
+                                                 types.IntType),
+                               'handle_event_callbacks' : (None,
+                                                           types.ListType),
+                               'trigger_armed':(1, # boolean
+                                                types.IntType),
+                               'trigger_go_if_armed':(1, #boolean
+                                                      types.IntType)}
     
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
         self.controllers = []
-        self.num_frame_controllers = 0 # reference counter
+        self.num_frame_controllers = 0 # reference counter for controllers that are called on frame by frame basis
 
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
@@ -639,6 +657,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                     del self.controllers[i]
+                    if orig_controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+                        self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
                     i = i + 1
         else: # controller is specified
@@ -646,7 +666,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
-                            del controller_list[i]
+                    del controller_list[i]
+                    if orig_controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
+                        self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
                     i = i + 1
 
@@ -654,6 +676,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Check if type checking needed
         if type(class_with_parameters) != types.NoneType and type(parameter_name) != types.NoneType:
             # Check if return type of controller eval is same as parameter type
+            if class_with_parameters.is_constant_parameter(parameter_name):
+                raise TypeError("Attempt to control constant parameter '%s' of class %s."%(parameter_name,class_with_parameters))
             if controller.returns_type() != class_with_parameters.get_specified_type(parameter_name):
                 if not issubclass( controller.returns_type(), class_with_parameters.get_specified_type(parameter_name) ):
                     raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
@@ -808,39 +832,38 @@ class Presentation(VisionEgg.ClassWithParameters):
         It usually depends on your operating system, your video card,
         and your video drivers.  (This should be remedied in OpenGL 2.)
         """
-        # Create a few shorthand notations, which speeds
-        # the main loop slightly by not performing name lookup each time.
-        duration_value = self.parameters.duration[0]
-        duration_units = self.parameters.duration[1]
-        viewports = self.parameters.viewports
-
-        # Get list of screens
-        screens = []
-        for viewport in viewports:
-            if viewport.screen not in screens:
-                screens.append(viewport.screen)
-
-        # Tell transitional controllers a presentation is starting
-        self.call_controllers(go_started=1,doing_transition=1)
+        
+        # Create shorthand notation, which speeds the main loop
+        # slightly by not performing name lookup each time.
+        p = self.parameters
 
         # Clear any previous timing info if necessary
         if collect_timing_info:
             self.frame_draw_times = []
 
-        # Still need to add DAQ hooks here...
+        while (not p.trigger_armed) or (not p.trigger_go_if_armed):
+            self.between_presentations()
+
+        # Go!
+            
+        # Tell transitional controllers a presentation is starting
+        self.call_controllers(
+            time_sec_absolute=VisionEgg.timing_func(),
+            go_started=1,
+            doing_transition=1)
 
         # Do the main loop
         start_time_absolute = VisionEgg.timing_func()
         current_time_absolute = start_time_absolute
         current_time = 0.0
         current_frame = 0
-        if duration_units == 'seconds':
+        if p.duration[1] == 'seconds': # duration units
             current_duration_value = current_time
-        elif duration_units == 'frames':
+        elif p.duration[1] == 'frames': # duration units
             current_duration_value = current_frame
         else:
-            raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-        while (current_duration_value < duration_value):
+            raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
+        while (current_duration_value < p.duration[0]):
             # Update all the realtime parameters
             self.call_controllers(
                 time_sec_absolute=current_time_absolute,
@@ -848,49 +871,78 @@ class Presentation(VisionEgg.ClassWithParameters):
                 frames_since_go=current_frame,
                 go_started=1,
                 doing_transition=0)
+            
+            # Get list of screens
+            screens = []
+            for viewport in p.viewports:
+                s = viewport.parameters.screen
+                if s not in screens:
+                    screens.append(s)
+                
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
+                
             # Draw each viewport
-            for viewport in viewports:
+            for viewport in p.viewports:
                 viewport.draw()
+                
             # Swap the buffers
             swap_buffers()
+            
             # If wanted, save time this frame was drawn for
             if collect_timing_info:
                 self.frame_draw_times.append(current_time)
+                
             # Get the time for the next frame
             current_time_absolute = VisionEgg.timing_func()
             current_time = current_time_absolute-start_time_absolute
             current_frame = current_frame + 1
+            
             # Make sure we use the right value to check if we're done
-            if duration_units == 'seconds':
+            if p.duration[1] == 'seconds':
                 current_duration_value = current_time
-            elif duration_units == 'frames':
+            elif p.duration[1] == 'frames':
                 current_duration_value = current_frame
             else:
-                raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-            if self.parameters.check_events:
+                raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
+            if p.check_events:
                 for event in pygame.event.get():
-                    pass
+                    for event_type, event_callback in p.handle_event_callbacks:
+                        if event.type is event_type:
+                            event_callback()
             
-        # Tell transitional controllers a presentation is starting
-        self.call_controllers(go_started=0,doing_transition=1)
+        # Tell transitional controllers a presentation has ended
+        self.call_controllers(
+            time_sec_absolute=VisionEgg.timing_func(),
+            go_started=0,
+            doing_transition=1)
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
+        calculated_fps = current_frame / current_time
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
-            if current_frame / current_time > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
+            if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
                 message.add(
                     """Frame by frame control desired, but average
                     frame rate was %f frames per second-- faster than
                     any display device (that I know of).  Set your
                     drivers to sync buffer swapping to vertical
                     retrace. (platform/driver
-                    dependent)"""%(current_frame / current_time),
+                    dependent)"""%(calculated_fps),
                     level=Message.ERROR
                     )
+
+        if math.abs( calculated_fps / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) ) > 0.1:
+            # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
+            # and only print this warning if that variable is true
+            message.add(
+                """Calculated frames per second was %s, while
+                VisionEgg.config specified %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
+                level=Message.WARNING
+                )
+                
         if collect_timing_info:
             self.print_frame_timing_stats()
 
@@ -900,29 +952,10 @@ class Presentation(VisionEgg.ClassWithParameters):
         This function gets called as often as possible when not
         in the 'go' loop.
 
-        To indicate to the controllers that a stimulus is not in
-        progress, instead of passing a positive stimulus-relative
-        time, it passes a negative value to the controller.
-        Therefore, a controller should assume any negative time value
-        means it is between stimulus presentations.
-
-        It would be cleaner to have a separate parameter passed to the
-        controller that indicates this status, but because the
-        controller code is performance-critical, we'll just make do
-        with this.
-
-        Other than the difference in the time passed to the
+        Other than the difference in the time variable passed to the
         controllers, this routine is very similar to the inside of the
         main loop in the go method.
         """
-        # For each controller, let it do its thing
-        # Pass value of -1.0 to indicate between stimulus status
-        #
-        # This works by evaluating the function "controller" and
-        # putting the results in parameters.name.
-        # It's like "parameters.name = controller(-1.0)", but name is
-        # a string, so it must be called this way.
-        
         self.call_controllers(
             time_sec_absolute=VisionEgg.timing_func(),
             time_sec_since_go=None,
@@ -935,8 +968,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Get list of screens
         screens = []
         for viewport in viewports:
-            if viewport.screen not in screens:
-                screens.append(viewport.screen)
+            s = viewport.parameters.screen
+            if s not in screens:
+                screens.append(s)
             
         # Clear the screen(s)
         for screen in screens:
@@ -949,6 +983,7 @@ class Presentation(VisionEgg.ClassWithParameters):
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
         """
+        raise NotImplementedError("This function is broken until updated!")
         import Image # Could import this at the beginning of the file, but it breaks sometimes!
         
         # Tell transitional controllers a presentation is starting
@@ -963,8 +998,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Get list of screens
         screens = []
         for viewport in viewports:
-            if viewport.screen not in screens:
-                screens.append(viewport.screen)
+            s = viewport.parameters.screen
+            if s not in screens:
+                screens.append(s)
 
         if len(screens) > 1:
             raise EggError("Can only export movie of one screen")
@@ -972,12 +1008,12 @@ class Presentation(VisionEgg.ClassWithParameters):
         current_time = 0.0
         current_frame = 0
         image_no = 1
-        if duration_units == 'seconds':
+        if p.duration[1] == 'seconds':
             current_duration_value = current_time
-        elif duration_units == 'frames':
+        elif p.duration[1] == 'frames':
             current_duration_value = current_frame
         else:
-            raise RuntimeError("Unknown duration unit '%s'"%duration_units)
+            raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
             self.__call_controllers(self.realtime_time_controllers,current_time)
@@ -1002,12 +1038,12 @@ class Presentation(VisionEgg.ClassWithParameters):
             image_no = image_no + 1
             current_time = current_time + 1.0/frames_per_sec
             current_frame = current_frame + 1
-            if duration_units == 'seconds':
+            if p.duration[1] == 'seconds':
                 current_duration_value = current_time
-            elif duration_units == 'frames':
+            elif p.duration[1] == 'frames':
                 current_duration_value = current_frame
             else:
-                raise RuntimeError("Unknown duration unit '%s'"%duration_units)
+                raise RuntimeError("Unknown duration unit '%s'"%p.duration[1])
 
     def print_frame_timing_stats(self):
         """Print a histogram of the last recorded frame drawing times.
