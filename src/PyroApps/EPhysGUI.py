@@ -27,6 +27,7 @@ import VisionEgg.PyroApps.FlatGratingGUI
 import VisionEgg.PyroApps.SphereGratingGUI
 import VisionEgg.PyroApps.SpinningDrumGUI
 import VisionEgg.PyroApps.GridGUI
+import VisionEgg.PyroApps.ColorCalGUI
 
 client_list = []
 client_list.extend( VisionEgg.PyroApps.TargetGUI.get_control_list() )
@@ -35,6 +36,7 @@ client_list.extend( VisionEgg.PyroApps.FlatGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SphereGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SpinningDrumGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.GridGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.ColorCalGUI.get_control_list() )
 
 class ContainedObjectBase:
     """Base class to encapsulate objects, provides useful methods when used in GUI"""
@@ -478,6 +480,7 @@ def get_server():
     class ConnectWindow(Tkinter.Frame):
         def __init__(self,master=None,hostname="",port=7766,**kw):
             apply( Tkinter.Frame.__init__, (self,master), kw)
+            self.winfo_toplevel().title("EPhysGUI Connect - Vision Egg")
             current_row = 0
             Tkinter.Message(self,\
                           text='Welcome to the "EPhys GUI" of the Vision Egg!\n\n'+\
@@ -524,32 +527,123 @@ class GammaFrame(Tkinter.Frame):
                  master=None,
                  ephys_server=None,**kw):
         apply(Tkinter.Frame.__init__,(self,master),kw)
+        self.winfo_toplevel().title("Gamma - Vision Egg")
         self.ephys_server = ephys_server
         
         self.columnconfigure(0,weight=1)
-        
+
+        row = 0
         Tkinter.Label(self,
                       font=("Helvetica",12,"bold"),
-                      text="Load Gamma Table").grid()
-        
-        Tkinter.Label(self, text="Please choose a gamma file "+\
-                        "(.ve_gamma) containing information on how "+\
-                        "to set your gamma tables.").grid(sticky="nwes")
+                      text="Load Gamma Table").grid(row=row)
 
+        row += 1
         Tkinter.Button(self,
-                       text="Open gamma file...",
-                       command=self.set_from_file).grid()
+                       text="Set from .ve_gamma file...",
+                       command=self.set_from_file).grid(row=row,sticky="w")
 
+        row += 1
+        Tkinter.Button(self,
+                       text="Set to monitor default (linear gamma table)",
+                       command=self.set_monitor_default).grid(row=row,sticky="w")
+
+        row += 1
+        invert_frame = Tkinter.Frame(self)
+        invert_frame.grid(row=row,sticky="we")
+
+        Tkinter.Button(invert_frame,
+                       text="Linearize luminance for gammas",
+                       command=self.linearize).grid(row=0,column=0)
+
+        Tkinter.Label(invert_frame,
+                      text="Red:").grid(row=0,column=1)
+
+        self.red_gamma = Tkinter.DoubleVar()
+        self.red_gamma.set(2.2)
+
+        Tkinter.Entry(invert_frame,
+                      textvariable=self.red_gamma,
+                      width=5).grid(row=0,column=2)
+
+        Tkinter.Label(invert_frame,
+                      text="Green:").grid(row=0,column=3)
+
+        self.green_gamma = Tkinter.DoubleVar()
+        self.green_gamma.set(2.2)
+
+        Tkinter.Entry(invert_frame,
+                      textvariable=self.green_gamma,
+                      width=5).grid(row=0,column=4)
+
+        Tkinter.Label(invert_frame,
+                      text="Blue:").grid(row=0,column=5)
+
+        self.blue_gamma = Tkinter.DoubleVar()
+        self.blue_gamma.set(2.2)
+
+        Tkinter.Entry(invert_frame,
+                      textvariable=self.blue_gamma,
+                      width=5).grid(row=0,column=6)
+
+        row += 1
         self.success_label = Tkinter.Label(self)
-        self.success_label.grid()
+        self.success_label.grid(row=row)
+
+    def get_corrected_gamma_table(self,gamma):
+        # c is a constant scale factor.  It is always 1.0 when
+        # luminance is normalized to range [0.0,1.0] and input units
+        # in range [0.0,1.0], as is OpenGL standard.
+        c = 1.0
+        inc = 1.0/255
+        target_luminances = Numeric.arange(0.0,1.0+inc,inc)
+        output_ramp = Numeric.zeros(target_luminances.shape,Numeric.Int)
+        for i in range(len(target_luminances)):
+            L = target_luminances[i]
+            if L == 0.0:
+                v_88fp = 0
+            else:
+                v = math.exp( (math.log(L) - math.log(c)) /gamma)
+                v_88fp = int(round((v*255) * 256)) # convert to from [0.0,1.0] floating point to [0.0,255.0] 8.8 fixed point
+            output_ramp[i] = v_88fp # 8.8 fixed point format
+        return list(output_ramp) # convert to Python list
+
+    def linearize(self, dummy_arg=None):
+        self.success_label.configure(text="Setting...")
+        try:
+            red = self.get_corrected_gamma_table(self.red_gamma.get())
+            green = self.get_corrected_gamma_table(self.green_gamma.get())
+            blue = self.get_corrected_gamma_table(self.blue_gamma.get())
+        except:
+            self.success_label.configure(text="Calculation error")
+            raise
+        if self.ephys_server.set_gamma_ramp(red,green,blue):
+            self.success_label.configure(text="Success")
+        else:
+            self.success_label.configure(text="Failed")
+
+    def set_monitor_default(self, dummy_arg=None):
+        self.success_label.configure(text="Setting...")
+        try:
+            red = self.get_corrected_gamma_table(1.0) # linear gamma table
+        except:
+            self.success_label.configure(text="Calculation error")
+            raise
+        green = red
+        blue = red
+        if self.ephys_server.set_gamma_ramp(red,green,blue):
+            self.success_label.configure(text="Success")
+        else:
+            self.success_label.configure(text="Failed")
 
     def set_from_file(self):
+        self.success_label.configure(text="Setting...")
         filename = tkFileDialog.askopenfilename(
             parent=self,
             defaultextension=".ve_gamma",
             filetypes=[('Configuration file','*.ve_gamma')],
             initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
         if not filename:
+            self.success_label.configure(text="No file given")
             return
         fd = open(filename,"r")
         gamma_values = []
@@ -557,10 +651,16 @@ class GammaFrame(Tkinter.Frame):
             line = line.strip() # remove leading/trailing whitespace
             if line.startswith("#"): # comment, ignore
                 continue
-            gamma_values.append( map(int, line.split() ) )
+            try:
+                gamma_values.append( map(int, line.split() ) )
+            except Exception, x:
+                self.success_label.configure(text="File error")
+                raise
             if len(gamma_values[-1]) != 3:
+                self.success_label.configure(text="File error")
                 raise RuntimeError("expected 3 values per gamma entry")
         if len(gamma_values) != 256:
+            self.success_label.configure(text="File error")
             raise RuntimeError("expected 256 gamma entries")
         red, green, blue = apply(zip,gamma_values)
         if self.ephys_server.set_gamma_ramp(red,green,blue):
@@ -568,15 +668,6 @@ class GammaFrame(Tkinter.Frame):
         else:
             self.success_label.configure(text="Failed")
         
-    def set(self):
-        r = (Numeric.arange(256)*256*.9).astype('i')
-        g = r
-        b = r
-        if self.ephys_server.set_gamma_ramp(r,g,b):
-            self.success_label.configure(text="Success")
-        else:
-            self.success_label.configure(text="Failed")
-
 class AppWindow(Tkinter.Frame):
     def __init__(self,
                  master=None,
@@ -586,6 +677,7 @@ class AppWindow(Tkinter.Frame):
                  **cnf):
         # create myself
         apply(Tkinter.Frame.__init__, (self,master), cnf)
+        self.winfo_toplevel().title("EPhysGUI - Vision Egg")
 
         self.client_list = client_list
 
@@ -834,11 +926,13 @@ class AppWindow(Tkinter.Frame):
                                                                                 auto_connect=1,
                                                                                 server_hostname=self.server_hostname,
                                                                                 server_port=self.server_port)
+        frame.winfo_toplevel().title("3D Calibration - Vision Egg")
         frame.pack(expand=1,fill=Tkinter.BOTH)
 
     def launch_stim_onset_cal(self, dummy_arg=None):
         dialog = Tkinter.Toplevel(self)
         frame = Tkinter.Frame(dialog)
+        frame.winfo_toplevel().title("Timing Calibration - Vision Egg")
         Tkinter.Label(frame,
                       font=("Helvetica",12,"bold"),
                       text="Stimulus onset timing").grid()
@@ -970,6 +1064,8 @@ class AppWindow(Tkinter.Frame):
         self.progress.updateProgress(0)
 
     def sleep_with_progress(self, duration_sec):
+        if duration_sec == 0.0:
+            return # don't do anything
         start_time = time.time()
         stop_time = start_time + duration_sec
         percent_done = 0
@@ -1008,5 +1104,4 @@ if __name__ == '__main__':
 
         app_window.winfo_toplevel().wm_iconbitmap()
         app_window.pack(expand=1,fill=Tkinter.BOTH)
-        app_window.winfo_toplevel().title("Vision Egg")
         app_window.mainloop()
