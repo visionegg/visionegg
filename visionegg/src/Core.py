@@ -53,6 +53,8 @@ class Screen:
         self.size = size
         self.fullscreen = fullscreen 
 
+        PlatformDependent.sync_swap_with_vbl(failure_ok = 0)
+
         pygame.display.init()
         pygame.display.set_caption("Vision Egg")
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
@@ -97,21 +99,32 @@ class Screen:
                     else:
                         self.size = modeList[0]
                         print "WARNING: Using %dx%d video mode instead of requested size."%(self.size[0],self.size[1])
-            if found_mode:
+            if found_mode: # found the color depth to tell pygame
+                try_bpp = bpp 
                 break
         if found_mode == 0:
-            print "WARNING: Could not find acceptable video mode! Trying anyway..."
+            print "WARNING: Could not find acceptable video mode! Trying anyway with bpp=0..."
+            try_bpp = 0 # At least try something!
 
-        print "Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],bpp)
+        print "Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],try_bpp)
         try:
-            pygame.display.set_mode(self.size, flags, bpp )
+            pygame.display.set_mode(self.size, flags, try_bpp )
         except pygame.error, x:
             print "FATAL VISION EGG ERROR:",x
             sys.exit(1)
 
         self.bpp = pygame.display.Info().bitsize
         print "Video system reports %d bpp"%self.bpp
+        if self.bpp < try_bpp:
+            print "************ VISION EGG WARNING ***************"
+            print "Video system reports %d bits per pixel, while your"%try_bpp
+            print "program requested %d.  (Try setting your video"%self.bpp
+            print "drivers to 32 bpp, sometimes called TrueColor.)"
         self.cursor_visible_func = pygame.mouse.set_visible
+
+        # Check previously made OpenGL assumptions
+        check_gl_assumptions()
+        
         if self.fullscreen:
             self.cursor_visible_func(0)
 
@@ -853,7 +866,7 @@ class Presentation:
         
 ####################################################################
 #
-#        Error handling
+#        Error handling and assumption checking
 #
 ####################################################################
     
@@ -862,3 +875,23 @@ class EggError(Exception):
     def __init__(self,str):
         Exception.__init__(self,str)
 
+gl_assumptions = []
+
+def add_gl_assumption(gl_variable,required_value,failure_string):
+    """Save assumptions for later checking once OpenGL context created."""
+    gl_assumptions.append((gl_variable,required_value,failure_string))
+
+def check_gl_assumptions():
+    """Requires OpenGL context to be created."""
+    for gl_variable,required_value,failure_string in gl_assumptions:
+        # Code required for each variable to be checked
+        if string.upper(gl_variable) == "GL_VENDOR":
+            value = string.split(string.lower(glGetString(GL_VENDOR)))[0]
+            if value != required_value:
+                raise EggError(gl_variable + " not equal " + required_value + ": " + failure_string)
+        elif string.upper(gl_variable) == "GL_VERSION":
+            value_str = string.split(glGetString(GL_VERSION))[0]
+            value_ints = map(int,string.split(value_str,'.'))
+            value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
+            if value < required_value:
+                raise EggError(gl_variable + " less than " + str(required_value) + ": " + failure_string)
