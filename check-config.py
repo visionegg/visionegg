@@ -185,6 +185,8 @@ if 'VisionEgg' in globals().keys():
     # These things have been removed from the installed library directory.
     # Print error if it's still around
     ancient_VisionEgg_files = ['AppHelper.py', # old module
+                               'AppHelper.pyo', # old module
+                               'AppHelper.pyc', # old module
                                'demo', # old install location
                                'test', # old install location
                                ]
