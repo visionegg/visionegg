@@ -58,6 +58,9 @@ def sync_swap_with_vbl_pre_gl_init():
         # Set nVidia linux environmental variable
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
         success = 1
+    elif sys.platform[:4] == "irix":
+        VisionEgg.Core.message.add("IRIX platform detected, assuming retrace sync.",
+                                   level=VisionEgg.Core.Message.TRIVIAL)
         
     return success
 
