@@ -109,7 +109,7 @@ class Screen(ClassWithParameters):
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
 
-        if not requested_alpha and sys.platform=='linux2':
+        if sys.platform=='linux2':
             # linux (at least nVidia drivers) doesn't like to give a
             # 32 bpp depth.
             try:
