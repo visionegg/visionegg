@@ -25,12 +25,23 @@ from pygame.locals import *
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
-#from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
 from OpenGL.GLU import *                        #   utility routines
 from OpenGL.GLUT import *			#   only used for glutSolidTeapot
 
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
+
+############ Import texture compression stuff and use it, if possible ##############
+# This may mess up image statistics! Check the output before using in an experiment!
+
+use_texture_compression = 0
+try:
+    from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
+    if glInitTextureCompressionARB():
+        use_texture_compression = 1
+        print "Using texture compression"
+except:
+    pass
 
 ############# Import Vision Egg C routines, if they exist #############
 try:
@@ -199,31 +210,53 @@ class TextureBuffer:
             # Because the MAX_TEXTURE_SIZE method is insensitive to the current
             # state of the video system, another check must be done using
             # "proxy textures".
-            glTexImage2D(GL_PROXY_TEXTURE_2D,                  # target
-                         0,                              # level
-                         GL_RGB8,                         # video RAM internal format: RGB
-#                         GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
-                         self.im.size[0],                # width
-                         self.im.size[1],                # height
-                         0,                              # border
-                         GL_RGB,                         # format of image data
-                         GL_UNSIGNED_BYTE,               # type of image data
-                         image_data)                     # image data
+            if use_texture_compression:
+                glTexImage2D(GL_PROXY_TEXTURE_2D,            # target
+                             0,                              # level
+                             GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
+                             self.im.size[0],                # width
+                             self.im.size[1],                # height
+                             0,                              # border
+                             GL_RGB,                         # format of image data
+                             GL_UNSIGNED_BYTE,               # type of image data
+                             image_data)                     # image data
+            else:
+                glTexImage2D(GL_PROXY_TEXTURE_2D,            # target
+                             0,                              # level
+                             GL_RGB,                         # video RAM internal format: RGB
+                             self.im.size[0],                # width
+                             self.im.size[1],                # height
+                             0,                              # border
+                             GL_RGB,                         # format of image data
+                             GL_UNSIGNED_BYTE,               # type of image data
+                             image_data)                     # image data
+                
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) == 0:
                 raise EggError("Texture is too wide for your video system!")
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) == 0:
                 raise EggError("Texture is too tall for your video system!")
 
-            glTexImage2D(GL_TEXTURE_2D,                  # target
-                         0,                              # level
-                         GL_RGB8,                         # video RAM internal format: RGB
-#                         GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
-                         self.im.size[0],                # width
-                         self.im.size[1],                # height
-                         0,                              # border
-                         GL_RGB,                         # format of image data
-                         GL_UNSIGNED_BYTE,               # type of image data
-                         image_data)                     # image data
+            if use_texture_compression:
+                glTexImage2D(GL_TEXTURE_2D,                  # target
+                             0,                              # level
+                             GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
+                             self.im.size[0],                # width
+                             self.im.size[1],                # height
+                             0,                              # border
+                             GL_RGB,                         # format of image data
+                             GL_UNSIGNED_BYTE,               # type of image data
+                             image_data)                     # image data
+            else:
+                glTexImage2D(GL_TEXTURE_2D,                  # target
+                             0,                              # level
+                             GL_RGB,                         # video RAM internal format: RGB                             self.im.size[0],                # width
+                             self.im.size[0],                # width
+                             self.im.size[1],                # height
+                             0,                              # border
+                             GL_RGB,                         # format of image data
+                             GL_UNSIGNED_BYTE,               # type of image data
+                             image_data)                     # image data
+            
         else:
             raise EggError("Unknown image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
@@ -303,6 +336,7 @@ class Stimulus:
         self.daqs = [] # No daqs to start with, add with add_daq method
         self.clear_viewport = clear_viewport
         self.swap_buffers = swap_buffers
+        self.drawTimes = []
 
         # Check for existance or create a dictionary
         # of arguments passed to me that I didn't understand
@@ -430,8 +464,11 @@ class Stimulus:
                 print "%5s"%(s,),
             print
         print " Time:",
+##        for bin in bins:
+##            print "%5d"%(int(bin*1.0e3),),
+##        print "(msec)"
         for bin in bins:
-            print "%5d"%(int(bin*1.0e3),),
+            print "%5.2f"%(bin*1.0e3,),
         print "(msec)"
         print "Total:",
         for hi in h:
@@ -465,6 +502,20 @@ class Stimulus:
         print "Texture finding"
         self.print_hist(drawTimes3,bins)
 
+    def miniFrameStats(self):
+        if len(self.drawTimes) > 1:
+            drawTimes = array(self.drawTimes)
+            self.drawTimes = [] # clear the list
+            drawTimes = drawTimes[1:] - drawTimes[:-1] # get inter-frame interval
+            print (len(drawTimes)+1), "frames drawn."
+            mean_sec = mean(drawTimes)
+            print "mean frame to frame time:", mean_sec*1.0e6, "(usec), fps: ",1.0/mean_sec, " max:",max(drawTimes)*1.0e6
+            
+            bins = arange(0.0,15.0,1.0) # msec
+            bins = bins*1.0e-3 # sec
+            print "Frame to frame"
+            self.print_hist(drawTimes,bins)
+
     def export_movie_go(self, frames_per_sec = 12.0, filename_suffix = ".tif" , filename_base = "movie_export", path="." ):
         """Call this method rather than go() if you want to export a movie of your stimulus.
         """
@@ -496,21 +547,18 @@ class Stimulus:
         for daq in self.daqs:
             daq.go()
         
-        self.start_time_absolute = time.clock()
+        self.start_time_absolute = time.time()
         self.cur_time = 0.0
         while (self.cur_time <= self.duration_sec):
             self.draw_GL_scene()
-            cur_time_absolute = time.clock()
+            cur_time_absolute = time.time()
             self.cur_time = cur_time_absolute-self.start_time_absolute
         self.stimulus_done()
 
     def stimulus_done(self):
         self.clear_GL()
-#        self.frameStats()
+        self.miniFrameStats()
 
-    def do_nothing(self):
-        preciseSleep( 1000 )
-        
     def clear_GL(self):
         glClearColor(self.bgcolor[0],self.bgcolor[1],self.bgcolor[2],self.bgcolor[3])
         glClear(GL_COLOR_BUFFER_BIT)
@@ -578,7 +626,7 @@ class SpinningDrum(Stimulus):
         if self.fixation_spot_on: # draw fixation target
             self.draw_fixation_spot()
             
-        #self.drawTimes.append(time.clock())
+        self.drawTimes.append(time.time())
         if self.swap_buffers:
             swap_buffers()
 
