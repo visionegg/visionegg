@@ -4,15 +4,7 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-# You can eliminate the need for the C compiler if you set this line
-# to 1.  Of course, that also removes some of the Vision Egg's
-# functionality.
-skip_c_compilation = 0
 
-from distutils.core import setup, Extension
-import sys
-import os.path
-import glob
 
 # Normal distutils stuff
 name="visionegg"
@@ -48,7 +40,20 @@ Thanks, and enjoy!
 Andrew
 """%(version,)
 
+
+
+from distutils.core import setup, Extension
+from distutils.command.build_ext import build_ext
+from distutils.errors import CCompilerError
+import sys
+import os.path
+import glob
+import traceback
+
+
+
 # Fill out ext_modules
+skip_c_compilation = 0
 if not skip_c_compilation:
     # priority raising/setting C extensions
     if sys.platform == 'darwin':
@@ -61,8 +66,7 @@ if not skip_c_compilation:
                                               'src/win32_maxpriority_wrap.c']))
     elif sys.platform in ['linux2','irix','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
-                                     sources=['src/posix_maxpriority.c',
-                                              'src/posix_maxpriority_wrap.c']))
+                                     sources=['src/posix_maxpriority_wrap.c']))
 
     # _lib3ds
     lib3ds_sources = glob.glob('lib3ds/*.c')
@@ -134,6 +138,40 @@ data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
 data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
+global extension_build_failed
+extension_build_failed = 0
+
+class ve_build_ext( build_ext ):
+    # This class allows C extension building to fail.
+    # No extension is essential to the Vision Egg.
+    def build_extension(self, ext):
+        try:
+            build_ext.build_extension(self, ext)
+        except CCompilerError, x:
+            print ('*'*70+'\n')*3
+            
+            print """WARNING: The %s extension module to the Vision
+            Egg could not be compiled.  The Vision Egg should run, but
+            the features present in that file will not be
+            available.
+
+            Above is the ouput showing how the compilation
+            failed."""%ext.name
+
+            if sys.platform == 'win32':
+                print
+                
+                print """I see you are using Windows.  The default
+                compiler for this platform is the Microsoft Visual
+                Studio C compiler.  However, a free alternative
+                compiler called mingw can be used instead."""
+
+            print 
+            print ('*'*70+'\n')*3
+            global extension_build_failed
+            if not extension_build_failed:
+                extension_build_failed = 1
+
 def main():
     # Normal distutils stuff
     setup(name=name,
@@ -148,8 +186,16 @@ def main():
           ext_package=ext_package,
           ext_modules=ext_modules,
           data_files = data_files,
-          long_description = long_description 
+          long_description = long_description,
+          cmdclass = {'build_ext':ve_build_ext}, # replace Python default build_ext class with ours
           )
+    if extension_build_failed:
+        print ('*'*70+'\n')*3
+        
+        print """WARNING: Building of some extensions failed.  Please
+        see the messages above for details.\n"""
+
+        print ('*'*70+'\n')*3
 
 if __name__ == "__main__":
     main()
