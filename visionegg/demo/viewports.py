@@ -2,6 +2,7 @@
 
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
+from VisionEgg.MoreStimuli import *
 
 def angle_as_function_of_time(t):
     return 90.0*t # rotate at 90 degrees per second
@@ -13,7 +14,7 @@ midscreen = (screen.size[0]/2,screen.size[1]/2)
 
 viewport1 = Viewport(screen,(0,0),midscreen,projection)
 viewport2 = Viewport(screen,midscreen,midscreen,projection)
-stimulus = Stimulus()
+stimulus = Teapot()
 stimulus.init_gl()
 viewport1.add_stimulus(stimulus)
 viewport2.add_stimulus(stimulus)
