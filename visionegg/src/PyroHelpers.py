@@ -7,6 +7,8 @@
 import os
 import VisionEgg
 import string
+import Numeric
+import math
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -27,8 +29,6 @@ except ImportError,x:
     sys.exit(1)
 
 import sys
-import math
-import Numeric
 
 Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
 
@@ -80,17 +80,30 @@ class BiStatePyroController(PyroController):
 
 class EvalStringPyroController(PyroController):
     """A remote controller that allows a string to be evaluated."""
+    def __init__(self,initial_value,**kw):
+        self.eval_globals = {}
+        # Make Numeric and math modules available
+        self.eval_globals['Numeric'] = Numeric
+        self.eval_globals['math'] = math
+        # Make Numeric and math modules available without module name
+        for key in dir(Numeric):
+            self.eval_globals[key] = getattr(Numeric,key)
+        for key in dir(math):
+            self.eval_globals[key] = getattr(math,key)
+        apply(PyroController.__init__,(self,initial_value),kw)
     def set_value(self,eval_string):
         # Make sure eval_string can be evaluated
         try:
             t = 1
-            test = eval(eval_string)
+            locals = {'t':t}
+            test = eval(eval_string,self.eval_globals,locals)
         except Exception,x:
             raise ValueError('"%s" raised exception when evaluated: %s'%(eval_string,str(x)))
         self.eval_string = eval_string
     def eval(self,t):
         try:
-            result = eval(self.eval_string)
+            locals = {'t':t}
+            result = eval(self.eval_string,self.eval_globals,locals)
         except:
             print "ERROR when t=",t
             print "self.eval_string =", self.eval_string
