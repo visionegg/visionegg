@@ -739,8 +739,8 @@ class AppWindow(Tkinter.Frame):
     def do_single_trial_pre(self, file_stream=None):
         # if file_stream is None, open default file
         if self.autosave.get():
-            self.duration_sec = self.stim_frame.get_duration_sec()
-            (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
+            duration_sec = self.stim_frame.get_duration_sec()
+            (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
             self.trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
             if self.param_file_type_tk_var.get() == "Python format":
                 if file_stream is None:
@@ -774,8 +774,10 @@ class AppWindow(Tkinter.Frame):
         root["cursor"] = "watch"
         root.update()
         
+        duration_sec = self.stim_frame.get_duration_sec()
+        
         self.stim_frame.go()
-        time.sleep(self.duration_sec)
+        time.sleep(duration_sec)
 
         #restore cursor
         root["cursor"] = old_cursor
