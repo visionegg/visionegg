@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-"""Spinning drum with a graphical user interface (old).
+"""Spinning drum with a graphical user interface.
 
-This demo is pretty old, and I don't recommend looking at it too
-closely!"""
+This demo is complex because there are two tasks which normally have
+their own mainloop: the GUI and the Vision Egg drawing routines.
+Here, the GUI mainloop is in charge between trials, and it is locked
+out during trials."""
 
 # This is the python source code for a demo application that uses the
 # Vision Egg package.
@@ -15,10 +17,8 @@ closely!"""
 # more complicated than the minimum needed to create a stimulus with the
 # VisionEgg.
 
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 from VisionEgg import *
 from VisionEgg.Core import *
@@ -110,8 +110,8 @@ class DrumGui(AppWindow):
         p.go()
 
 config.VISIONEGG_GUI_INIT=1
+VisionEgg.config.VISIONEGG_HIDE_MOUSE = 0 # make sure mouse is visible
 screen = get_default_screen() # initialize graphics
-screen.cursor_visible_func(1) # make sure mouse is visible
 if config.VISIONEGG_FULLSCREEN==1:
     raise RuntimeError("Cannot enter fullscreen mode if you want to see GUI panel!")
 
@@ -120,16 +120,15 @@ filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
 texture = Texture(filename)
 
 drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
-fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
+fixation_spot = FixationSpot(position=(screen.size[0]/2,screen.size[1]/2),
+                             anchor='center')
 
 perspective = SimplePerspectiveProjection(fov_x=90.0)
 perspective_viewport = Viewport(screen=screen,
-                                size=screen.size,
                                 projection=perspective,
                                 stimuli=[drum])
 
 flat_viewport = Viewport(screen=screen,
-                         size=screen.size,
                          stimuli=[fixation_spot])
 
 p = Presentation(viewports=[perspective_viewport,flat_viewport])
