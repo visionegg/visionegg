@@ -443,6 +443,9 @@ class TextureObject(object):
     def is_resident(self):
         return gl.glAreTexturesResident( self.gl_id )
 
+    def set_priority(self, priority):
+        gl.glPrioritizeTextures( [self.gl_id], [priority] )
+
     def set_min_filter(self, filter):
         gl.glBindTexture(self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_MIN_FILTER,filter)
