@@ -29,24 +29,6 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-############ Import texture compression stuff and use it, if possible ##############
-# This may mess up image statistics! Check the output before using in an experiment!
-
-##try:
-##    import OpenGL.GL.ARB.texture_compression #   can use this to fit more textures in texture memory
-##    # This following function call doesn't seem to return any
-##    # useful info, at least on my PowerBook G4.  So it's commented
-##    # out for now.
-##    ## if not OpenGL.GL.ARB.texture_compression.glInitTextureCompressionARB(): 
-##        ## VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-##    for attr in dir(OpenGL.GL.ARB.texture_compression):
-##        # Put all OpenGL extension names into "gl" variable
-##        setattr(gl,attr,getattr(OpenGL.GL.ARB.texture_compression,attr))
-##except:
-##    VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-# Don't use texture compression.  (XXX Should remove this as a config variable.)
-VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-
 def __no_clamp_to_edge_callback():
     # Error callback automatically called if OpenGL version < 1.2
     
@@ -97,7 +79,10 @@ class Texture:
     be in the range 0 to 255.
     
     The 2D texture data is not sent to OpenGL (video texture memory)
-    until the load() method is called."""
+    until the load() method is called.  The unload() method may be
+    used to remove the data from OpenGL.
+
+    A reference to the original image data is maintained."""
     
     def __init__(self,pixels=None):
 
@@ -765,13 +750,13 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if self.parameters.texture_wrap_t is None:
             self.parameters.texture_wrap_t = gl.GL_CLAMP_TO_EDGE
 
-
         # Create an OpenGL texture object this instance "owns"
         self.texture_object = TextureObject(dimensions=2)
 
         self._reload_texture()
 
     def _reload_texture(self):
+        """(Re)load texture to OpenGL"""
         p = self.parameters
         self._using_texture = p.texture
 
@@ -807,8 +792,8 @@ class TextureStimulus(TextureStimulusBaseClass):
                                'size':((640.0,480.0),types.TupleType)} # in eye coordinates
     def draw(self):
         p = self.parameters
-        if p.texture != self._using_texture:
-            self.reload_texture()
+        if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
+            self._reload_texture()
         if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -865,8 +850,8 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                                                                 
     def draw(self):
         p = self.parameters
-        if p.texture != self._using_texture:
-            self.reload_texture()
+        if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
+            self._reload_texture()
         if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -934,8 +919,9 @@ class SpinningDrum(TextureStimulusBaseClass):
     	"""Redraw the scene on every frame.
         """
         p = self.parameters
-        if p.texture != self._using_texture:
-            self.reload_texture()
+        if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
+            self._reload_texture()
+            self.rebuild_display_list()
         if p.on:
             # Set OpenGL state variables
             gl.glEnable( gl.GL_DEPTH_TEST )
@@ -1056,9 +1042,6 @@ class SpinningDrum(TextureStimulusBaseClass):
                 else:
                     gl.glCallList(self.cached_display_list_mirror)
 
-    def reload_texture(self):
-        self.rebuild_display_list()
-        
     def rebuild_display_list(self):
         # (Re)build the display list
         #
