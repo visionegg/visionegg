@@ -3,10 +3,11 @@
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.Text import *
+import math
 
 # Define a couple "controller" functions
 def lowerleft_as_function_of_time(t):
-    return (0.4,0.4*sin(0.1*2.0*math.pi*t)+0.5)
+    return (0.4,0.4*math.sin(0.1*2.0*math.pi*t)+0.5)
 
 def on_during_experiment(t):
     if t < 0.0:
