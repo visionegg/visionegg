@@ -1,5 +1,4 @@
-"""More Stimuli for the Vision Egg library.
-"""
+"""Assorted stimuli"""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).

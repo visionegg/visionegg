@@ -1,5 +1,7 @@
-"""VisionEgg Pyro (Python Remote Objects) module
-"""
+"""Python Remote Objects support
+
+Just like TCPControllers, don't use this class for realtime control
+unless you think your network is that fast and reliable."""
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).

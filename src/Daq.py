@@ -1,4 +1,4 @@
-"""Definition of data acquisition interfaces.
+"""Definition of data acquisition and triggering interfaces.
 
 This module provides an interface to abstract data acquisition
 devices.  To interface with real data acquisition devices, use a
