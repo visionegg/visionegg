@@ -188,4 +188,5 @@ for w in try_dims:
                 print "Failed"
         else:
             print "Failed"
+        sys.stdout.flush()
             
