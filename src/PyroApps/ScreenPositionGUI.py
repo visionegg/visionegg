@@ -8,6 +8,7 @@ import sys, os, pickle, math, string
 import Tkinter, tkFileDialog
 import Pyro.core
 import VisionEgg.PyroClient
+import StringIO
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -451,7 +452,10 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         if not filename:
             return
         fd = open(filename,"rb")
-        load_dict = pickle.load(fd)
+        file_contents = fd.read()
+        file_contents = file_contents.replace('\r\n','\n') # deal with Windows newlines
+        memory_file = StringIO.StringIO(file_contents)
+        load_dict = pickle.load(memory_file)
         self.set_param_dict( load_dict )
         self.send_values()
 

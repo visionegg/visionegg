@@ -12,6 +12,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 import sys, socket, re, time, string, types, os
 import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
+import StringIO
 import Pyro
 import Numeric
 
@@ -1030,7 +1031,10 @@ class AppWindow(Tkinter.Frame):
         if not filename:
             return
         fd = open(filename,"rb")
-        load_dict = pickle.load(fd)
+        file_contents = fd.read()
+        file_contents = file_contents.replace('\r\n','\n') # deal with Windows newlines
+        memory_file = StringIO.StringIO(file_contents)
+        load_dict = pickle.load(memory_file)       
         if load_dict['stim_type'] != self.stim_frame.get_shortname():
             self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
         self.loop_frame.list = load_dict['loop_list']
