@@ -1508,12 +1508,18 @@ class ConstantController(Controller):
             raise TypeError("during_go_value must be of type %s"%return_type)
         else:
             self.during_go_value = during_go_value
+
+    def get_during_go_value(self):
+        return self.during_go_value
         
     def set_between_go_value(self,between_go_value):
         if type(between_go_value) is not self.return_type:
             raise TypeError("between_go_value must be of type %s"%return_type)
         else:
             self.between_go_value = between_go_value
+
+    def get_between_go_value(self):
+        return self.between_go_value
             
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
@@ -1563,11 +1569,13 @@ class EvalStringController(Controller):
             self.eval_globals[key] = getattr(math,key)
 
         self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
+        self.during_go_eval_string = during_go_eval_string
         not_between_go = 0
         if between_go_eval_string is None:
             not_between_go = 1
         else:
             self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
+            self.between_go_eval_string = between_go_eval_string
             
         # Check to make sure return_type is set
         set_return_type = 0
@@ -1591,10 +1599,18 @@ class EvalStringController(Controller):
                 
     def set_during_go_eval_string(self,during_go_eval_string):
         self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
+        self.during_go_eval_string = during_go_eval_string
+
+    def get_during_go_eval_string(self):
+        return self.during_go_eval_string
 
     def set_between_go_eval_string(self,between_go_eval_string):
         self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
+        self.between_go_eval_string = between_go_eval_string
         self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
+
+    def get_between_go_eval_string(self):
+        return self.between_go_eval_string
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
