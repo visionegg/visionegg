@@ -13,6 +13,7 @@ import sys, os, math
 import tkMessageBox
 import VisionEgg.Core
 import VisionEgg.SphereMap
+import VisionEgg.Text
 import VisionEgg.Textures
 import VisionEgg.PyroHelpers
 import Pyro, Pyro.core
