@@ -37,6 +37,7 @@ screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 
 # Create an instance of the Target2D class with appropriate parameters.
 target = Target2D(size  = (25.0,10.0),
+                  anchor = 'center',
                   color      = (0.0,0.0,0.0,1.0)) # Set the target color (RGBA) black
 
 text = Text( text = "Press Esc to quit, arrow keys to change size of target.",
@@ -110,7 +111,7 @@ while not quit_now:
         last_mouse_position = just_current_pos
         
     # Set target position
-    target.parameters.center = mouse_position
+    target.parameters.position = mouse_position
     
     # Set target orientation
     b = (float(last_mouse_position[0]-mouse_position[0]),

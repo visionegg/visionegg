@@ -74,7 +74,8 @@ static_checkerboard = TextureStimulus(texture=static_texture,
                                       texture_mag_filter=gl.GL_NEAREST,
                                       )
 
-fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2),
+fixation_spot = FixationSpot(position=(screen.size[0]/2,screen.size[1]/2),
+                             anchor='center',
                              color=(255,0,0,0),
                              size=(4,4))
 

@@ -78,7 +78,7 @@ class FlatGratingExperimentMetaController( Pyro.core.ObjBase ):
         stim_params.spatial_freq = meta_params.sf
         stim_params.temporal_freq_hz = meta_params.tf
         stim_params.size = (meta_params.size_x, meta_params.size_y)
-        stim_params.center = (meta_params.center_x, meta_params.center_y)
+        stim_params.position = (meta_params.center_x, meta_params.center_y)
         self.p.parameters.go_duration = ( meta_params.pre_stim_sec + meta_params.stim_sec + meta_params.post_stim_sec, 'seconds')
 
     def go(self):
@@ -92,7 +92,9 @@ def get_meta_controller_class():
 
 def make_stimuli():
     stimulus = VisionEgg.Gratings.SinGrating2D( spatial_freq=1.0/100.0, # wavelength = 100 pixels
-                                                temporal_freq_hz = 1.0)
+                                                temporal_freq_hz = 1.0,
+                                                anchor='center',
+                                                )
     return [('2d_overlay',stimulus)]
 
 def get_meta_controller_stimkey():
