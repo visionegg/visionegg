@@ -16,6 +16,8 @@ motion_blur_on_controller = client.get('motion_blur_on_controller')
 duration_controller = client.get('duration_controller')
 angle_controller = client.get('angle_controller')
 contrast_controller = client.get('contrast_controller')
+projection_controller = client.get('projection_controller')
+drum_flat_controller = client.get('drum_flat_controller')
 
 go_object = client.get('go_object')
 
@@ -68,6 +70,15 @@ class BlurDrumGui(Tkinter.Frame):
                             variable=self.fixation_spot,
                             command=self.push_values,
                             relief=Tkinter.FLAT).pack()
+
+        # Fixation spot
+        self.flat = Tkinter.BooleanVar()
+        self.flat.set(0)
+        Tkinter.Checkbutton(self,
+                            text='Flat projection',
+                            variable=self.flat,
+                            command=self.push_values,
+                            relief=Tkinter.FLAT).pack()
         
         # Go button
         Tkinter.Button(self,text="go",command=self.go).pack()
@@ -102,7 +113,17 @@ class BlurDrumGui(Tkinter.Frame):
         duration_controller.set_value(gui_window.duration.get())
         angle_controller.set_value(self.validated_pos_string)
         contrast_controller.set_value(self.validated_c_string)
-        
+        if gui_window.flat.get():
+            # Use orthographic projection
+            projection_controller.set_value('ortho_proj')
+            # Use flat drum
+            drum_flat_controller.set_value(1)
+        else:
+            # Use perspective projection
+            projection_controller.set_value('perspective_proj')
+            # Use cylindrical drum
+            drum_flat_controller.set_value(0)
+            
     def go(self):
         self.push_values()
         go_object.go()
