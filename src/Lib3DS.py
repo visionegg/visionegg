@@ -1,3 +1,20 @@
+"""Load .3DS files
+
+This module allows Vision Egg programs to use 3D models in the .3DS
+file format.  We thank the lib3ds project at
+http://lib3ds.sourceforge.net/ for providing the library used.
+
+It is a known limitation that this module does not currently work on
+Mac OS X.
+
+Classes:
+
+Model3DS -- A 3D model from a .3ds file
+"""
+
+# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
+# GNU Lesser General Public License (LGPL).
+
 import os, types, string
 import VisionEgg
 import VisionEgg.Core
@@ -7,7 +24,13 @@ import OpenGL.GL
 import Numeric
 gl = OpenGL.GL
 
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
 class Model3DS(VisionEgg.Core.Stimulus):
+    """Model3DS -- A 3D model from a .3ds file"""
     parameters_and_defaults = {'scale':(Numeric.array((1.0, 1.0, 1.0),'f'),Numeric.ArrayType),
                                'position':(Numeric.array((0.0, 0.0, 0.0),'f'),Numeric.ArrayType),
                                'orient_angle':(0.0,types.FloatType),
