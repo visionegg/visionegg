@@ -19,14 +19,17 @@ car_file = os.path.join(config.VISIONEGG_USER_DIR,"3dmodels/autshdm1.3DS")
 # if not.  If someone wants to donate some nice .3ds file to the
 # Vision Egg project, that would be great!
 
+error_string = (".3ds file \"%s\" not found.\nDownload from " +
+    "http://www.amazing3d.com/free/free.html and try again.")
+
 if not os.access(building_file,os.R_OK):
-    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(building_file,))
+    raise RuntimeError(error_string%(building_file,))
 if not os.access(fly_file,os.R_OK):
-    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(fly_file,))
+    raise RuntimeError(error_string%(fly_file,))
 if not os.access(truck_file,os.R_OK):
-    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(truck_file,))
+    raise RuntimeError(error_string%(truck_file,))
 if not os.access(car_file,os.R_OK):
-    raise RuntimeError(".3ds file \"%s\" not found.  Download from http://www.amazing3d.com/free/free.html and try again."%(car_file,))
+    raise RuntimeError(error_string%(car_file,))
     
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.3,0.0)
@@ -90,7 +93,10 @@ def car_pos_f(t):
 # This defines the perspective projection of the top viewport
 def projection_matrix1_f(t):
     # Create a projection that we use to manipulate a projection matrix.
-    projection = SimplePerspectiveProjection(fov_x=85.0,z_clip_near=1.,z_clip_far=100000.,aspect_ratio=aspect)
+    projection = SimplePerspectiveProjection( fov_x=85.0,
+                                              z_clip_near=1.,
+                                              z_clip_far=100000.,
+                                              aspect_ratio=aspect)
     eye = fly_pos_f(t)
     eye += (100.0*cos(0.5*t),10.0,30.0*sin(0.5*t))
     camera_look_at = fly_pos_f(t)
@@ -101,7 +107,10 @@ def projection_matrix1_f(t):
 # This defines the perspective projection of the bottom viewport
 def projection_matrix2_f(t):
     # Create a projection that we use to manipulate a projection matrix.
-    projection = SimplePerspectiveProjection(fov_x=135.0,z_clip_near=10.,z_clip_far=100000.,aspect_ratio=aspect)
+    projection = SimplePerspectiveProjection( fov_x=135.0,
+                                              z_clip_near=10.,
+                                              z_clip_far=100000.,
+                                              aspect_ratio=aspect)
     eye = fly_pos_f(t)
     camera_look_at = fly_pos_f(t) + array((-1.0,0.0,0.0)) # look ahead
     camera_up = (0.0,1.0,0.0)
@@ -109,8 +118,10 @@ def projection_matrix2_f(t):
     return projection.get_matrix()
 
 
-p.add_controller(projection1,'matrix', FunctionController(during_go_func=projection_matrix1_f))
-p.add_controller(projection2,'matrix', FunctionController(during_go_func=projection_matrix2_f))
+p.add_controller(projection1,'matrix',
+                 FunctionController(during_go_func=projection_matrix1_f))
+p.add_controller(projection2,'matrix',
+                 FunctionController(during_go_func=projection_matrix2_f))
 p.add_controller(fly,'position', FunctionController(during_go_func=fly_pos_f))
 p.add_controller(car,'position', FunctionController(during_go_func=car_pos_f))
 
