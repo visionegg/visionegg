@@ -93,11 +93,11 @@ class TargetOrientationController( Controller ):
              float(last_mouse_position[1]-mouse_position[1]),
              0.0)
 
-        if mag(b) > 2.0: # Must mouse 10 pixels before changing orientation (rejects noise)
+        if mag(b) > 1.0: # Must mouse 1 pixel before changing orientation (supposed to reject noise)
             # find cross product b x c. assume b and c are 3-vecs, b has
             # 3rd component 0.
             orientation_vector = cross_product(b,self.c)
-            self.last_orientation = atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
+            self.last_orientation = -atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
 
 def get_target_size(t=None):
@@ -168,7 +168,6 @@ handle_event_callbacks = [(pygame.locals.QUIT, quit),
 # the Vision Egg's runtime control abilities.
 p = Presentation(go_duration=('forever',),
                  viewports=[viewport],
-                 check_events=1,
                  handle_event_callbacks=handle_event_callbacks)
 
 #############################################################
