@@ -519,7 +519,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         # call master's destroy method
         tkSimpleDialog.Dialog.destroy(self)
 
-def get_server():
+def get_server(hostname="",port=7766):
     class ConnectWindow(Tkinter.Frame):
         def __init__(self,master=None,hostname="",port=7766,**kw):
             Tkinter.Frame.__init__(self,master, **kw)
@@ -560,7 +560,7 @@ def get_server():
             self.destroy()
             self.quit()
             
-    connect_win = ConnectWindow()
+    connect_win = ConnectWindow(hostname=hostname,port=port)
     connect_win.pack()
     connect_win.mainloop()
     return connect_win.result
@@ -726,35 +726,33 @@ class GammaFrame(Tkinter.Frame):
 class ImageSequenceLauncher(Tkinter.Toplevel):
     def __init__(self,master=None,ephys_server=None,**cnf):
         Tkinter.Toplevel.__init__(self,master,**cnf)
+        if ephys_server is None:
+            raise ValueError("Must specify ephys_server")
         self.ephys_server = ephys_server
 
+        self.columnconfigure(1,weight=1)
+        
         row = 0
         Tkinter.Label(self,text="Frames per second").grid(row=row,column=0)
         self.fps_var = Tkinter.DoubleVar()
         self.fps_var.set(12.0)
-        Tkinter.Entry(self,textvariable=self.fps_var).grid(row=row,column=1)
+        Tkinter.Entry(self,textvariable=self.fps_var).grid(row=row,column=1,sticky="we")
         row += 1
         Tkinter.Label(self,text="Filename base").grid(row=row,column=0)
         self.filename_base = Tkinter.StringVar()
         self.filename_base.set("im")
-        Tkinter.Entry(self,textvariable=self.filename_base).grid(row=row,column=1)
+        Tkinter.Entry(self,textvariable=self.filename_base).grid(row=row,column=1,sticky="we")
         row += 1
         Tkinter.Label(self,text="Filename suffix").grid(row=row,column=0)
         self.filename_suffix = Tkinter.StringVar()
         self.filename_suffix.set(".tif")
-        Tkinter.Entry(self,textvariable=self.filename_suffix).grid(row=row,column=1)
+        Tkinter.Entry(self,textvariable=self.filename_suffix).grid(row=row,column=1,sticky="we")
         row += 1
         Tkinter.Label(self,text="Save directory on server").grid(row=row,column=0)
         self.server_save_dir = Tkinter.StringVar()
-        self.server_save_dir.set(".")
-        Tkinter.Entry(self,textvariable=self.server_save_dir).grid(row=row,column=1)
-        self.ephys_server = ephys_server
-        row += 1
-        self.make_new_dir = Tkinter.BooleanVar()
-        self.make_new_dir.set(0)
-        Tkinter.Checkbutton(self,
-                            text="OK to make new directory on server",
-                            variable=self.make_new_dir).grid(row=row,column=0,columnspan=2)
+        server_dir = self.ephys_server.get_cwd()
+        self.server_save_dir.set(server_dir)
+        Tkinter.Entry(self,textvariable=self.server_save_dir).grid(row=row,column=1,sticky="we")
         row += 1
         Tkinter.Button(self,text="Save movie",command=self.do_it).grid(row=row,column=0,columnspan=2)
         self.focus_set()
@@ -764,12 +762,10 @@ class ImageSequenceLauncher(Tkinter.Toplevel):
         filename_base = self.filename_base.get()
         filename_suffix = self.filename_suffix.get()
         server_save_dir = self.server_save_dir.get()
-        make_new_dir = self.make_new_dir.get()
         self.ephys_server.save_image_sequence(fps=fps,
                                               filename_base=filename_base,
                                               filename_suffix=filename_suffix,
-                                              save_dir=server_save_dir,
-                                              make_new_dir=make_new_dir)
+                                              save_dir=server_save_dir)
         self.destroy()
         
 class AppWindow(Tkinter.Frame):
@@ -779,6 +775,12 @@ class AppWindow(Tkinter.Frame):
                  server_hostname='',
                  server_port=7766,
                  **cnf):
+        # Keep original exception handler
+        self._orig_report_callback_exception = Tkinter.Tk.report_callback_exception
+        self._tk = Tkinter.Tk
+        # Use Vision Egg exception handler
+        Tkinter.Tk.report_callback_exception = VisionEgg._exception_hook_keeper.handle_exception
+        
         # create myself
         Tkinter.Frame.__init__(self,master, **cnf)
         self.winfo_toplevel().title("EPhysGUI - Vision Egg")
@@ -812,7 +814,16 @@ class AppWindow(Tkinter.Frame):
         self.bar.file_menu.add_command(label='Save configuration file...', command=self.save_config)
         self.bar.file_menu.add_command(label='Load configuration file...', command=self.load_config)
         self.bar.file_menu.add_command(label='Load auto-saved .py parameter file...', command=self.load_params)
-        self.bar.file_menu.add_command(label='Quit', command=self.quit)
+##        if sys.platform == 'win32':
+##            quit_accelerator = "Ctrl-Q"
+##        elif sys.platform == 'darwin':
+##            quit_accelerator = "Command-Q"
+##        else:
+##            quit_accelerator = None
+        self.bar.file_menu.add_command(label='Quit',
+                                       command=self.quit,
+#                                       accelerator=quit_accelerator
+                                       )
         
         stimkey = self.ephys_server.get_stimkey()
         self.stimulus_tk_var = Tkinter.StringVar()
@@ -925,6 +936,9 @@ class AppWindow(Tkinter.Frame):
             self.rowconfigure(i,weight=1)
 
         self.switch_to_stimkey( stimkey )
+
+    def __del__( self ):
+        self._tk.report_callback_exception = self._orig_report_callback_exception
 
     def switch_to_stimkey( self, stimkey ):
         success = 0
@@ -1046,7 +1060,7 @@ class AppWindow(Tkinter.Frame):
         
         self.stim_frame.update_tk_vars()
 
-    def load_params(self):
+    def load_params(self,orig_load_dict={}):
         filename = tkFileDialog.askopenfilename(
             parent=self,
             defaultextension=".py",
@@ -1054,7 +1068,7 @@ class AppWindow(Tkinter.Frame):
         if not filename:
             return
         locals = {}
-        load_dict = {'__do_not_plot__':1}
+        load_dict = orig_load_dict.copy() # make copy of default values
         execfile(filename,locals,load_dict) # execute the file
         if load_dict['stim_type'] != self.stim_frame.get_shortname():
             self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
@@ -1296,7 +1310,9 @@ class BarButton(Tkinter.Menubutton):
             self['menu'] = self.menu
                 
 if __name__ == '__main__':
-    result = get_server()
+    hostname = os.getenv("ephys_server_hostname","")
+    port = int(os.getenv("ephys_server_port","7766"))
+    result = get_server(hostname=hostname,port=port)
     if result:
         hostname,port = result
         app_window = AppWindow(client_list=client_list,
