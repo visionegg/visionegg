@@ -121,35 +121,47 @@ class Texture:
         if rescale_original_to_fill_texture_object:
             rescaled = self.orig.resize((width_pow2,height_pow2),Image.BICUBIC)
             self.buf.im.paste(rescaled,(0,0,width_pow2,height_pow2))
+            # Location of myself in the buffer, in pixels
+            # This is a semi-private variable: you should probably use the
+            # fractional variables (see below), because those will be the
+            # same, regardless of mipmap level, while the absolute
+            # position in pixels (these variables) will vary.
+            self._buf_l = 0
+            self._buf_r = width_pow2
+            self._buf_t = 0
+            self._buf_b = height_pow2
+
+            # my size
+            self.width = width_pow2
+            self.height = height_pow2
+            # location of myself in the buffer, in fraction
+            self.buf_lf = 0.0
+            self.buf_rf = 1.0
+            self.buf_bf = 1.0 # handle OpenGL "flip" by called the bottom of the texture the top
+            self.buf_tf = 0.0
         else:
             self.buf.im.paste(self.orig,(0,0,width,height))
+            self._buf_l = 0
+            self._buf_r = width
+            self._buf_t = 0
+            self._buf_b = height
 
-        # Location of myself in the buffer, in pixels
-        # This is a semi-private variable: you should probably use the
-        # fractional variables (see below), because those will be the
-        # same, regardless of mipmap level, while the absolute
-        # position in pixels (these variables) will vary.
-        self._buf_l = 0
-        self._buf_r = width
-        self._buf_t = 0
-        self._buf_b = height
-
-        # my size
-        self.width = width
-        self.height = height
+            # my size
+            self.width = width
+            self.height = height
         
-        # location of myself in the buffer, in fraction
-        self.buf_lf = 0.0
-        self.buf_rf = float(width)/float(width_pow2)
-        self.buf_bf = float(height)/float(height_pow2) # handle OpenGL "flip" by called the bottom of the texture the top
-        self.buf_tf = 0.0
+            # location of myself in the buffer, in fraction
+            self.buf_lf = 0.0
+            self.buf_rf = float(width)/float(width_pow2)
+            self.buf_bf = float(height)/float(height_pow2) # handle OpenGL "flip" by called the bottom of the texture the top
+            self.buf_tf = 0.0
 
         texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
 
         if build_mipmaps:
             # Could use GLU to do this, but let's do it ourselves for more control
-            this_width = width
-            this_height = height
+            this_width = self.width
+            this_height = self.height
             biggest_dim = max(this_width,this_height)
             mipmap_level = 1
             while biggest_dim > 1:
@@ -186,16 +198,7 @@ class Texture:
 class TextureFromFile(Texture):
     """A Texture that is loaded from a graphics file"""
     def __init__(self,file):
-        try:
-            self.orig = Image.open(file)
-        except Exception, x:
-            import os
-            try:
-                VisionEgg.Core.message.add("Could not open \"%s\", raising exception."%(os.path.abspath(file),),
-                                           level=VisionEgg.Core.Message.WARNING)
-            except:
-                pass
-            raise x
+        self.orig = Image.open(file)
         if hasattr(file,"seek"):
             file.seek(0) # go back to beginning
 
