@@ -360,9 +360,10 @@ class TextureObject:
 
         self.dimensions = dimensions
         self.gl_id = gl.glGenTextures(1)
+        self.gl_module = gl # keep so we there's no error in __del__
 
     def __del__(self):
-        gl.glDeleteTextures(self.gl_id)
+        self.gl_module.glDeleteTextures(self.gl_id)
 
     def set_min_filter(self, filter):
         if self.multitexture_unit:
