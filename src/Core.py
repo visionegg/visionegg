@@ -2242,10 +2242,13 @@ class Message:
 
         if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
             use_stderr = 1
-            if sys.executable != sys.argv[0]: # Not binary executable
-                use_stderr = 0
-            elif sys.platform == "win32" and os.path.splitext(sys.argv[0]) == ".pyw":
-                use_stderr = 0
+            if sys.platform == "win32":
+                # Windows doesn't allow printing to console when there is none
+                if sys.executable == sys.argv[0]:
+                    # Binary executables are console-free by default
+                    use_stderr = 0
+                elif os.path.splitext(sys.argv[0])[1] == ".pyw":
+                    use_stderr = 0
             if use_stderr:
                 output_streams.append(sys.stderr)
 
