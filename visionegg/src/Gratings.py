@@ -145,9 +145,15 @@ class SinGrating2D(LuminanceGratingCommon):
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
-            gl.glTranslate(self.parameters.center[0],self.parameters.center[1],0.0) # Rotate about the center of the texture
+            # Rotate about the center of the texture
+            gl.glTranslate(self.parameters.center[0],
+                           self.parameters.center[1],
+                           0.0)
             gl.glRotate(self.parameters.orientation,0.0,0.0,-1.0)
-            gl.glTranslate(-self.parameters.center[0],-self.parameters.center[1],0.0) # Rotate about the center of the texture
+            # Restore origin
+            gl.glTranslate(-self.parameters.center[0],
+                           -self.parameters.center[1],
+                           0.0)
             
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_BLEND)
