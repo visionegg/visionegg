@@ -134,7 +134,8 @@ class Config:
 
         # Do platform specific stuff
         # Set the default values
-        extra_name = "extra_%s_defaults"%(sys.platform,)
+        platform_name = sys.platform
+        extra_name = "extra_%s_defaults"%(platform_name,)
         if extra_name in globals().keys():
             extra_defaults = globals()[extra_name]
             for name in extra_defaults.keys():
@@ -142,7 +143,7 @@ class Config:
 
             # Get the values from the configFile
             try:
-                platform_options = cfg.options(sys.platform)
+                platform_options = cfg.options(platform_name)
             except ConfigParser.NoSectionError,x:
                 sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
                 sys.stderr.flush()
@@ -151,7 +152,7 @@ class Config:
                 name = string.upper(option)
                 if name not in extra_defaults.keys():
                     raise KeyError("No Vision Egg configuration variable \"%s\""%option)
-                value = cfg.get(sys.platform,option)
+                value = cfg.get(platform_name,option)
                 if name in os.environ.keys():
                     value = os.environ[name]
                 if type(extra_defaults[name]) == type(42): # int
