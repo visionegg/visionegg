@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
-import sys, os, string, time
+import sys, os, string, time, types
 import Tkinter
 import Pyro.core
 
@@ -91,7 +91,8 @@ class StimulusControlFrame(Tkinter.Frame):
                 result[param_name] = getattr(self.meta_params,param_name)
         return result
 
-    def get_parameters_as_strings(self):
+    def get_parameters_as_py_strings(self):
+        """Return parameter values as Python-executable strings"""
         result = []
         for param_name in dir(self.meta_params):
             if param_name[:2] != '__' and param_name[-2:] != '__':
@@ -99,6 +100,32 @@ class StimulusControlFrame(Tkinter.Frame):
                 value_string = str(value)
                 result.append((param_name,value_string))
         return result
+
+    def get_parameters_as_m_strings(self):
+        """Return parameter values as Matlab-executable strings"""
+        result = []
+        for param_name in dir(self.meta_params):
+            if param_name[:2] != '__' and param_name[-2:] != '__':
+                value = getattr(self.meta_params,param_name)
+                value_string = self.get_matlab_string(value)
+                result.append((param_name,value_string))
+        return result
+
+    def get_matlab_string(self, value):
+        # I'm no Matlab whiz, so you may have to modify this!!
+        if type(value) in [types.IntType, types.FloatType]:
+            return str(value)
+        elif type(value) in [types.ListType, types.TupleType]:
+            s = "[ "
+            for v in value:
+                s += str(v) + " "
+            s += "]"
+            return s
+        elif type(value) == types.StringType:
+            s = "'%s'"%value
+            return s
+        else:
+            raise NotImplementedError("No support for converting %s to Matlab format."%str(type(value)))
 
     def set_parameters_dict(self, dict):
         for key in dict.keys():

@@ -529,18 +529,33 @@ class AppWindow(Tkinter.Frame):
         self.auto_save_button = Tkinter.Checkbutton(asf,
                                                     text="Auto save trial parameters",
                                                     variable=self.autosave)
-        self.auto_save_button.grid(row=asf.grid_row,columnspan=2)
+        self.auto_save_button.grid(row=asf.grid_row,column=0,columnspan=2)
+
+        self.param_file_type_tk_var = Tkinter.StringVar()
+        self.param_file_type_tk_var.set("Python format")
+        filetype_bar = Tkinter.Menubutton(asf,
+                                 textvariable=self.param_file_type_tk_var,
+                                 relief=Tkinter.RAISED)
+        filetype_bar.grid(row=asf.grid_row,column=2)
+        filetype_bar.menu = Tkinter.Menu(filetype_bar,tearoff=0)
+        filetype_bar.menu.add_radiobutton(label="Python format",
+                                 value="Python format",
+                                 variable=self.param_file_type_tk_var)
+        filetype_bar.menu.add_radiobutton(label="Matlab format",
+                                 value="Matlab format",
+                                 variable=self.param_file_type_tk_var)
+        filetype_bar['menu'] = filetype_bar.menu
         
         asf.grid_row += 1
         Tkinter.Label(asf,
-                      text="Parameter save directory:").grid(row=asf.grid_row,column=0,sticky="e")
+                      text="Parameter file directory:").grid(row=asf.grid_row,column=0,sticky="e")
         Tkinter.Entry(asf,
                       textvariable=self.autosave_dir).grid(row=asf.grid_row,column=1,sticky="we")
         Tkinter.Button(asf,
                        text="Set...",command=self.set_autosave_dir).grid(row=asf.grid_row,column=2)
         asf.grid_row += 1
         Tkinter.Label(asf,
-                      text="Parameter save basename:").grid(row=asf.grid_row,column=0,sticky="e")
+                      text="Parameter file basename:").grid(row=asf.grid_row,column=0,sticky="e")
         Tkinter.Entry(asf,
                       textvariable=self.autosave_basename).grid(row=asf.grid_row,column=1,sticky="we")
         Tkinter.Button(asf,
@@ -721,21 +736,37 @@ class AppWindow(Tkinter.Frame):
         self.do_single_trial_pre()
         self.do_single_trial_work()
 
-    def do_single_trial_pre(self):
-        self.duration_sec = self.stim_frame.get_duration_sec()
-        (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
-        self.trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
+    def do_single_trial_pre(self, file_stream=None):
+        # if file_stream is None, open default file
         if self.autosave.get():
-            # Figure out filename to save results in
-            filename = self.autosave_basename.get() + self.trial_time_str + ".params"
-            fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-            fd = open(fullpath_filename,"w")
-            fd.write("finished_time = %04d%02d%02d%02d%02d%02d\n"%(year,month,day,hour24,min,sec))
-            parameter_list = self.stim_frame.get_parameters_as_strings()
-            for parameter_name, parameter_value in parameter_list:
-                fd.write("%s = %s\n"%(parameter_name, parameter_value))
-            fd.close()
-            
+            self.duration_sec = self.stim_frame.get_duration_sec()
+            (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
+            self.trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
+            if self.param_file_type_tk_var.get() == "Python format":
+                if file_stream is None:
+                    # Figure out filename to save results in
+                    filename = self.autosave_basename.get() + self.trial_time_str + "_params.py"
+                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                    file_stream = open(fullpath_filename,"w")
+                file_stream.write("stim_type = '%s'\n"%self.stim_frame.get_shortname())
+                file_stream.write("finished_time = %04d%02d%02d%02d%02d%02d\n"%(year,month,day,hour24,min,sec))
+                parameter_list = self.stim_frame.get_parameters_as_py_strings()
+                for parameter_name, parameter_value in parameter_list:
+                    file_stream.write("%s = %s\n"%(parameter_name, parameter_value))
+            elif self.param_file_type_tk_var.get() == "Matlab format":
+                if file_stream is None:
+                    # Figure out filename to save results in
+                    filename = self.autosave_basename.get() + self.trial_time_str + "_params.m"
+                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                    file_stream = open(fullpath_filename,"w")
+                file_stream.write("stim_type = '%s';\n"%self.stim_frame.get_shortname())
+                file_stream.write("finished_time = %04d%02d%02d%02d%02d%02d;\n"%(year,month,day,hour24,min,sec))
+                parameter_list = self.stim_frame.get_parameters_as_m_strings()
+                for parameter_name, parameter_value in parameter_list:
+                    file_stream.write("%s = %s;\n"%(parameter_name, parameter_value))
+            else:
+                raise RuntimeError("Unknown parameter file type") # Should never get here
+                
     def do_single_trial_work(self):
         # make wait cursor
         root = self.winfo_toplevel()
