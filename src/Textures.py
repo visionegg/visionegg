@@ -1390,7 +1390,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             # calculate lowerleft corner
             lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,size)
             
-            # Clear the modeview matrix
+            # Clear the modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
