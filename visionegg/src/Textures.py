@@ -57,9 +57,9 @@ except NameError:
     True = 1==1
     False = 1==0
 
-try:
+if Image.VERSION >= '1.1.3':
     shrink_filter = Image.ANTIALIAS # Added in PIL 1.1.3
-except:
+else:
     shrink_filter = Image.BICUBIC # Fallback filtering
 
 ####################################################################
