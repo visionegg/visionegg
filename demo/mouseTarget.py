@@ -10,6 +10,7 @@ last_mouse_position = (0.0,0.0)
 ############################
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.MoreStimuli import *
 from VisionEgg.Text import *
 from math import *

@@ -8,6 +8,7 @@ surface using the Vision Egg."""
 import os
 import VisionEgg
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, Controller, FunctionController
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
 import pygame.surface, pygame.locals

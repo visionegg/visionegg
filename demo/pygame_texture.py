@@ -4,6 +4,7 @@
 import os
 import VisionEgg
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Textures import *
 import pygame.image
 import OpenGL.GL as gl

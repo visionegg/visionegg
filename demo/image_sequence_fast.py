@@ -13,6 +13,7 @@ images are the same size.
 
 from VisionEgg import *
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.Textures import *
 
 import Image, ImageDraw

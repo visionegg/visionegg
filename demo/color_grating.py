@@ -6,6 +6,7 @@
 ############################
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.Gratings import SinGrating2D
 from VisionEgg.Textures import Mask2D
 from math import *

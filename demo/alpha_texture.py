@@ -2,6 +2,7 @@
 
 from VisionEgg import *
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Textures import *
 
 import Image, ImageDraw # Python Imaging Library (PIL)

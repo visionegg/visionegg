@@ -6,6 +6,7 @@
 ############################
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, Controller, FunctionController
 from VisionEgg.MoreStimuli import *
 from math import *
 

@@ -2,6 +2,7 @@
 """Test whether your video drivers support setting gamma ramps"""
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Gratings import *
 from VisionEgg.Text import *
 from Numeric import *
