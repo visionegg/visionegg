@@ -51,8 +51,10 @@ class Filter:
             raise NotImplementedError("Non-even widths not implemented yet.")
         data = self.kernelFunction(x)
         if data[width/2] > self.damn_close_to_zero:
-            print data[width/2]
-            raise RuntimeError("Filter kernel too wide!")
+##            just_over_edge = array((x[width/2]+1.0,),typecode='f')
+##            if self.kernelFunction(just_over_edge)[0] > self.damn_close_to_zero:
+##                raise ValueError("Width of sampled filter kernel not enough!")
+            raise RuntimeError("Width of sampled filter kernel not enough!")
         if self.unityGain:
             data = data / sum(data)
         return data
@@ -84,7 +86,7 @@ class BoxcarFilter(Filter):
         self.radius = float(radius)
 
     def kernelFunction(self,x):
-        #return less_equal(abx(x),self.radius).astype('f')
+        #return less_equal(abs(x),self.radius).astype('f')
         return less_equal(x*x,self.radius*self.radius).astype('f') # quicker than above, same result
 
 ####################################################################
@@ -110,7 +112,26 @@ def convolveImageHoriz(image,filter,edgeMethod='wrap'):
     
     fft_width = width
 
-    filter_f = fft(filter.get_data(fft_width))
+    # Get the the convolution kernel
+
+    # If the convolution kernel is wider than the image, this will
+    # raise an exception.  Because we are dealing with wrap-around
+    # panoramas, we can join multiple panoramas end-to-end to avoid
+    # the problem.
+    
+    num_images_horiz = 1
+    have_filter_and_image = 0
+    while not have_filter_and_image:
+        try:
+            filter_f = fft(filter.get_data(fft_width))
+            # No exception in line above if we made it here
+            have_filter_and_image = 1
+        except RuntimeError,x:
+            print x
+            if x == "Width of sampled filter kernel not enough!":
+                num_images_horiz = num_images_horiz + 1
+            else:
+                raise
     
     for color_index in range(data.shape[2]):
         for row in range(data.shape[0]):
