@@ -24,15 +24,18 @@ DEMO SCRIPTS
 For demos, see the 'demo' directory and the subdirectories therein.
 
 The current reigning champion of all the demos is the combination of
-the gratingTCP server with the gratingGUI controller in the demo/tcp
-directory.
+the multi_stim demo.  This demonstrates a large fraction of what the
+Vision Egg is capable of.  If will probably push your hardware, maybe
+even breaking on older systems.
 
 DOCUMENTATION
 
 To get started, please look at the tutorials, demo programs, and the
 Vision Egg Programmer's Manual.  If that fails, I highly recommend
 looking at the source code, particularly the docstrings in the Core.py
-module.
+module.  I have made some effort at using "pydoc" to automatically
+update the library reference, but you will probably be better served
+by browsing the source.
 
 OUTPUT LOGGING
 
@@ -51,10 +54,11 @@ the execution of a python program, but disappers once python
 terminates.  If you run from the command line, however, the console
 window is not closed, and you can scroll back.
 
-On Mac OS X, the console is visible when running the "Console"
-application in "Applications/Utilities".
+Starting with Mac Python2.3 for Mac OS X, the console is usually
+automatically opened for you.
 
-On other flavors of Unix, you probably know and love the console!
+On other flavors of Unix, you probably know (and may even love) the
+console!
 
 LICENSE
 
