@@ -19,30 +19,25 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-class showwarning(Tkinter.Frame):
-    """A window that shows a string."""
-    def __init__(self,title="Vision Egg Warning",message=None):
+class showexception(Tkinter.Frame):
+    """A window that shows a string and has a quit button."""
+    def __init__(self,exc_type, exc_value, traceback_str):
+        title="Vision Egg: exception caught"
+        type_str = "Caught %s"%(str(exc_type),)
+        value_str = str(exc_value)
         Tkinter.Frame.__init__(self,borderwidth=20)
         self.pack()
         self.winfo_toplevel().title(title)
-        Tkinter.Label(self,text=self.format_string(message)).pack()
-        b = Tkinter.Button(self,text="OK",command=self.close_window)
+        
+        Tkinter.Label(self,text=type_str).pack()
+        Tkinter.Label(self,text=value_str).pack()
+        Tkinter.Label(self,text=traceback_str).pack()
+        
+        b = Tkinter.Button(self,text="Quit",command=self.close_window)
         b.pack()
         b.focus_force()
         b.bind('<Return>',self.close_window)
         self.mainloop()
-    def format_string(self,in_str):
-        min_line_length = 65
-        in_list = string.split(in_str)
-        out_str = ""
-        cur_line = ""
-        for word in in_list:
-            cur_line = cur_line + word + " "
-            if len(cur_line) > min_line_length:
-                out_str = out_str + cur_line[:-1] + "\n"
-                cur_line = ""
-        out_str = out_str + cur_line
-        return out_str
     def close_window(self,dummy_arg=None):
         self.winfo_toplevel().destroy()
                 
@@ -70,6 +65,17 @@ class OpenScreenDialog(Tkinter.Frame):
         self.pack()
         self.set_screen_callback = set_screen_callback
 
+        Tkinter.Label(self,
+                      text="Vision Egg - Graphics configuration window").pack()
+
+        # Config file
+        if VisionEgg.config.VISIONEGG_CONFIG_FILE:
+            Tkinter.Label(self,
+                          text="Config file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_CONFIG_FILE),)).pack()
+        else:
+            Tkinter.Label(self,
+                          text="Config file location: (None)").pack()
+
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
         self.fullscreen.set(VisionEgg.config.VISIONEGG_FULLSCREEN)
@@ -87,7 +93,7 @@ class OpenScreenDialog(Tkinter.Frame):
 ##                            relief=Tkinter.FLAT).pack()
 
         # frame rate
-        Tkinter.Label(self,text="What is your monitor refresh (Hz):").pack()
+        Tkinter.Label(self,text="What will your monitor refresh's rate be (Hz):").pack()
         self.frame_rate = Tkinter.StringVar()
         self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
         Tkinter.Entry(self,textvariable=self.frame_rate).pack()
@@ -130,6 +136,15 @@ class OpenScreenDialog(Tkinter.Frame):
         self.alpha_depth = Tkinter.StringVar()
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
         Tkinter.Entry(self,textvariable=self.alpha_depth).pack()
+
+        # Log file location
+        
+        if VisionEgg.config.VISIONEGG_LOG_FILE:
+            Tkinter.Label(self,
+                          text="Log file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).pack()
+        else:
+            Tkinter.Label(self,
+                          text="Log file location: (stderr console)").pack()
 
         # Start button
         Tkinter.Button(self,text="start",command=self.start).pack()
