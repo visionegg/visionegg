@@ -65,7 +65,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
     minor_line_width -- (Real)
                         Default: 1.0
     my_viewport      -- (Instance of <class 'VisionEgg.Core.Viewport'>)
-                        Default: (determined at instantiation)
+                        Default: (determined at runtime)
     on               -- (Boolean)
                         Default: True
     text_offset      -- (Sequence2 of Real)
@@ -378,19 +378,19 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                           Default: 30
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                           Default: GL_LINEAR
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_t     -- OpenGL texture wrap enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
 
     Constant Parameters
     ===================
@@ -586,7 +586,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     stacks                          -- (UnsignedInteger)
                                        Default: 30
     t0_time_sec_absolute            -- (Real)
-                                       Default: (determined at instantiation)
+                                       Default: (determined at runtime)
     temporal_freq_hz                -- (Real)
                                        Default: 5.0
     """

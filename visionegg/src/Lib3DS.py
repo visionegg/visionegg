@@ -67,7 +67,7 @@ class Model3DS(VisionEgg.Core.Stimulus):
     Constant Parameters
     ===================
     filename           -- (String)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     mipmaps_enabled    -- (Boolean)
                           Default: True
     shrink_texture_ok  -- (Boolean)
@@ -77,9 +77,9 @@ class Model3DS(VisionEgg.Core.Stimulus):
     texture_min_filter -- (Integer)
                           Default: 9987
     texture_wrap_s     -- (Integer)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture_wrap_t     -- (Integer)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     """
     parameters_and_defaults = {'scale':((1.0, 1.0, 1.0),
                                         ve_types.Sequence3(ve_types.Real)),

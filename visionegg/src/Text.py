@@ -73,7 +73,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                              Default: True
     mask                  -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
                              Inherited from VisionEgg.Textures.TextureStimulus
-                             Default: (determined at instantiation)
+                             Default: (determined at runtime)
     max_alpha             -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
                              Inherited from VisionEgg.Textures.TextureStimulus
                              Default: 1.0
@@ -85,29 +85,29 @@ class Text(VisionEgg.Textures.TextureStimulus):
                              Default: (0.0, 0.0)
     size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
                              Inherited from VisionEgg.Textures.TextureStimulus
-                             Default: (determined at instantiation)
+                             Default: (determined at runtime)
     text                  -- (String)
                              Default: the string to display
     texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: (determined at instantiation)
+                             Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                              Default: GL_LINEAR
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
     texture_wrap_s        -- OpenGL texture wrap enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
     texture_wrap_t        -- OpenGL texture wrap enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
 
     Constant Parameters
     ===================
     font_name         -- (String)
-                         Default: (determined at instantiation)
+                         Default: (determined at runtime)
     font_size         -- (UnsignedInteger)
                          Default: 30
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)

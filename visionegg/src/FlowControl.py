@@ -83,9 +83,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     go_duration                  -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',) (Sequence of AnyOf(Real or String))
                                     Default: (5.0, 'seconds')
     handle_event_callbacks       -- List of tuples to handle events. (event_type,event_callback_func) (Sequence of Sequence2 of AnyOf(Integer or Callable))
-                                    Default: (determined at instantiation)
+                                    Default: (determined at runtime)
     override_t_abs_sec           -- Override t_abs. Set only when reconstructing experiments. (units: seconds) (Real)
-                                    Default: (determined at instantiation)
+                                    Default: (determined at runtime)
     quit                         -- quit the run_forever loop? (Boolean)
                                     Default: False
     trigger_armed                -- test trigger on go loop? (Boolean)
@@ -93,7 +93,7 @@ class Presentation(VisionEgg.ClassWithParameters):
     trigger_go_if_armed          -- trigger go loop? (Boolean)
                                     Default: True
     viewports                    -- list of Viewport instances to draw. Order is important. (Sequence of Instance of <class 'VisionEgg.ClassWithParameters'>)
-                                    Default: (determined at instantiation)
+                                    Default: (determined at runtime)
     warn_longest_frame_threshold -- threshold to print frame skipped warning (fraction units) (Real)
                                     Default: 2.0
     warn_mean_fps_threshold      -- threshold to print observered vs. expected frame rate warning (fraction units) (Real)

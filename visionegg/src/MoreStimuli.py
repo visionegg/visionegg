@@ -55,7 +55,7 @@ class Target2D(VisionEgg.Core.Stimulus):
     anti_aliasing -- (Boolean)
                      Default: True
     center        -- (Sequence2 of Real)
-                     Default: (determined at instantiation)
+                     Default: (determined at runtime)
     color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
                      Default: (1.0, 1.0, 1.0)
     on            -- (Boolean)

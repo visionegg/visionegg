@@ -165,15 +165,15 @@ class SinGrating2D(LuminanceGratingCommon):
     color1                      -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
                                    Default: (1.0, 1.0, 1.0)
     color2                      -- optional color with which to perform interpolation with color1 in RGB space (AnyOf(Sequence3 of Real or Sequence4 of Real))
-                                   Default: (determined at instantiation)
+                                   Default: (determined at runtime)
     contrast                    -- (Real)
                                    Default: 1.0
     depth                       -- (Real)
-                                   Default: (determined at instantiation)
+                                   Default: (determined at runtime)
     ignore_time                 -- (Boolean)
                                    Default: False
     mask                        -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
-                                   Default: (determined at instantiation)
+                                   Default: (determined at runtime)
     max_alpha                   -- (Real)
                                    Default: 1.0
     num_samples                 -- (UnsignedInteger)
@@ -189,13 +189,13 @@ class SinGrating2D(LuminanceGratingCommon):
     position                    -- (units: eye coordinates) (Sequence2 of Real)
                                    Default: (320.0, 240.0)
     recalculate_phase_tolerance -- (Real)
-                                   Default: (determined at instantiation)
+                                   Default: (determined at runtime)
     size                        -- (Sequence2 of Real)
                                    Default: (640.0, 480.0)
     spatial_freq                -- (Real)
                                    Default: 0.0078125
     t0_time_sec_absolute        -- (Real)
-                                   Default: (determined at instantiation)
+                                   Default: (determined at runtime)
     temporal_freq_hz            -- (Real)
                                    Default: 5.0
     """

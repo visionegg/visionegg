@@ -77,7 +77,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     color                   -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
                                Default: (1.0, 1.0, 1.0)
     depth                   -- (Real)
-                               Default: (determined at instantiation)
+                               Default: (determined at runtime)
     dot_lifespan_sec        -- (Real)
                                Default: 5.0
     dot_size                -- (Real)

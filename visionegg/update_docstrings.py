@@ -102,11 +102,11 @@ def get_str(xx,const=0):
                 
             tmp = str(default).split('\n')
             if default is None:
-                tmp = ['(determined at instantiation)']
+                tmp = ['(determined at runtime)']
             if len(p[param_name]) > 3:
                 if p[param_name][3] == VisionEgg.ParameterDefinition.OPENGL_ENUM:
                     if default is None:
-                        gl_name = '(GL enum determined at instantiation)'
+                        gl_name = '(GL enum determined at runtime)'
                     else:
                         gl_name = VisionEgg.GLTrace.gl_constants[default]
                     tmp = [gl_name]
