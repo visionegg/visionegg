@@ -24,6 +24,8 @@ Daq -- Definition of data acquisition and triggering interfaces
 DaqLPT -- Data acquisition and triggering over the parallel port
 DaqOverTCP -- Implements data acquisition over TCP
 Dots -- Random dot stimuli
+FlowControl -- Flow control (presentation and control)
+GL -- Lump all OpenGL names in one namespace
 GLTrace -- Trace calls to OpenGL
 GUI -- Graphical user interface classes and functions
 Gratings -- Grating stimuli
@@ -33,13 +35,16 @@ ParameterTypes -- Type checking for the Vision Egg
 PlatformDependent -- Set priority and other functions
 PyroClient -- Python Remote Objects support - Client side
 PyroHelpers -- Python Remote Objects support
+QuickTime -- QuickTime support
 SphereMap -- Stimuli drawn as texture maps on inside of sphere
 TCPController -- Allows control of parameter values over the network
 Text -- Text stimuli
 Textures -- Texture (images mapped onto polygons) stimuli
+ThreeDeeMath -- Simulate OpenGL transforms
 __init__ -- Loaded with "import VisionEgg" (This module)
-darwin_app_stuff -- (Platform dependent) wrappers for low-level C code
+darwin_getrefresh -- (Platform dependent) wrappers for low-level C code
 darwin_maxpriority -- (Platform dependent) wrappers for low-level C code
+gl_qt -- (Platform dependent) wrappers for low-level C code
 posix_maxpriority -- (Platform dependent) wrappers for low-level C code
 win32_maxpriority -- (Platform dependent) wrappers for low-level C code
 
