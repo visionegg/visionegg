@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 import pygame
 from pygame.locals import *

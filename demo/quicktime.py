@@ -6,6 +6,8 @@ See also mpeg.py, which plays MPEG movies.
 
 import os, sys
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.Text import *
 from VisionEgg.Textures import *

@@ -6,6 +6,8 @@ demo."""
 
 import os
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, Controller, FunctionController
 from VisionEgg.Text import *
@@ -75,5 +77,6 @@ p.parameters.handle_event_callbacks=[(pygame.locals.QUIT, quit),
                                      (pygame.locals.KEYDOWN, keydown)]
 p.add_controller(None,None,FunctionController(during_go_func=update_movie,
                                               temporal_variables=Controller.TIME_INDEPENDENT))
+
 movie.play()
 p.go()

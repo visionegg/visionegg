@@ -5,6 +5,8 @@
 ############################
 
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.Dots import DotArea2D
 from VisionEgg.Gratings import SinGrating2D
@@ -100,8 +102,7 @@ except Exception, x:
               font_size = warning_font_size,              
               )
         )
-    message.add( "Exception while trying to create circle_mask: %s: %s"%(x.__class__,str(x)),
-                 level=Message.WARNING)
+    print "Exception while trying to create circle_mask: %s: %s"%(x.__class__,str(x))
     
 color_grating = SinGrating2D(color1           = (0.5, 0.25, 0.5), # RGB, Alpha ignored if given
                              color2           = (1.0, 0.5,  0.1), # RGB, Alpha ignored if given
@@ -185,8 +186,7 @@ except Exception, x:
               font_size = warning_font_size,              
               )
         )
-    message.add( "Exception while trying to create gaussian_mask: %s: %s"%(x.__class__,str(x)),
-                 level=Message.WARNING)
+    print "Exception while trying to create gaussian_mask: %s: %s"%(x.__class__,str(x))
     
 gabor = SinGrating2D(mask             = gaussian_mask,
                      position         = ( x2, y1 ),
@@ -232,8 +232,8 @@ except Exception, x:
               )
     )
     framebuffer_copy_works = False
-    message.add( "Exception while trying to create framebuffer_copy: %s: %s"%(x.__class__,str(x)),
-                 level=Message.WARNING)
+    print "Exception while trying to create framebuffer_copy: %s: %s"%(x.__class__,str(x))
+
 legends.append(
     Text( text = "put_new_framebuffer()",
           position           = (x3,y1-height/2+2),

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Sinusoidal grating under network control."""
 
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation, Controller, ConstantController, EvalStringController
 from VisionEgg.Gratings import *
@@ -105,7 +108,7 @@ go_controller = tcp_listener.create_tcp_controller(
     )
 
 # Create the instance SinGrating with appropriate parameters
-stimulus = SinGrating2D()
+stimulus = SinGrating2D(anchor='center')
 
 # Create a viewport (with default pixel coordinate system)
 # with stimulus
@@ -118,7 +121,7 @@ p = Presentation(viewports=[viewport],check_events=1)
 p.add_controller(None,None, tcp_listener) # Actually listens to the TCP socket
 p.add_controller(stimulus,'on', on_controller)
 p.add_controller(stimulus,'contrast', contrast_controller)
-p.add_controller(stimulus,'center', center_controller)
+p.add_controller(stimulus,'position', center_controller)
 p.add_controller(stimulus,'size', size_controller)
 p.add_controller(stimulus,'spatial_freq', spatial_freq_controller)
 p.add_controller(stimulus,'temporal_freq_hz', temporal_freq_controller)

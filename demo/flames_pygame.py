@@ -42,6 +42,9 @@ from pygame.surfarray import *
 from pygame.locals import *
 from Numeric import *
 from RandomArray import *
+
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 from VisionEgg.Core import FrameTimer
 
 RES = array((240, 180))
