@@ -48,6 +48,8 @@ defaults= {
     'VISIONEGG_REQUEST_GREEN_BITS':   8,
     'VISIONEGG_REQUEST_BLUE_BITS':    8,
     'VISIONEGG_REQUEST_ALPHA_BITS':   8,
+    'VISIONEGG_TKINTER_OK':           1,
+    'VISIONEGG_MESSAGE_LEVEL':        1,
     }
 
 ####################################################################
@@ -91,7 +93,7 @@ class Config:
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
         else:
-            self.VISIONEGG_CONFIG_FILE = ''
+            self.VISIONEGG_CONFIG_FILE = None
 
 class ConfigReader:
     def __init__(self, defaults):
@@ -121,6 +123,8 @@ class ConfigReader:
             # fix the type if it's an integer
             if type(defaults[i]) == type(42):
                 self.items[i] = int(self.items[i])
+            if type(defaults[i]) == type(42.0):
+                self.items[i] = float(self.items[i])
 
     def processEnv(self, keys):
         env={}
