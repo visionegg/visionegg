@@ -48,7 +48,23 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.stimkey = server_modules[0].get_meta_controller_stimkey() # first stimulus will be this
         self.quit_status = 0
         self.presentation = presentation
-
+        # target for stimulus onset calibration
+        self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
+                                                           center=(50.0,50.0),
+                                                           size=(100.0,100.0))
+        self.onset_cal_fg = VisionEgg.MoreStimuli.Target2D(on=0,
+                                                           color=(1.0,1.0,1.0,1.0),
+                                                           center=(50.0,50.0),
+                                                           size=(90.0,90.0))
+        self.presentation.add_controller(self.onset_cal_fg,'on',VisionEgg.Core.ConstantController(during_go_value=1,
+                                                                                                  between_go_value=0))
+        # get screen (hack)
+        self.onset_cal_screen = self.presentation.parameters.viewports[0].parameters.screen
+        self.onset_cal_viewport = VisionEgg.Core.Viewport(screen=self.onset_cal_screen,
+                                                          stimuli=[self.onset_cal_bg,
+                                                                   self.onset_cal_fg]
+                                                          )
+        
         for server_module in server_modules:
             stimkey = server_module.get_meta_controller_stimkey()
             klass = server_module.get_meta_controller_class()
@@ -56,6 +72,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
             self.stimdict[stimkey] = (klass, make_stimuli)
 
     def __del__(self):
+        self.presentation.remove_controller(self.onset_cal_fg,'on')
         Pyro.core.ObjBase.__del__(self)
             
     def get_quit_status(self):
@@ -68,6 +85,27 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def first_connection(self):
         # break out of initial run_forever loop        
         self.presentation.parameters.quit = 1
+
+    def set_stim_onset_cal(self, on):
+        if on:
+            if self.onset_cal_viewport not in self.presentation.parameters.viewports:
+                self.presentation.parameters.viewports.append(self.onset_cal_viewport)
+        else:
+            if self.onset_cal_viewport in self.presentation.parameters.viewports:
+                self.presentation.parameters.viewports.remove(self.onset_cal_viewport)
+
+    def set_stim_onset_cal_location(self, horiz="left", vert="lower"):
+        w,h = self.onset_cal_screen.size
+        if horiz == "left":
+            x = 50
+        elif horiz == "right":
+            x = w - 50
+        if vert == "lower":
+            y = 50
+        else:
+            y = h - 50
+        self.onset_cal_bg.parameters.center = x, y
+        self.onset_cal_fg.parameters.center = x, y
 
     def set_gamma_ramp(self, red, blue, green):
         return pygame.display.set_gamma_ramp(red,green,blue)

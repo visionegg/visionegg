@@ -59,49 +59,67 @@ class ScrollListFrame(Tkinter.Frame):
             self.list = list_of_contained_objects
         self.container_class = container_class
 
+        # allow column to expand
+        self.columnconfigure(0,weight=1)
+
         # The frame that has the list and the vscroll
         self.frame = Tkinter.Frame(self,borderwidth=2)
-        self.frame.pack(fill=Tkinter.BOTH,expand=1)
-        self.header = Tkinter.StringVar(self)
-        self.frame.label = Tkinter.Label(self.frame, 
-                                 relief=Tkinter.FLAT,
-                                 anchor=Tkinter.NW,
-                                 borderwidth=0,
-                                 font='*-Courier-Bold-R-Normal-*',
-                                 textvariable=self.header)
-        self.frame.label.grid(row=0,column=0,columnspan=2,sticky='we')
+        self.frame.grid(row=0,sticky="nwes")
+        
+        # allow column to expand
+        self.frame.columnconfigure(0,weight=1)
 
         self.frame.vscroll = Tkinter.Scrollbar(self.frame,orient=Tkinter.VERTICAL)
         self.frame.hscroll = Tkinter.Scrollbar(self.frame,orient=Tkinter.HORIZONTAL)
+        self.frame.title = Tkinter.Listbox(
+            self.frame,
+            relief=Tkinter.FLAT,
+            font=('courier',10,'bold'),
+            height=1,
+#            selectbackground='#eed5b7',
+#            selectborderwidth=0,
+#            selectmode=None,
+            exportselection=0)
+        self.frame.title.insert(Tkinter.END, self.container_class.header)
         self.frame.list = Tkinter.Listbox(
             self.frame,
             relief=Tkinter.SUNKEN,
-            font='*-Courier-Medium-R-Normal-*',
+            font=('courier',10,'normal'),
             width=40, height=3,
             selectbackground='#eed5b7',
             selectborderwidth=0,
             selectmode=Tkinter.BROWSE,
             xscroll=self.frame.hscroll.set,
-            yscroll=self.frame.vscroll.set)
+            yscroll=self.frame.vscroll.set,
+            exportselection=0)
 
-        self.frame.hscroll['command'] = self.frame.list.xview
-        self.frame.hscroll.grid(row=2,column=0,sticky='we')
+        self.frame.hscroll['command'] = self.delegate_hscroll
+        self.frame.hscroll.grid(row=3,column=0,sticky='we')
         self.frame.vscroll['command'] = self.frame.list.yview
-        self.frame.vscroll.grid(row=1,column=1,sticky='ns')
-        self.frame.list.grid(row=1,column=0)
+        self.frame.vscroll.grid(row=2,column=1,sticky='ns')
+        self.frame.title.grid(row=1,column=0,ipady=0,pady=0,sticky='we')
+        self.frame.list.grid(row=2,column=0,sticky='nwes')
         self.frame.list.bind('<Double-Button-1>',self.edit_selected)
         
         # The buttons on bottom
         self.bar = Tkinter.Frame(self,borderwidth=2)
-        self.bar.pack(fill=Tkinter.X)
+        self.bar.grid(row=1,sticky="we")
         self.bar.add = Tkinter.Button(self.bar,text='Add...',command=self.add_new)
-        self.bar.add.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.add.grid(row=0,column=0,sticky='we')
         self.bar.edit = Tkinter.Button(self.bar,text='Edit...',command=self.edit_selected)
-        self.bar.edit.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.edit.grid(row=0,column=1,sticky='we')
         self.bar.remove = Tkinter.Button(self.bar,text='Remove',command=self.remove_selected)
-        self.bar.remove.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.remove.grid(row=0,column=2,sticky='we')
+        self.bar.move_up = Tkinter.Button(self.bar,text='Up',command=self.move_selected_up)
+        self.bar.move_up.grid(row=0,column=3,sticky='we')
+        self.bar.move_down = Tkinter.Button(self.bar,text='Down',command=self.move_selected_down)
+        self.bar.move_down.grid(row=0,column=4,sticky='we')
         self.bar.tk_menuBar(self.bar.add,self.bar.remove)
         self.update_now()
+
+    def delegate_hscroll(self,*args,**kw):
+        apply(self.frame.title.xview,args,kw)
+        apply(self.frame.list.xview,args,kw)
         
     def get_list_uncontained(self):
         results = []
@@ -110,11 +128,15 @@ class ScrollListFrame(Tkinter.Frame):
         return results
 
     def update_now(self):
-        self.header.set(self.container_class.header)
-        self.frame.list.delete(0,Tkinter.AtEnd())
+        self.frame.list.delete(0,Tkinter.END)
+        max_len = 0
         for item in self.list:
             item_str_30 = item.get_str_30()
+            max_len = max(max_len,len(item_str_30))
             self.frame.list.insert(Tkinter.END,item_str_30)
+
+        self.frame.title.delete(0,Tkinter.END)
+        self.frame.title.insert(Tkinter.END, self.container_class.header.ljust(max_len))
 
     def add_new(self):
         contained_object = self.make_contained_object(self.container_class)
@@ -122,7 +144,7 @@ class ScrollListFrame(Tkinter.Frame):
             self.list.append( contained_object )
         self.update_now()
 
-    def edit_selected(self):
+    def edit_selected(self,dummy_arg=None):
         selected = self.get_selected()
         if selected is not None:
             orig_contained_object = self.list[selected]
@@ -136,6 +158,26 @@ class ScrollListFrame(Tkinter.Frame):
         if selected is not None:
             del self.list[selected]
             self.update_now()
+
+    def move_selected_up(self,dummy_arg=None):
+        selected = self.get_selected()
+        if selected is not None:
+            selected_object = self.list[selected]
+            del self.list[selected]
+            new_index = max(selected-1,0)
+            self.list.insert(new_index, selected_object)
+            self.update_now()
+        self.frame.list.selection_set(new_index)
+
+    def move_selected_down(self,dummy_arg=None):
+        selected = self.get_selected()
+        if selected is not None:
+            selected_object = self.list[selected]
+            del self.list[selected]
+            new_index = min(selected+1,len(self.list))
+            self.list.insert(new_index, selected_object)
+            self.update_now()
+        self.frame.list.selection_set(new_index)
 
     def make_contained_object(self, container_class):
         """Factory function for ContainedObjectBase"""
@@ -687,6 +729,9 @@ class AppWindow(Tkinter.Frame):
         self.pyro_client = VisionEgg.PyroClient.PyroClient(self.server_hostname,self.server_port)
         self.ephys_server = self.pyro_client.get("ephys_server")
         self.ephys_server.first_connection()
+        
+        self.stim_onset_cal_tk_var = Tkinter.BooleanVar()
+        self.stim_onset_cal_tk_var.set(0)
 
         self.autosave_dir = Tkinter.StringVar()
         self.autosave_dir.set( os.path.abspath(os.curdir) )
@@ -935,9 +980,33 @@ class AppWindow(Tkinter.Frame):
         frame.winfo_toplevel().title("Timing Calibration - Vision Egg")
         Tkinter.Label(frame,
                       font=("Helvetica",12,"bold"),
-                      text="Stimulus onset timing").grid()
-        Tkinter.Label(frame,
-                      text="Not yet implemented").grid()
+                      text="Stimulus onset timing").grid(row=0,columnspan=2)
+        Tkinter.Checkbutton( frame,
+                             text="Black box (always) with white box (during trial)",
+                             variable=self.stim_onset_cal_tk_var,
+                             command=self.update_stim_onset_cal).grid(row=1,columnspan=2)
+        self.update_stim_onset_cal_corner_tk = Tkinter.StringVar()
+        self.update_stim_onset_cal_corner_tk.set("lower left")
+        Tkinter.Radiobutton( frame,
+                             text="Upper left",
+                             value="upper left",
+                             variable = self.update_stim_onset_cal_corner_tk,
+                             command = self.set_stim_onset_cal_corner ).grid(row=2,column=0)
+        Tkinter.Radiobutton( frame,
+                             text="Upper right",
+                             value="upper right",
+                             variable = self.update_stim_onset_cal_corner_tk,
+                             command = self.set_stim_onset_cal_corner ).grid(row=2,column=1)
+        Tkinter.Radiobutton( frame,
+                             text="Lower left",
+                             value="lower left",
+                             variable = self.update_stim_onset_cal_corner_tk,
+                             command = self.set_stim_onset_cal_corner ).grid(row=3,column=0)
+        Tkinter.Radiobutton( frame,
+                             text="Lower right",
+                             value="lower right",
+                             variable = self.update_stim_onset_cal_corner_tk,
+                             command = self.set_stim_onset_cal_corner ).grid(row=3,column=1)
         frame.pack(expand=1,fill=Tkinter.BOTH)
 
     def launch_gamma_panel(self, dummy_arg=None):
@@ -952,6 +1021,15 @@ class AppWindow(Tkinter.Frame):
     def reset_autosave_basename(self):
         self.autosave_basename.set( self.stim_frame.get_shortname() )
 
+    def update_stim_onset_cal(self, dummy_arg=None):
+        on = self.stim_onset_cal_tk_var.get()
+        self.ephys_server.set_stim_onset_cal(on)
+
+    def set_stim_onset_cal_corner(self, dummy_arg=None):
+        pos_string = self.update_stim_onset_cal_corner_tk.get()
+        vert, horiz = string.split(pos_string)
+        self.ephys_server.set_stim_onset_cal_location(horiz=horiz,vert=vert)
+        
     def do_loops(self):
         loop_list = self.loop_frame.get_list_uncontained()
         global need_rest_period
