@@ -35,6 +35,7 @@ import math, types, os
 import Numeric, MLab
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
+import OpenGL.GLU as glu
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
@@ -319,41 +320,46 @@ class Texture(object):
             buffer = self.texels
 
         # Put data in texture object
-        texture_object.put_new_image( buffer, internal_format=internal_format, mipmap_level=0 )
-        if build_mipmaps:
-            # Mipmap generation could be done in the TextureObject
-            # class by GLU, but here we have more control
-            if not isinstance(self.texels, Image.Image): # PIL Image
-                raise NotImplementedError(
-                    "Building of mipmaps not implemented for this texel "+\
-                    "data type. (Use PIL Images or set parameter "+\
-                    "mipmaps_enabled = False.)")
-            this_width, this_height = self.size
-            biggest_dim = max(this_width,this_height)
-            mipmap_level = 1
-            while biggest_dim > 1:
-                this_width = this_width/2.0
-                this_height = this_height/2.0
-                
-                width_pix = int(math.ceil(this_width))
-                height_pix = int(math.ceil(this_height))
-                shrunk = self.texels.resize((width_pix,height_pix),shrink_filter)
-                
-                width_pow2  = next_power_of_2(width_pix)
-                height_pow2  = next_power_of_2(height_pix)
-                
-                im = Image.new(shrunk.mode,(width_pow2,height_pow2))
-                im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
-                
-                texture_object.put_new_image( im,
-                                              mipmap_level=mipmap_level,
-                                              internal_format = internal_format,
-                                              check_opengl_errors = False, # no point -- we've already seen biggest texture work, we're just making mipmap
-                                              )
-
-                mipmap_level += 1
+        if not build_mipmaps:
+            texture_object.put_new_image( buffer, internal_format=internal_format, mipmap_level=0 )
+        else:
+            if 1:
+                # Build mipmaps with GLU (faster)
+                texture_object.put_new_image_build_mipmaps( buffer, internal_format=internal_format )
+            else:
+                # Build mipmaps in PIL
+                texture_object.put_new_image( buffer, internal_format=internal_format, mipmap_level=0 )
+                if not isinstance(self.texels, Image.Image): # PIL Image
+                    raise NotImplementedError(
+                        "Building of mipmaps not implemented for this texel "+\
+                        "data type. (Use PIL Images or set parameter "+\
+                        "mipmaps_enabled = False.)")
+                this_width, this_height = self.size
                 biggest_dim = max(this_width,this_height)
-                
+                mipmap_level = 1
+                while biggest_dim > 1:
+                    this_width = this_width/2.0
+                    this_height = this_height/2.0
+
+                    width_pix = int(math.ceil(this_width))
+                    height_pix = int(math.ceil(this_height))
+                    shrunk = self.texels.resize((width_pix,height_pix),shrink_filter)
+
+                    width_pow2  = next_power_of_2(width_pix)
+                    height_pow2  = next_power_of_2(height_pix)
+
+                    im = Image.new(shrunk.mode,(width_pow2,height_pow2))
+                    im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
+
+                    texture_object.put_new_image( im,
+                                                  mipmap_level=mipmap_level,
+                                                  internal_format = internal_format,
+                                                  check_opengl_errors = False, # no point -- we've already seen biggest texture work, we're just making mipmap
+                                                  )
+
+                    mipmap_level += 1
+                    biggest_dim = max(this_width,this_height)
+    
         # Keep reference to texture_object
         self.texture_object = texture_object
 
@@ -381,8 +387,6 @@ class TextureObject(object):
         'wrap_mode_s',
         'wrap_mode_t', # if dimensions > 1
         'border_color',
-        'mipmap_arrays', # if dimensions != 'cube'
-        'cube_mipmap_arrays', # if dimensions == 'cube'
         'target',
         'dimensions',
         'gl_id',
@@ -406,14 +410,6 @@ class TextureObject(object):
         if dimensions == 3:
             self.wrap_mode_r = gl.GL_REPEAT
         self.border_color = (0, 0, 0, 0)
-
-        # assign Vision Egg variables (not local copies of OpenGL information)
-        if dimensions != 'cube':
-            self.mipmap_arrays = {}
-        else:
-            self.cube_mipmap_arrays = {}
-            for side in TextureObject._cube_map_side_names:
-                self.cube_mipmap_arrays[side] = {}
 
         if dimensions == 1:
             self.target = gl.GL_TEXTURE_1D
@@ -551,94 +547,76 @@ class TextureObject(object):
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
-        # create local mipmap_array data
-        new_mipmap_array = {}
-
-        if self.dimensions != 'cube':
-            self.mipmap_arrays[mipmap_level] = new_mipmap_array
-        else:
-            self.cube_mipmap_arrays[cube_side][mipmap_level] = new_mipmap_array
-
-        # add data to mipmap array
-        new_mipmap_array['border'] = border
-        new_mipmap_array['internal_format'] = internal_format
-
         # Determine the data_format, data_type and rescale the data if needed
-        data = texel_data
-        
         if data_format is None: # guess the format of the data
-            if type(data) == Numeric.ArrayType:
-                if len(data.shape) == self.dimensions:
+            if type(texel_data) == Numeric.ArrayType:
+                if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
-                elif len(data.shape) == (self.dimensions+1):
-                    if data.shape[-1] == 3:
+                elif len(texel_data.shape) == (self.dimensions+1):
+                    if texel_data.shape[-1] == 3:
                         data_format = gl.GL_RGB
-                    elif data.shape[-1] == 4:
+                    elif texel_data.shape[-1] == 4:
                         data_format = gl.GL_RGBA
                     else:
                         raise RuntimeError("Couldn't determine a format for your texel_data.")
                 else:
                     raise RuntimeError("Couldn't determine a format for your texel_data.")
             elif isinstance(texel_data,Image.Image):
-                if data.mode == 'L':
+                if texel_data.mode == 'L':
                     data_format = gl.GL_LUMINANCE
-                elif data.mode == 'RGB':
+                elif texel_data.mode == 'RGB':
                     data_format = gl.GL_RGB
-                elif data.mode in ['RGBA','RGBX']:
+                elif texel_data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
-                elif data.mode == 'P':
+                elif texel_data.mode == 'P':
                     raise NotImplementedError("Paletted images are not supported.")
                 else:
-                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%data.mode)
+                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
             elif isinstance(texel_data,pygame.surface.Surface):
-                if data.get_alpha():
+                if texel_data.get_alpha():
                     data_format = gl.GL_RGBA
                 else:
                     data_format = gl.GL_RGB
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(data) == Numeric.ArrayType:
-                if data.typecode() == Numeric.Float:
-                    data = data*255.0
+            if type(texel_data) == Numeric.ArrayType:
+                if texel_data.typecode() == Numeric.Float:
+                    texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(data) == Numeric.ArrayType:
-                data = data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+            if type(texel_data) == Numeric.ArrayType:
+                texel_data = texel_data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
         # determine size and make sure its power of 2
         if self.dimensions == 1:
             # must be Numeric array
-            width = data.shape[0]
+            width = texel_data.shape[0]
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
-            new_mipmap_array['width'] = width
         else:
-            if type(data) == Numeric.ArrayType:
-                width = data.shape[1]
-                height = data.shape[0]
+            if type(texel_data) == Numeric.ArrayType:
+                width = texel_data.shape[1]
+                height = texel_data.shape[0]
             elif isinstance(texel_data,Image.Image):
-                width, height = data.size
+                width, height = texel_data.size
             elif isinstance(texel_data,pygame.surface.Surface):
-                width, height = data.get_size()
+                width, height = texel_data.get_size()
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
             if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
-            new_mipmap_array['width'] = width
-            new_mipmap_array['height'] = height
             if self.dimensions == 3:
                 # must be Numeric array
-                depth = data.shape[2]
+                depth = texel_data.shape[2]
                 if not is_power_of_2(depth): raise ValueError("texel_data does not have all dimensions == n^2")
-                new_mipmap_array['depth'] = height
 
         if self.dimensions in [2,'cube']:
-            if type(data) == Numeric.ArrayType:
-                raw_data = data.tostring()
+            if type(texel_data) == Numeric.ArrayType:
+                raw_data = texel_data.tostring()
             elif isinstance(texel_data,Image.Image):
-                raw_data = data.tostring('raw',data.mode,0,-1)
+                raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
             elif isinstance(texel_data,pygame.surface.Surface):
-                if data.get_alpha():
+                if texel_data.get_alpha():
                     raw_data = pygame.image.tostring(texel_data,'RGBA',1)
                 else:
                     raw_data = pygame.image.tostring(texel_data,'RGB',1)
@@ -654,7 +632,7 @@ class TextureObject(object):
                                 internal_format,
                                 border,
                                 data_format,
-                                data)
+                                texel_data)
                 if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
                     raise TextureTooLargeError("texel_data is too wide for your video system.")
             elif self.dimensions in [2,'cube']:
@@ -685,7 +663,7 @@ class TextureObject(object):
                                   internal_format,
                                   border,
                                   data_format,
-                                  data)
+                                  texel_data)
                 if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_3D,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
                     raise TextureTooLargeError("texel_data is too wide for your video system.")
                 if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_3D,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
@@ -702,7 +680,7 @@ class TextureObject(object):
                               internal_format,
                               border,
                               data_format,
-                              data)
+                              texel_data)
         elif self.dimensions in [2,'cube']:
             if self.dimensions == 2:
                 target = gl.GL_TEXTURE_2D
@@ -724,9 +702,108 @@ class TextureObject(object):
                               internal_format,
                               border,
                               data_format,
-                              data)
+                              texel_data)
         else:
             raise RuntimeError("Unknown number of dimensions.")
+
+    def put_new_image_build_mipmaps(self,
+                                    texel_data,
+                                    #border = 0,
+                                    #check_opengl_errors = True,
+                                    internal_format = gl.GL_RGB,
+                                    data_format = None, # automatic guess unless set explicitly
+                                    data_type = None, # automatic guess unless set explicitly
+                                    ):
+        
+        """Similar to put_new_image(), but builds mipmaps."""
+        
+        if self.dimensions != 2:
+            raise ValueError("can only handle 2D texel data for automatic mipmap building")
+        
+        if type(texel_data) == Numeric.ArrayType:
+            assert(cube_side == None)
+            data_dimensions = len(texel_data.shape)
+            assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
+        elif isinstance(texel_data,Image.Image):
+            assert( self.dimensions == 2 )
+        elif isinstance(texel_data,pygame.surface.Surface):
+            assert( self.dimensions == 2 )
+        else:
+            raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
+
+        # make myself the active texture
+        gl.glBindTexture(self.target, self.gl_id)
+
+        # Determine the data_format, data_type and rescale the data if needed
+        if data_format is None: # guess the format of the data
+            if type(texel_data) == Numeric.ArrayType:
+                if len(texel_data.shape) == self.dimensions:
+                    data_format = gl.GL_LUMINANCE
+                elif len(texel_data.shape) == (self.dimensions+1):
+                    if texel_data.shape[-1] == 3:
+                        data_format = gl.GL_RGB
+                    elif texel_data.shape[-1] == 4:
+                        data_format = gl.GL_RGBA
+                    else:
+                        raise RuntimeError("Couldn't determine a format for your texel_data.")
+                else:
+                    raise RuntimeError("Couldn't determine a format for your texel_data.")
+            elif isinstance(texel_data,Image.Image):
+                if texel_data.mode == 'L':
+                    data_format = gl.GL_LUMINANCE
+                elif texel_data.mode == 'RGB':
+                    data_format = gl.GL_RGB
+                elif texel_data.mode in ['RGBA','RGBX']:
+                    data_format = gl.GL_RGBA
+                elif texel_data.mode == 'P':
+                    raise NotImplementedError("Paletted images are not supported.")
+                else:
+                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
+            elif isinstance(texel_data,pygame.surface.Surface):
+                if texel_data.get_alpha():
+                    data_format = gl.GL_RGBA
+                else:
+                    data_format = gl.GL_RGB
+
+        if data_type is None: # guess the data type
+            data_type = gl.GL_UNSIGNED_BYTE
+            if type(texel_data) == Numeric.ArrayType:
+                if texel_data.typecode() == Numeric.Float:
+                    texel_data = texel_data*255.0
+
+        if data_type == gl.GL_UNSIGNED_BYTE:
+            if type(texel_data) == Numeric.ArrayType:
+                texel_data = texel_data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+        else:
+            raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
+
+        if type(texel_data) == Numeric.ArrayType:
+            width = texel_data.shape[1]
+            height = texel_data.shape[0]
+        elif isinstance(texel_data,Image.Image):
+            width, height = texel_data.size
+        elif isinstance(texel_data,pygame.surface.Surface):
+            width, height = texel_data.get_size()
+        if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
+        if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
+
+        if type(texel_data) == Numeric.ArrayType:
+            raw_data = texel_data.tostring()
+        elif isinstance(texel_data,Image.Image):
+            raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
+        elif isinstance(texel_data,pygame.surface.Surface):
+            if texel_data.get_alpha():
+                raw_data = pygame.image.tostring(texel_data,'RGBA',1)
+            else:
+                raw_data = pygame.image.tostring(texel_data,'RGB',1)
+
+        glu.gluBuild2DMipmaps(self.target,
+                              internal_format,
+                              width, # XXX should be width_pow2?
+                              height,# XXX should be height_pow2?
+                              data_format,
+                              data_type,
+                              raw_data)
 
     def put_sub_image(self,
                       texel_data,
@@ -780,11 +857,6 @@ class TextureObject(object):
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
-        if self.dimensions != 'cube':
-            previous_mipmap_array = self.mipmap_arrays[mipmap_level]
-        else:
-            previous_mipmap_array = self.cube_mipmap_arrays[cube_side][mipmap_level]
-
         # Determine the data_format, data_type and rescale the data if needed
         data = texel_data
         
@@ -836,8 +908,6 @@ class TextureObject(object):
             else:
                 x_offset = offset_tuple[0]
             width = data.shape[0]
-            if (x_offset + width) > previous_mipmap_array['width']:
-                raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
             raw_data = data.astype(Numeric.UnsignedInt8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
@@ -870,10 +940,6 @@ class TextureObject(object):
                     raw_data = pygame.image.tostring(texel_data,'RGBA',1)
                 else:
                     raw_data = pygame.image.tostring(texel_data,'RGB',1)
-            if (x_offset + width) > previous_mipmap_array['width']:
-                raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
-            if (y_offset + height) > previous_mipmap_array['height']:
-                raise TextureTooLargeError("put_sub_image trying to exceed previous height.")
             gl.glTexSubImage2D(target,
                                mipmap_level,
                                x_offset,
@@ -922,18 +988,6 @@ class TextureObject(object):
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
-        # create local mipmap_array data
-        new_mipmap_array = {}
-
-        if self.dimensions != 'cube':
-            self.mipmap_arrays[mipmap_level] = new_mipmap_array
-        else:
-            self.cube_mipmap_arrays[cube_side][mipmap_level] = new_mipmap_array
-
-        # add data to mipmap array
-        new_mipmap_array['border'] = border
-        new_mipmap_array['internal_format'] = internal_format
-
         if framebuffer_lowerleft is None:
             framebuffer_lowerleft = (0,0)
         x,y = framebuffer_lowerleft
@@ -945,8 +999,6 @@ class TextureObject(object):
         width, height = size
         if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
-        new_mipmap_array['width'] = width
-        new_mipmap_array['height'] = height
 
         target = gl.GL_TEXTURE_2D
         gl.glCopyTexImage2D(target,
