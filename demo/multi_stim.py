@@ -14,6 +14,7 @@ from VisionEgg.Text import Text
 from math import sin, pi
 import math
 import pygame.locals
+import RandomArray # Numeric
 
 #####################################
 #  Initialize OpenGL window/screen  #
@@ -30,13 +31,14 @@ y1 = screen.size[1]/3
 y2 = 2*screen.size[1]/3
 
 width = screen.size[0]/5
-height = screen.size[1]/3
+height = width
+#height = screen.size[1]/4
 
 #####################################
 #  text                             #
 #####################################
 
-text = Text( text = "Vision Egg multi stimulus demo - Press Esc to quit",
+text = Text( text = "Vision Egg multi stimulus demo - Press any key to quit",
              position = (screen.size[0]/2,2),
              anchor = 'bottom',
              color = (1.0,1.0,1.0,1.0))
@@ -91,7 +93,7 @@ texture = Texture(filename)
 drum = SpinningDrum(texture=texture,shrink_texture_ok=1)
 
 def angle_as_function_of_time(t):
-    return 90.0*t # rotate at 90 degrees per second
+    return 90.0*t % 360.0 # rotate at 90 degrees per second (wrap at 360)
 
 def projection_matrix_f(t):
     projection = SimplePerspectiveProjection(fov_x=55.0,aspect_ratio=float(width)/height)
@@ -171,30 +173,34 @@ drum_viewport = Viewport(screen=screen,
                          projection=drum_projection,
                          stimuli=[drum])
 
-########################################
-#  Presentation object and events      #
-########################################
+#####################################################
+#  Main loop (non VisionEgg.Core.Presentation way)  #
+#####################################################
 
-p = Presentation(go_duration=('forever',),
-                 viewports=[drum_viewport, viewport_2d])
-
-def quit(dummy_arg=None):
-    p.parameters.go_duration = (0,'frames')
+# quit on any of these events
+while not pygame.event.peek((pygame.locals.QUIT,
+                             pygame.locals.KEYDOWN,
+                             pygame.locals.MOUSEBUTTONDOWN)):
+    t = VisionEgg.time_func()
     
-def keydown(event):
-    if event.key == pygame.locals.K_ESCAPE:
-        quit()
+    # update parameters (can be done with VisionEgg.Core.Controllers)
+    color_grating.parameters.pedestal = pedestal_func(t)
+    drum.parameters.angular_position = angle_as_function_of_time(t)
+    drum_projection.parameters.matrix = projection_matrix_f(t)
+
+    # do drawing, etc.  (can be done with Presentation.go() method)
+    screen.clear() # clear the back buffer
+    drum_viewport.draw() # draw spinning drum
+    viewport_2d.draw() # draw 2D stimuli
+
+    copy_framebuffer() # make copy of framebuffer in texture for draw on next frame
     
-p.parameters.handle_event_callbacks=[(pygame.locals.QUIT, quit),
-                                     (pygame.locals.KEYDOWN, keydown)]
-
-########################################
-#  Add controllers and go              #
-########################################
-
-p.add_controller(color_grating,'pedestal',FunctionController(during_go_func=pedestal_func))
-p.add_controller(drum,'angular_position', FunctionController(during_go_func=angle_as_function_of_time))
-p.add_controller(drum_projection,'matrix', FunctionController(during_go_func=projection_matrix_f))
-p.add_controller(None,None, FunctionController(during_go_func=copy_framebuffer,
-                                               temporal_variables=Controller.TIME_INDEPENDENT))
-p.go()
+    pixels =  RandomArray.randint(0,256,(20,20,3)).astype(Numeric.UnsignedInt8)
+    screen.put_pixels(pixels,
+                      scale_x=5.0,
+                      scale_y=5.0,
+                      position=(x3,y2),
+                      anchor='center',
+                      )
+    swap_buffers() # display the frame we've drawn in back buffer
+    pygame.event.pump() # make sure peek has up-to-date info
