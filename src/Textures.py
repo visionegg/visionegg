@@ -1482,6 +1482,39 @@ class SpinningDrum(TextureStimulusBaseClass):
                 gl.glVertex4f( x1,  h, z1, 1.0 )
             gl.glEnd()
             gl.glEndList()
+
+class FixationCross(VisionEgg.Core.Stimulus):
+    parameters_and_defaults = {'on':(1,types.IntType),# boolean
+                               'position':((320,240),types.TupleType),
+                               'size':((64,64),types.TupleType)}
+    constant_parameters_and_defaults = {'texture_size':((64,64),types.TupleType)}
+    def __init__(self,**kw):
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
+        s = self.constant_parameters.texture_size
+        mid_x = s[0]/2.0
+        mid_y = s[1]/2.0
+        texels = Image.new("RGBX",s,(0,0,0,0))
+        texels_draw = ImageDraw.Draw(texels)
+        texels_draw.rectangle( (mid_x-1, 0, mid_x+1, s[1]), fill=(0,0,0,255) )
+        texels_draw.rectangle( (0, mid_y-1, s[0], mid_y+1), fill=(0,0,0,255) )
+        texels_draw.line( (mid_x, 0, mid_x, s[1]), fill=(255,255,255,255) )
+        texels_draw.line( (0, mid_y, s[0], mid_y), fill=(255,255,255,255) )
+        self.texture_stimulus = TextureStimulus( texture = Texture(texels),
+                                                 position = self.parameters.position,
+                                                 anchor = 'center',
+                                                 size = self.parameters.size,
+                                                 internal_format = gl.GL_RGBA,
+                                                 mipmaps_enabled = 0,
+                                                 texture_min_filter = gl.GL_NEAREST,
+                                                 texture_mag_filter = gl.GL_NEAREST,
+                                                 )
+    def draw(self):
+        contained = self.texture_stimulus.parameters #shorthand
+        my = self.parameters #shorthand
+        contained.position = my.position
+        contained.size = my.size
+        contained.on = my.on
+        self.texture_stimulus.draw()
             
 class TextureTooLargeError(VisionEgg.Core.EggError):
     pass
