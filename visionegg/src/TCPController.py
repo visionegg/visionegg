@@ -56,7 +56,9 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class TCPServer:
-    """TCP server creates SocketListenController upon connect
+    """TCP server creates SocketListenController upon connection.
+
+    This class is analagous to VisionEgg.PyroHelpers.PyroServer.
 
     Public methods:
 
@@ -72,13 +74,21 @@ class TCPServer:
 
         """
         server_address = (hostname,port)
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(server_address)
-        self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
         self.dialog_ok = dialog_ok
-        if not globals().has_key("Tkinter"):
+        if not globals().has_key("Tkinter") or (VisionEgg.config.VISIONEGG_TKINTER_OK==0):
             self.dialog_ok = 0
-        
+        try:
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket.bind(server_address)
+        except Exception, x:
+            if self.dialog_ok:
+                import tkMessageBox
+                tkMessageBox.showerror(title=str(x.__class__),message="While trying to connect to %s:\n%s"%(server_address,str(x)))
+                raise
+            else:
+                raise
+        self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
+
     def create_listener_once_connected(self):
         """Wait for connection and spawn instance of SocketListenController."""
         VisionEgg.Core.message.add(
@@ -89,13 +99,17 @@ class TCPServer:
             # Make a Tkinter dialog box
             class WaitingDialog(Tkinter.Frame):
                 def __init__(self,server_socket=None,**kw):
-                    if 'borderwidth' not in kw.keys():
-                        kw['borderwidth'] = 20
                     apply(Tkinter.Frame.__init__,(self,),kw)
                     self.winfo_toplevel().title('Vision Egg TCP Server')
                     self.server_socket = server_socket
-                    Tkinter.Label(self,text=
+                    spacer = Tkinter.Frame(self,borderwidth=30)
+                    spacer.pack()
+                    Tkinter.Label(spacer,text=
                                   """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),).pack()
+                    b = Tkinter.Button(self,text="Cancel",command=self.stop_listening)
+                    b.pack(side=Tkinter.BOTTOM)
+                    b.focus_force()
+                    b.bind('<Return>',self.stop_listening)
                     self.winfo_toplevel().protocol("WM_DELETE_WINDOW", self.stop_listening)
                     self.server_socket.setblocking(0)
                     self.after(1,self.idle_func)
@@ -130,49 +144,96 @@ class SocketListenController(VisionEgg.Core.Controller):
     called at specified moments in time via the Presentation
     class. When called in this way, it checks for any strings from the
     TCP socket.  It parses this information into a command or fails
-    and sends an error. Commands are always on a single line.
-    (Although newlines can be specified via "\n" without the quotes.)
+    and sends an error.
 
-    TCP commands:
-    
-    close -- close the connection
-    exit -- close the connection
-    quit -- quit the server program
-    <name>=const(...) -- assign a new ConstantController to <name>
-    <name>=eval_str(...) -- assign a new EvalStringController to <name>
-    <name>=exec_str(...) -- assign a new ExecStringController to <name>
+    This class is analagous to VisionEgg.PyroHelpers.PyroListenController.
 
     Public methods:
     
     create_tcp_controller -- spawn a new TCPController
     send_raw_text -- send text over the TCP socket
 
+    TCP commands (sent over network socket):
+    
+    close -- close the connection
+    exit -- close the connection
+    quit -- quit the server program
+    <name>=const(<args>) -- assign a new ConstantController to <name>
+    <name>=eval_str(<args>) -- assign a new EvalStringController to <name>
+    <name>=exec_str(<args>) -- assign a new ExecStringController to <name>
+    <name>=exec_str(*<args>) -- assign a new unrestricted namespace ExecStringController to <name>
+
+    TCP commands are always on a single line.  (Newlines can be
+    specified by using "\n" without the quotes.)
+
+    The assignment commands share common behavior:
+
+    <name> -- value passed as argument "tcp_name" to method create_tcp_controller
+    <args> -- during_go [, between_go [, eval_frequency [, temporal_variables [, return_type ]]]]
+
+    The <args> string is parsed by the Python's eval() function.  If
+    you don't want to explicitly set an argument early in the argument
+    list, but you need to set one late in the list, use "None".  If
+    not set, the optional arguments default to:
+
+    eval_frequency = EVERY_FRAME
+    temporal_variables = TIME_SEC_SINCE_GO
+    return_type = (evaluates during_go function to find)
+    between_go = (see below, depends on assignment type)
+    
+    The only difference between the assignment commands are in the
+    first two arguments.  For "const(...)", the first two arguments
+    are constant values, for "eval_str(...)" they are strings that
+    evaluate to a single variable, and for "exec_str(...)", they are
+    strings that set the variable "x" in their local namespace, which
+    is then returned.  (An unrestricted namespace is available with
+    "exec_str(*...)".)  If the argument between_go is set to None or
+    is not defined, the behavior depends on the assignment command.
+    If this is a <name>=const(...) assignment, between_go_value is set
+    to during_go_value.  If this is a <name>=eval_str(...) or
+    <name>=exec_str(...) assignment, the correct value cannot be
+    guessed, and therefore the between_go_eval function will never be
+    called (the eval_frequency flag NOT_BETWEEN_GO is set).
+
+    Because the default value for temporal_variables is
+    TIME_SEC_SINCE_GO, the variable "t" may be safely used in the
+    during_go string for the eval_str or exec_str assignment commands.
+    See the documentation for VisionEgg.Core.EvalStringController for
+    more information.
+
     Example commands from TCP port (try with telnet):
 
-    name=const(1.0)
-    name=const("t*360.0")
-    name=exec_str("x=t*360.0")
+    <name>=const(1.0)
+    <name>=eval_str("t*360.0")
+    <name>=exec_str("x=t*360.0")
 
-    name=const(1.0,0.0,types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
-    name=eval_str("t*360.0","0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
-    name=exec_str("x=t*360.0","x=0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
+    <name>=const(0.,1.,EVERY_FRAME)
+    <name>=const(1,None,ONCE)
+
+    <name>=const(1.0,0.0,EVERY_FRAME,TIME_INDEPENDENT,types.FloatType)
+    <name>=eval_str("t*360.0","t_abs*360.0",None,TIME_SEC_ABSOLUTE|TIME_SEC_SINCE_GO)
+    <name>=eval_str("t_abs*360.0","t_abs*360.0",EVERY_FRAME,TIME_SEC_ABSOLUTE,types.FloatType)
+    <name>=exec_str("x=t*360.0","x=0.0",EVERY_FRAME,TIME_SEC_SINCE_GO)
+    <name>=exec_str("print 'Time since go=%f'%(t,)\nx=t*360.0","x=0.0",EVERY_FRAME,TIME_SEC_SINCE_GO)
 
     """
-    re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
-    re_const = re.compile(r'const\(\s?(.*?)\s?(?:,\s?(.*?)\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?)?\)',re.DOTALL)
-    re_eval_str = re.compile(r'eval_str\(\s?"(.*?)"\s?(?:,\s?"(.*?)"\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?a)?\)',re.DOTALL)
-    re_exec_str = re.compile(r'exec_str\(\s?(\*)?\s?"(.*?)"\s?(?:,\s?"(.*?)"\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?)?\)',re.DOTALL)
-    re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
+    _re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
+    _re_const = re.compile(r'^const\(\s?(.*)\s?\)$',re.DOTALL)
+    _re_eval_str = re.compile(r'^eval_str\(\s?(.*)\s?\)$',re.DOTALL)
+    _re_exec_str = re.compile(r'^exec_str\(\s?(\*)?\s?(.*)\s?\)$',re.DOTALL)
+    _re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
+    _parse_args_globals = {'types':types}
+    _parse_args_locals = VisionEgg.Core.Controller.flag_dictionary
     def __init__(self,
                  socket,
                  disconnect_ok = 0,
                  server_socket = None, # Only needed if reconnecting ok
-                 temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE,
+                 temporal_variables = VisionEgg.Core.Controller.TIME_INDEPENDENT,
                  eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME):
         """Instantiated by TCPServer."""
         VisionEgg.Core.Controller.__init__(self,
                                            return_type = types.NoneType,
-                                           temporal_variable_type = temporal_variable_type,
+                                           temporal_variables = temporal_variables,
                                            eval_frequency = eval_frequency)
         self.socket = socket
         self.disconnect_ok = disconnect_ok
@@ -238,7 +299,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                         self.__do_assignment_command(tcp_name,command,require_type)
                         self.last_command[tcp_name] = None
                 # Clear any complete lines for which we don't have a tcp_name
-                self.buffer = SocketListenController.re_line.sub(self.__unknown_line,self.buffer)
+                self.buffer = SocketListenController._re_line.sub(self.__unknown_line,self.buffer)
         elif self.server_socket is not None:
             # Not connected on self.socket, check self.server_socket for new connection
             try:
@@ -265,8 +326,8 @@ class SocketListenController(VisionEgg.Core.Controller):
                     if self.server_socket is not None:
                         self.server_socket.setblocking(0)
                 return ""
-            self.socket.send("Error with line: "+str+"\n")
-            VisionEgg.Core.message.add("Error with line: "+str+"\n",
+            self.socket.send("Error: Invalid command line \""+str+"\"\n")
+            VisionEgg.Core.message.add("Invalid command line: \""+str+'"',
                                        level=VisionEgg.Core.Message.INFO)
         return ""
 
@@ -317,31 +378,52 @@ class SocketListenController(VisionEgg.Core.Controller):
         # Create values for self.names dict tuple ( controller, name_re, most_recent_command, parser )
         controller = TCPController(
             tcp_name=tcp_name,
-            contained_controller=initial_controller
+            initial_controller=initial_controller
             )
         name_re_str = re.compile(r"^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
         parser = Parser(tcp_name,self.last_command).parse_func
         self.names[tcp_name] = (controller, name_re_str, parser, require_type)
         self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
         return controller
-    
+
+    def __get_five_args(self,arg_string):
+        args = eval("("+arg_string+",)",SocketListenController._parse_args_globals,SocketListenController._parse_args_locals)
+        num_args = len(args)
+        if num_args == 0:
+            args = (None,None,None,None,None)
+        elif num_args == 1:
+            args = (args[0],None,None,None,None)
+        elif num_args == 2:
+            args = (args[0],args[1],None,None,None)
+        elif num_args == 3:
+            args = (args[0],args[1],args[2],None,None)
+        elif num_args == 4:
+            args = (args[0],args[1],args[2],args[3],None)
+        elif num_args > 5:
+            raise ValueError("Too many arguments!")
+        if args[0] is None:
+            raise ValueError("First argument must be set.")
+        return args
+
+    def __process_common_args(self,kw_args,match_groups):
+        if match_groups[2] is not None:
+            kw_args['eval_frequency'] = match_groups[2]
+        if match_groups[3] is not None:
+            kw_args['temporal_variables'] = match_groups[3]
+        if match_groups[4] is not None:
+            kw_args['return_type'] = match_groups[4]
+            
     def __do_assignment_command(self,tcp_name,command,require_type):
         new_contained_controller = None
-        command = string.replace(command,r"\n","\n") # allow newline encoding
-        match = SocketListenController.re_const.match(command)
+        match = SocketListenController._re_const.match(command)
         if match is not None:
             try:
-                match_groups = match.groups()
+                match_groups = self.__get_five_args(match.group(1))
                 kw_args = {}
-                kw_args['during_go_value'] = eval(match_groups[0])
+                kw_args['during_go_value'] = match_groups[0]
                 if match_groups[1] is not None:
-                    kw_args['during_go_value'] = eval(match_groups[1])
-                if match_groups[2] is not None:
-                    kw_args['return_type'] = eval(match_groups[2])
-                if match_groups[3] is not None:
-                    kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[3])
-                if match_groups[4] is not None:
-                    kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
+                    kw_args['between_go_value'] = match_groups[1]
+                self.__process_common_args(kw_args,match_groups)
                 new_contained_controller = apply(VisionEgg.Core.ConstantController,[],kw_args)
                 new_type = new_contained_controller.returns_type()
                 if new_type != require_type:
@@ -349,75 +431,84 @@ class SocketListenController(VisionEgg.Core.Controller):
                         new_contained_controller = None
                         raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
             except Exception, x:
-                self.socket.send("Error parsing const for %s: %s\n"%(tcp_name,x))
-                VisionEgg.Core.message.add("Error parsing const for %s: %s\n"%(tcp_name,x),
+                self.socket.send("Error %s parsing const for %s: %s\n"%(x.__class__,tcp_name,x))
+                VisionEgg.Core.message.add("%s parsing const for %s: %s"%(x.__class__,tcp_name,x),
                                            level=VisionEgg.Core.Message.INFO)
         else:
-            match = SocketListenController.re_eval_str.match(command)
+            match = SocketListenController._re_eval_str.match(command)
             if match is not None:
                 try:
-                    match_groups = match.groups()
+                    match_groups = self.__get_five_args(match.group(1))
                     kw_args = {}
-                    kw_args['during_go_eval_string'] = match_groups[0]
+                    kw_args['during_go_eval_string'] = string.replace(match_groups[0],r"\n","\n")
                     if match_groups[1] is not None:
-                        kw_args['between_go_eval_string'] = match_groups[1]
-                    if match_groups[2] is not None:
-                        kw_args['return_type'] = eval(match_groups[2])
-                    if match_groups[3] is not None:
-                        kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[3])
-                    if match_groups[4] is not None:
-                        kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
+                        kw_args['between_go_eval_string'] = string.replace(match_groups[1],r"\n","\n")
+                    self.__process_common_args(kw_args,match_groups)
                     new_contained_controller = apply(VisionEgg.Core.EvalStringController,[],kw_args)
+                    if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_DURING_GO):
+                        VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_eval_string'],),
+                                    VisionEgg.Core.Message.TRIVIAL)
+                        new_contained_controller._test_self(1)
+                    if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_BETWEEN_GO):
+                        VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['between_go_eval_string'],),
+                                    VisionEgg.Core.Message.TRIVIAL)
+                        new_contained_controller._test_self(0)
                     new_type = new_contained_controller.returns_type()
                     if new_type != require_type:
                         if not issubclass( new_type, require_type):
-                            new_contained_controller = None
                             raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
                 except Exception, x:
-                    self.socket.send("Error parsing eval_str for %s: %s\n"%(tcp_name,x))
-                    VisionEgg.Core.message.add("Error parsing eval_str for %s: %s\n"%(tcp_name,x),
+                    new_contained_controller = None
+                    self.socket.send("Error %s parsing eval_str for %s: %s\n"%(x.__class__,tcp_name,x))
+                    VisionEgg.Core.message.add("%s parsing eval_str for %s: %s"%(x.__class__,tcp_name,x),
                                                level=VisionEgg.Core.Message.INFO)
             else:
-                match = SocketListenController.re_exec_str.match(command)
+                match = SocketListenController._re_exec_str.match(command)
                 if match is not None:
                     try:
-                        match_groups = match.groups()
                         kw_args = {}
+                        match_groups = match.groups()
                         if match_groups[0] == '*':
                             kw_args['restricted_namespace'] = 0
                         else:
                             kw_args['restricted_namespace'] = 1
-                        kw_args['during_go_exec_string'] = match_groups[1]
-                        if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
+                        match_groups = self.__get_five_args(match_groups[1])
+                        tmp = string.replace(match_groups[0],r"\n","\n")
+                        if not SocketListenController._re_x_finder.match(tmp):
                             raise ValueError("x is not defined for during_go_exec_string")
-                        if match_groups[2] is not None:
-                            kw_args['between_go_exec_string'] = match_groups[2]
-                            if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
+                        kw_args['during_go_exec_string'] = tmp
+                        if match_groups[1] is not None:
+                            tmp = string.replace(match_groups[1],r"\n","\n")
+                            if not SocketListenController._re_x_finder.match(tmp):
                                 raise ValueError("x is not defined for between_go_exec_string")
-                        if match_groups[3] is not None:
-                            kw_args['return_type'] = eval(match_groups[3])
-                        if match_groups[4] is not None:
-                            kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
-                        if match_groups[5] is not None:
-                            kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[5])
+                            kw_args['between_go_exec_string'] = tmp
+                        self.__process_common_args(kw_args,match_groups)
                         new_contained_controller = apply(VisionEgg.Core.ExecStringController,[],kw_args)
+                        if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_DURING_GO):
+                            VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['during_go_exec_string'],),
+                                        VisionEgg.Core.Message.TRIVIAL)
+                            new_contained_controller._test_self(1)
+                        if not (new_contained_controller.eval_frequency & VisionEgg.Core.Controller.NOT_BETWEEN_GO):
+                            VisionEgg.Core.message.add('Executing "%s" as safety check.'%(kw_args['between_go_exec_string'],),
+                                        VisionEgg.Core.Message.TRIVIAL)
+                            new_contained_controller._test_self(0)
                         new_type = new_contained_controller.returns_type()
                         if new_type != require_type:
                             if not issubclass( new_type, require_type):
-                                new_contained_controller = None
                                 raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
-                    except Exception, err:
-                        self.socket.send("Error parsing exec_str for %s: %s\n"%(tcp_name,err))
-                        VisionEgg.Core.message.add("Error parsing exec_str for %s: %s\n"%(tcp_name,err),
+                    except Exception, x:
+                        new_contained_controller = None
+                        self.socket.send("Error %s parsing exec_str for %s: %s\n"%(x.__class__,tcp_name,x))
+                        VisionEgg.Core.message.add("%s parsing exec_str for %s: %s"%(x.__class__,tcp_name,x),
                                                    level=VisionEgg.Core.Message.INFO)
                 else:
-                    self.socket.send("Error parsing command for %s: %s\n"%(tcp_name,command))
-                    VisionEgg.Core.message.add("Error parsing command for %s: %s\n"%(tcp_name,command),
+                    self.socket.send("Error: Invalid assignment command for %s: %s\n"%(tcp_name,command))
+                    VisionEgg.Core.message.add("Invalid assignment command for %s: %s"%(tcp_name,command),
                                                level=VisionEgg.Core.Message.INFO)
         # create controller based on last command_queue
         if new_contained_controller is not None:
             (controller, name_re_str, parser, require_type) = self.names[tcp_name]
-            controller.set_value(new_contained_controller)
+            controller.set_new_controller(new_contained_controller)
 
     def during_go_eval(self):
         """Check socket and act accordingly. Called by instance of Presentation.
@@ -433,40 +524,19 @@ class SocketListenController(VisionEgg.Core.Controller):
         self.__check_socket()
         return None   
 
-class TCPController(VisionEgg.Core.Controller):
+class TCPController(VisionEgg.Core.EncapsulatedController):
     """Control a parameter from a network (TCP) connection.
 
     Subclass of Controller to allow control of Parameters via the
     network.
 
+    This class is analagous to VisionEgg.PyroHelpers.PyroEncapsulatedController.
     """
     # Contains another controller...
-    def __init__(self, tcp_name, contained_controller):
+    def __init__(self, tcp_name, initial_controller):
         """Instantiated by SocketListenController.
 
         Users should create instance by using method
         create_tcp_controller of class SocketListenController."""
+        apply(VisionEgg.Core.EncapsulatedController.__init__,(self,initial_controller))
         self.tcp_name = tcp_name
-        self.contained_controller = contained_controller
-        self.__sync_mimic()
-
-    def set_value(self,new_contained_controller):
-        """Called by SocketListenController."""
-        self.contained_controller = new_contained_controller
-        self.__sync_mimic()
-
-    def __sync_mimic(self):
-        self.return_type = self.contained_controller.return_type
-        self.temporal_variable = self.contained_controller.temporal_variable
-        self.temporal_variable_type = self.contained_controller.temporal_variable_type
-        self.eval_frequency = self.contained_controller.eval_frequency
-        
-    def during_go_eval(self):
-        """Called by Presentation. Overrides method in Controller base class."""
-        self.contained_controller.temporal_variable = self.temporal_variable
-        return self.contained_controller.during_go_eval()
-
-    def between_go_eval(self):
-        """Called by Presentation. Overrides method in Controller base class."""
-        self.contained_controller.temporal_variable = self.temporal_variable
-        return self.contained_controller.between_go_eval()
