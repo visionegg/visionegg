@@ -124,6 +124,16 @@ for file in copy_list:
         dest = os.path.join(output_dir,dir)
         if not os.path.isdir(dest):
             os.makedirs(dest)
+    dest = os.path.join(dest,name)
     if file == "README-BINARY-DEMOS.txt": # Rename file
-        dest = os.path.join(dest,"README.txt")
+        dest = os.path.join(os.path.split(dest)[0],"README.txt")
     shutil.copy2(file,dest)
+    if dest[-4:] == ".txt":
+        print "Converting newlines in %s"%(dest,)
+        # convert newlines
+        f = open(dest,"r")
+        lines = f.readlines()
+        f.close()
+        f = open(dest,"w")
+        f.write(string.join(lines,""))
+        f.close()
