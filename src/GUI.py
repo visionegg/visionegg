@@ -25,112 +25,65 @@ import VisionEgg
 #
 ####################################################################
 
-class StartGraphicsFrame(Tkinter.Frame):
-    """A window to get the video parameters of Vision Egg initialized"""
-    def __init__(self,master=None,callback=None,**cnf):
+class OpenScreenFrame(Tkinter.Frame):
+    """A GUI window to open an instance of Screen"""
+    def __init__(self,master=None,set_screen_callback=lambda s: None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
-        self.callback = callback
-
-        # details frame
-        self.detailsFrame = Tkinter.Frame(self,relief=Tkinter.RAISED)
-        self.detailsFrame.pack(expand=1,fill=Tkinter.BOTH)
+        self.set_screen_callback = set_screen_callback
 
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
-        Tkinter.Checkbutton(self.detailsFrame,
+        self.fullscreen.set(VisionEgg.config.VISIONEGG_FULLSCREEN)
+        Tkinter.Checkbutton(self,
                             text='Fullscreen - use only with multiple displays',
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).pack()
 
-        # vsync
-        self.vsync = Tkinter.BooleanVar()
-        Tkinter.Checkbutton(self.detailsFrame,
-                            text='Retrace sync - currently only for nVidia cards (linux only?)',
-                            variable=self.vsync,
-                            relief=Tkinter.FLAT).pack()
-
-        # realtime
-        self.realtime = Tkinter.BooleanVar()
-        Tkinter.Checkbutton(self.detailsFrame,
-                            text='Maximum priority - currently linux only, superuser status required',
-                            variable=self.realtime,
-                            relief=Tkinter.FLAT).pack()
-
         # texture compression
         self.tex_compress = Tkinter.BooleanVar()
-        self.tex_compress.set(VisionEgg.video_info.tex_compress)
-        Tkinter.Checkbutton(self.detailsFrame,
+        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
+        Tkinter.Checkbutton(self,
                             text='Texture compression',
                             variable=self.tex_compress,
                             relief=Tkinter.FLAT).pack()
 
         # resolution
-        Tkinter.Label(self.detailsFrame,text="Window size (pixels):").pack()
+        Tkinter.Label(self,text="Window size (pixels):").pack()
         self.resolution = Tkinter.StringVar()
-        self.resolution.set("640x480")
-        Tkinter.OptionMenu(self.detailsFrame,self.resolution,"640x480","800x600","1024x768").pack()
+        default_res_string = "%dx%d"%(VisionEgg.config.VISIONEGG_SCREEN_W,VisionEgg.config.VISIONEGG_SCREEN_H)
+        self.resolution.set(default_res_string)
+        Tkinter.OptionMenu(self,self.resolution,default_res_string,"640x480","800x600","1024x768").pack()
 
         # color depth
-        Tkinter.Label(self.detailsFrame,text="Color depth (bits per pixel):").pack()
+        Tkinter.Label(self,text="Color depth (bits per pixel):").pack()
         self.color_depth = Tkinter.StringVar()
-        self.color_depth.set("24")
-        Tkinter.OptionMenu(self.detailsFrame,self.color_depth,"0 (Any)","16","24","32").pack()
+        default_bpp_string = "%d"%VisionEgg.config.VISIONEGG_PREFERRED_BPP
+        self.color_depth.set(default_bpp_string)
+        Tkinter.OptionMenu(self,self.color_depth,default_bpp_string,"0 (Any)","16","24","32").pack()
 
         # Start button
         Tkinter.Button(self,text="start",command=self.start).pack()
         
     def start(self):
         
-        VisionEgg.video_info.tex_compress = self.tex_compress.get()
-        
-        if self.resolution.get() == "640x480":
-            width = 640
-            height = 480
-        elif self.resolution.get() == "800x600":
-            width = 800
-            height = 600
-        elif self.resolution.get() == "1024x768":
-            width = 1024
-            height = 768
-        else:
-            raise RuntimeError("Unknown resolution %s"%(self.resolution.get(),))
+        VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
+        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
+        VisionEgg.config.VISIONEGG_SCREEN_W, VisionEgg.config.VISIONEGG_SCREEN_H = map(int,string.split(self.resolution.get(),'x'))
+        VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(string.split(self.color_depth.get(),' ')[0])
 
-        if self.color_depth.get() == "0 (Any)":
-            preferred_bpp = 0
-        elif self.color_depth.get() == "16":
-            preferred_bpp = 16
-        elif self.color_depth.get() == "24":
-            preferred_bpp = 24
-        elif self.color_depth.get() == "32":
-            preferred_bpp = 32
-        else:
-            raise RuntimeError("Unknown color_depth %s"%(self.color_depth.get(),))
-
-        try:
-            # This stuff determines where things are displayed in X windows
-            # Use to control stimulus from one computer while displaying
-            # on another.
-            GUI_display = os.environ["DISPLAY"]
-            os.environ["DISPLAY"] = "localhost:0.0"
-        except:
-            pass
-        VisionEgg.graphicsInit(width,height,
-                               fullscreen=self.fullscreen.get(),
-                               vsync=self.vsync.get(),
-                               realtime_priority=self.realtime.get(),
-                               preferred_bpp=preferred_bpp)
-        try:
-            os.environ["DISPLAY"] = GUI_display
-        except:
-            pass
+        screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                             VisionEgg.config.VISIONEGG_SCREEN_H),
+                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                                       bgcolor=VisionEgg.config.VISIONEGG_SCREEN_BGCOLOR)
 
         for child in self.children.values():
             child.destroy()
 
-        self.callback()
-#        Tkinter.Tk.destroy(self.master) # OK, now close myself
+        self.set_screen_callback(screen)
+        Tkinter.Tk.destroy(self.master) # OK, now close myself
 
 class VideoInfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
@@ -158,3 +111,14 @@ class VideoInfoFrame(Tkinter.Frame):
             Tkinter.Label(self.sub_frame,text="Video system not initialized").pack()
 
 #        Tkinter.Button(self.sub_frame,text="Update video info",command=self.update).pack()
+
+def get_screen_via_GUI():
+    def callback(screen):
+        global opened_screen # Python doesn't support nested namespace, so this is a trick
+        opened_screen = screen
+    global opened_screen
+    window = OpenScreenFrame(set_screen_callback=callback)
+    window.mainloop()
+    local_screen = opened_screen
+    del opened_screen # Get rid of evil global variables!
+    return local_screen
