@@ -31,7 +31,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                                'stacks':(30,types.IntType)}
 
     def __init__(self,**kw):
-        apply(VisionEgg.Textures.TextureStimulusBaseClass.__init__,(self,),kw)
+        VisionEgg.Textures.TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
         
@@ -169,10 +169,10 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                'stacks':(30,types.IntType)}
     
     def __init__(self,**kw):
-        apply(VisionEgg.Gratings.LuminanceGratingCommon.__init__,(self,),kw)
+        VisionEgg.Gratings.LuminanceGratingCommon.__init__(self,**kw)
 
         if self.parameters.t0_time_sec_absolute is None:
-            self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
+            self.parameters.t0_time_sec_absolute = VisionEgg.time_func()
 
         self.texture_object_id = gl.glGenTextures(1) # Allocate a new texture object
         self.__rebuild_texture_object()
@@ -194,7 +194,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         l = 0.0
         r = 360.0
         inc = 360.0/float(p.num_samples)
-        phase = (VisionEgg.timing_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+        phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
         floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -309,7 +309,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             l = 0.0
             r = 360.0
             inc = 360.0/float(p.num_samples)
-            phase = (VisionEgg.timing_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
+            phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*360.0 + p.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
             floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -363,7 +363,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                                }
     
     def __init__(self, **kw):
-        apply( VisionEgg.Gratings.LuminanceGratingCommon.__init__, (self,), kw )
+        VisionEgg.Gratings.LuminanceGratingCommon.__init__(self, **kw )
         
         self.texture_object_id = gl.glGenTextures(1)
         self.__rebuild_texture_object()
@@ -585,7 +585,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glBlendFunc( gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA ) # alpha 1.0 = transparent
             
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object_id)
-            apply( gl.glColor, p.opaque_color )
+            gl.glColor( *p.opaque_color )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             # clear modelview matrix

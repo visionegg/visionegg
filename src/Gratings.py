@@ -145,12 +145,12 @@ class SinGrating2D(LuminanceGratingCommon):
                                'phase_at_t0':(0.0,types.FloatType), # degrees [0.0-360.0]
                                'orientation':(0.0,types.FloatType), # 0=right, 90=down
                                'num_samples':(512, types.IntType), # number of spatial samples, should be a power of 2
-                               'color1':((1.0, 1.0, 1.0, 0.0), types.TupleType), # alpha is ignored for max_alpha value
+                               'color1':((1.0, 1.0, 1.0, 1.0), types.TupleType), # alpha is ignored for max_alpha value
                                'color2':(None, types.TupleType), # ignored when None
                                }
     
     def __init__(self,**kw):
-        apply(LuminanceGratingCommon.__init__,(self,),kw)
+        LuminanceGratingCommon.__init__(self,**kw)
 
         p = self.parameters # shorthand
         
@@ -165,13 +165,13 @@ class SinGrating2D(LuminanceGratingCommon):
             raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         if p.t0_time_sec_absolute is None:
-            p.t0_time_sec_absolute = VisionEgg.timing_func()
+            p.t0_time_sec_absolute = VisionEgg.time_func()
 
         self.calculate_bit_depth_dependencies()
         
         w = p.size[0]
         inc = w/float(p.num_samples)
-        phase = (VisionEgg.timing_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+        phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
         floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -205,7 +205,6 @@ class SinGrating2D(LuminanceGratingCommon):
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
-        gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE) # change to GL_BLEND if color2 defined
 
     def __del__(self):
         gl.glDeleteTextures( [self._texture_object_id] )
@@ -242,13 +241,15 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glEnable( gl.GL_BLEND )
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 
-            if p.color2 is not None:
+            if p.color2:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
                 gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
+            else:
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
             
             w = p.size[0]
             inc = w/float(p.num_samples)
-            phase = (VisionEgg.timing_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+            phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
             floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
