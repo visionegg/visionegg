@@ -821,7 +821,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
     viewports -- List of Viewport instances to draw. Order is important.
     go_duration -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',)
-    check_events -- Int (boolean) to allow input event checking during 'go' loop
+    check_events -- Int (boolean) to allow input event checking during 'go' loop.
     handle_event_callbacks -- List of tuples to handle events. (event_type,event_callback_func)
     trigger_armed -- Int (boolean) to gate the trigger on the 'go' loop
     trigger_go_if_armed -- Int (boolean) the trigger on the 'go' loop
@@ -843,7 +843,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                                               types.ListType),
                                'go_duration' : ((5.0,'seconds'),
                                                 types.TupleType),
-                               'check_events' : (0, # May cause performance hit
+                               'check_events' : (1, # May cause performance hit if non zero
                                                  types.IntType),
                                'handle_event_callbacks' : (None,
                                                            types.ListType),
