@@ -37,7 +37,7 @@ class CallbackEntry(Tkinter.Entry):
         self.bind('<Tab>',callback)
 
 class ScreenPositionControlFrame(Tkinter.Frame):
-    def __init__(self, master=None, auto_connect=0, **kw):
+    def __init__(self, master=None, auto_connect=0, server_hostname='', server_port=7766, **kw):
         apply(Tkinter.Frame.__init__,(self,master),kw)
         self.pyro_client = None
         self.entry_width = 10
@@ -288,7 +288,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         Tkinter.Button(button_row_frame,text="Load...",command=self.load).grid(row=1,column=1)
 
         if auto_connect:
-            self.connect()
+            self.connect(server_hostname,server_port)
 
     def frustum_narrower(self,dummy_arg=None): # callback
         self.left_tk_var.set(self.meta_params.left*(1.0/1.05))
@@ -524,8 +524,8 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         if self.connected:
             self.projection_controller.set_parameters( self.meta_params )
 
-    def connect(self):
-        self.pyro_client = VisionEgg.PyroClient.PyroClient()
+    def connect(self,server_hostname='',server_port=7766):
+        self.pyro_client = VisionEgg.PyroClient.PyroClient(server_hostname,server_port)
 
         self.projection_controller = self.pyro_client.get("projection_controller")
 

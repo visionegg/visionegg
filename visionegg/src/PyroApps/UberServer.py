@@ -50,12 +50,19 @@ class UberServer(  Pyro.core.ObjBase ):
             make_stimuli = server_module.make_stimuli
             self.stimdict[stimkey] = (klass, make_stimuli)
 
+    def __del__(self):
+        Pyro.core.ObjBase.__del__(self)
+            
     def get_quit_status(self):
         return self.quit_status
     
     def set_quit_status(self,quit_status):
         self.quit_status = quit_status
         self.presentation.parameters.quit = quit_status
+
+    def first_connection(self):
+        # break out of initial run_forever loop        
+        self.presentation.parameters.quit = 1
     
     def get_next_stimulus_meta_controller(self):
         if self.stimkey:
@@ -91,8 +98,8 @@ def start_server( server_modules ):
     p = VisionEgg.Core.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
 
     wait_text = VisionEgg.Text.BitmapText(
-        text = "Loading new experiment, please wait.",
-        lowerleft = (0,5),
+        text = "Waiting for connection",
+        lowerleft = (5,10),
         color = (1.0,0.0,0.0,0.0))
 
     overlay2D_viewport.parameters.stimuli = [wait_text]
@@ -104,10 +111,17 @@ def start_server( server_modules ):
 
     uber_server = UberServer(p, server_modules)
     pyro_server.connect(uber_server,"uber_server")
-
+    hostname,port = pyro_server.get_hostname_and_port()
+    
+    wait_text.parameters.text = "Waiting for connection at %s port %d"%(hostname,port)
+    
     # get listener controller and register it
     p.add_controller(None,None, pyro_server.create_listener_controller())
 
+    p.run_forever() # run until we get first connnection, which breaks out immmediately
+
+    wait_text.parameters.text = "Loading new experiment, please wait."
+    
     while not uber_server.get_quit_status():
 
         perspective_viewport.parameters.stimuli = []
@@ -132,18 +146,9 @@ def start_server( server_modules ):
         p.parameters.enter_go_loop = 0
         p.parameters.quit = 0
         p.run_forever()
-        
-        pyro_server.unregister(pyro_name)
-        
+
+        pyro_server.disconnect(stimulus_meta_controller)
+        del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
+
 if __name__ == '__main__':
-    try:
-        start_server( server_modules )
-    except Pyro.errors.PyroError, x:
-        if str(x) in ["Name Server not responding","connection failed"]:
-            try:
-                tkMessageBox.showerror("Can't find Pyro Name Server","Can't find Pyro Name Server on network.")
-                sys.exit(1)
-            except:
-                raise # Can't find Pyro Name Server on network
-        else:
-            raise
+    start_server( server_modules )
