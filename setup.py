@@ -28,8 +28,10 @@ setup(name="visionegg",
       author = "Andrew Straw",
       author_email = "astraw@users.sourceforge.net",
       licence = "GPL",
-      package_dir={'VisionEgg' : 'src'},
-      packages=[ 'VisionEgg' ],
+      package_dir={'VisionEgg' : 'src',
+                   'VisionEgg.test' : 'test'},
+      packages=[ 'VisionEgg',
+                 'VisionEgg.test'],
       ext_package='VisionEgg',
       ext_modules=extensions
 )
