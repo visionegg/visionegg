@@ -5,7 +5,7 @@
 # GNU Lesser General Public License (LGPL).
 
 name             = "visionegg"
-version          = "0.9.5b2"
+version          = "0.9.5b3"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
@@ -151,8 +151,9 @@ data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
 data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
-data_files.append( (data_dir,[os.path.join('test','conform.py')]) )
-data_files.append( (data_dir,[os.path.join('test','opengl_info.py')]) )
+for filename in os.listdir('test'):
+    if filename.endswith('.py'):
+        data_files.append( (data_dir,[os.path.join('test',filename)]) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 global extension_build_failed
@@ -217,10 +218,11 @@ class ve_build_ext( build_ext ):
                 extension_build_failed = 1
 
 def main():
-    # patch distutils if it can't cope with the "classifiers" keyword
-    if sys.version < '2.2.3':
-        from distutils.dist import DistributionMetadata
-        DistributionMetadata.classifiers = None
+    # make sure older versions of distutils work
+    extras_kws = {}
+    if (hasattr(distutils.core, 'setup_keywords') and 
+        'classifiers' in distutils.core.setup_keywords):
+        extras_kws['classifiers'] = classifiers
         
     # Call setup - normal distutils behavior
     setup(
@@ -239,8 +241,8 @@ def main():
         long_description=long_description,
         cmdclass={'build_ext':ve_build_ext,
                   'sdist_demo':sdist_demo,
-                  }, # replace Python default build_ext class with ours
-        classifiers=classifiers
+                  },
+        **extras_kws
         )
 
     if extension_build_failed:
