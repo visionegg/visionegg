@@ -1,12 +1,12 @@
 WELCOME
 
-Thanks for checking out the Vision Egg!  Please check the website at
-http://www.visionegg.org/ to get the library and current information.
+Thanks for checking out the Vision Egg!  For more information or to
+download the library, the website is http://www.visionegg.org/
 
 This directory contains Windows binary executable versions of several
 demonstration scripts included with version 0.9.1 of the Vision Egg
 library.  These programs are not meant to be used for experiments, but
-rather to demonstrate most of the features of the Vision Egg.
+rather to demonstrate particular features of the Vision Egg.
 
 The complete source code of these programs can be downloaded from the
 Vision Egg website.
@@ -32,7 +32,7 @@ LEGAL MATTERS
 The Vision Egg is copyright (c) Andrew D. Straw, 2001-2002.  It is
 distributed under the terms of the GNU LGPL (Lesser General Public
 License.) See LICENSE.txt for more information.  This software is
-provided "as is" without any arranty of any kind, either expressed or
+provided "as is" without any warranty of any kind, either expressed or
 implied.
 
 This binary demo distribution is only possible because of the open
