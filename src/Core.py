@@ -96,11 +96,6 @@ class Screen(VisionEgg.ClassWithParameters):
     Public read-only variables
     ==========================
     size -- Tuple of 2 integers specifying width and height
-    red_bits -- Integer (or None if not supported) specifying framebuffer depth
-    green_bits -- Integer (or None if not supported) specifying framebuffer depth
-    blue_bits -- Integer (or None if not supported) specifying framebuffer depth
-    alpha_bits -- Integer (or None if not supported) specifying framebuffer depth
-    is_stereo -- Boolean (or None if not supported) specifying if stereo used
 
     Parameters
     ==========
@@ -109,15 +104,25 @@ class Screen(VisionEgg.ClassWithParameters):
 
     Constant Parameters
     ===================
+    alpha_bits    -- number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS (UnsignedInteger)
+                     Default: (determined at runtime)
+    blue_bits     -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
+                     Default: (determined at runtime)
     frameless     -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
                      Default: (determined at runtime)
     fullscreen    -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
                      Default: (determined at runtime)
+    green_bits    -- number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS (UnsignedInteger)
+                     Default: (determined at runtime)
     hide_mouse    -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
+                     Default: (determined at runtime)
+    is_stereo     -- allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO (Boolean)
                      Default: (determined at runtime)
     maxpriority   -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
                      Default: (determined at runtime)
     preferred_bpp -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
+                     Default: (determined at runtime)
+    red_bits      -- number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS (UnsignedInteger)
                      Default: (determined at runtime)
     size          -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
                      Default: (determined at runtime)
@@ -154,14 +159,24 @@ class Screen(VisionEgg.ClassWithParameters):
         'sync_swap':(None,
                      ve_types.Boolean,
                      'synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP'),
+        'red_bits':(None,
+                    ve_types.UnsignedInteger,
+                    'number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS'),
+        'green_bits':(None,
+                    ve_types.UnsignedInteger,
+                    'number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS'),
+        'blue_bits':(None,
+                    ve_types.UnsignedInteger,
+                    'number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS'),
+        'alpha_bits':(None,
+                    ve_types.UnsignedInteger,
+                    'number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS'),
+        'is_stereo':(None,
+                     ve_types.Boolean,
+                     'allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO'),
         })
     
     __slots__ = (
-        'red_bits',
-        'green_bits',
-        'blue_bits',
-        'alpha_bits',
-        'is_stereo',
         '__cursor_visible_func__',
         '__pygame_quit__',
         '_put_pixels_texture_stimulus',
@@ -189,6 +204,16 @@ class Screen(VisionEgg.ClassWithParameters):
             cp.frameless = VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW
         if cp.sync_swap is None:
             cp.sync_swap = VisionEgg.config.VISIONEGG_SYNC_SWAP
+        if cp.red_bits is None:
+            cp.red_bits = VisionEgg.config.VISIONEGG_REQUEST_RED_BITS
+        if cp.green_bits is None:
+            cp.green_bits = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
+        if cp.blue_bits is None:
+            cp.blue_bits = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
+        if cp.alpha_bits is None:
+            cp.alpha_bits = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
+        if cp.is_stereo is None:
+            cp.is_stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
             
         if VisionEgg.config.SYNCLYNC_PRESENT:
             global synclync # import into global namespace
@@ -204,7 +229,7 @@ class Screen(VisionEgg.ClassWithParameters):
             VisionEgg.config._SYNCLYNC_CONNECTION = None
 
         # Attempt to synchronize buffer swapping with vertical sync
-        if self.constant_parameters.sync_swap:
+        if cp.sync_swap:
             sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
         # Initialize pygame stuff
@@ -212,18 +237,12 @@ class Screen(VisionEgg.ClassWithParameters):
             pygame.init()
         pygame.display.init()
 
-        # Request framebuffer depths
-        r = VisionEgg.config.VISIONEGG_REQUEST_RED_BITS
-        g = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
-        b = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
-        a = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
-        stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
         if hasattr(pygame.display,"gl_set_attribute"):
-            pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE,r)
-            pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE,g)
-            pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,b)
-            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,a)
-	    pygame.display.gl_set_attribute(pygame.locals.GL_STEREO,stereo)
+            pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE,cp.red_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE,cp.green_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,cp.blue_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,cp.alpha_bits)
+	    pygame.display.gl_set_attribute(pygame.locals.GL_STEREO,cp.is_stereo)
         else:
             logger.debug("Could not request or query exact bit depths, "
                          "alpha or stereo because you need "
@@ -240,21 +259,24 @@ class Screen(VisionEgg.ClassWithParameters):
         pygame.display.set_caption("Vision Egg")
         
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
-        if self.constant_parameters.fullscreen:
+        if cp.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
 
-        if self.constant_parameters.frameless:
+        if cp.frameless:
             flags = flags | pygame.locals.NOFRAME
 
-        try_bpp = self.constant_parameters.preferred_bpp
+        try_bpp = cp.preferred_bpp
 
         append_str = ""
-        if self.constant_parameters.fullscreen:
+        if cp.fullscreen:
             screen_mode = "fullscreen"
         else:
             screen_mode = "window"
         if hasattr(pygame.display,"gl_set_attribute"):
-            append_str = " (%d %d %d %d RGBA)."%(r,g,b,a)
+            append_str = " (%d %d %d %d RGBA)."%(cp.red_bits,
+                                                 cp.green_bits,
+                                                 cp.blue_bits,
+                                                 cp.alpha_bits)
             
         logger.info("Requesting %s %d x %d %d bpp%s"%
                     (screen_mode,self.size[0],self.size[1],
@@ -301,23 +323,25 @@ class Screen(VisionEgg.ClassWithParameters):
                            "your video card manufacturer or DRI "
                            "project to get hardware accelarated "
                            "performance.")
-        self.red_bits = None
-        self.green_bits = None
-        self.blue_bits = None
-        self.alpha_bits = None
-        self.is_stereo = None
+        # Set values to unknown and fill based on OpenGL values
+        cp.red_bits = None
+        cp.green_bits = None
+        cp.blue_bits = None
+        cp.alpha_bits = None
+        cp.is_stereo = None
         got_bpp = pygame.display.Info().bitsize
         append_str = ''
         if hasattr(pygame.display,"gl_get_attribute"):
-            self.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
-            self.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
-            self.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
-            self.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
-            self.is_stereo = pygame.display.gl_get_attribute(pygame.locals.GL_STEREO)
-            if self.is_stereo: stereo_string = ' stereo'
+            # Fill in values as known
+            cp.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
+            cp.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
+            cp.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
+            cp.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
+            cp.is_stereo = pygame.display.gl_get_attribute(pygame.locals.GL_STEREO)
+            if cp.is_stereo: stereo_string = ' stereo'
             else: stereo_string = ''
             append_str = " (%d %d %d %d RGBA%s)"%(
-                self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits,
+                cp.red_bits,cp.green_bits,cp.blue_bits,cp.alpha_bits,
                 stereo_string)
         logger.info("Video system reports %d bpp%s."%(got_bpp,append_str))
         if got_bpp < try_bpp:
@@ -331,10 +355,10 @@ class Screen(VisionEgg.ClassWithParameters):
         self.__pygame_quit__ = pygame.quit
 
         # Attempt to synchronize buffer swapping with vertical sync again
-        if self.constant_parameters.sync_swap:
+        if cp.sync_swap:
             if not sync_success:
                 if not VisionEgg.PlatformDependent.sync_swap_with_vbl_post_gl_init():
-                    self.constant_parameters.sync_swap = False
+                    cp.sync_swap = False
                     logger.warning("Unable to detect or automatically "
                                    "synchronize buffer swapping with "
                                    "vertical retrace. May be possible "
@@ -351,14 +375,14 @@ class Screen(VisionEgg.ClassWithParameters):
         # Check previously made OpenGL assumptions now that we have OpenGL window
         post_gl_init()
         
-        if self.constant_parameters.hide_mouse:
+        if cp.hide_mouse:
             self.__cursor_visible_func__(0)
 
         # Attempt to set maximum priority (This may not be the best
         # place in the code to do it because it's an application-level
         # thing, not a screen-level thing, but it fits reasonably well
         # here for now.)
-        if self.constant_parameters.maxpriority:
+        if cp.maxpriority:
             VisionEgg.PlatformDependent.set_priority() # defaults to max priority
             
         if hasattr(VisionEgg.config,'_open_screens'):
