@@ -1,5 +1,9 @@
 #include <WINDOWS.H>
 
+#ifndef ENUM_CURRENT_SETTINGS 
+#define ENUM_CURRENT_SETTINGS       ((DWORD)-1) 
+#endif
+
 double getrefresh() {
   DEVMODE DevMode;
 
