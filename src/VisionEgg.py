@@ -538,7 +538,10 @@ class SpinningDrum(Stimulus):
 
         # Make sure texture colors are combined with the fragment
         # with the appropriate function
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
+        if self.contrast_control_enabled:
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
+        else:
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
         if self.clear_viewport:
             glClear(GL_COLOR_BUFFER_BIT)
@@ -568,13 +571,13 @@ class SpinningDrum(Stimulus):
 
         glEnable( GL_TEXTURE_2D ) # draw the textures!
 
-        if 'GL_ARB_texture_env_combine' in glGetString(GL_EXTENSIONS).split():
-            contrast_control_enabled = 1
+        if glInitTextureEnvCombineARB():
+            self.contrast_control_enabled = 1
         else:
-            contrast_control_enabled = 0
+            self.contrast_control_enabled = 0
 
-        if not contrast_control_enabled:
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE) # use if ARB_texture_env_combine extension not avaliable
+        if not self.contrast_control_enabled:
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE) # use if ARB_texture_env_combine extension not avaliable
             print "WARNING: OpenGL extension GL_ARB_texture_env_combine not found.  Contrast control disabled."
         else:
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
@@ -786,8 +789,8 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
         modeList = pygame.display.list_modes( bpp, flags )
         print bpp
         print modeList
-        if modeList == -1: # equal to -1 if no resolution will work
-            found_mode = 0
+        if modeList == -1: # equal to -1 if any resolution will work - confirmed TiBook OSX
+            found_mode = 1
         else:
             if len(modeList) == 0: # any resolution is OK
                 found_mode = 1
