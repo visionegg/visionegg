@@ -15,7 +15,7 @@
   $action
   if (errno) {
     PyErr_SetFromErrno(PyExc_OSError);
-    goto fail;
+    goto fail; // this line supported on swig 1.3.17
   }
 }
 
