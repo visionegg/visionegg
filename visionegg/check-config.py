@@ -7,10 +7,17 @@ number of the Vision Egg.
 """
 
 import sys, string, os, traceback
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Mac OS X weirdness:
 
 gui_ok = 1
+
+print "check-config.py for Vision Egg 0.9.2."
+print "[%s CVS revision %s]"%(__date__,__cvs__)
+print "Beginning configuration check."
 
 if sys.platform == 'darwin':
 
@@ -85,6 +92,8 @@ if sys.platform in ['darwin','mac','win32'] and gui_ok:
 # Import
 unknown_import_fail = 0
 
+import ConfigParser # If this line fails, you have an old version of Python.
+
 try:
     import VisionEgg
 except ImportError:
@@ -98,34 +107,53 @@ except ImportError:
     The exception raised was:"""
     traceback.print_exc()
 except AttributeError, x:
-    try:
-        def my_import(name):
-            mod = __import__(name)
-            components = string.split(name, '.')
-            for comp in components[1:]:
-                mod = getattr(mod, comp)
-                return mod
-        mod = my_import("VisionEgg.VisionEgg")
-        if mod.__name__ == "VisionEgg.VisionEgg":
-            print """            **********************************************************
-            YOU APPEAR TO HAVE AN OLD COPY OF THE VISION EGG INSTALLED
-
-            Please remove the old installation directory and re-install.
-
-            The old installation directory is %s
-            **********************************************************"""%(os.path.abspath(os.path.dirname(mod.__file__)),)
-        else:
-            unknown_import_fail = 1
-    except:
+    if str(x) != "'module' object has no attribute 'release_name'":
         unknown_import_fail = 1
+        traceback.print_exc()
+    else:
+        try:
+            def my_import(name):
+                mod = __import__(name)
+                components = string.split(name, '.')
+                for comp in components[1:]:
+                    mod = getattr(mod, comp)
+                    return mod
+            mod = my_import("VisionEgg.VisionEgg")
+            if mod.__name__ == "VisionEgg.VisionEgg":
+                print """**********************************************************
+YOU APPEAR TO HAVE AN OLD COPY OF THE VISION EGG INSTALLED
+
+Please remove the old installation directory and re-install.
+
+The old installation directory is %s
+**********************************************************"""%(os.path.abspath(os.path.dirname(mod.__file__)),)
+            else:
+                unknown_import_fail = 1
+                traceback.print_exc()
+        except:
+            unknown_import_fail = 1
+            traceback.print_exc()
+except (ConfigParser.MissingSectionHeaderError, ConfigParser.NoSectionError):
+        print """**********************************************************
+YOU APPEAR TO HAVE AN OLD OR BROKEN COPY "VisionEgg.cfg" INSTALLED
+
+Please remove or rename the the file at the location specified above
+and re-install.
+
+The file name and location should be printed above.
+**********************************************************"""
+
 except:
     unknown_import_fail = 1
+    traceback.print_exc()
 
 if unknown_import_fail:
-    print """Could not import the VisionEgg module for an unknown reason.
-    
-    The exception raised was:"""
-    traceback.print_exc()
+    print """**********************************************************
+
+Could not import the VisionEgg module for an unknown reason.  See the
+traceback printed above.
+
+**********************************************************"""
 
 # Finally, do it!
 
