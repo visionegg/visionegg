@@ -9,19 +9,53 @@ except:
         """Fake function definition.  Your system doesn't support the real function.
         """
         pass
-    
-try:
-    from _dout import *
-except:
-    def toggle_dout():
-        """Fake function definition.  Your system doesn't support the real function.
-        """
-        pass
-    def set_dout(dummy_argument):
-        """Fake function definition.  Your system doesn't support the real function.
-        """
-        pass
 
+def toggle_dout():
+    """Toggle DOUT. NOT ENABLED ON YOUR SYSTEM.
+
+    This is a platform dependent function, which is not implemented on
+    your system."""
+    pass
+
+def set_dout(dummy_argument):
+    """Set DOUT. NOT ENABLED ON YOUR SYSTEM.
+
+    This is a platform dependent function, which is not implemented on
+    your system."""
+    pass
+
+if sys.platform == 'linux':
+    try:
+        # Try to override definition of dout functions:
+        from _dout import *
+    except:
+        pass
+    
+elif sys.platform == 'win32':
+    try:
+        import winioport
+
+        win32_platform_dependent_global_lpt_state = 0
+        def toggle_dout():
+            """Toggle DOUT.
+            
+            Win32 specific implementation: Toggles the lowest output
+            bit of LPT0 (0x378)."""
+            
+            win32_platform_dependent_global_lpt_state = not win32_platform_dependent_global_lpt_state
+            winioport.out(0x378,win32_platform_dependent_global_lpt_state)
+        def set_dout(value):
+            """Set DOUT.
+            
+            Win32 specific implementation: Sets the lowest output bit
+            of LPT0 (0x378)."""
+            
+            win32_platform_dependent_global_lpt_state = value
+            winioport.out(0x378,win32_platform_dependent_global_lpt_state)
+    except Exception, x:
+        print x
+        pass
+            
 def linux_but_not_nvidia():
     """Called if platform is linux, but drivers not nvidia."""
     # If you've added support for other drivers to sync with VBL under
