@@ -89,8 +89,14 @@ class Texture:
 
     If the data is a Numeric python array, floating point numbers are
     assumed to be in the range 0.0 to 1.0, and integers are assumed to
-    be in the range 0 to 255.
-    
+    be in the range 0 to 255.  The first index is the row (y
+    position), the second index is the column (x position), and if
+    it's RGB or RGBA data, the third index specifies the color band.
+    Thus, if the texel data was 640 pixels wide by 480 pixels tall,
+    the array would have shape (480,640) for luminance information,
+    (480,640,3) for RGB information, and (480,640,4) for RGBA
+    information.
+
     The 2D texture data is not sent to OpenGL (video texture memory)
     until the load() method is called.  The unload() method may be
     used to remove the data from OpenGL.
@@ -102,9 +108,6 @@ class Texture:
         if texels is None: # no texel data: make default
             self.size = (256,256) # an arbitrary default size
             texels = Image.new("RGB",self.size,(255,255,255)) # white
-##            draw = ImageDraw.Draw(texels)
-##            draw.line((0,0) + self.size, fill=(255,255,255))
-##            draw.line((0,self.size[1]) + (self.size[0],0), fill=(255,255,255))
 
         if type(texels) == types.FileType:
             texels = Image.open(texels) # Attempt to open as an image file
@@ -123,9 +126,9 @@ class Texture:
         elif type(texels) == Numeric.ArrayType: # Numeric Python array
             if len(texels.shape) == 3:
                 if texels.shape[2] not in [3,4]:
-                    raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
+                    raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
             elif len(texels.shape) != 2:
-                raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
+                raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
             self.size = ( texels.shape[1], texels.shape[0] )
         else:
             raise TypeError("texel data could not be recognized. (Use a PIL Image, Numeric array, or pygame surface.)")
@@ -827,6 +830,7 @@ class TextureObject:
             raise RuntimeError("Unknown number of dimensions.")
         
     def put_new_framebuffer(self,
+                            buffer='back',
                             mipmap_level = 0,
                             border = 0,
                             framebuffer_lowerleft = None,
@@ -848,6 +852,13 @@ class TextureObject:
         
         if self.dimensions not in [1,2,'cube']:
             raise RuntimeError("put_new_framebuffer only supported for 1D, 2D, and cube map textures.")
+
+        if buffer == 'front':
+            gl.glReadBuffer( gl.GL_FRONT )
+        elif buffer == 'back':
+            gl.glReadBuffer( gl.GL_BACK )
+        else:
+            raise ValueError('No support for "%s" framebuffer'%buffer)        
         
         # make myself the active texture
         if self.multitexture_unit:
@@ -1135,7 +1146,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             p.position = p.lowerleft
         if p.on:
             # calculate lowerleft corner
-            lowerleft = self._get_lowerleft()
+            lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
             
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -1183,30 +1194,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                 gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
                 gl.glVertex2f(l,t)
                 gl.glEnd() # GL_QUADS
-
-    def _get_lowerleft(self):
-        p = self.parameters
-        if p.anchor == 'lowerleft':
-            lowerleft = p.position
-        elif p.anchor == 'center':
-            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1] - p.size[1]/2.0)
-        elif p.anchor == 'lowerright':
-            lowerleft = (p.position[0] - p.size[0],p.position[1])
-        elif p.anchor == 'upperright':
-            lowerleft = (p.position[0] - p.size[0],p.position[1] - p.size[1])
-        elif p.anchor == 'upperleft':
-            lowerleft = (p.position[0],p.position[1] - p.size[1])
-        elif p.anchor == 'left':
-            lowerleft = (p.position[0],p.position[1] - p.size[1]/2.0)
-        elif p.anchor == 'right':
-            lowerleft = (p.position[0] - p.size[0],p.position[1] - p.size[1]/2.0)
-        elif p.anchor == 'bottom':
-            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1])
-        elif p.anchor == 'top':
-            lowerleft = (p.position[0] - p.size[0]/2.0,p.position[1] - p.size[1])
-        else:
-            raise ValueError("No anchor position %s"%p.anchor)
-        return lowerleft
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
@@ -1341,7 +1328,9 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
-                lowerleft = self._get_lowerleft_flat()
+                lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
+                lowerleft = lowerleft[0], lowerleft[1], p.position[2]
+                
                 # do the orientation
                 gl.glRotatef(p.orientation,0.0,0.0,-1.0)
                 gl.glTranslate(lowerleft[0],lowerleft[1],lowerleft[2])
@@ -1490,31 +1479,5 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glEnd()
             gl.glEndList()
             
-    def _get_lowerleft_flat(self):
-        """Only used when stimulus is flat"""
-        p = self.parameters
-        size = p.texture.size
-        if p.anchor == 'lowerleft':
-            lowerleft = p.position
-        elif p.anchor == 'center':
-            lowerleft = (p.position[0] - size[0]/2.0,p.position[1] - size[1]/2.0)
-        elif p.anchor == 'lowerright':
-            lowerleft = (p.position[0] - size[0],p.position[1])
-        elif p.anchor == 'upperright':
-            lowerleft = (p.position[0] - size[0],p.position[1] - size[1])
-        elif p.anchor == 'upperleft':
-            lowerleft = (p.position[0],p.position[1] - size[1])
-        elif p.anchor == 'left':
-            lowerleft = (p.position[0],p.position[1] - size[1]/2.0)
-        elif p.anchor == 'right':
-            lowerleft = (p.position[0] - size[0],p.position[1] - size[1]/2.0)
-        elif p.anchor == 'bottom':
-            lowerleft = (p.position[0] - size[0]/2.0,p.position[1])
-        elif p.anchor == 'top':
-            lowerleft = (p.position[0] - size[0]/2.0,p.position[1] - size[1])
-        else:
-            raise ValueError("No anchor position %s"%p.anchor)
-        return lowerleft[0], lowerleft[1], p.position[2]
-
 class TextureTooLargeError(VisionEgg.Core.EggError):
     pass
