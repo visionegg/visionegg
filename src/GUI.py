@@ -61,7 +61,7 @@ def showexception(exc_type, exc_value, traceback_str):
     f.winfo_toplevel().destroy()
                 
 class AppWindow(Tkinter.Frame):
-    """A GUI Window to be subclassed for your main application window"""
+    """A GUI Window that can be subclassed for a main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg')
@@ -302,10 +302,14 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 ##                            relief=Tkinter.FLAT).grid(row=cf_row,columnspan=2)
         
         if sys.platform == 'darwin':
-            Tkinter.Label(cf,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=cf_row,column=0)
-            cf_row += 1
-            Tkinter.Button(cf,text="PRESS ME FIRST").grid(row=cf_row,column=0)
-            cf_row += 1
+            if sys.version == '2.2 (#11, Jan  6 2002, 01:00:42) \n[GCC 2.95.2 19991024 (release)]':
+                if Tkinter.TkVersion == 8.4:
+                    # The Tk in Bob Ippolito's kitchensink distro had
+                    # a bug in Checkbutton
+                    Tkinter.Label(cf,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=cf_row,column=0)
+                    cf_row += 1
+                    Tkinter.Button(cf,text="PRESS ME FIRST").grid(row=cf_row,column=0)
+                    cf_row += 1
 
         ################## end cf ##############################
 
