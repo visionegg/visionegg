@@ -420,7 +420,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                                  gl.GL_RGBA,
                                                  gl.GL_UNSIGNED_BYTE)
             raw_format = 'RGBA'
-        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
+        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UInt8)
         fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
         # These work, but I don't know why.  There must be something I
         # don't understand about byte ordering!

@@ -49,7 +49,7 @@ def _get_type_info( bitdepth ):
     """Private helper function to calculate type info based on bit depth"""
     if bitdepth == 8:
         gl_type = gl.GL_UNSIGNED_BYTE
-        numeric_type = Numeric.UnsignedInt8
+        numeric_type = Numeric.UInt8
         max_int_val = float((2**8)-1)
     elif bitdepth == 12:
         gl_type = gl.GL_SHORT
