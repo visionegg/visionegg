@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Test whether your video drivers support setting gamma ramps"""
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *

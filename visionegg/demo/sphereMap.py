@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Mapping of texture onto sphere"""
 
 from VisionEgg import *
 from VisionEgg.Core import *
