@@ -84,7 +84,7 @@ def sync_swap_with_vbl_post_gl_init():
             try:
                 import _darwin_sync_swap
                 
-                _darwin_sync_swap.sync()
+                _darwin_sync_swap.sync_swap()
                 success = 1
             except Exception,x:
                 VisionEgg.Core.message.add("Failed trying to synchronize buffer swapping on darwin: %s: %s"%(str(x.__class__),str(x)))
