@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Sinusoidal grating calculated in realtime."""
+"""Random dot stimulus"""
 
 ############################
 #  Import various modules  #
@@ -16,7 +16,7 @@ screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # make black (RGBA)
 
 ######################################
-#  Create sinusoidal grating object  #
+#  Create random dot stimulus        #
 ######################################
 
 stimulus = DotArea2D( center                  = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
