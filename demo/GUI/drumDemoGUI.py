@@ -112,8 +112,16 @@ class DrumGui(AppWindow):
         p.go()
 
 screen = get_default_screen() # initialize graphics
-projection = SimplePerspectiveProjection(fov_x=90.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
+perspective = SimplePerspectiveProjection(fov_x=90.0)
+perspective_viewport = Viewport(screen,
+                                size=screen.size,
+                                projection=perspective)
+
+pixel_coords = OrthographicProjection(right=screen.size[0],
+                                      top=screen.size[1])
+flat_viewport = Viewport(screen,
+                         size=screen.size,
+                         projection=pixel_coords)
 
 try:
     texture = TextureFromFile("orig.bmp") # try to open a texture file
@@ -121,21 +129,19 @@ except:
     texture = Texture(size=(256,16)) # otherwise, generate one
 
 drum = SpinningDrum(texture=texture)
-drum.init_gl()
 
-fixation_spot = FixationSpot()
-fixation_spot.init_gl()
+fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
 
-viewport.add_stimulus(drum)
-viewport.add_stimulus(fixation_spot)
+perspective_viewport.add_stimulus(drum)
+flat_viewport.add_stimulus(fixation_spot)
 
-p = Presentation(viewports=[viewport])
+p = Presentation(viewports=[perspective_viewport,flat_viewport])
 gui_window = DrumGui(idle_func=p.between_presentations)
 
-p.add_transitional_controller(fixation_spot.parameters,'on',lambda t: gui_window.fixation_spot.get())
-p.add_transitional_controller(p.parameters,'duration',lambda t: (gui_window.duration.get(),'seconds'))
-p.add_realtime_time_controller(drum.parameters,'angle',gui_window.positionFunction)
-p.add_realtime_time_controller(drum.parameters,'contrast',gui_window.contrastFunction)
+p.add_transitional_controller(fixation_spot,'on',lambda t: gui_window.fixation_spot.get())
+p.add_transitional_controller(p,'duration',lambda t: (gui_window.duration.get(),'seconds'))
+p.add_realtime_time_controller(drum,'angular_position',gui_window.positionFunction)
+p.add_realtime_time_controller(drum,'contrast',gui_window.contrastFunction)
 
 gui_window.mainloop()
 

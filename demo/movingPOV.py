@@ -42,18 +42,24 @@ def projection_matrix_f(t):
 screen = get_default_screen()
 mid_x = screen.size[0]/2
 mid_y = screen.size[1]/2
-projection1 = SimplePerspectiveProjection(fov_x=90.0,aspect_ratio=(float(mid_x)/screen.size[1]))
-projection2 = SimplePerspectiveProjection()
-viewport1 = Viewport(screen,(0,0),(mid_x,screen.size[1]),projection1)
-viewport2 = Viewport(screen,(mid_x,0),(mid_x,screen.size[1]),projection2)
+projection1 = SimplePerspectiveProjection(fov_x=90.0,
+                                          aspect_ratio=(float(mid_x)/screen.size[1]))
+projection2 = SimplePerspectiveProjection() # Parameters set in realtime, so no need to specify here
+viewport1 = Viewport(screen,
+                     lowerleft=(0,0),
+                     size=(mid_x,screen.size[1]),
+                     projection=projection1)
+viewport2 = Viewport(screen,
+                     lowerleft=(mid_x,0),
+                     size=(mid_x,screen.size[1]),
+                     projection=projection2)
 stimulus = SpinningDrum()
-stimulus.init_gl()
 viewport1.add_stimulus(stimulus)
 viewport2.add_stimulus(stimulus)
 
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
 
-p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of_time)
-p.add_realtime_time_controller(projection2.parameters,'matrix', projection_matrix_f)
+p.add_realtime_time_controller(stimulus,'angular_position', angle_as_function_of_time)
+p.add_realtime_time_controller(projection2,'matrix', projection_matrix_f)
 
 p.go()
