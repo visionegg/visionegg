@@ -153,6 +153,9 @@ class Viewport:
         else:
             self.stimuli.insert(draw_order,stimulus)
 
+    def remove_stimulus(self,stimulus):
+        self.stimuli.remove(stimulus)
+
     def draw(self):
         """Set the viewport and draw stimuli."""
         self.screen.make_current()
@@ -399,12 +402,38 @@ class Presentation:
             raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
         self.realtime_controllers.append((parameters,name,controller))
 
+    def remove_realtime_controller(self, parameters, name):
+        if not isinstance(parameters,Parameters):
+            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
+        if not hasattr(parameters,name):
+            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+        i = 0
+        while i < len(self.realtime_controllers):
+            orig_parameters,orig_name,orig_controller = self.realtime_controllers[i]
+            if orig_parameters == parameters and orig_name == name:
+                del self.realtime_controllers[i]
+            else:
+                i = i + 1
+
     def add_transitional_controller(self, parameters, name, controller):
         if not isinstance(parameters,Parameters):
             raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
         if not hasattr(parameters,name):
             raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
         self.transitional_controllers.append((parameters,name,controller))
+
+    def remove_transitional_controller(self, parameters, name):
+        if not isinstance(parameters,Parameters):
+            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
+        if not hasattr(parameters,name):
+            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+        i = 0
+        while i < len(self.transitional_controllers):
+            orig_parameters,orig_name,orig_controller = self.transitional_controllers[i]
+            if orig_parameters == parameters and orig_name == name:
+                del self.transitional_controllers[i]
+            else:
+                i = i + 1
 
     def go(self):
         """Main control loop during stimulus presentation.
