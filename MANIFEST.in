@@ -13,3 +13,4 @@ exclude demo/gamma.py
 exclude demo/*_movie.py
 include test/*.py
 exclude test/texture_test_GUI.py
+include data/panorama.jpg
