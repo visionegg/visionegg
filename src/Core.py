@@ -240,12 +240,12 @@ class Screen(VisionEgg.ClassWithParameters):
 
 class Projection(VisionEgg.ClassWithParameters):
     """Abstract base class to define interface for OpenGL projection matrices"""
-    parameters_and_defaults = {'matrix':(Numeric.array(
+    parameters_and_defaults = {'matrix':(
         [[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
          [0.0, 1.0, 0.0, 0.0],
          [0.0, 0.0, 1.0, 0.0],
-         [0.0, 0.0, 0.0, 1.0]]),
-                                         Numeric.ArrayType) }
+         [0.0, 0.0, 0.0, 1.0]],
+        types.ListType) }
                                
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
@@ -380,11 +380,14 @@ class Viewport(VisionEgg.ClassWithParameters):
             self.parameters.size = self.screen.size
         if self.parameters.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
-            self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
-                                                                bottom=0,top=self.parameters.size[1],
-                                                                z_clip_near=0.0,
-                                                                z_clip_far=1.0)
+            self.parameters.projection = self.make_new_pixel_coord_projection()
 
+    def make_new_pixel_coord_projection(self):
+        return OrthographicProjection(left=0,right=self.parameters.size[0],
+                                      bottom=0,top=self.parameters.size[1],
+                                      z_clip_near=0.0,
+                                      z_clip_far=1.0)
+    
     def add_stimulus(self,stimulus,draw_order=-1):
         """Add a stimulus to the list of those drawn in the viewport
 
@@ -649,7 +652,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
     def add_controller( self, class_with_parameters, parameter_name, controller ):
         # Check if type checking needed
-        if type(class_with_parameters) != types.NoneType or type(parameter_name) != types.NoneType:
+        if type(class_with_parameters) != types.NoneType and type(parameter_name) != types.NoneType:
             # Check if return type of controller eval is same as parameter type
             if controller.returns_type() != class_with_parameters.get_specified_type(parameter_name):
                 if not issubclass( controller.returns_type(), class_with_parameters.get_specified_type(parameter_name) ):
@@ -676,7 +679,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                          doing_transition=None):
         for (parameters_instance, parameter_name, controller) in self.controllers:
             if doing_transition:
-                if controller.eval_frequency == Controller.TRANSITIONS:
+                if controller.eval_frequency == Controller.TRANSITIONS: # or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
                     if go_started:
                         result = controller.during_go_eval()
                         if parameter_name is not None:
@@ -685,7 +688,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                         result = controller.between_go_eval()
                         if parameter_name is not None:
                             setattr(parameters_instance, parameter_name, result)
-            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.EVERY_FRAME_NOT_IN_GO:
+            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
                 if controller.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
                     controller.temporal_variable = time_sec_since_go
                 elif controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
@@ -694,10 +697,13 @@ class Presentation(VisionEgg.ClassWithParameters):
                     controller.temporal_variable = time_sec_absolute
                     
                 if go_started:
-                    result = controller.during_go_eval()
-                    if parameter_name is not None:
-                        if not controller.eval_frequency == Controller.EVERY_FRAME_NOT_IN_GO:
-                            setattr(parameters_instance, parameter_name, result)
+                    if parameter_name is None:
+                        controller.during_go_eval()
+                    else:
+                        # XXX This if statementis a hack that slows stuff down just
+                        # to support deprecated DEPRECATED_TRANSITIONAL eval_frequency
+                        if ((not controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL) or time_sec_since_go==0.0):
+                            setattr(parameters_instance, parameter_name, controller.during_go_eval())
                 else:
                     result = controller.between_go_eval()
                     if parameter_name is not None:
@@ -715,11 +721,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 and possibly other deprecated Presentation class
                 methods called.  These methods will be removed from
                 future releases.  They also create instances of
-                CompatibilityController class, which is also
+                DeprecatedCompatibilityController class, which is also
                 deprecated.""",
                 level=Message.DEPRECATION)
             Presentation.__DEPRECATION_WARNING_SENT = 1
-        cc = CompatibilityController(eval_func=controller_function,
+        cc = DeprecatedCompatibilityController(eval_func=controller_function,
                                      temporal_variable_type=Controller.TIME_SEC_SINCE_GO)
         self.add_controller(class_with_parameters,parameter_name,cc)
     def remove_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
@@ -727,7 +733,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         i=0
         while i < len(self.controllers):
             orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
-            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+            if isinstance(orig_controller, DeprecatedCompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
                 self.remove_controller(class_with_parameters,parameter_name,orig_controller)
                 break
             i = i + 1
@@ -739,11 +745,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 and possibly other deprecated Presentation class
                 methods called.  These methods will be removed from
                 future releases.  They also create instances of
-                CompatibilityController class, which is also
+                DeprecatedCompatibilityController class, which is also
                 deprecated.""",
                 level=Message.DEPRECATION)
             Presentation.__DEPRECATION_WARNING_SENT = 1
-        cc = CompatibilityController(eval_func=controller_function,
+        cc = DeprecatedCompatibilityController(eval_func=controller_function,
                                      temporal_variable_type=Controller.FRAMES_SINCE_GO)
         self.add_controller(class_with_parameters,parameter_name,cc)
     def remove_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
@@ -751,7 +757,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         i=0
         while i < len(self.controllers):
             orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
-            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+            if isinstance(orig_controller, DeprecatedCompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
                 self.remove_controller(class_with_parameters,parameter_name,orig_controller)
                 break
             i = i + 1
@@ -763,20 +769,20 @@ class Presentation(VisionEgg.ClassWithParameters):
                 and possibly other deprecated Presentation class
                 methods called.  These methods will be removed from
                 future releases.  They also create instances of
-                CompatibilityController class, which is also
+                DeprecatedCompatibilityController class, which is also
                 deprecated.""",
                 level=Message.DEPRECATION)
             Presentation.__DEPRECATION_WARNING_SENT = 1
-        cc = CompatibilityController(eval_func=controller_function,
+        cc = DeprecatedCompatibilityController(eval_func=controller_function,
                                      temporal_variable_type=Controller.TIME_SEC_SINCE_GO,
-                                     eval_frequency=Controller.EVERY_FRAME_NOT_IN_GO)
+                                     eval_frequency=Controller.DEPRECATED_TRANSITIONAL)
         self.add_controller(class_with_parameters,parameter_name,cc)
     def remove_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
         """DEPRECATED"""
         i=0
         while i < len(self.controllers):
             orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
-            if isinstance(orig_controller, CompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
+            if isinstance(orig_controller, DeprecatedCompatibilityController) and orig_parameters==class_with_parameters.parameters and orig_parameter_name==parameter_name and orig_controller.eval_func == controller_function:
                 self.remove_controller(class_with_parameters,parameter_name,orig_controller)
                 break
             i = i + 1
@@ -1073,7 +1079,7 @@ class Controller:
     # Possible eval frequency:
     EVERY_FRAME = 1
     TRANSITIONS = 2
-    EVERY_FRAME_NOT_IN_GO = 3 # only for deprecated behavior, don't use!
+    DEPRECATED_TRANSITIONAL = 3 # only for deprecated behavior, don't use!
     
     def __init__(self,
                  parameter_type = types.NoneType,
@@ -1137,39 +1143,34 @@ class EvalStringController(Controller):
         t = self.temporal_variable
         return eval(self.between_go_eval_string)
 
-class CompatibilityController(Controller):
+class DeprecatedCompatibilityController(Controller):
     """DEPRECATED. Allows emulation of purely function-based controllers."""
-    __DEPRECATION_WARNING_SENT = 0
     def __init__(self,
                  eval_func = lambda t: t,
                  **kw
                  ):
 
-        if not (isinstance(eval_func,types.FunctionType) or isinstance(eval_func,types.MethodType)):
-            raise TypeError("Must pass function to CompatibilityController, not type %s"%type(eval_func))
+        if type(eval_func) not in [types.FunctionType,types.MethodType]:
+            raise TypeError("Must pass function to DeprecatedCompatibilityController.")
 
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = Controller.EVERY_FRAME
 
-        temp_result = eval_func(-1)
-        if type(temp_result) is types.InstanceType:
-            my_type = temp_result.__class__
+        test_result = eval_func(-1)
+        result_type = type(test_result)
+        if result_type == types.InstanceType:
+            my_type = test_result.__class__
         else:
-            my_type = type(temp_result)
+            my_type = result_type
         
         if 'parameter_type' in kw.keys():
             if kw['parameter_type'] != my_type:
-                raise ValueError("parameter_type for CompatibilityController must be type(eval_func(-1))")
+                raise ValueError("parameter_type for DeprecatedCompatibilityController must be type(eval_func(-1))")
         else:
             kw['parameter_type'] = my_type
 
         apply(Controller.__init__,(self,),kw)
         self.eval_func = eval_func
-        if not CompatibilityController.__DEPRECATION_WARNING_SENT:
-            message.add(
-                """Deprecated class use: CompatibilityController.
-                This class will be removed in a future release.""",
-                level=Message.DEPRECATION)
             
     def during_go_eval(self):
         return self.eval_func(self.temporal_variable)
