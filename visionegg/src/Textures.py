@@ -138,6 +138,7 @@ class TextureBuffer:
         # therefore just forces its way around the issue.
         self.gl_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
+        glEnable( GL_TEXTURE_2D )
         if self.im.mode == "RGB":
             image_data = self.im.tostring("raw","RGB")
 
@@ -199,6 +200,11 @@ class TextureBuffer:
         else:
             raise EggError("Unknown image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
+        # Set some texture object defaults
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)        
         return self.gl_id
 
     def put_sub_image(self,pil_image,lower_left, size):
@@ -323,7 +329,8 @@ class TextureStimulus(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
-    parameters_and_defaults = {'num_sides':50,
+    parameters_and_defaults = {'flat_projection':None, # set in __init__, only used when texture in flat mode
+                               'num_sides':50,
                                'angle':0.0,
                                'contrast':1.0,
                                'on':1,
@@ -331,11 +338,25 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'dist_from_o':1.0 # z if flat, radius if cylinder
                                }
     
-    def __init__(self,texture=Texture(size=(256,16)),**kw):
+    def __init__(self,texture=Texture(size=(256,16)),flat_projection=None,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
         self.texture = texture
-        
         self.texture_object = self.texture.load()
+
+        # To make texture original size, set flat_projection as an
+        # orthographic projection where left=0,
+        # right=viewport.parameters.size[0],
+        # bottom=0,top=viewport.parameters.size[1].
+
+        # Make sure flat_projection is set
+        if flat_projection is not None:
+            # Use the user-supplied projection
+            self.parameters.flat_projection = flat_projection
+        else:
+            # No user-supplied flat_projection, use the default. (Which is probably None.)
+            if self.parameters.flat_projection is None:
+                # Since the default flat_projection is None, set it to something useful.
+                self.parameters.flat_projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
 
     def draw(self):
     	"""Redraw the scene on every frame.
@@ -388,36 +409,72 @@ class SpinningDrum(TextureStimulusBaseClass):
             glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
             if self.parameters.flat: # draw as flat texture on a rectange
-                z = -self.parameters.dist_from_o # in OpenGL (arbitrary) units
-                h = float(self.texture.height-1)*0.5
-                w = float(self.texture.width-1)*0.5
+                # save then set projection matrix
+                self.parameters.flat_projection.push_and_set_gl_projection()
+                w = self.texture.width
+                h = self.texture.height
+
                 # calculate texture coordinates based on current angle
                 tex_phase = self.parameters.angle/360.0
-
-                # For this to work, the texture must be repeat mode
-
-                # XXX Because the textures are flipped, the texture
-                # coordinates are vertically flipped below
-
-                glBegin(GL_QUADS)
-                #Bottom left of quad
-                glTexCoord2f(tex_phase,self.texture.buf_bf)
-                glVertex4f( -w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
-
-                #Bottom right of quad
-                glTexCoord2f(tex_phase+1.0,self.texture.buf_bf)
-                glVertex4f( w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
-                #Top right of quad
-                glTexCoord2f(tex_phase+1.0,self.texture.buf_tf)
-                glVertex4f( w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
-                
-                #Top left of quad
-                glTexCoord2f(tex_phase,self.texture.buf_tf)
-                glVertex4f( -w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
-                
-                glEnd()
-        
+                TINY = 1.0e-10
+                if tex_phase < TINY: # it's effectively zero
+
+                    glBegin(GL_QUADS)
+                    glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+                    glVertex2f(0.0,0.0)
+
+                    glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+                    glVertex2f(w,0.0)
+
+                    glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+                    glVertex2f(w,h)
+
+                    glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+                    glVertex2f(0.0,h)
+                    glEnd() # GL_QUADS
+
+                else:
+                    # Convert tex_phase into texture buffer fraction
+                    buf_break_f = ( (self.texture.buf_rf - self.texture.buf_lf) * (1.0-tex_phase) ) + self.texture.buf_lf
+
+                    # Convert tex_phase into object coords value
+                    quad_x_break = w * tex_phase
+
+                    glBegin(GL_QUADS)
+
+                    # First quad
+
+                    glTexCoord2f(buf_break_f,self.texture.buf_bf)
+                    glVertex2f(0.0,0.0)
+
+                    glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+                    glVertex2f(quad_x_break,0.0)
+
+                    glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+                    glVertex2f(quad_x_break,h)
+
+                    glTexCoord2f(buf_break_f,self.texture.buf_tf)
+                    glVertex2f(0.0,h)
+
+                    # Second quad
+
+                    glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+                    glVertex2f(quad_x_break,0.0)
+
+                    glTexCoord2f(buf_break_f,self.texture.buf_bf)
+                    glVertex2f(w,0.0)
+
+                    glTexCoord2f(buf_break_f,self.texture.buf_tf)
+                    glVertex2f(w,h)
+
+                    glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+                    glVertex2f(quad_x_break,h)
+                    glEnd() # GL_QUADS
+
+                glPopMatrix() # restore projection matrix
+
             else: # draw as cylinder
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
