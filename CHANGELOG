@@ -5,7 +5,10 @@ MAJOR: Added frame-by-frame control with realtime_frame_contoller.
 sure you set your OpenGL driver to swap buffers at vertical retrace
 sync if you use this feature!
 
-Must specify duration of stimulus units now, either seconds or frames.
+Added support for on-screen text though VisionEgg.Text module.
+Bitmapped text works pretty well, stroke fonts have a few issues still.
+
+Must specify units for stimulus duration, either seconds or frames.
 
 Created new module PlatformDependent, which houses all the platform
 dependent C code.  Re-enabled setting of maximum priority (on linux,
@@ -13,6 +16,8 @@ at least).
 
 Made lower_left and size attributes of Viewport class part of
 parameters, so now they can be changed in realtime.
+
+Added automatic detection of all extensions in tests/opengl_info.py.
 
 Changes for 0.8.1:
 ------------------
