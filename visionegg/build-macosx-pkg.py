@@ -47,6 +47,8 @@ SCRIPTS=%s/VisionEgg
 echo "Creating a link on your desktop to the VisionEgg script directory."
 ln -s $SCRIPTS ~/Desktop/VisionEgg
 chmod a+wx ~/Desktop/VisionEgg
+
+# Should check for old VisionEgg.cfg files, but this version does not do that.
 """%(default_location,)
 
 post_install = """#!/bin/sh
