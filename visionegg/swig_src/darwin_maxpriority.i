@@ -32,7 +32,7 @@ extern int set_self_pthread_priority( int policy, int priority );
   $action
   if (errno) {
     PyErr_SetFromErrno(PyExc_OSError);
-    goto fail;
+    goto fail; // this line supported on swig 1.3.17
   }
 }
 

@@ -645,7 +645,7 @@ static PyObject *_wrap_set_self_policy_priority(PyObject *self, PyObject *args) 
         
         if (errno) {
             PyErr_SetFromErrno(PyExc_OSError);
-            goto fail;
+            goto fail; // this line supported on swig 1.3.17
         }
     }
     resultobj = PyInt_FromLong((long)result);
@@ -666,7 +666,7 @@ static PyObject *_wrap_stop_memory_paging(PyObject *self, PyObject *args) {
         
         if (errno) {
             PyErr_SetFromErrno(PyExc_OSError);
-            goto fail;
+            goto fail; // this line supported on swig 1.3.17
         }
     }
     resultobj = PyInt_FromLong((long)result);
@@ -688,7 +688,7 @@ static PyObject *_wrap_sched_get_priority_max(PyObject *self, PyObject *args) {
         
         if (errno) {
             PyErr_SetFromErrno(PyExc_OSError);
-            goto fail;
+            goto fail; // this line supported on swig 1.3.17
         }
     }
     resultobj = PyInt_FromLong((long)result);
