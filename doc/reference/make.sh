@@ -53,5 +53,5 @@ $PYTHON pydoc.py -w VisionEgg.darwin_getrefresh
 $PYTHON pydoc.py -w VisionEgg.darwin_maxpriority
 $PYTHON pydoc.py -w VisionEgg.gl_qt
 $PYTHON pydoc.py -w VisionEgg.posix_maxpriority
-$PYTHON pydoc.py -w VisionEgg.win32_getrefresh.py
+$PYTHON pydoc.py -w VisionEgg.win32_getrefresh
 $PYTHON pydoc.py -w VisionEgg.win32_maxpriority
