@@ -48,8 +48,8 @@ class TransformMatrix:
         S[2,1] = u[0]
         U = Numeric.outerproduct(u,u)
         R = U + math.cos(angleRadians)*(MLab.eye(3)-U) + math.sin(angleRadians)*S
-        R = Numeric.concatenate( (R,Numeric.zeros( (3,1), typecode=Numeric.Float)), axis=1)
-        R = Numeric.concatenate( (R,Numeric.zeros( (1,4), typecode=Numeric.Float)), axis=0)
+        R = Numeric.concatenate( (R,Numeric.zeros( (3,1), Numeric.Float)), axis=1)
+        R = Numeric.concatenate( (R,Numeric.zeros( (1,4), Numeric.Float)), axis=0)
         R[3,3] = 1.0
         self.matrix = Numeric.matrixmultiply(R,self.matrix)
 
