@@ -233,6 +233,8 @@ class TextureBuffer:
 
             # Do error-checking on texture to make sure it will load
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
+            if type(max_dim) != types.IntType:
+                raise VisionEgg.Core.EggError("An OpenGL screen must be open before creating a texture.")
             if self.im.size[0] > max_dim or self.im.size[1] > max_dim:
                 self.free() # Delete texture from OpenGL
                 raise TextureTooLargeError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
