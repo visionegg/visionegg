@@ -5,7 +5,9 @@ import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 from VisionEgg.Core import *
-from VisionEgg.FlowControl import Presentation, Controller, ConstantController, EvalStringController
+from VisionEgg.FlowControl import Presentation, \
+     ConstantController, EvalStringController, \
+     EVERY_FRAME, TIME_SEC_ABSOLUTE
 from VisionEgg.Gratings import *
 from VisionEgg.TCPController import *
 import sys
@@ -83,8 +85,8 @@ orientation_controller = tcp_listener.create_tcp_controller(
     tcp_name="orient",
     initial_controller=EvalStringController(during_go_eval_string="0.0",
                                             between_go_eval_string="fmod(t_abs,360.0/5.0)*5.0",
-                                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME,
-                                            temporal_variables=VisionEgg.FlowControl.Controller.TIME_SEC_ABSOLUTE)
+                                            eval_frequency=EVERY_FRAME,
+                                            temporal_variables=TIME_SEC_ABSOLUTE)
     )
 num_samples_controller = tcp_listener.create_tcp_controller(
     tcp_name="num_samples",

@@ -1,6 +1,6 @@
 # The Vision Egg: FlowControl
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw.
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -199,7 +199,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             if not (type(class_with_parameters) == types.NoneType and type(parameter_name) == types.NoneType):
                 raise ValueError("Neither or both of class_with_parameters and parameter_name must be None.")
             self.controllers.append( (None,None,controller) )
-        if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
+        if controller.temporal_variables & (FRAMES_SINCE_GO|FRAMES_ABSOLUTE):
             self.num_frame_controllers = self.num_frame_controllers + 1
 
     def remove_controller( self, class_with_parameters, parameter_name, controller=None ):
@@ -231,7 +231,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                     controller = self.controllers[i][2]
-                    if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
+                    if controller.temporal_variables & (FRAMES_SINCE_GO|FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
                     del self.controllers[i]
                 else:
@@ -242,7 +242,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
-                    if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
+                    if controller.temporal_variables & (FRAMES_SINCE_GO|FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
                     i = i + 1
@@ -253,34 +253,34 @@ class Presentation(VisionEgg.ClassWithParameters):
         done_once = [] # list of ONCE contollers to switch status of
         for (parameters_instance, parameter_name, controller) in self.controllers:
             evaluate = 0
-            if controller.eval_frequency & Controller.ONCE:
+            if controller.eval_frequency & ONCE:
                 evaluate = 1
                 done_once.append(controller)
-            elif doing_transition and (controller.eval_frequency & Controller.TRANSITIONS):
+            elif doing_transition and (controller.eval_frequency & TRANSITIONS):
                 evaluate = 1
-            elif controller.eval_frequency & Controller.EVERY_FRAME:
+            elif controller.eval_frequency & EVERY_FRAME:
                 evaluate = 1
 
             if evaluate:
-                if controller.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+                if controller.temporal_variables & TIME_SEC_ABSOLUTE:
                     controller.time_sec_absolute = self.time_sec_absolute
-                if controller.temporal_variables & Controller.FRAMES_ABSOLUTE:
+                if controller.temporal_variables & FRAMES_ABSOLUTE:
                     controller.frames_absolute = self.frames_absolute
 
                 if go_started:
-                    if not (controller.eval_frequency & Controller.NOT_DURING_GO):
-                        if controller.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                    if not (controller.eval_frequency & NOT_DURING_GO):
+                        if controller.temporal_variables & TIME_SEC_SINCE_GO:
                             controller.time_sec_since_go = self.time_sec_since_go
-                        if controller.temporal_variables & Controller.FRAMES_SINCE_GO:
+                        if controller.temporal_variables & FRAMES_SINCE_GO:
                             controller.frames_since_go = self.frames_since_go
                         result = controller.during_go_eval()
                         if parameter_name is not None:
                             setattr(parameters_instance, parameter_name, result)
                 else:
-                    if not (controller.eval_frequency & Controller.NOT_BETWEEN_GO):
-                        if controller.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+                    if not (controller.eval_frequency & NOT_BETWEEN_GO):
+                        if controller.temporal_variables & TIME_SEC_SINCE_GO:
                             controller.time_sec_since_go = None
-                        if controller.temporal_variables & Controller.FRAMES_SINCE_GO:
+                        if controller.temporal_variables & FRAMES_SINCE_GO:
                             controller.frames_since_go = None
                         result = controller.between_go_eval()
                         if parameter_name is not None:
@@ -288,9 +288,9 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         for controller in done_once:
             #Unset ONCE flag
-            controller.eval_frequency = controller.eval_frequency & ~Controller.ONCE
+            controller.eval_frequency = controller.eval_frequency & ~ONCE
             if isinstance(controller,EncapsulatedController):
-                controller.contained_controller.eval_frequency = controller.contained_controller.eval_frequency & ~Controller.ONCE
+                controller.contained_controller.eval_frequency = controller.contained_controller.eval_frequency & ~ONCE
 
     def is_in_go_loop(self):
         """Queries if the presentation is in a go loop.
@@ -698,37 +698,43 @@ class Controller(object):
     temporal_variables -- what time variables used (see above)
     
     A Controller instance's attribute "eval_frequency" controls when a
-    controller is evaluated. This variable is a bitwise "or" of the
-    following flags:
+    controller is evaluated. This variable is a bitwise "or" (the |
+    operator) of the following flags:
 
-    Controller.EVERY_FRAME    -- every frame
-    Controller.TRANSITIONS    -- on enter and exit from go loop
-    Controller.ONCE           -- as above and at the next chance possible
-    Controller.NOT_DURING_GO  -- as above, but never during go loop
-    Controller.NOT_BETWEEN_GO -- as above, but never between go loops
+    EVERY_FRAME    -- every frame
+    TRANSITIONS    -- on enter and exit from go loop
+    ONCE           -- at the next chance possible (see below)
+    NOT_DURING_GO  -- as above, but never during go loop (see below)
+    NOT_BETWEEN_GO -- as above, but never between go loops (see below)
 
-    If none of these flags is set, the value is:
-
-    Controller.NEVER          -- this controller is never called
-
-    The Controller.ONCE flag is automatically unset after evaluation,
+    The ONCE flag is automatically unset after evaluation,
     hence its name. As an example, if eval_frequency is set to
-    Controller.ONCE | Controller.TRANSITIONS (the bitwise "or"), it
-    will be evaluated before drawing the next frame and then only
-    before and after the go loop.
+    ONCE | TRANSITIONS, it will be evaluated
+    before drawing the next frame and then only before and after the
+    go loop.
+
+    NOT_DURING_GO and NOT_BETWEEN_GO modify other behavior. For
+    example, to evaluate a controller on every frame during go loops
+    but not between go loops:
+
+    eval_frequency = EVERY_FRAME | NOT_BETWEEN_GO
+
+    If none of the above flags is set, the value is:
+
+    NEVER          -- this controller is never called
 
     A Controller instance's attribute "temporal_variables" controls
     what time variables are set for use. This variable is a bitwise
     "or" of the following flags:
 
-    Controller.TIME_SEC_ABSOLUTE -- seconds, continuously increasing
-    Controller.TIME_SEC_SINCE_GO -- seconds, reset to 0.0 each go loop
-    Controller.FRAMES_ABSOLUTE   -- frames, continuously increasing
-    Controller.FRAMES_SINCE_GO   -- frames, reset to 0 each go loop
+    TIME_SEC_ABSOLUTE -- seconds, continuously increasing
+    TIME_SEC_SINCE_GO -- seconds, reset to 0.0 each go loop
+    FRAMES_ABSOLUTE   -- frames, continuously increasing
+    FRAMES_SINCE_GO   -- frames, reset to 0 each go loop
 
     If none of these flags is set, the value is:
 
-    Controller.TIME_INDEPENDENT -- No temporal variables.
+    TIME_INDEPENDENT -- No temporal variables.
 
     When the eval methods (during_go_eval and between_go_eval) are
     called, attributes are set depending on the temporal variables
@@ -806,7 +812,7 @@ class Controller(object):
 
     def evaluate_now(self):
         """Call this after updating the values of a controller if it's not evaluated EVERY_FRAME."""
-        self.eval_frequency = self.eval_frequency | Controller.ONCE
+        self.eval_frequency = self.eval_frequency | ONCE
 
     def set_eval_frequency(self,eval_frequency):
         self.eval_frequency = eval_frequency
@@ -835,23 +841,23 @@ class Controller(object):
         the temporal variables are set to -1 and that the return value
         is not used to set parameters."""
         
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             self.time_sec_absolute = -1.0
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             self.frames_absolute = -1
 
         if go_started:
-            if not (self.eval_frequency & Controller.NOT_DURING_GO):
-                if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+            if not (self.eval_frequency & NOT_DURING_GO):
+                if self.temporal_variables & TIME_SEC_SINCE_GO:
                     self.time_sec_since_go = -1.0
-                if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+                if self.temporal_variables & FRAMES_SINCE_GO:
                     self.frames_since_go = -1
                 return self.during_go_eval()
         else:
-            if not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
-                if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+            if not (self.eval_frequency & NOT_BETWEEN_GO):
+                if self.temporal_variables & TIME_SEC_SINCE_GO:
                     self.time_sec_since_go = None
-                if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+                if self.temporal_variables & FRAMES_SINCE_GO:
                     self.frames_since_go = None
                 return self.between_go_eval()
     
@@ -863,7 +869,7 @@ class ConstantController(Controller):
                  **kw
                  ):
         kw.setdefault('return_type',ve_types.get_type(during_go_value))
-        kw.setdefault('eval_frequency',Controller.ONCE | Controller.TRANSITIONS)
+        kw.setdefault('eval_frequency',ONCE | TRANSITIONS)
         Controller.__init__(self,**kw)
         if self.return_type is not types.NoneType and during_go_value is None:
             raise ValueError("Must specify during_go_value")
@@ -966,13 +972,13 @@ class EvalStringController(Controller):
         # Call base class __init__
         Controller.__init__(self,**kw)
         if not_between_go:
-            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
+            self.eval_frequency = self.eval_frequency|NOT_BETWEEN_GO
         if set_return_type:
             logger = logging.getLogger('VisionEgg.FlowControl')
-            if not (self.eval_frequency & Controller.NOT_DURING_GO):
+            if not (self.eval_frequency & NOT_DURING_GO):
                 logger.debug( 'Executing "%s" to test for return type.'%(during_go_eval_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=1))
-            elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
+            elif not (self.eval_frequency & NOT_BETWEEN_GO):
                 logger.debug('Executing "%s" to test for return type.'%(between_go_eval_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=0))
                 
@@ -986,7 +992,7 @@ class EvalStringController(Controller):
     def set_between_go_eval_string(self,between_go_eval_string):
         self.between_go_eval_code = compile(between_go_eval_string,'<string>','eval')
         self.between_go_eval_string = between_go_eval_string
-        self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
+        self.eval_frequency = self.eval_frequency & ~NOT_BETWEEN_GO
 
     def get_between_go_eval_string(self):
         if hasattr(self,"between_go_eval_string"):
@@ -997,22 +1003,22 @@ class EvalStringController(Controller):
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         eval_locals = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             eval_locals['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+        if self.temporal_variables & TIME_SEC_SINCE_GO:
             eval_locals['t'] = self.time_sec_since_go
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             eval_locals['f_abs'] = self.frames_absolute
-        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+        if self.temporal_variables & FRAMES_SINCE_GO:
             eval_locals['f'] = self.frames_since_go
         return eval(self.during_go_eval_code,self.eval_globals,eval_locals)
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         eval_locals = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             eval_locals['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             eval_locals['f_abs'] = self.frames_absolute
         return eval(self.between_go_eval_code,self.eval_globals,eval_locals)
     
@@ -1085,13 +1091,13 @@ class ExecStringController(Controller):
         # Call base class __init__
         Controller.__init__(self,**kw)
         if not_between_go:
-            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO        
+            self.eval_frequency = self.eval_frequency|NOT_BETWEEN_GO        
         if set_return_type:
             logger = logging.getLogger('VisionEgg.FlowControl')
-            if not (self.eval_frequency & Controller.NOT_DURING_GO):
+            if not (self.eval_frequency & NOT_DURING_GO):
                 logger.debug('Executing "%s" to test for return type.'%(during_go_exec_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=1))
-            elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
+            elif not (self.eval_frequency & NOT_BETWEEN_GO):
                 logger.debug('Executing "%s" to test for return type.'%(between_go_exec_string,))
                 self.return_type = ve_types.get_type(self._test_self(go_started=0))
 
@@ -1105,7 +1111,7 @@ class ExecStringController(Controller):
     def set_between_go_exec_string(self,between_go_exec_string):
         self.between_go_exec_code = compile(between_go_exec_string,'<string>','exec')
         self.between_go_exec_string = between_go_exec_string
-        self.eval_frequency = self.eval_frequency & ~Controller.NOT_BETWEEN_GO
+        self.eval_frequency = self.eval_frequency & ~NOT_BETWEEN_GO
 
     def get_between_go_exec_string(self):
         if hasattr(self,"between_go_exec_string"):
@@ -1116,13 +1122,13 @@ class ExecStringController(Controller):
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         eval_locals = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             eval_locals['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+        if self.temporal_variables & TIME_SEC_SINCE_GO:
             eval_locals['t'] = self.time_sec_since_go
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             eval_locals['f_abs'] = self.frames_absolute
-        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+        if self.temporal_variables & FRAMES_SINCE_GO:
             eval_locals['f'] = self.frames_since_go
         if self.restricted_namespace:
             exec self.during_go_exec_code in self.eval_globals,eval_locals
@@ -1138,9 +1144,9 @@ class ExecStringController(Controller):
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         eval_locals = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             eval_locals['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             eval_locals['f_abs'] = self.frames_absolute
         if self.restricted_namespace:
             exec self.between_go_exec_code in self.eval_globals,eval_locals
@@ -1197,20 +1203,20 @@ class FunctionController(Controller):
             raise ValueError("Must specify during_go_func")
             
         # Set default value if not set
-        kw.setdefault('temporal_variables',Controller.TIME_SEC_SINCE_GO) # default value
+        kw.setdefault('temporal_variables',TIME_SEC_SINCE_GO) # default value
 
         # Check to make sure return_type is set
         if not kw.has_key('return_type'):
             logger = logging.getLogger('VisionEgg.FlowControl')
             logger.debug('Evaluating %s to test for return type.'%(str(during_go_func),))
             call_args = {}
-            if kw['temporal_variables'] & Controller.TIME_SEC_ABSOLUTE:
+            if kw['temporal_variables'] & TIME_SEC_ABSOLUTE:
                 call_args['t_abs'] = VisionEgg.time_func()
-            if kw['temporal_variables'] & Controller.TIME_SEC_SINCE_GO:
+            if kw['temporal_variables'] & TIME_SEC_SINCE_GO:
                 call_args['t'] = 0.0
-            if kw['temporal_variables'] & Controller.FRAMES_ABSOLUTE:
+            if kw['temporal_variables'] & FRAMES_ABSOLUTE:
                 call_args['f_abs'] = 0
-            if kw['temporal_variables'] & Controller.FRAMES_SINCE_GO:
+            if kw['temporal_variables'] & FRAMES_SINCE_GO:
                 call_args['f'] = 0
             # Call the function with time variables
             kw['return_type'] = ve_types.get_type(during_go_func(**call_args))
@@ -1218,27 +1224,27 @@ class FunctionController(Controller):
         self.during_go_func = during_go_func
         self.between_go_func = between_go_func
         if between_go_func is None:
-            self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
+            self.eval_frequency = self.eval_frequency|NOT_BETWEEN_GO
 
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         call_args = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             call_args['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.TIME_SEC_SINCE_GO:
+        if self.temporal_variables & TIME_SEC_SINCE_GO:
             call_args['t'] = self.time_sec_since_go
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             call_args['f_abs'] = self.frames_absolute
-        if self.temporal_variables & Controller.FRAMES_SINCE_GO:
+        if self.temporal_variables & FRAMES_SINCE_GO:
             call_args['f'] = self.frames_since_go
         return self.during_go_func(**call_args)
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         call_args = {}
-        if self.temporal_variables & Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             call_args['t_abs'] = self.time_sec_absolute
-        if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             call_args['f_abs'] = self.frames_absolute
         return self.between_go_func(**call_args)
 
@@ -1273,13 +1279,13 @@ class EncapsulatedController(Controller):
     def during_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
         import VisionEgg.Core # here to prevent circular import        
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             self.contained_controller.time_sec_absolute = self.time_sec_absolute
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.TIME_SEC_SINCE_GO:
+        if self.temporal_variables & TIME_SEC_SINCE_GO:
             self.contained_controller.time_sec_since_go = self.time_sec_since_go
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             self.contained_controller.frames_absolute = self.frames_absolute
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.FRAMES_SINCE_GO:
+        if self.temporal_variables & FRAMES_SINCE_GO:
             self.contained_controller.frames_since_go = self.frames_since_go
         return self.contained_controller.during_go_eval()
 
@@ -1287,8 +1293,25 @@ class EncapsulatedController(Controller):
         """Called by Presentation. Overrides method in Controller base class."""
         import VisionEgg.Core # here to prevent circular import        
         import VisionEgg.FlowControl
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.TIME_SEC_ABSOLUTE:
+        if self.temporal_variables & TIME_SEC_ABSOLUTE:
             self.contained_controller.time_sec_absolute = self.time_sec_absolute
-        if self.temporal_variables & VisionEgg.FlowControl.Controller.FRAMES_ABSOLUTE:
+        if self.temporal_variables & FRAMES_ABSOLUTE:
             self.contained_controller.frames_absolute = self.frames_absolute
         return self.contained_controller.between_go_eval()
+
+# Constants (These are a copy of the static class variables from the
+# Controller class into the module-level namespace. This is done for
+# convenience.)
+#     temporal_variables flags:
+TIME_INDEPENDENT  = Controller.TIME_INDEPENDENT
+TIME_SEC_ABSOLUTE = Controller.TIME_SEC_ABSOLUTE
+TIME_SEC_SINCE_GO = Controller.TIME_SEC_SINCE_GO
+FRAMES_ABSOLUTE   = Controller.FRAMES_ABSOLUTE
+FRAMES_SINCE_GO   = Controller.FRAMES_SINCE_GO
+#     eval_frequency flags:
+NEVER          = Controller.NEVER
+EVERY_FRAME    = Controller.EVERY_FRAME
+TRANSITIONS    = Controller.TRANSITIONS
+ONCE           = Controller.ONCE
+NOT_DURING_GO  = Controller.NOT_DURING_GO
+NOT_BETWEEN_GO = Controller.NOT_BETWEEN_GO
