@@ -9,6 +9,13 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 import sys, socket, re, time, string, types, os
 import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
@@ -20,6 +27,7 @@ import VisionEgg
 import VisionEgg.PyroClient
 import VisionEgg.PyroApps.ScreenPositionGUI
 import VisionEgg.GUI
+import VisionEgg.ParameterTypes as ve_types
 
 # Add your client modules here
 import VisionEgg.PyroApps.TargetGUI
@@ -237,11 +245,11 @@ class ScrollListFrame(Tkinter.Frame):
 
 class Loop(VisionEgg.ClassWithParameters):
     parameters_and_defaults = {'variable':('<repeat>',
-                                           types.StringType),
+                                           ve_types.String),
                                'sequence':([1, 1, 1],
-                                           types.ListType),
+                                           ve_types.Sequence),
                                'rest_duration_sec':(1.0,
-                                                    types.FloatType)}
+                                                    ve_types.Real)}
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.num_done = 0
