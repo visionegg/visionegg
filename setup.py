@@ -150,7 +150,6 @@ data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
 data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
 data_files.append( (demo_dir,[os.path.join('demo','README.txt')]) )
-data_files.append( (os.path.join(demo_dir,'tcp'),[os.path.join('demo','tcp','README.txt')]) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 global extension_build_failed
