@@ -476,11 +476,16 @@ class Stimulus:
             pass
         else:
             # I'd really like to break out of the glutMainLoop, but I can't
+            print "WARNING: because GLUT support is not complete, you"
+            print "may have to abort this program now."
             glutIdleFunc(self.do_nothing)
             glutDisplayFunc(self.do_nothing)
         self.clear_GL()
 #        self.frameStats()
 
+    def do_nothing(self):
+        preciseSleep( 1000 )
+        
     def clear_GL(self):
         glClearColor(self.bgcolor[0],self.bgcolor[1],self.bgcolor[2],self.bgcolor[3])
         glClear(GL_COLOR_BUFFER_BIT)
