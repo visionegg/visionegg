@@ -187,6 +187,8 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                't0_time_sec_absolute':(None,types.FloatType),
                                'phase_at_t0':(0.0,types.FloatType), # degrees
                                'orientation':(0.0,types.FloatType), # 0=right, 90=down
+                               'grating_center_azimuth':(0.0,types.FloatType), # 0=right, 90=down
+                               'grating_center_elevation':(0.0,types.FloatType), # 0=right, 90=down
                                # changing this parameters causes re-drawing of the texture object and may cause frame skipping
                                'num_samples':(1024,types.IntType), # number of spatial samples, should be a power of 2
                                # Changing these parameters will cause re-computation of display list (may cause frame skip)
@@ -353,6 +355,10 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
+
+            # center the grating
+            gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
 
             # do the orientation
             gl.glRotatef(p.orientation,0.0,0.0,-1.0)
@@ -609,8 +615,8 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glLoadIdentity()
 
             # do the orientation
-            gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
             gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 
             gl.glCallList(self.windowed_display_list)
             gl.glEnable( gl.GL_TEXTURE_2D )
