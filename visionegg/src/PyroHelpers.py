@@ -85,6 +85,9 @@ class PyroServer:
         self.listen_controller = PyroListenController(self)
         return self.listen_controller
 
+    def unregister(self,name):
+        self.ns.unregister(name)
+
 class PyroClient:
     """Simplifies getting PyroControllers from a remote computer."""
     def __init__(self):
