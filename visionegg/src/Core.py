@@ -331,8 +331,7 @@ class Screen(VisionEgg.ClassWithParameters):
 
         c = self.parameters.bgcolor # Shorthand
         gl.glClearColor(c[0],c[1],c[2],c[3])
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     def make_current(self):
         """Called by Viewport instance. Makes screen active for drawing.
@@ -1028,7 +1027,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
             self.num_frame_controllers = self.num_frame_controllers + 1
 
-    def remove_controller( self, class_with_parameters, parameter_name, controller ):
+    def remove_controller( self, class_with_parameters, parameter_name, controller=None ):
         """Remove one (or more--see below) controller(s).
 
         If controller is None, all controllers affecting the
@@ -1039,22 +1038,25 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Delete all controllers that control the parameter specified.
             if class_with_parameters is None or parameter_name is None:
                 raise ValueError("Must specify parameter from which controller should be removed.")
+            i = 0
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
-                    del self.controllers[i]
+                    controller = self.controllers[i][2]
                     if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
+                    del self.controllers[i]
                 else:
                     i = i + 1
         else: # controller is specified
             # Delete only that specific controller
+            i = 0
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
                 if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
-                    del controller_list[i]
                     if controller.temporal_variables & (Controller.FRAMES_SINCE_GO|Controller.FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
+                    del controller_list[i]
                 else:
                     i = i + 1
 
@@ -2144,7 +2146,9 @@ class Message:
             if len(cur_line) > min_line_length:
                 out_str = out_str + cur_line[:-1] + "\n"
                 cur_line = "    "
-        out_str = out_str + cur_line + "\n"
+        if string.strip(cur_line):
+            # only add another newline if the last line done is non-empty
+            out_str = out_str + cur_line + "\n"
         return out_str
             
     def handle(self):
