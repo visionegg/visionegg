@@ -1384,7 +1384,7 @@ class FrameTimer:
 ####################################################################
 
 class Message:
-   """DEPRECATED Handles message/warning/error printing, exception raising."""
+    """DEPRECATED Handles message/warning/error printing, exception raising."""
 
     # Levels are:
     TRIVIAL = 0
