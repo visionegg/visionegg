@@ -122,6 +122,8 @@ class Config:
             raise
         for option in general_options:
             name = string.upper(option)
+            if name == "SYNCMASTER_PRESENT": # old name for SyncLync
+                continue
             if name not in defaults.keys():
                 raise KeyError("Error while reading %s: The variable \"%s\" is not a Vision Egg variable."%(os.path.abspath(configFile),option))
             value = cfg.get('General',option)
