@@ -45,7 +45,6 @@ demo/gratings_multi.py
 demo/GUI/drumDemoGUI.py
 demo/image_sequence_fast.py
 demo/image_sequence_slow.py
-demo/lib3ds-demo.py
 demo/makeMovie.py
 demo/makeMovie2.py
 demo/mouse_gabor_2d.py
@@ -65,7 +64,6 @@ demo/Pyro/metaPyroGUI.pyc
 demo/Pyro/metaPyroServer.py
 demo/Pyro/simpleClient.py
 demo/Pyro/simpleServer.py
-demo/quicktime.py
 demo/sphereMap.py
 demo/target.py
 demo/targetBackground.py
