@@ -241,6 +241,12 @@ class Screen(VisionEgg.ClassWithParameters):
             pygame.display.set_icon(pygame.transform.scale(pygame.image.load(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp')).convert(),(32,32)))
         except Exception,x:
             message.add("Error while trying to set_icon: %s: %s"%(str(x.__class__),str(x)))
+
+        vendor = gl.glGetString(gl.GL_VENDOR)
+        renderer = gl.glGetString(gl.GL_RENDERER)
+        version = gl.glGetString(gl.GL_VERSION)
+
+        message.add("OpenGL %s, %s, %s"%(version, renderer, vendor),Message.INFO)
         
         self.red_bits = None
         self.green_bits = None
