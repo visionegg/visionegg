@@ -1,8 +1,17 @@
 #!/usr/bin/env python
-"""Handle luminance and color calibration stimulus (client-side)"""
+#
+# The Vision Egg: ColorCalGUI
+#
+# Copyright (C) 2001-2003 Andrew Straw.
+# Author: Andrew Straw <astraw@users.sourceforge.net>
+# URL: <http://www.visionegg.org/>
+#
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL). See LICENSE.TXT that came with this file.
+#
+# $Id$
 
-# Copyright (c) 2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+"""Handle luminance and color calibration stimulus (client-side)"""
 
 import VisionEgg, string
 __version__ = VisionEgg.release_name
