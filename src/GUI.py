@@ -384,6 +384,15 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
         
+        # Stereo
+        self.stereo = Tkinter.BooleanVar()
+        self.stereo.set(VisionEgg.config.VISIONEGG_REQUEST_STEREO)
+        Tkinter.Checkbutton(cf,
+                            text='Stereo',
+                            variable=self.stereo,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
+        
         if sys.platform == 'darwin':
             if sys.version == '2.2 (#11, Jan  6 2002, 01:00:42) \n[GCC 2.95.2 19991024 (release)]':
                 if Tkinter.TkVersion == 8.4:
@@ -647,6 +656,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_SYNC_SWAP = self.sync_swap.get()
         VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW = self.frameless.get()
         VisionEgg.config.VISIONEGG_HIDE_MOUSE = not self.mouse_visible.get()
+        VisionEgg.config.VISIONEGG_REQUEST_STEREO = self.stereo.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
         VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(self.color_depth.get())
