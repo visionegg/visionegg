@@ -617,7 +617,7 @@ class PerspectiveProjection(Projection):
     def __init__(self,left,right,bottom,top,near,far):
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadIdentity() # Clear the projection matrix
-        gl.glFrustum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
+        gl.glFrustum(left,right,bottom,top,near,far) # Let GL create a matrix and compose it
         matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
