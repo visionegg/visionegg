@@ -23,6 +23,19 @@ import RandomArray # Numeric
 
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # make black (RGBA)
+# display loading screen ASAP
+screen.clear()
+loading_text = Text( text     = "Vision Egg multi stimulus demo - Loading...",
+                     position = (screen.size[0]/2,screen.size[1]/2),
+                     anchor   = 'center',
+                     color    = (1.0, 1.0, 1.0),
+                     )
+viewport_2d = Viewport( screen  = screen,
+                        stimuli = [loading_text],
+                        )
+viewport_2d.draw()
+swap_buffers()
+
 
 x1 = screen.size[0]/4
 x2 = 2*screen.size[0]/4
@@ -73,9 +86,23 @@ legends.append(
 #  Color grating                    #
 #####################################
 
-circle_mask = Mask2D(function='circle',
-                     radius_parameter=100,
-                     num_samples=(256,256))
+try:
+    circle_mask = Mask2D(function='circle',
+                         radius_parameter=100,
+                         num_samples=(256,256))
+except Exception, x:
+    circle_mask = None
+    warning_stimuli.append(
+        Text( text      = "Texture Mask",
+              position  = (x1,y2),
+              anchor    = 'center',
+              color     = warning_color,
+              font_size = warning_font_size,              
+              )
+        )
+    message.add( "Exception while trying to create circle_mask: %s: %s"%(x.__class__,str(x)),
+                 level=Message.WARNING)
+    
 color_grating = SinGrating2D(color1           = (0.5, 0.25, 0.5), # RGB, Alpha ignored if given
                              color2           = (1.0, 0.5,  0.1), # RGB, Alpha ignored if given
                              contrast         = 0.2,
@@ -144,10 +171,23 @@ gray_rect = Target2D( position = ( x2, y1 ),
                       color    = (0.5, 0.5, 0.5, 1.0),
                       )
 
-gaussian_mask = Mask2D(function='gaussian',
-                       radius_parameter=25,
-                       num_samples=(256,256))
-
+try:
+    gaussian_mask = Mask2D(function='gaussian',
+                           radius_parameter=25,
+                           num_samples=(256,256))
+except Exception, x:
+    gaussian_mask = None
+    warning_stimuli.append(
+        Text( text      = "Texture Mask",
+              position  = (x2,y1),
+              anchor    = 'center',
+              color     = warning_color,
+              font_size = warning_font_size,              
+              )
+        )
+    message.add( "Exception while trying to create gaussian_mask: %s: %s"%(x.__class__,str(x)),
+                 level=Message.WARNING)
+    
 gabor = SinGrating2D(mask             = gaussian_mask,
                      position         = ( x2, y1 ),
                      anchor           = 'center',
@@ -182,12 +222,12 @@ try:
                                         shrink_texture_ok  = False, # settting to True causes massive slowdowns
                                         )
     framebuffer_copy_works = True
-except TextureTooLargeError, x:
+except Exception, x:
     warning_stimuli.append(
-        Text( text = "Framebuffer copy",
-              position           = (x3,y1),
-              anchor             = 'center',
-              color = warning_color,
+        Text( text      = "Framebuffer copy",
+              position  = (x3,y1),
+              anchor    = 'center',
+              color     = warning_color,
               font_size = warning_font_size,              
               )
     )
@@ -222,7 +262,10 @@ fb_width_pow2  = int(next_power_of_2(screen.size[0]))
 fb_height_pow2  = int(next_power_of_2(screen.size[1]))
 def copy_framebuffer():
     "Replace contents of texture object with new texture copied from framebuffer"
-    framebuffer_texture_object.put_new_framebuffer(size=(fb_width_pow2,fb_height_pow2))
+    framebuffer_texture_object.put_new_framebuffer(size=(fb_width_pow2,fb_height_pow2),
+                                                   internal_format=gl.GL_RGB,
+                                                   buffer='back',
+                                                   )
 
 ########################################
 #  Create viewports                    #
@@ -245,9 +288,7 @@ if len(warning_stimuli):
     stimuli_2d.extend(warning_stimuli)
 stimuli_2d.extend(legends)
 
-viewport_2d = Viewport( screen  = screen,
-                        stimuli = stimuli_2d,
-                        )
+viewport_2d.set(stimuli = stimuli_2d) # give viewport_2d our stimuli
 
 drum_viewport = Viewport( screen     = screen,
                           position   = (x2-width/2,y2-height/2),
