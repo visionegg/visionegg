@@ -144,7 +144,7 @@ class Screen(VisionEgg.ClassWithParameters):
     
     def __init__(self,**kw):
         
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         if VisionEgg.config.SYNCLYNC_PRESENT:
             global synclync # import into global namespace
@@ -383,7 +383,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 """Need pygame 1.5 or greater for set_gamma_ramp
                 function.""", level=Message.ERROR)
             return 0
-        return apply(pygame.display.set_gamma_ramp,args,kw)
+        return pygame.display.set_gamma_ramp(*args,**kw)
 
     def close(self):
         """Close the screen.
@@ -513,7 +513,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 raise FileError("expected 3 values per gamma entry")
         if len(gamma_values) != 256:
             raise FileError("expected 256 gamma entries")
-        red, green, blue = apply(zip,gamma_values)
+        red, green, blue = zip(*gamma_values)
         return red,green,blue
             
 def get_default_screen():
@@ -556,7 +556,7 @@ class Projection(VisionEgg.ClassWithParameters):
                       Numeric.ArrayType) }
                                
     def __init__(self,**kw):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
 
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
@@ -627,7 +627,7 @@ class Projection(VisionEgg.ClassWithParameters):
             gl.glMatrixMode(matrix_mode)
 
     def get_matrix(self):
-        return self.parameters.matrix
+        return Numeric.array(self.parameters.matrix)
 
     def look_at(self, eye, center, up ):
         # Basically the same as gluLookAt
@@ -674,14 +674,14 @@ class OrthographicProjection(Projection):
                                 [ 0.,              0.,              -2./(z_clip_far-z_clip_near), -(z_clip_far+z_clip_near)/(z_clip_far-z_clip_near)],
                                 [ 0.,              0.,              0.,                           1.0]])
         matrix = Numeric.transpose(matrix) # convert to OpenGL format
-        apply(Projection.__init__,(self,),{'matrix':matrix})
+        Projection.__init__(self,**{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         matrix = self._compute_matrix(fov_x,z_clip_near,z_clip_far,aspect_ratio)
-        apply(Projection.__init__,(self,),{'matrix':matrix})
+        Projection.__init__(self,**{'matrix':matrix})
 
     def _compute_matrix(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
         """Compute a 4x4 projection matrix that performs a perspective distortion."""
@@ -715,7 +715,7 @@ class PerspectiveProjection(Projection):
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
         if type(matrix) != Numeric.ArrayType:
             matrix = Numeric.array(matrix) # Convert to Numeric array
-        apply(Projection.__init__,(self,),{'matrix':matrix})
+        Projection.__init__(self,**{'matrix':matrix})
 
 ####################################################################
 #
@@ -794,7 +794,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
         """
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         if self.parameters.screen is None:
             raise EggError("Must specify screen when creating an instance of Viewport.")
@@ -923,7 +923,7 @@ class Stimulus(VisionEgg.ClassWithParameters):
         In this base class, nothing needs to be done other than set
         parameter values.
         """
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
         
     def draw(self):
     	"""Called by Viewport. Draw the stimulus.
@@ -954,7 +954,7 @@ class FixationSpot(Stimulus):
                                        types.TupleType)} 
     
     def __init__(self,**kw):
-        apply(Stimulus.__init__,(self,),kw)
+        Stimulus.__init__(self,**kw)
 
     def draw(self):
         if self.parameters.on:
@@ -1066,7 +1066,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                                }
     
     def __init__(self,**kw):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         if self.parameters.viewports is None:
             self.parameters.viewports = []
@@ -1083,7 +1083,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
         
-        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_absolute=VisionEgg.time_func()
         self.frames_absolute=0
 
         self.in_go_loop = 0
@@ -1239,10 +1239,10 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         longest_frame_draw_time_sec = 0.0
 
-        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_absolute=VisionEgg.time_func()
         self.time_sec_since_go = 0.0
-        self._real_time_go_start = VisionEgg.real_timing_func()
-        self._real_time_last_frame = self._real_time_go_start
+        self._true_time_go_start = VisionEgg.true_time_func()
+        self._true_time_last_frame = self._true_time_go_start
         self.frames_since_go = 0
 
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
@@ -1300,15 +1300,15 @@ class Presentation(VisionEgg.ClassWithParameters):
             swap_buffers()
             
             # Set the time variables for the next frame
-            self.time_sec_absolute=VisionEgg.timing_func()
+            self.time_sec_absolute=VisionEgg.time_func()
             last_time_sec_since_go = self.time_sec_since_go
             self.time_sec_since_go = self.time_sec_absolute - start_time_absolute
             self.frames_absolute += 1
             self.frames_since_go += 1
 
-            real_time_now = VisionEgg.real_timing_func()
-            this_frame_draw_time_sec = real_time_now - self._real_time_last_frame
-            self._real_time_last_frame = real_time_now
+            true_time_now = VisionEgg.true_time_func()
+            this_frame_draw_time_sec = true_time_now - self._true_time_last_frame
+            self._true_time_last_frame = true_time_now
             
             # If wanted, save time this frame was drawn for
             if p.collect_timing_info:
@@ -1351,9 +1351,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        real_time_since_go = real_time_now - self._real_time_go_start
-        if real_time_since_go != 0.0:
-            calculated_fps = self.frames_since_go / real_time_since_go
+        true_time_since_go = true_time_now - self._true_time_go_start
+        if true_time_since_go != 0.0:
+            calculated_fps = self.frames_since_go / true_time_since_go
             mean_frame_time_msec = 1000.0 / calculated_fps
         else:
             calculated_fps = 0.0
@@ -1414,16 +1414,16 @@ class Presentation(VisionEgg.ClassWithParameters):
         # slightly by not performing name lookup each time.
         p = self.parameters
         
-        # Switch function VisionEgg.timing_func
-        self.time_sec_absolute=VisionEgg.timing_func() # Set for real once
-        real_timing_func = VisionEgg.timing_func
-        def fake_timing_func():
+        # Switch function VisionEgg.time_func
+        self.time_sec_absolute=VisionEgg.time_func() # Set for real once
+        true_time_func = VisionEgg.time_func
+        def fake_time_func():
             return self.time_sec_absolute
-        VisionEgg.timing_func = fake_timing_func
+        VisionEgg.time_func = fake_time_func
         
         # Go!
             
-        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_absolute=VisionEgg.time_func()
         self.time_sec_since_go = 0.0
         self.frames_since_go = 0
         
@@ -1538,8 +1538,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                     though your framebuffer supports more!""",
                     level=Message.WARNING)
 
-        # Restore VisionEgg.timing_func
-        VisionEgg.timing_func = real_timing_func
+        # Restore VisionEgg.time_func
+        VisionEgg.time_func = true_time_func
 
     def run_forever(self):
         """Main control loop between go loops."""
@@ -1571,7 +1571,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         main loop in the go method.
         """
         
-        self.time_sec_absolute=VisionEgg.timing_func()
+        self.time_sec_absolute=VisionEgg.time_func()
         
         self.__call_controllers(
             go_started=0,
@@ -1845,7 +1845,7 @@ class ConstantController(Controller):
             kw['return_type'] = VisionEgg.get_type(during_go_value)
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = Controller.ONCE | Controller.TRANSITIONS
-        apply(Controller.__init__,(self,),kw)
+        Controller.__init__(self,**kw)
         if self.return_type is not types.NoneType and during_go_value is None:
             raise ValueError("Must specify during_go_value")
         if between_go_value is None:
@@ -1939,7 +1939,7 @@ class EvalStringController(Controller):
             kw['return_type'] = types.NoneType
             
         # Call base class __init__
-        apply(Controller.__init__,(self,),kw)
+        Controller.__init__(self,**kw)
         if not_between_go:
             self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO
         if set_return_type:
@@ -2057,7 +2057,7 @@ class ExecStringController(Controller):
             kw['return_type'] = types.NoneType
 
         # Call base class __init__
-        apply(Controller.__init__,(self,),kw)
+        Controller.__init__(self,**kw)
         if not_between_go:
             self.eval_frequency = self.eval_frequency|Controller.NOT_BETWEEN_GO        
         if set_return_type:
@@ -2179,7 +2179,7 @@ class FunctionController(Controller):
                         Message.TRIVIAL)
             call_args = {}
             if kw['temporal_variables'] & Controller.TIME_SEC_ABSOLUTE:
-                call_args['t_abs'] = VisionEgg.timing_func()
+                call_args['t_abs'] = VisionEgg.time_func()
             if kw['temporal_variables'] & Controller.TIME_SEC_SINCE_GO:
                 call_args['t'] = 0.0
             if kw['temporal_variables'] & Controller.FRAMES_ABSOLUTE:
@@ -2187,8 +2187,8 @@ class FunctionController(Controller):
             if kw['temporal_variables'] & Controller.FRAMES_SINCE_GO:
                 call_args['f'] = 0
             # Call the function with time variables
-            kw['return_type'] = type(apply(during_go_func,(),call_args))
-        apply(Controller.__init__,(self,),kw)
+            kw['return_type'] = type(during_go_func(**call_args))
+        Controller.__init__(self,**kw)
         self.during_go_func = during_go_func
         self.between_go_func = between_go_func
         if between_go_func is None:
@@ -2205,7 +2205,7 @@ class FunctionController(Controller):
             call_args['f_abs'] = self.frames_absolute
         if self.temporal_variables & Controller.FRAMES_SINCE_GO:
             call_args['f'] = self.frames_since_go
-        return apply(self.during_go_func,(),call_args)
+        return self.during_go_func(**call_args)
 
     def between_go_eval(self):
         """Called by Presentation. Overrides method in Controller base class."""
@@ -2214,7 +2214,7 @@ class FunctionController(Controller):
             call_args['t_abs'] = self.time_sec_absolute
         if self.temporal_variables & Controller.FRAMES_ABSOLUTE:
             call_args['f_abs'] = self.frames_absolute
-        return apply(self.between_go_func,(),call_args)
+        return self.between_go_func(**call_args)
 
 class EncapsulatedController(Controller):
     """Set parameters by encapsulating another Controller.
@@ -2230,7 +2230,7 @@ class EncapsulatedController(Controller):
     """
     def __init__(self,initial_controller):
         # Initialize base class without raising error for no return_type
-        apply(Controller.__init__,(self,),{'return_type':types.NoneType})
+        Controller.__init__(self,**{'return_type':types.NoneType})
         self.contained_controller = initial_controller
         self.__sync_mimic()
         
@@ -2299,11 +2299,11 @@ class Message:
                 no_sys_stderr = 0
             for stream in self.streams:
                 if stream != self._sys.stderr or not no_sys_stderr:
-                    apply(stream.write,args,kw)
+                    stream.write(*args,**kw)
 
         def flush(self,*args,**kw):
             for stream in self.streams:
-                apply(stream.flush,args,kw)
+                stream.flush(*args,**kw)
     
     def __init__(self,
                  prefix="VisionEgg",
@@ -2343,7 +2343,7 @@ class Message:
             if use_stderr:
                 output_streams.append(sys.stderr)
 
-        self.output_stream = apply(Message.Tee, output_streams)
+        self.output_stream = Message.Tee(*output_streams)
 
         if main_global_instance:
             VisionEgg.config._message = self
