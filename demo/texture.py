@@ -2,11 +2,11 @@
 """Load a texture from a file."""
 
 import os
-from VisionEgg import *
+import VisionEgg
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
 
-filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","panorama.jpg")
 texture = Texture(filename)
 
 screen = get_default_screen()
