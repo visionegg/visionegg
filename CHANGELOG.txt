@@ -6,19 +6,23 @@ Redesign of type check system for accuracy and clarity
 TrueType font rendering with SDL_ttf2
 Textures with alpha--bugfixes and examples
 Positioning of viewports and 2D stimuli can use relative positioning anchors
-Now requires Python 2.2 and pygame 1.5
+Now requires Python 2.2 -- new style classes used to restrict attribute acccess
+Now requires pygame 1.5
 Renamed timing_func() to time_func()
 EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
 Allow use of pygame Surfaces as source of texture data
 Mipmaps of sphere-mapped sinusoidal grating to prevent spatial aliasing
-Documentation and demo de-emphasis on Presentation class
+De-emphasis on Presentation and Controller classes
 Changed orientations such that 0 degrees is right and 90 degrees is up.
 Allow conversion of 3D vertices into 2D screen coordinates
 Added wireframe azimuth/elevation grid with text labels
 Allow arbitrary orientation of textures and text with angle parameter
 FrameTimer class now available for use in your own main loops
 Automated testing for, among other things, pixel accuracy of textures
+Added high-voltage regulation test for displays (Brainard et al., 2002)
+Added incomplete DC restoration test for displays (Brainard et al., 2002)
 No installation of demos or documentation (get source or demo package)
+
 Many small enhancements and bugfixes
 
 New demos:
