@@ -53,7 +53,7 @@ height = 480
 
 size = (width,height)
 
-pygame.init()
+pygame.display.init()
 pygame.display.set_caption("OpenGL Test")
 
 try_bpps = [0,32,24] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
@@ -88,6 +88,27 @@ print "GL_VENDOR =",glGetString(GL_VENDOR)
 print "GL_RENDERER =",glGetString(GL_RENDERER)
 print "GL_VERSION = ",glGetString(GL_VERSION)
 print "GL_EXTENSIONS = ",glGetString(GL_EXTENSIONS)
+
+print
+
+### Buffer information
+
+print "Buffer information"
+#print "glGetIntegerv( GL_DRAW_BUFFER ) =",glGetIntegerv( GL_DRAW_BUFFER )
+print "glGetIntegerv( GL_AUX_BUFFERS ) =",glGetIntegerv( GL_AUX_BUFFERS )
+print "glGetBooleanv( GL_RGBA_MODE ) =",glGetBooleanv( GL_RGBA_MODE )
+print "glGetBooleanv( GL_DOUBLEBUFFER ) = ",glGetBooleanv( GL_DOUBLEBUFFER )
+print "glGetBooleanv( GL_STEREO ) = ",glGetBooleanv( GL_STEREO )
+
+print "glGetIntegerv( GL_RED_BITS ) =",glGetIntegerv( GL_RED_BITS )
+print "glGetIntegerv( GL_GREEN_BITS ) =",glGetIntegerv( GL_GREEN_BITS )
+print "glGetIntegerv( GL_BLUE_BITS ) =",glGetIntegerv( GL_BLUE_BITS )
+print "glGetIntegerv( GL_ALPHA_BITS ) =",glGetIntegerv( GL_ALPHA_BITS )
+
+print "glGetIntegerv( GL_ACCUM_RED_BITS ) =",glGetIntegerv( GL_ACCUM_RED_BITS )
+print "glGetIntegerv( GL_ACCUM_GREEN_BITS ) =",glGetIntegerv( GL_ACCUM_GREEN_BITS )
+print "glGetIntegerv( GL_ACCUM_BLUE_BITS ) =",glGetIntegerv( GL_ACCUM_BLUE_BITS )
+print "glGetIntegerv( GL_ACCUM_ALPHA_BITS ) =",glGetIntegerv( GL_ACCUM_ALPHA_BITS )
 
 print
 
