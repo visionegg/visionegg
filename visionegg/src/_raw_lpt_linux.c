@@ -1,7 +1,7 @@
 #include "Python.h"
 
 /*
- * Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of
+ * Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of
  * the GNU Lesser General Public License (LGPL).
  *
  * $Revision$
@@ -10,8 +10,13 @@
  *
  */
  
-#include <stdio.h> // for ioperm
-#include <asm/io.h> // for outb
+
+/*
+ * NOTE:  If I had to re-implement this, I would use SWIG!
+ *
+ */
+
+#include <sys/io.h> // for ioperm (glibc) (use unistd.h for libc5) and inb
 
 #define TRY(E)     if(! (E)) return NULL
 #define MAX_BASE_ADDRESSES 4
@@ -97,7 +102,7 @@ static char inp__doc__[] =
 "\n"
 "For LPT0, base_address should be 0x379\n"
 "\n"
-"The status bits were not really meant for data input\n"
+"The status bits were not meant for high speed data input\n"
 "Nevertheless, for sampling one or two digital inputs, they\n"
 "work fine.\n"
 "\n"
@@ -116,7 +121,6 @@ static PyObject *inp(PyObject * self, PyObject * args)
   short ok;
 
   TRY(PyArg_ParseTuple(args,"l",&base_address));
-  base_address = base_address - 1; // Convert to LPT base.
 
   // Fast check on port
   ok = 0;
