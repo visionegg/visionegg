@@ -207,6 +207,7 @@ class StimulusControlFrame(Tkinter.Frame):
         self.meta_params = self.meta_controller.get_parameters()
 
         self.connected = 1
+        self.meta_controller.turn_off()
         self.connected_label.config(text="Server status: Connected")
 
     def quit_server(self,dummy=None):
