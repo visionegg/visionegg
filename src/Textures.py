@@ -22,6 +22,11 @@ import Image, ImageDraw                         # Python Imaging Library package
 from OpenGL.GL import *                         #   main package
 
 def no_clamp_to_edge():
+    """Called if OpenGL version < 1.2
+    
+    This function is called if the OpenGL version is < 1.2, in which
+    case GL_CLAMP_TO_EDGE is not defined by default."""
+    
     failed = 1
     try:
         import OpenGL.GL.SGIS.texture_edge_clamp
