@@ -61,13 +61,15 @@ except NameError:
 # Make sure we don't have an old version of the VisionEgg installed.
 # (There used to be a module named VisionEgg.VisionEgg.  If it still
 # exists, it will randomly crash things.)
-try:
-    __import__('VisionEgg.VisionEgg')
-except ImportError:
-    pass # It's OK, the old version isn't there
-else:
-    # If we can import it, report error
-    raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
+if not hasattr(sys,'frozen'):
+    # don't do this if frozen:
+    try:
+        __import__('VisionEgg.VisionEgg')
+    except ImportError:
+        pass # It's OK, the old version isn't there
+    else:
+        # If we can import it, report error
+        raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
 
 ############# Get config defaults #############
 config = VisionEgg.Configuration.Config()
