@@ -1671,7 +1671,7 @@ class SpinningDrum(TextureStimulusBaseClass):
         self.rebuild_display_list()
 
     def draw(self):
-    	"""Redraw the scene on every frame.
+    	"""Redraw the stimulus on every frame.
         """
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
