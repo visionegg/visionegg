@@ -65,10 +65,13 @@ defaults= {
     }
 
 extra_darwin_defaults = {
-    'VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM'      : 120,
-    'VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM' : 2400,
-    'VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM'  : 1200,
-    'VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE'       : 0,
+    'VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME'  : 1,
+    'VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY'                  : -20, # -20 is best priority
+    'VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM'                  : 120,
+    'VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM'             : 2400,
+    'VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM'              : 1200,
+    'VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE'                   : 0,
+    'VISIONEGG_DARWIN_PTHREAD_PRIORITY'                      : 'max',
 }
 
 class Config:
@@ -117,12 +120,15 @@ class Config:
             name = string.upper(option)
             if name not in defaults.keys():
                 raise KeyError("No Vision Egg configuration variable \"%s\""%option)
+            value = cfg.get('General',option)
+            if name in os.environ.keys():
+                value = os.environ[name]
             if type(defaults[name]) == type(42): # int
-                setattr(self,name,int(cfg.get('General',option)))
+                setattr(self,name,int(value))
             elif type(defaults[name]) == type(42.0): # float
-                setattr(self,name,float(cfg.get('General',option)))
+                setattr(self,name,float(value))
             else:
-                setattr(self,name,cfg.get('General',option))
+                setattr(self,name,value)
 
         # Do platform specific stuff
         # Set the default values
@@ -143,12 +149,15 @@ class Config:
                 name = string.upper(option)
                 if name not in extra_defaults.keys():
                     raise KeyError("No Vision Egg configuration variable \"%s\""%option)
+                value = cfg.get(sys.platform,option)
+                if name in os.environ.keys():
+                    value = os.environ[name]
                 if type(extra_defaults[name]) == type(42): # int
-                    setattr(self,name,int(cfg.get(sys.platform,option)))
+                    setattr(self,name,int(value))
                 elif type(extra_defaults[name]) == type(42.0): # float
-                    setattr(self,name,float(cfg.get(sys.platform,option)))
+                    setattr(self,name,float(value))
                 else:
-                    setattr(self,name,cfg.get(sys.platform,option))
+                    setattr(self,name,value)
             
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
