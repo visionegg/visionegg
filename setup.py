@@ -86,11 +86,6 @@ if not skip_c_compilation:
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
                                      extra_link_args=['-framework','OpenGL']))
-        # Cocoa application stuff
-        ext_modules.append(Extension(name='_darwin_app_stuff',
-                                     sources=['src/darwin_app_stuff.m',
-                                              'src/darwin_app_stuff_wrap.c'],
-                                     extra_link_args=['-framework','Cocoa']))
         # getfresh
         ext_modules.append(Extension(name='_darwin_getrefresh',
                                      sources=['src/darwin_getrefresh.m',
