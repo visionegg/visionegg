@@ -311,23 +311,23 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.send_values()
 
     def frustum_left(self,dummy_arg=None): # callback
-        self.left_tk_var.set(self.meta_params.left*1.05)
-        self.right_tk_var.set(self.meta_params.right*(1.0/1.05))
+        self.left_tk_var.set(self.meta_params.left*1.025)
+        self.right_tk_var.set(self.meta_params.right*(1.0/1.025))
         self.send_values()
 
     def frustum_right(self,dummy_arg=None): # callback
-        self.left_tk_var.set(self.meta_params.left*(1.0/1.05))
-        self.right_tk_var.set(self.meta_params.right*1.05)
+        self.left_tk_var.set(self.meta_params.left*(1.0/1.025))
+        self.right_tk_var.set(self.meta_params.right*1.025)
         self.send_values()
 
     def frustum_down(self,dummy_arg=None): # callback
-        self.bottom_tk_var.set(self.meta_params.bottom*1.05)
-        self.top_tk_var.set(self.meta_params.top*(1.0/1.05))
+        self.bottom_tk_var.set(self.meta_params.bottom*1.025)
+        self.top_tk_var.set(self.meta_params.top*(1.0/1.025))
         self.send_values()
 
     def frustum_up(self,dummy_arg=None): # callback
-        self.bottom_tk_var.set(self.meta_params.bottom*(1.0/1.05))
-        self.top_tk_var.set(self.meta_params.top*1.05)
+        self.bottom_tk_var.set(self.meta_params.bottom*(1.0/1.025))
+        self.top_tk_var.set(self.meta_params.top*1.025)
         self.send_values()
 
     def get_az_el(self,xyz_tuple):
