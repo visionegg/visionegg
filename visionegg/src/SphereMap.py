@@ -12,6 +12,7 @@ import VisionEgg.Gratings
 import OpenGL.GL as gl                          #   main package
 
 import Numeric  				# Numeric Python package
+import Image
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
