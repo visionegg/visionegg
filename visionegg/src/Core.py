@@ -571,77 +571,71 @@ class Presentation(ClassWithParameters):
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
 
+    def __check_controller_args(self,class_with_parameters,parameter_name):
+        # Raise an Exception if the user tries to add/remove a controller
+        # to an unknown parameter.
+        if class_with_parameters is None and parameter_name is None:
+            # Allow controllers not to control anything.  (Allows user
+            # to define functions that get called like controllers.)
+            return
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
+
+    def __add_controller( self, controller_list, class_with_parameters, parameter_name, controller_function):
+        self.__check_controller_args(class_with_parameters,parameter_name)
+        if class_with_parameters is not None:
+            controller_list.append((class_with_parameters.parameters,parameter_name,controller_function))
+        else:
+            controller_list.append((None,None,controller_function))
+
+    def __remove_controllers(self,controller_list,class_with_parameters,parameter_name, controller_function):
+        self.__check_controller_args(class_with_parameters,parameter_name)
+        i = 0
+        if controller_function is None:
+            # The controller function is not specified:
+            # Delete all controllers that control the parameter specified.
+            if class_with_parameters is None or parameter_name is None:
+                raise ValueError("Must specify parameter from which controller should be removed.")
+            while i < len(controller_list):
+                orig_parameters,orig_parameter_name,orig_controller_function = controller_list[i]
+                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
+                    del controller_list[i]
+                else:
+                    i = i + 1
+        else: # controller_function is specified
+            # Delete only that specific controller
+            while i < len(controller_list):
+                orig_parameters,orig_parameter_name,orig_controller_function = controller_list[i]
+                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller_function == controller_function:
+                    del controller_list[i]
+                else:
+                    i = i + 1
+
+    def __call_controllers(self,controller_list,arg):
+        for parameters,parameter_name,controller_function in controller_list:
+            if parameters is None and parameter_name is None:
+                # Nothing under control- user utilizing controller to call other function
+                controller_function(arg)
+            else:
+                # Set the parameters under controller
+                setattr(parameters,parameter_name,controller_function(arg))
+        
     def add_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        self.realtime_time_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
-
-    def remove_realtime_time_controller(self, class_with_parameters, parameter_name):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        i = 0
-        while i < len(self.realtime_time_controllers):
-            orig_parameters,orig_parameter_name,orig_controller_function = self.realtime_time_controllers[i]
-            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
-                del self.realtime_time_controllers[i]
-            else:
-                i = i + 1
-
+        self.__add_controller( self.realtime_time_controllers, class_with_parameters, parameter_name, controller_function)
+    def remove_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function=None):
+        self.__remove_controller(self.realtime_time_controllers,class_with_parameters,parameter_name, controller_function)
     def add_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        self.realtime_frame_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
-
-    def remove_realtime_frame_controller(self, class_with_parameters, parameter_name):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        i = 0
-        while i < len(self.realtime_frame_controllers):
-            orig_parameters,orig_parameter_name,orig_controller_function = self.realtime_frame_controllers[i]
-            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
-                del self.realtime_frame_controllers[i]
-            else:
-                i = i + 1
-
+        self.__add_controller( self.realtime_frame_controllers, class_with_parameters, parameter_name, controller_function)
+    def remove_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function=None):
+        self.__remove_controller(self.realtime_frame_controllers,class_with_parameters,parameter_name, controller_function)
     def add_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        self.transitional_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
-
-    def remove_transitional_controller(self, class_with_parameters, parameter_name):
-        if not isinstance(class_with_parameters,ClassWithParameters):
-            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
-        if not isinstance(class_with_parameters.parameters,Parameters):
-            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
-        if not hasattr(class_with_parameters.parameters,parameter_name):
-            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
-        i = 0
-        while i < len(self.transitional_controllers):
-            orig_parameters,orig_parameter_name,orig_controller_function = self.transitional_controllers[i]
-            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
-                del self.transitional_controllers[i]
-            else:
-                i = i + 1
+        self.__add_controller( self.transitional_controllers, class_with_parameters, parameter_name, controller_function)
+    def remove_transitional_controller(self, class_with_parameters, parameter_name, controller_function=None):
+        self.__remove_controller(self.transitional_controllers,class_with_parameters,parameter_name, controller_function)
 
     def go(self,collect_timing_info=0):
         """Main control loop during stimulus presentation.
@@ -677,8 +671,7 @@ class Presentation(ClassWithParameters):
                 screens.append(viewport.screen)
 
         # Tell transitional controllers a presentation is starting
-        for parameters,parameter_name,controller_function in self.transitional_controllers:
-            setattr(parameters,parameter_name,controller_function(0.0))
+        self.__call_controllers(self.transitional_controllers,0.0)
 
         # Clear any previous timing info if necessary
         if collect_timing_info:
@@ -698,10 +691,8 @@ class Presentation(ClassWithParameters):
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
-            for parameters,parameter_name,controller_function in self.realtime_time_controllers:
-                setattr(parameters,parameter_name,controller_function(current_time))
-            for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
-                setattr(parameters,parameter_name,controller_function(current_frame))
+            self.__call_controllers(self.realtime_time_controllers,current_time)
+            self.__call_controllers(self.realtime_frame_controllers,current_frame)
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -773,12 +764,9 @@ class Presentation(ClassWithParameters):
         # putting the results in parameters.name.
         # It's like "parameters.name = controller(-1.0)", but name is
         # a string, so it must be called this way.
-        for parameters,parameter_name,controller_function in self.realtime_time_controllers:
-            setattr(parameters,parameter_name,controller_function(-1.0))
-        for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
-            setattr(parameters,parameter_name,controller_function(-1))
-        for parameters,parameter_name,controller_function in self.transitional_controllers:
-            setattr(parameters,parameter_name,controller_function(-1.0))
+        self.__call_controllers(self.realtime_time_controllers,-1.0)
+        self.__call_controllers(self.realtime_frame_controllers,-1)
+        self.__call_controllers(self.transitional_controllers,-1.0)
 
         viewports = self.parameters.viewports
 
@@ -802,8 +790,7 @@ class Presentation(ClassWithParameters):
         import Image # Could import this at the beginning of the file, but it breaks sometimes!
         
         # Tell transitional controllers a presentation is starting
-        for parameters,parameter_name,controller_function in self.transitional_controllers:
-            setattr(parameters,parameter_name,controller_function(0.0))
+        self.__call_controllers(self.transitional_controllers,0.0)
 
         # Create a few shorthand notations, which speeds
         # the main loop a little by not performing name lookup each time.
@@ -831,10 +818,8 @@ class Presentation(ClassWithParameters):
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
-            for parameters,parameter_name,controller_function in self.realtime_time_controllers:
-                setattr(parameters,parameter_name,controller_function(current_time))
-            for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
-                setattr(parameters,parameter_name,controller_function(current_frame))
+            self.__call_controllers(self.realtime_time_controllers,current_time)
+            self.__call_controllers(self.realtime_frame_controllers,current_frame)
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -871,11 +856,10 @@ class Presentation(ClassWithParameters):
             frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
             print (len(frame_draw_times)+1), "frames drawn."
             mean_sec = mean(frame_draw_times)
-            print "mean frame to frame time:", mean_sec*1.0e6, "(usec), fps: ",1.0/mean_sec, " max:",max(frame_draw_times)*1.0e6
-            
+            print "mean frame to frame time: %.1f (usec) == mean fps: %.2f, max: %.1f"%(mean_sec*1.0e6,1.0/mean_sec,max(frame_draw_times)*1.0e6)
             bins = arange(0.0,15.0,1.0) # msec
             bins = bins*1.0e-3 # sec
-            print "Frame to frame"
+            print "Inter-frame interval",
             self.print_hist(frame_draw_times,bins)
             print
 
@@ -895,7 +879,7 @@ class Presentation(ClassWithParameters):
         maxhist = float(max(hist))
         h = hist # copy
         hist = hist.astype('f')/maxhist*float(lines) # normalize to 10
-        print "Histogram:"
+        print "histogram:"
         for line in range(lines):
             val = float(lines)-1.0-float(line)
             print "%6d"%(round(maxhist*val/10.0),),
