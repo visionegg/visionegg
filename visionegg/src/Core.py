@@ -30,10 +30,6 @@ ExecStringController -- use potentially complex Python string
 FunctionController -- use a Python function
 EncapsulatedController -- use a controller to control a controller
 
-Exceptions:
-
-EggError -- A Vision Egg specific error
-
 Public functions:
 
 get_default_screen -- Create instance of Screen
@@ -48,14 +44,14 @@ message -- Instance of Message class
 # Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
-all = ['ConstantController', 'Controller', 'EggError',
-       'EncapsulatedController', 'EvalStringController',
-       'ExecStringController', 'FixationSpot', 'FunctionController',
-       'Message', 'OrthographicProjection', 'PerspectiveProjection',
-       'Presentation', 'Projection', 'Screen', 'SimplePerspectiveProjection',
-       'Stimulus', 'Viewport', 'add_gl_assumption', 'check_gl_assumptions',
-       'get_default_screen', 'message', 'swap_buffers',
-       'make_homogeneous_coord_rows']
+all = [ 'ConstantController', 'Controller', 'EncapsulatedController',
+        'EvalStringController', 'ExecStringController', 'FixationSpot',
+        'FrameTimer', 'FunctionController', 'Message',
+        'OrthographicProjection', 'PerspectiveProjection', 'Presentation',
+        'Projection', 'Screen', 'SimplePerspectiveProjection', 'Stimulus',
+        'Viewport', 'add_gl_assumption', 'post_gl_init',
+        'get_default_screen', 'message', 'swap_buffers',
+        'init_gl_extension' ]
 
 ####################################################################
 #
@@ -68,6 +64,8 @@ import warnings
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
 import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
+import VisionEgg.GLTrace                        # Allows tracing of all OpenGL calls
+import VisionEgg.ThreeDeeMath                   # OpenGL math simulation
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
@@ -78,8 +76,8 @@ import OpenGL.GL as gl                          # PyOpenGL (and shortcut name)
 import Numeric  				# Numeric Python package
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 if sys.platform == "darwin":
@@ -95,10 +93,10 @@ except NameError:
     True = 1==1
     False = 1==0
 
-try:
-    gl.GL_BGRA
-except AttributeError:
-    gl.GL_BGRA = 0x80E1 # XXX why doesn't PyOpenGL define this?!
+##try:
+##    gl.GL_BGRA
+##except AttributeError:
+##    gl.GL_BGRA = 0x80E1 # XXX why doesn't PyOpenGL define this?!
 
 try:
     gl.GL_UNSIGNED_INT_8_8_8_8_REV
@@ -108,16 +106,6 @@ except AttributeError:
 def swap_buffers():
     VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
     return pygame.display.flip()
-
-def make_homogeneous_coord_rows(v):
-    """Convert vertex (or row-wise vertices) into homogeneous coordinates."""
-    v = Numeric.array(v,typecode=Numeric.Float)
-    if len(v.shape) == 1:
-        v = v[Numeric.NewAxis,:] # make a rank-2 array
-    if v.shape[1] == 3:
-        ws = Numeric.ones((v.shape[0],1),typecode=Numeric.Float)
-        v = Numeric.concatenate( (v,ws), axis=1 )
-    return v
 
 ####################################################################
 #
@@ -296,20 +284,21 @@ class Screen(VisionEgg.ClassWithParameters):
                         (str(x.__class__),str(x)),
                         level=Message.INFO)
 
-        vendor = gl.glGetString(gl.GL_VENDOR)
-        renderer = gl.glGetString(gl.GL_RENDERER)
-        version = gl.glGetString(gl.GL_VERSION)
+        global gl_vendor, gl_renderer, gl_version
+        gl_vendor = gl.glGetString(gl.GL_VENDOR)
+        gl_renderer = gl.glGetString(gl.GL_RENDERER)
+        gl_version = gl.glGetString(gl.GL_VERSION)
 
         message.add("OpenGL %s, %s, %s"%
-                    (version, renderer, vendor),Message.INFO)
+                    (gl_version, gl_renderer, gl_vendor),Message.INFO)
 
-        if renderer == "GDI Generic" and vendor == "Microsoft Corporation":
+        if gl_renderer == "GDI Generic" and gl_vendor == "Microsoft Corporation":
             message.add("Using default Microsoft Windows OpenGL drivers. "
                         "Please (re-)install the latest video drivers from "
                         "your video card manufacturer to get hardware"
                         "accelerated performance.",Message.WARNING)
 
-        if renderer == "Mesa GLX Indirect" and vendor == "VA Linux Systems, Inc.":
+        if gl_renderer == "Mesa GLX Indirect" and gl_vendor == "VA Linux Systems, Inc.":
             message.add("Using default Mesa GLX drivers. "
                         "Please (re-)install the latest video drivers from "
                         "your video card manufacturer or DRI project to"
@@ -360,7 +349,7 @@ class Screen(VisionEgg.ClassWithParameters):
                         level=Message.WARNING)
 
         # Check previously made OpenGL assumptions now that we have OpenGL window
-        check_gl_assumptions()
+        post_gl_init()
         
         if self.constant_parameters.hide_mouse:
             self.cursor_visible_func(0)
@@ -735,6 +724,7 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_translate(self,x,y,z):
         """Compose a translation without changing OpenGL state."""
+        # XXX could do this all in software        
         matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix()
@@ -754,6 +744,7 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_rotate(self,angle_degrees,x,y,z):
         """Compose a rotation without changing OpenGL state."""
+        # XXX could do this all in software
         matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix()
@@ -773,6 +764,7 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_scale(self,x,y,z):
         """Compose a rotation without changing OpenGL state."""
+        # XXX could do this all in software        
         matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix()
@@ -818,7 +810,7 @@ class Projection(VisionEgg.ClassWithParameters):
         """Transform eye coordinates to clip coordinates"""
         m = Numeric.array(self.parameters.matrix)
         v = Numeric.array(eye_coords_vertex)
-        homog = make_homogeneous_coord_rows(v)
+        homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
         r = Numeric.matrixmultiply(homog,m)
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(4,))
@@ -826,7 +818,7 @@ class Projection(VisionEgg.ClassWithParameters):
     def clip_2_norm_device(self,clip_coords_vertex):
         """Transform clip coordinates to normalized device coordinates"""
         v = Numeric.array(clip_coords_vertex)
-        homog = make_homogeneous_coord_rows(v)
+        homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
         r = (homog/homog[:,3,Numeric.NewAxis])[:,:3]
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(3,))
@@ -1091,7 +1083,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         if self.parameters.screen is None:
-            raise EggError("Must specify screen when creating an instance of Viewport.")
+            raise ValueError("Must specify screen when creating an instance of Viewport.")
         
         self.stimuli = []
         p = self.parameters # shorthand
@@ -1102,6 +1094,7 @@ class Viewport(VisionEgg.ClassWithParameters):
             p.projection = self.make_new_pixel_coord_projection()
         if p.stimuli is None:
             p.stimuli = []
+        self._is_drawing = False
 
     def make_new_pixel_coord_projection(self):
         """Create instance of Projection mapping eye coordinates 1:1 with pixel coordinates."""
@@ -1110,13 +1103,13 @@ class Viewport(VisionEgg.ClassWithParameters):
                                       z_clip_near=0.0,
                                       z_clip_far=1.0)
 
-    def draw(self):
+    def make_current(self):
         """Called by Presentation. Set the viewport and draw stimuli."""
         p = self.parameters # shorthand
         p.screen.make_current()
         
         if p.lowerleft != None:
-            warnings.warn("lowerleft parameter of Viewport class will stop being a supported. "+\
+            warnings.warn("lowerleft parameter of Viewport class will stop being supported. "+\
                           "Use 'position' instead with anchor set to 'lowerleft'.",
                           DeprecationWarning,stacklevel=2)
             p.anchor = 'lowerleft'
@@ -1132,12 +1125,18 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         p.projection.set_gl_projection()
 
-        for stimulus in p.stimuli:
+    def draw(self):
+        """Set the viewport and draw stimuli."""
+        self.make_current()
+        self._is_drawing = True
+        for stimulus in self.parameters.stimuli:
             stimulus.draw()
+        self._is_drawing = False
+            
     def norm_device_2_window(self,norm_device_vertex):
         """Transform normalized device coordinates to window coordinates"""
         v = Numeric.array(norm_device_vertex)
-        homog = make_homogeneous_coord_rows(v)
+        homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
         xd = homog[:,0,Numeric.NewAxis]
         yd = homog[:,1,Numeric.NewAxis]
         zd = homog[:,2,Numeric.NewAxis]
@@ -1205,7 +1204,7 @@ class FixationSpot(Stimulus):
             gl.glLoadIdentity()
 
             c = self.parameters.color
-            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glColorf(c[0],c[1],c[2],c[3])
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
@@ -1488,10 +1487,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         # slightly by not performing name lookup each time.
         p = self.parameters
 
-        # Create timing histogram if necessary
         if p.collect_timing_info:
-            time_msec_bins = range(2,28,2)
-            timing_histogram = [0]*len(time_msec_bins)
+            frame_timer = FrameTimer()
             
         while (not p.trigger_armed) or (not p.trigger_go_if_armed):
             self.between_presentations()
@@ -1576,23 +1573,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             self.frames_absolute += 1
             self.frames_since_go += 1
 
-            true_time_now = VisionEgg.true_time_func()
-            this_frame_draw_time_sec = true_time_now - self._true_time_last_frame
-            self._true_time_last_frame = true_time_now
-            
-            # If wanted, save time this frame was drawn for
             if p.collect_timing_info:
-                index = int(math.ceil(this_frame_draw_time_sec*1000.0/float(time_msec_bins[1]-time_msec_bins[0])))-1
-                if index > (len(timing_histogram)-1):
-                    index = -1
-                try:
-                    timing_histogram[index] += 1
-                except OverflowError:
-                    # already enough values to max out long integer
-                    pass
-                
-            longest_frame_draw_time_sec = max(longest_frame_draw_time_sec,this_frame_draw_time_sec)
-        
+                frame_timer.tick()
+
             # Make sure we use the right value to check if we're done
             if p.go_duration[0] == 'forever': # forever
                 pass # current_duration_value already set to 0
@@ -1672,7 +1655,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 level=Message.TRIVIAL)
 
         if p.collect_timing_info:
-            self.__print_frame_timing_stats(timing_histogram,mean_frame_time_msec,calculated_fps,longest_frame_draw_time_sec*1000.0,time_msec_bins)
+            frame_timer.print_histogram( fd = message.output_stream ) # print to Vision Egg log
         self.in_go_loop = 0
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
@@ -1756,8 +1739,8 @@ class Presentation(VisionEgg.ClassWithParameters):
             image_no = image_no + 1
 
             # Set the time variables for the next frame
-            self.time_sec_absolute= self.time_sec_absolute + 1.0/frames_per_sec
-            self.time_sec_since_go = self.time_sec_since_go + 1.0/frames_per_sec
+            self.time_sec_absolute += 1.0/frames_per_sec
+            self.time_sec_since_go += 1.0/frames_per_sec
             self.frames_absolute += 1
             self.frames_since_go += 1
 
@@ -1865,54 +1848,6 @@ class Presentation(VisionEgg.ClassWithParameters):
             synclync_connection.send_control_packet()
         swap_buffers()
         self.frames_absolute += 1
-        
-    def __print_frame_timing_stats(self,timing_histogram,mean_frame_time_msec,calculated_fps,longest_frame_time_msec,time_msec_bins):
-        timing_string = "In the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
-        synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
-        if synclync_connection:
-            data_packet = synclync_connection.get_latest_data_packet()
-            timing_string += "(SyncLync counted %d VSYNCs, %d buffer swaps, and %d skipped frames.)\n"%(data_packet.vsync_count,
-                                                                                                        data_packet.notify_swapped_count,
-                                                                                                        data_packet.frameskip_count)
-        timing_string += "Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.\n"%(mean_frame_time_msec,calculated_fps,longest_frame_time_msec,)
-        timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
-        timing_string += "\n"
-        message.add(timing_string,level=Message.INFO,preserve_formatting=1)
-
-    def __print_hist(self,hist, timing_string,time_msec_bins):
-        """Print a pretty histogram"""
-        maxhist = float(max(hist))
-        if maxhist == 0:
-            return "No frames were drawn in the last go loop."
-        lines = min(10,int(math.ceil(maxhist)))
-        h = hist
-        hist = Numeric.array(hist,'f')/maxhist*float(lines) # normalize to number of lines
-        timing_string += "histogram:\n"
-        for line in range(lines):
-            val = float(lines)-1.0-float(line)
-            timing_string = timing_string + "%6d   "%(round(maxhist*val/lines),)
-            q = Numeric.greater(hist,val)
-            for qi in q:
-                s = ' '
-                if qi:
-                    s = '*'
-                timing_string = timing_string + "%4s "%(s,)
-            timing_string = timing_string + "\n"
-        timing_string = timing_string + " Time: "
-
-        timing_string = timing_string + "%4d "%(0,)
-        for bin in time_msec_bins[:-1]:
-            timing_string = timing_string + "%4d "%(bin,)
-        timing_string = timing_string + "+(msec)\n"
-        timing_string = timing_string + "Total:    "
-        for hi in h:
-            if hi <= 999:
-                num_str = string.center(str(hi),5)
-            else:
-                num_str = " +++ "
-            timing_string = timing_string + num_str
-        timing_string = timing_string+"\n"
-        return timing_string
         
 ####################################################################
 #
@@ -2529,6 +2464,93 @@ class EncapsulatedController(Controller):
         if self.temporal_variables & VisionEgg.Core.Controller.FRAMES_ABSOLUTE:
             self.contained_controller.frames_absolute = self.frames_absolute
         return self.contained_controller.between_go_eval()
+
+####################################################################
+#
+#        Frame timing information
+#
+####################################################################
+
+class FrameTimer:
+    def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0):
+        self.bins = Numeric.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
+        self.bin_width_msec = float(bin_width_msec)
+        self.timing_histogram = Numeric.zeros( self.bins.shape, typecode=Numeric.Float ) # make float to avoid (early) overflow errors
+        self._true_time_last_frame = None # no frames yet
+        self.longest_frame_draw_time_sec = None
+        self.first_tick_sec = None
+        self.total_frames = 0
+        self.running_average_num_frames = running_average_num_frames
+        if self.running_average_num_frames:
+            self.last_n_frame_times_sec = [None]*self.running_average_num_frames
+        
+    def tick(self):
+        true_time_now = VisionEgg.true_time_func()
+        if self._true_time_last_frame != None:
+            this_frame_draw_time_sec = true_time_now - self._true_time_last_frame
+            index = int(math.ceil(this_frame_draw_time_sec*1000.0/self.bin_width_msec))-1
+            if index > (len(self.timing_histogram)-1):
+                index = -1
+            self.timing_histogram[index] += 1
+            self.longest_frame_draw_time_sec = max(self.longest_frame_draw_time_sec,this_frame_draw_time_sec)
+            if self.running_average_num_frames:
+                self.last_n_frame_times_sec.append(true_time_now)
+                self.last_n_frame_times_sec.pop(0)
+        else:
+            self.first_tick_sec = true_time_now
+        self._true_time_last_frame = true_time_now # set for next frame
+        
+    def get_running_average_ifi_sec(self):
+        if self.running_average_num_frames:
+            frame_times = []
+            for frame_time in self.last_n_frame_times_sec:
+                if frame_time is not None:
+                    frame_times.append( frame_time )
+            if len(frame_times) >= 2:
+                return (frame_times[-1] - frame_times[0]) / len(frame_times)
+        else:
+            raise RuntimeError("running_average_num_frames not set when creating FrameTimer instance")
+    
+    def get_average_ifi_sec(self):
+        return (self._true_time_last_frame - self.first_tick_sec)/sum( self.timing_histogram )
+    
+    def print_histogram(self,fd=sys.stdout):
+        average_ifi_sec = self.get_average_ifi_sec()
+        print >> fd, '%d frames were drawn.'%int(sum(self.timing_histogram))
+        print >> fd, 'Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.'%(
+            average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
+        
+        h = hist = self.timing_histogram # shorthand
+        maxhist = float(max(h))
+        if maxhist == 0:
+            print >> fd, "No frames were drawn."
+            return
+        lines = min(10,int(math.ceil(maxhist)))
+        hist = hist/maxhist*float(lines) # normalize to number of lines
+        print >> fd, "histogram:"
+        for line in range(lines):
+            val = float(lines)-1.0-float(line)
+            timing_string = "%6d   "%(round(maxhist*val/lines),)
+            q = Numeric.greater(hist,val)
+            for qi in q:
+                s = ' '
+                if qi:
+                    s = '*'
+                timing_string += "%4s "%(s,)
+            print >> fd, timing_string
+        timing_string = " Time: "
+        timing_string += "%4d "%(0,)
+        for bin in self.bins[:-1]:
+            timing_string += "%4d "%(bin,)
+        timing_string += "+(msec)\n"
+        timing_string += "Total:    "
+        for hi in h:
+            if hi <= 999:
+                num_str = str(int(hi)).center(5)
+            else:
+                num_str = " +++ "
+            timing_string += num_str
+        print >> fd, timing_string
         
 ####################################################################
 #
@@ -2682,17 +2704,12 @@ class Message:
                 self.output_stream.write(my_str,_no_sys_stderr=no_sys_stderr)
                 self.output_stream.flush()
             if level >= self.exception_level:
-                raise EggError(text)
+                raise RuntimeError(text)
             if level == Message.FATAL:
                 sys.exit(-1)
 
 message = Message(main_global_instance=1) # create instance of Message class for everything to use
     
-class EggError(Exception):
-    """A Vision Egg specific error"""
-    def __init__(self,str):
-        Exception.__init__(self,str)
-
 gl_assumptions = []
 
 def add_gl_assumption(gl_variable,required_value,failure_callback):
@@ -2701,20 +2718,70 @@ def add_gl_assumption(gl_variable,required_value,failure_callback):
         raise ValueError("failure_callback must be a function!")
     gl_assumptions.append((gl_variable,required_value,failure_callback))
 
-def check_gl_assumptions():
+def init_gl_extension(prefix,name):
+    global gl # interpreter knows when we're up to something funny with GLTrace
+
+    if gl is VisionEgg.GLTrace:
+        gl = VisionEgg.GLTrace.gl # restore original module for now
+        watched = True
+    else:
+        watched = False
+    
+    module_name = "OpenGL.GL.%(prefix)s.%(name)s"%locals()
+    try:
+        exec "import "+module_name
+    except ImportError:
+        warnings.warn("Could not import %s -- some features "%(module_name,)+
+                      "will be missing.",
+                      UserWarning,stacklevel=2)
+        return
+    module = eval(module_name)
+    init_function_name = "glInit"+name.title().replace('_','')+prefix
+    init_function = getattr(module,init_function_name)
+    init_function()
+    for attr_name in dir(module):
+        # put attributes from module into "gl" module dictionary
+        # (Namespace overlap as you'd get OpenGL apps written in C)
+        attr = getattr(module,attr_name)
+        # reject unwanted attributes
+        if attr_name.startswith('__'):
+            continue
+        elif attr_name == init_function_name:
+            continue
+        elif attr_name == 'gl':
+            continue
+        elif type(attr) == type(VisionEgg): # module type
+            continue
+        
+        gl_attr_name = attr_name
+        setattr(gl,gl_attr_name,attr)
+        
+    if watched:
+        VisionEgg.GLTrace.attach() # (re)scan namespace
+        gl = VisionEgg.GLTrace # reinstall GLTrace
+            
+def post_gl_init():
     """Called by Screen instance. Requires OpenGL context to be created."""
+    global gl_vendor, gl_renderer, gl_version # set above
+
+    if gl_version < '1.3':
+        init_gl_extension('ARB','multitexture')
+        init_gl_extension('ARB','texture_env_combine')
+
+    if gl_version < '1.2':
+        init_gl_extension('EXT','bgra')
+        gl.GL_BGRA = gl.GL_BGRA_EXT
+
     for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
         if gl_variable == "__SPECIAL__":
             if required_value == "linux_nvidia_or_new_ATI":
                 ok = 0
-                vendor = gl.glGetString(gl.GL_VENDOR)
-                renderer = gl.glGetString(gl.GL_RENDERER)
                 # Test for nVidia
-                if "nvidia" == string.lower(string.split(vendor)[0]):
+                if "nvidia" == string.lower(string.split(gl_vendor)[0]):
                     ok = 1 # yes it is
-                if renderer.startswith('Mesa DRI Radeon'):
-                    date = string.split(renderer)[3]
+                if gl_renderer.startswith('Mesa DRI Radeon'):
+                    date = string.split(gl_renderer)[3]
                     if date > "20021216": # not sure about exact date
                         ok=1
                 if not ok:
@@ -2722,7 +2789,7 @@ def check_gl_assumptions():
             else:
                 raise RuntimeError("Unknown gl_assumption: %s == %s"%(gl_variable,required_value))
         elif string.upper(gl_variable) == "GL_VERSION":
-            value_str = string.split(gl.glGetString(gl.GL_VERSION))[0]
+            value_str = string.split(gl_version)[0]
             value_ints = map(int,string.split(value_str,'.'))
             value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
             if value < required_value:
@@ -2734,7 +2801,7 @@ def check_gl_assumptions():
     try:
         gl.GL_CLAMP_TO_EDGE
     except AttributeError:
-        if gl.glGetString(gl.GL_VERSION) >= '1.2':
+        if gl_version >= '1.2':
             # If OpenGL version >= 1.2, this should be defined
             # It seems to be a PyOpenGL bug that it's not??
             VisionEgg.Core.message.add(
@@ -2748,12 +2815,18 @@ def check_gl_assumptions():
                 level=VisionEgg.Core.Message.WARNING)
             gl.GL_CLAMP_TO_EDGE = 0x812F
         else:
-            VisionEgg.Core.message.add(
-                
-                """You do not have GL_CLAMP_TO_EDGE available.  It may
-                be impossible to get exact 1:1 reproduction of your
-                textures.  Using GL_CLAMP instead of
-                GL_CLAMP_TO_EDGE.""",
-                
-                level=VisionEgg.Core.Message.WARNING)
-            gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
+            try:
+                init_gl_extension('SGIS','texture_edge_clamp')
+                gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP_TO_EDGE_SGIS
+            except:
+                VisionEgg.Core.message.add(
+
+                    """You do not have GL_CLAMP_TO_EDGE available.  Your
+                    OpenGL version is less than 1.2, and the
+                    texture_edge_clamp_SGIS extension failed to load. It
+                    may be impossible to get exact 1:1 reproduction of
+                    your textures.  Using GL_CLAMP instead of
+                    GL_CLAMP_TO_EDGE.""",
+
+                    level=VisionEgg.Core.Message.WARNING)
+                gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
