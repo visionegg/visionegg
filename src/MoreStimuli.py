@@ -91,7 +91,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                     ve_types.Sequence2(ve_types.Real)),  
         }
     
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         '_gave_alpha_warning',
         )
     
@@ -219,8 +219,6 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                                   ve_types.Sequence4(ve_types.Real)),
                  "units: eye coordinates"),
         }
-    
-    __slots__ = VisionEgg.Core.Stimulus.__slots__
     
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)

@@ -138,7 +138,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                        ve_types.UnsignedInteger ),
         }
 
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         'x_positions',
         'y_positions',
         'random_directions_radians',

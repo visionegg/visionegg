@@ -132,7 +132,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                      ve_types.String),
         }
     
-    __slots__ = VisionEgg.Textures.TextureStimulus.__slots__ + (
+    __slots__ = (
         'font',
         '_text',
         )
@@ -206,8 +206,6 @@ class GlutTextBase(VisionEgg.Core.Stimulus):
         'text':('the string to display',
                 ve_types.String)}
     
-    __slots__ = VisionEgg.Core.Stimulus.__slots__
-    
     def __init__(self,**kw):
         if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
             logger = logging.getLogger('VisionEgg.Text')
@@ -242,8 +240,6 @@ class BitmapText(GlutTextBase):
         'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
                 ve_types.Integer),
         }
-    
-    __slots__ = GlutTextBase.__slots__
     
     def __init__(self,**kw):
         GlutTextBase.__init__(self,**kw)
@@ -303,8 +299,6 @@ class StrokeText(GlutTextBase):
         'anti_aliasing':(True,
                          ve_types.Boolean),
         }
-    
-    __slots__ = GlutTextBase.__slots__
     
     def __init__(self,**kw):
         raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")

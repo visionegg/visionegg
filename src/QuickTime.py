@@ -55,7 +55,7 @@ def new_movie_from_filename(filename):
     
 class MovieTexture(VisionEgg.Textures.Texture):
 
-    __slots__ = VisionEgg.Textures.Texture.__slots__ + (
+    __slots__ = (
         'movie',
         'size',
         'scale',
