@@ -15,13 +15,17 @@ import VisionEgg.Textures
 import Numeric
 import math, types, string
 import OpenGL.GL as gl
-import OpenGL.GL.ARB.multitexture
 
-for attr in dir(OpenGL.GL.ARB.multitexture):
-    # put attributes from multitexture module in "gl" module dictionary
-    # (Namespace overlap as you'd get OpenGL apps written in C)
-    if attr[0:2] != "__":
-        setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
+try:
+    import OpenGL.GL.ARB.multitexture
+except ImportError:
+    pass
+else:
+    for attr in dir(OpenGL.GL.ARB.multitexture):
+        # put attributes from multitexture module in "gl" module dictionary
+        # (Namespace overlap as you'd get OpenGL apps written in C)
+        if attr[0:2] != "__":
+            setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
         
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]

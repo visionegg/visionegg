@@ -15,14 +15,18 @@ import Image, ImageDraw                         # Python Imaging Library package
 import math, types, os
 import Numeric, MLab
 import OpenGL.GL as gl
-import OpenGL.GL.ARB.multitexture
 
-OpenGL.GL.ARB.multitexture.glInitMultitextureARB()
-for attr in dir(OpenGL.GL.ARB.multitexture):
-    # put attributes from multitexture module in "gl" module dictionary
-    # (Namespace overlap as you'd get OpenGL apps written in C)
-    if attr[0:2] != "__":
-        setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
+try:
+    import OpenGL.GL.ARB.multitexture # Not necessary
+except ImportError:
+    pass
+else:
+    OpenGL.GL.ARB.multitexture.glInitMultitextureARB()
+    for attr in dir(OpenGL.GL.ARB.multitexture):
+        # put attributes from multitexture module in "gl" module dictionary
+        # (Namespace overlap as you'd get OpenGL apps written in C)
+        if attr[0:2] != "__":
+            setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
