@@ -268,13 +268,13 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
         # generates a list of vertices and the texture coordinates
         # to be used by those vertices.
         r = self.parameters.radius # in OpenGL (arbitrary) units
-        circum = 2.0*pi*r
+        circum = 2.0*math.pi*r
         h = self.parameters.height/2.0
 
         num_sides = self.parameters.num_sides
         self.cached_display_list_num_sides = num_sides
         
-        deltaTheta = 2.0*pi / num_sides
+        deltaTheta = 2.0*math.pi / num_sides
         gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
         gl.glBegin(gl.GL_QUADS)
         for i in range(num_sides):
