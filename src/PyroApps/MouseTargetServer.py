@@ -200,7 +200,7 @@ class TargetOrientationController( VisionEgg.Core.Controller ):
             # find cross product b x c. assume b and c are 3-vecs, b has
             # 3rd component 0.
             orientation_vector = cross_product(b,self.c)
-            self.last_orientation = -math.atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
+            self.last_orientation = math.atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
         
 def get_target_size(t=None):
