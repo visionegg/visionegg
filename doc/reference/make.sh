@@ -1,5 +1,5 @@
 #!/bin/sh
-python=/usr/local/bin/python2.3
+python=/usr/local/bin/pythonw
 $python pydoc.py -w VisionEgg
 $python pydoc.py -w VisionEgg.Configuration
 $python pydoc.py -w VisionEgg.Core
@@ -7,6 +7,9 @@ $python pydoc.py -w VisionEgg.Daq
 $python pydoc.py -w VisionEgg.DaqLPT
 $python pydoc.py -w VisionEgg.DaqOverTCP
 $python pydoc.py -w VisionEgg.Dots
+$python pydoc.py -w VisionEgg.FlowControl
+$python pydoc.py -w VisionEgg.GL
+$python pydoc.py -w VisionEgg.GLTrace
 $python pydoc.py -w VisionEgg.GUI
 $python pydoc.py -w VisionEgg.Gratings
 $python pydoc.py -w VisionEgg.Lib3DS
@@ -21,7 +24,6 @@ $python pydoc.py -w VisionEgg.TCPController
 $python pydoc.py -w VisionEgg.Text
 $python pydoc.py -w VisionEgg.Textures
 $python pydoc.py -w VisionEgg.ThreeDeeMath
-$python pydoc.py -w VisionEgg.darwin_app_stuff
 $python pydoc.py -w VisionEgg.darwin_maxpriority
 $python pydoc.py -w VisionEgg.gl_qt
 $python pydoc.py -w VisionEgg.posix_maxpriority
