@@ -1054,6 +1054,9 @@ class SpinningDrum(TextureStimulusBaseClass):
                 else:
                     gl.glCallList(self.cached_display_list_mirror)
 
+    def reload_texture(self):
+        self.rebuild_display_list()
+        
     def rebuild_display_list(self):
         # (Re)build the display list
         #
