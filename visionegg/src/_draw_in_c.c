@@ -36,15 +36,15 @@ draw_dots(PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "OOO", &input1, &input2, &input3))
     return NULL;
   x = (PyArrayObject *)
-    PyArray_ContiguousFromObject(input1, PyArray_FLOAT, 1, 1);
+    PyArray_ContiguousFromObject(input1, PyArray_DOUBLE, 1, 1);
   if (x == NULL)
     goto fail;
   y = (PyArrayObject *)
-    PyArray_ContiguousFromObject(input2, PyArray_FLOAT, 1, 1);
+    PyArray_ContiguousFromObject(input2, PyArray_DOUBLE, 1, 1);
   if (y == NULL)
     goto fail;
   z = (PyArrayObject *)
-    PyArray_ContiguousFromObject(input3, PyArray_FLOAT, 1, 1);
+    PyArray_ContiguousFromObject(input3, PyArray_DOUBLE, 1, 1);
   if (z == NULL)
     goto fail;
 
@@ -62,9 +62,9 @@ draw_dots(PyObject *self, PyObject *args)
 
   glBegin(GL_POINTS);
   for (i = 0; i < n; i++) {
-    glVertex3f( *(float *)(x->data + i*x->strides[0]),
-		*(float *)(y->data + i*y->strides[0]),
-		*(float *)(z->data + i*z->strides[0]));
+    glVertex3f( *(double *)(x->data + i*x->strides[0]),
+		*(double *)(y->data + i*y->strides[0]),
+		*(double *)(z->data + i*z->strides[0]));
   }
   glEnd();
 
