@@ -247,7 +247,7 @@ class Loop(VisionEgg.ClassWithParameters):
     parameters_and_defaults = {'variable':('<repeat>',
                                            ve_types.String),
                                'sequence':([1, 1, 1],
-                                           ve_types.Sequence),
+                                           ve_types.Sequence(ve_types.Real)),
                                'rest_duration_sec':(1.0,
                                                     ve_types.Real)}
     def __init__(self,**kw):
