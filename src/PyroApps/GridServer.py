@@ -63,12 +63,6 @@ def get_meta_controller_class():
     return GridMetaController
 
 def make_stimuli():
-##    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
-##    texture = VisionEgg.Textures.Texture(filename)
-##    stimulus = VisionEgg.SphereMap.SphereMap(texture=texture,
-##                                             stacks=100,
-##                                             slices=100,
-##                                             shrink_texture_ok=1)
     stimulus = VisionEgg.SphereMap.AzElGrid()
     def set_az_el_grid_viewport(viewport):
         stimulus.parameters.my_viewport = viewport
