@@ -59,6 +59,12 @@ def sync_swap_with_vbl_pre_gl_init():
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
         success = 1
     elif sys.platform[:4] == "irix":
+        
+        # I think this is set using the GLX swap_control SGI
+        # extension.  A C extension could be to be written to change
+        # this value. (It probably cannot be set through an OpenGL
+        # extension or an SDL/pygame feature.)
+        
         VisionEgg.Core.message.add("IRIX platform detected, assuming retrace sync.",
                                    level=VisionEgg.Core.Message.TRIVIAL)
         
