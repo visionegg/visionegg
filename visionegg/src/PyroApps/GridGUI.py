@@ -11,7 +11,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os
 import Tkinter
-import VisionEgg.PyroApps.UberClientUtils as client_utils
+import VisionEgg.PyroApps.EPhysGUIUtils as client_utils
 
 def get_control_list():
     return [("grid_server",GridControlFrame,GridControlFrame.title)]
@@ -22,10 +22,10 @@ class GridMetaParameters:
         
 class GridControlFrame(client_utils.StimulusControlFrame):
     title = "Grid for 3D calibration"
-    def __init__(self, master=None, suppress_uber_buttons=0,**kw):
+    def __init__(self, master=None, suppress_go_buttons=0,**kw):
         apply(client_utils.StimulusControlFrame.__init__,(self,
                                                           master,
-                                                          suppress_uber_buttons,
+                                                          suppress_go_buttons,
                                                           GridControlFrame.title,
                                                           GridMetaParameters),kw)
         Tkinter.Label( self.param_frame,

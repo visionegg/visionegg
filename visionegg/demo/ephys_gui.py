@@ -3,7 +3,7 @@
 import sys
 import Pyro
 import Tkinter, tkMessageBox
-from VisionEgg.PyroApps.UberClientGUI import client_list, AppWindow, get_server
+from VisionEgg.PyroApps.EPhysGUI import client_list, AppWindow, get_server
 
 # You can add your own controllers and GUIs to client_list
 

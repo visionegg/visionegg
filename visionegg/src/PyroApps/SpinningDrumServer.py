@@ -98,7 +98,7 @@ def get_meta_controller_class():
 def make_stimuli():
     filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
     texture = VisionEgg.Textures.Texture(filename)
-    stimulus = VisionEgg.Textures.SpinningDrum(texture=texture)
+    stimulus = VisionEgg.Textures.SpinningDrum(texture=texture) # could add shrink_texture_ok=1
     return [('3d_perspective',stimulus)] # return ordered list of tuples
 
 def get_meta_controller_stimkey():

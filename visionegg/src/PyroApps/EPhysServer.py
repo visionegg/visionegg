@@ -36,7 +36,7 @@ server_modules = [ VisionEgg.PyroApps.TargetServer,
 from VisionEgg.PyroApps.ScreenPositionServer import ScreenPositionMetaController
 from VisionEgg.PyroApps.ScreenPositionGUI import ScreenPositionParameters
 
-class UberServer(  Pyro.core.ObjBase ):
+class EPhysServer(  Pyro.core.ObjBase ):
     def __init__(self, presentation, server_modules ):
         Pyro.core.ObjBase.__init__(self)
         self.stimdict = {}
@@ -109,8 +109,8 @@ def start_server( server_modules ):
     projection_controller = ScreenPositionMetaController(p,projection)
     pyro_server.connect(projection_controller,"projection_controller")
 
-    uber_server = UberServer(p, server_modules)
-    pyro_server.connect(uber_server,"uber_server")
+    ephys_server = EPhysServer(p, server_modules)
+    pyro_server.connect(ephys_server,"ephys_server")
     hostname,port = pyro_server.get_hostname_and_port()
     
     wait_text.parameters.text = "Waiting for connection at %s port %d"%(hostname,port)
@@ -122,13 +122,13 @@ def start_server( server_modules ):
 
     wait_text.parameters.text = "Loading new experiment, please wait."
     
-    while not uber_server.get_quit_status():
+    while not ephys_server.get_quit_status():
 
         perspective_viewport.parameters.stimuli = []
         overlay2D_viewport.parameters.stimuli = [wait_text]
         p.between_presentations() # draw wait_text
         
-        pyro_name, meta_controller_class, stimulus_list = uber_server.get_next_stimulus_meta_controller()
+        pyro_name, meta_controller_class, stimulus_list = ephys_server.get_next_stimulus_meta_controller()
         stimulus_meta_controller = meta_controller_class(screen, p, stimulus_list) # instantiate meta_controller
         pyro_server.connect(stimulus_meta_controller, pyro_name)
             

@@ -11,7 +11,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os
 import Tkinter
-import VisionEgg.PyroApps.UberClientUtils as client_utils
+import VisionEgg.PyroApps.EPhysGUIUtils as client_utils
 
 def get_control_list():
     return [("spinning_drum_server",SpinningDrumControlFrame,SpinningDrumControlFrame.title)]
@@ -27,10 +27,10 @@ class SpinningDrumMetaParameters:
         
 class SpinningDrumControlFrame(client_utils.StimulusControlFrame):
     title = "Spinning Drum Experiment"
-    def __init__(self, master=None, suppress_uber_buttons=0,**kw):
+    def __init__(self, master=None, suppress_go_buttons=0,**kw):
         apply(client_utils.StimulusControlFrame.__init__,(self,
                                                           master,
-                                                          suppress_uber_buttons,
+                                                          suppress_go_buttons,
                                                           SpinningDrumControlFrame.title,
                                                           SpinningDrumMetaParameters),kw)
 
