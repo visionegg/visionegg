@@ -17,7 +17,8 @@ import VisionEgg.ParameterTypes as ve_types
 
 import Numeric, RandomArray
 import math, types, string
-import OpenGL.GL as gl
+
+gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
 ##try:
 ##    import VisionEgg._draw_in_c
@@ -79,8 +80,9 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                                       ve_types.Real ),
         'dot_lifespan_sec' : ( 5.0,
                                ve_types.Real ),
-        'color' : ((1.0,1.0,1.0,1.0),
-                   ve_types.Sequence4(ve_types.Real)),
+        'color' : ((1.0,1.0,1.0),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         'dot_size' : (4.0, # pixels
                       ve_types.Real),
         'anti_aliasing' : ( True,
@@ -123,7 +125,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
             
             if p.anti_aliasing:
-                if not self._gave_alpha_warning:
+                if len(p.color) == 4 and not self._gave_alpha_warning:
                     if p.color[3] != 1.0:
                         VisionEgg.Core.message.add(
                             """The parameter anti_aliasing is set to
@@ -186,7 +188,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             xs = (self.x_positions - 0.5) * p.size[0] + center[0]
             ys = (self.y_positions - 0.5) * p.size[1] + center[1]
 
-            gl.glColor( p.color[0], p.color[1], p.color[2], p.color[3] )
+            gl.glColorf( p.color ) 
             gl.glPointSize(p.dot_size)
 
             # Clear the modeview matrix
