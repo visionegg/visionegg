@@ -8,7 +8,7 @@ description      = "Vision Egg"
 url              = "http://www.visionegg.org/"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
-version          = "0.9.4a2"
+version          = "0.9.4a3"
 license          = "LGPL" # Lesser GNU Public License
 
 name             = "VisionEgg"
