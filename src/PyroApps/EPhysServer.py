@@ -171,7 +171,7 @@ def start_server( server_modules, server_class=EPhysServer ):
     p = VisionEgg.Core.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
 
     wait_text = VisionEgg.Text.Text(
-        text = "Waiting for connection",
+        text = "Starting up...",
         position = (screen.size[0]/2.0,5),
         anchor='bottom',
         color = (1.0,0.0,0.0,0.0))
@@ -211,6 +211,10 @@ def start_server( server_modules, server_class=EPhysServer ):
         for stim in stimulus_list:
             if stim[0] == '3d_perspective':
                 perspective_viewport.parameters.stimuli.append(stim[1])
+            elif stim[0] == '3d_perspective_with_set_viewport_callback':
+                key, stimulus, callback_function = stim
+                callback_function(perspective_viewport)
+                perspective_viewport.parameters.stimuli.append(stimulus)
             elif stim[0] == '2d_overlay':
                 overlay2D_viewport.parameters.stimuli.append(stim[1])
             else:
