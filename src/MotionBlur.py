@@ -191,9 +191,8 @@ class BlurredDrum(SpinningDrum):
                  target_fps=VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ,
                  max_speed=2000.0,
                  blur_kernel='boxcar',
-                 texture=Texture(size=(256,16)),
-                 num_sides=30):
-        apply(SpinningDrum.__init__,(self,texture,num_sides))
+                 texture=Texture(size=(256,16))):
+        apply(SpinningDrum.__init__,(self,texture))
         self.texs = BlurTextureFamily(self.texture,
                                       num_cached_textures=num_cached_textures,
                                       maxSpeed=max_speed,
