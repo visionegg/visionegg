@@ -416,16 +416,9 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                 return 0
 
             incr = (stop-start)/float(n-1)
-            seq = []
-            value = start
-            if incr > 0.0:
-                while value <= stop:
-                    seq.append(value)
-                    value += incr
-            else:
-                while value >= stop:
-                    seq.append(value)
-                    value += incr
+            seq = range(n)
+            for i in range(n):
+                seq[i] = i*incr + start
         elif self.sequence_type.get() == "log":
             start = self.log_start_tk.get()
             stop = self.log_stop_tk.get()
@@ -437,18 +430,9 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                 return 0
 
             incr = (stop-start)/float(n-1)
-            seq = []
-            value = start
-            if incr > 0.0:
-                while value <= stop:
-                    seq.append(value)
-                    value += incr
-            else:
-                while value >= stop:
-                    seq.append(value)
-                    value += incr
-            for i in range(len(seq)):
-                seq[i] = 10.0**seq[i]
+            seq = range(n)
+            for i in range(n):
+                seq[i] = 10.0**( i*incr + start )
         elif self.sequence_type.get() == "logb":
             start = self.logb_start_tk.get()
             stop = self.logb_stop_tk.get()
@@ -460,20 +444,10 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                                          "Must have n >= 2.",
                                          parent=self)
                 return 0
-
             incr = (stop-start)/float(n-1)
-            seq = []
-            value = start
-            if incr > 0.0:
-                while value <= stop:
-                    seq.append(value)
-                    value += incr
-            else:
-                while value >= stop:
-                    seq.append(value)
-                    value += incr
-            for i in range(len(seq)):
-                seq[i] = 10.0**seq[i]
+            seq = range(n)
+            for i in range(n):
+                seq[i] = 10.0**( i*incr + start )
         else:
             tkMessageBox.showwarning("Invalid sequence parameters",
                                      "Invalid sequence type.",
