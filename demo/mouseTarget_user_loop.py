@@ -66,30 +66,32 @@ right = 0
 # VisionEgg.Core.Presentation class.
 
 quit_now = 0
+frame_timer = FrameTimer()
 while not quit_now:
-    if pygame.event.get(pygame.locals.QUIT):
-        quit_now = 1
-    for event in pygame.event.get(pygame.locals.KEYDOWN):
-        if event.key == pygame.locals.K_ESCAPE:
+    for event in pygame.event.get():
+        if event.type == pygame.locals.QUIT:
             quit_now = 1
-        elif event.key == pygame.locals.K_UP:
-            up = 1
-        elif event.key == pygame.locals.K_DOWN:
-            down = 1
-        elif event.key == pygame.locals.K_RIGHT:
-            right = 1
-        elif event.key == pygame.locals.K_LEFT:
-            left = 1
-    for event in pygame.event.get(pygame.locals.KEYUP):
-        if event.key == pygame.locals.K_UP:
-            up = 0
-        elif event.key == pygame.locals.K_DOWN:
-            down = 0
-        elif event.key == pygame.locals.K_RIGHT:
-            right = 0
-        elif event.key == pygame.locals.K_LEFT:
-            left = 0
-    
+        elif event.type == pygame.locals.KEYDOWN:
+            if event.key == pygame.locals.K_ESCAPE:
+                quit_now = 1
+            elif event.key == pygame.locals.K_UP:
+                up = 1
+            elif event.key == pygame.locals.K_DOWN:
+                down = 1
+            elif event.key == pygame.locals.K_RIGHT:
+                right = 1
+            elif event.key == pygame.locals.K_LEFT:
+                left = 1
+        elif event.type == pygame.locals.KEYUP:
+            if event.key == pygame.locals.K_UP:
+                up = 0
+            elif event.key == pygame.locals.K_DOWN:
+                down = 0
+            elif event.key == pygame.locals.K_RIGHT:
+                right = 0
+            elif event.key == pygame.locals.K_LEFT:
+                left = 0
+
     just_current_pos = mouse_position
     (x,y) = pygame.mouse.get_pos()
     y = screen.size[1]-y # convert to OpenGL coords
@@ -127,3 +129,5 @@ while not quit_now:
     screen.clear()
     viewport.draw()
     swap_buffers()
+    frame_timer.tick()
+frame_timer.print_histogram()
