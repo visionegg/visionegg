@@ -10,7 +10,7 @@ import pygame
 if not hasattr(pygame.display,"set_gamma_ramp"):
     raise RuntimeError("Need pygame 1.5 or greater for set_gamma_ramp function.")
 
-def gamma_func(frame):
+def gamma_func(f):
     r = arange(256).astype('i')
     g = r
     b = zeros((256,),'i')
@@ -40,7 +40,7 @@ viewport = Viewport(screen=screen,stimuli=[stimulus])
 p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
 
 # Register the controller functions
-p.add_controller(None,None,FunctionController(during_go_func=gamma_func))
+p.add_controller(None,None,FunctionController(during_go_func=gamma_func,temporal_variables=Controller.FRAMES_SINCE_GO))
 
 # Go!
 p.go()
