@@ -208,6 +208,14 @@ class Projection:
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
             glMatrixMode(matrix_mode) # Set the matrix mode back
+    def rotate(self,angle_degrees,x,y,z):
+        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        glLoadMatrixf(self.parameters.matrix)
+        glRotatef(angle_degrees,x,y,z)
+        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if matrix_mode != GL_PROJECTION:
+            glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class OrthographicProjection(Projection):
     """An orthographic projection"""
