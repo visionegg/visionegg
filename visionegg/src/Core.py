@@ -70,10 +70,6 @@ import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
 import pygame.display
-#swap_buffers = pygame.display.flip              # make shortcut name
-def swap_buffers():
-    VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
-    return pygame.display.flip()
 
 import OpenGL.GL as gl                          # PyOpenGL (and shortcut name)
 
@@ -96,6 +92,10 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+def swap_buffers():
+    VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
+    return pygame.display.flip()
 
 ####################################################################
 #
@@ -142,6 +142,11 @@ class Screen(VisionEgg.ClassWithParameters):
 
     """
     
+    parameters_and_defaults = {
+        'bgcolor':((0.5,0.5,0.5,0.0),
+                   ve_types.Sequence4(ve_types.Real)),
+        }
+    
     constant_parameters_and_defaults = {
         'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
                  VisionEgg.config.VISIONEGG_SCREEN_H),
@@ -158,11 +163,6 @@ class Screen(VisionEgg.ClassWithParameters):
                      ve_types.Boolean),
         }
 
-    parameters_and_defaults = {
-        'bgcolor':((0.5,0.5,0.5,0.0),
-                   ve_types.Sequence4(ve_types.Real)),
-        }
-    
     def __init__(self,**kw):
         
         VisionEgg.ClassWithParameters.__init__(self,**kw)
@@ -248,8 +248,6 @@ class Screen(VisionEgg.ClassWithParameters):
                 depth.  Trying with bpp=0.""",
                 level=Message.WARNING)
             try_bpp = 0 # At least try something!
-
-        self.size = self.constant_parameters.size
 
         append_str = ""
         if self.constant_parameters.fullscreen:
@@ -356,6 +354,12 @@ class Screen(VisionEgg.ClassWithParameters):
         else:
             VisionEgg.config._open_screens = [self]
 
+    # Use Python descriptors (introduced in Python 2.2) to link size
+    # attribute to constant_parameters.size.
+    def get_size(self): return self.constant_parameters.size
+    def set_size(self, value): raise RuntimeError("Attempting to set read-only value")
+    size = property(get_size,set_size)
+
     def get_framebuffer_as_image(self, buffer='back', format=gl.GL_RGB):
         """get pixel values from framebuffer to PIL image (SLOW)"""
         import Image # Could import this at the beginning of the file, but it breaks sometimes!
@@ -435,8 +439,10 @@ class Screen(VisionEgg.ClassWithParameters):
                                                    internal_format = internal_format,
                                                    )
             self._put_pixels_texture_stimulus = t # rename
-            self._pixel_coord_projection = OrthographicProjection(left=0,right=self.size[0],
-                                                                  bottom=0,top=self.size[1],
+            self._pixel_coord_projection = OrthographicProjection(left=0,
+                                                                  right=self.size[0],
+                                                                  bottom=0,
+                                                                  top=self.size[1],
                                                                   z_clip_near=0.0,
                                                                   z_clip_far=1.0)
         else:
@@ -454,11 +460,20 @@ class Screen(VisionEgg.ClassWithParameters):
         gl.glMatrixMode(gl.GL_PROJECTION) # Restore projection
         gl.glPopMatrix()
                 
-    def get_framerate(self, wait_n_frames_ok=0):
-        if not wait_n_frames_ok:
-            raise NotImplementedError("Platform dependent code to check frame rate not yet implemented.")
+    def get_framerate(self, average_over_seconds=0.0):
+        if average_over_seconds > 0.0:
+            start_time = VisionEgg.time_func()
+            now = start_time
+            num_frames = 0
+            while (now - start_time) < average_over_seconds:
+                swap_buffers()
+                now = VisionEgg.time_func()
+                num_frames += 1
+            fps = num_frames / (now - start_time)
+            return fps
         else:
-            raise NotImplementedError("Not yet...")
+            # query hardware if possible
+            raise NotImplementedError("Platform dependent code to query frame rate not implemented on this platform.")
 
     def set_gamma_ramp(self, red, green, blue):
         return pygame.display.set_gamma_ramp(red,green,blue)
@@ -744,8 +759,8 @@ class Projection(VisionEgg.ClassWithParameters):
         m = Numeric.array([[side[0], new_up[0], -forward[0], 0.0],
                            [side[1], new_up[1], -forward[1], 0.0],
                            [side[2], new_up[2], -forward[2], 0.0],
-                           [0.0, 0.0, 0.0, 1.0]])
-        # This should get optimized -- don't do it in OpenGL
+                           [    0.0,       0.0,         0.0, 1.0]])
+        # XXX This should get optimized -- don't do it in OpenGL
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadMatrixf(self.parameters.matrix)
         gl.glMultMatrixf(m)
@@ -793,7 +808,7 @@ class SimplePerspectiveProjection(Projection):
         matrix[1][1] = cotangent
         matrix[2][2] = -(z_clip_far + z_clip_near) / delta_z
         matrix[2][3] = -1.0 # XXX this
-        matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z # and this might cause the matrix to need to be transposed
+        matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z # XXX and this might cause the matrix to need to be transposed
         matrix[3][3] = 0.0
         return matrix
                                                   
@@ -1942,13 +1957,13 @@ class Controller:
         """Called by Presentation. Evaluate during the main 'go' loop.
 
         Override this method in subclasses."""
-        raise NotImplementedError("%s: Definition of during_go_eval() in abstract base class Contoller must be overriden."%(str(self),))
+        raise RuntimeError("%s: Definition of during_go_eval() in abstract base class Contoller must be overriden."%(str(self),))
 
     def between_go_eval(self):
         """Called by Presentation. Evaluate between runs of the main 'go' loop.
         
         Override this method in subclasses.""" 
-        raise NotImplementedError("%s: Definition of between_go_eval() in abstract base class Controller must be overriden."%(str(self),))
+        raise RuntimeError("%s: Definition of between_go_eval() in abstract base class Controller must be overriden."%(str(self),))
 
     def _test_self(self,go_started):
         """Test whether a controller works.
@@ -2604,17 +2619,31 @@ def check_gl_assumptions():
                 failure_callback()
         else:
             raise RuntimeError("Unknown gl_assumption")
-        
-    # Make sure gl.GL_CLAMP_TO_EDGE_WORKS
+
+    # Do we have gl.GL_CLAMP_TO_EDGE ?
     try:
-        gl.glTexParameteri( gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE )
-    except (gl.GLerror, AttributeError):
-        VisionEgg.Core.message.add(
-
-            """You do not have GL_CLAMP_TO_EDGE available.  It may
-            be impossible to get exact 1:1 reproduction of your
-            textures.  Using GL_CLAMP instead of
-            GL_CLAMP_TO_EDGE.""",
-
-            level=VisionEgg.Core.Message.WARNING)
-        gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
+        gl.GL_CLAMP_TO_EDGE
+    except AttributeError:
+        if gl.glGetString(gl.GL_VERSION) >= '1.2':
+            # If OpenGL version >= 1.2, this should be defined
+            # It seems to be a PyOpenGL bug that it's not??
+            VisionEgg.Core.message.add(
+                
+                """You do not have GL_CLAMP_TO_EDGE defined.  Because
+                you have OpenGL version 1.2 or greater, this is
+                probably a bug in PyOpenGL.  Assigning
+                GL_CLAMP_TO_EDGE to the value that is usually
+                used.""",
+                
+                level=VisionEgg.Core.Message.WARNING)
+            gl.GL_CLAMP_TO_EDGE = 0x812F
+        else:
+            VisionEgg.Core.message.add(
+                
+                """You do not have GL_CLAMP_TO_EDGE available.  It may
+                be impossible to get exact 1:1 reproduction of your
+                textures.  Using GL_CLAMP instead of
+                GL_CLAMP_TO_EDGE.""",
+                
+                level=VisionEgg.Core.Message.WARNING)
+            gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
