@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
-import sys, os, string, time, types
+import sys, os, string, time, types, socket
 import Tkinter
 import Pyro.core
 
@@ -43,10 +43,31 @@ class StimulusControlFrame(Tkinter.Frame):
             connected_frame.columnconfigure(1,weight=1)
             connected_frame.columnconfigure(2,weight=1)
 
-            self.connected_label = Tkinter.Label(connected_frame,text="Server status: Not connected")
-            self.connected_label.grid(row=0,column=0)
-            Tkinter.Button(connected_frame,text="Connect",command=self.connect).grid(row=0,column=1)
-            Tkinter.Button(connected_frame,text="Quit server",command=self.quit_server).grid(row=0,column=2)
+            self.connected_text = Tkinter.StringVar()
+            self.connected_text.set("Server status: Not connected")
+            self.server_hostname = Tkinter.StringVar()
+            self.server_hostname.set( socket.getfqdn('') )
+            self.server_port = Tkinter.IntVar()
+            self.server_port.set( 7766 )
+            
+            Tkinter.Label(connected_frame,
+                          text="Server hostname").grid(row=0,
+                                                       column=0)
+            Tkinter.Entry(connected_frame,
+                          textvariable=self.server_hostname).grid(row=0,
+                                                                  column=1,
+                                                                  columnspan=2)
+            Tkinter.Label(connected_frame,
+                          textvariable=self.connected_text).grid(row=1,
+                                                                 column=0)
+            Tkinter.Button(connected_frame,
+                           text="Connect",
+                           command=self.standalone_connect).grid(row=1,
+                                                                 column=1)
+            Tkinter.Button(connected_frame,
+                           text="Quit server",
+                           command=self.quit_server).grid(row=1,
+                                                          column=2)
         
         row += 1
         self.param_frame = Tkinter.Frame(self)
@@ -164,8 +185,11 @@ class StimulusControlFrame(Tkinter.Frame):
         root["cursor"] = old_cursor
         root.update()
 
-    def connect(self):
-        self.pyro_client = VisionEgg.PyroClient.PyroClient()
+    def standalone_connect(self):
+        self.connect(self.server_hostname.get(),self.server_port.get())
+
+    def connect(self,server_hostname,server_port):
+        self.pyro_client = VisionEgg.PyroClient.PyroClient(server_hostname,server_port)
 
         shortname = self.get_shortname()
         meta_controller_name = shortname + "_server"
@@ -190,14 +214,14 @@ class StimulusControlFrame(Tkinter.Frame):
         self.meta_params = self.meta_controller.get_parameters()
 
         self.connected = 1
-        if hasattr(self,'connected_label'): # uber client suppresses this label
-            self.connected_label.config(text="Server status: Connected")
+        if hasattr(self,'connected_text'): # uber client suppresses this
+            self.connected_text.set("Server status: Connected")
 
     def quit_server(self,dummy=None):
         self.meta_controller.quit_server()
         self.connected = 0
-        if hasattr(self,'connected_label'): # uber client suppresses this label
-            self.connected_label.config(text="Server status: Not connected")
+        if hasattr(self,'connected_text'): # uber client suppresses this label
+            self.connected_text.set("Server status: Not connected")
 
 if __name__=='__main__':
     frame = StimulusControlFrame()
