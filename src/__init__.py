@@ -193,6 +193,10 @@ class Parameters:
     class, which serves as a nameholder for just this purpose."""
     pass
 
+class CallableType:
+    """Fake class to represent the type of any callable object"""
+    pass
+
 class ClassWithParameters:
     """Base class for any class that uses parameters.
 
@@ -268,8 +272,13 @@ class ClassWithParameters:
                     # Allow None to pass as acceptable value -- lets __init__ set own default
                     if type(value) != types.NoneType:
                         # Check anything other than None
-                        if not isinstance(value,tipe):
-                            raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
+                        if not tipe == CallableType:
+                            if not isinstance(value,tipe):
+                                raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
+                        else: # make sure it's a callable type
+                            if not type(value) == types.FunctionType:
+                                if not type(value) == types.MethodType:
+                                    raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
                     setattr(self.parameters,parameter_name,value)
                 done_parameters_and_defaults.append(klass.parameters_and_defaults)
             # Create self.constant_parameters and set values to keyword argument if found,
@@ -366,3 +375,27 @@ def assert_type(check_type,require_type):
             type_error = 1
         if type_error:
             raise TypeError("%s is not of type %s"%(check_type,require_type))
+
+def _get_lowerleft(position,anchor,size):
+    """Private helper function"""
+    if anchor == 'lowerleft':
+        lowerleft = position
+    elif anchor == 'center':
+        lowerleft = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
+    elif anchor == 'lowerright':
+        lowerleft = (position[0] - size[0],position[1])
+    elif anchor == 'upperright':
+        lowerleft = (position[0] - size[0],position[1] - size[1])
+    elif anchor == 'upperleft':
+        lowerleft = (position[0],position[1] - size[1])
+    elif anchor == 'left':
+        lowerleft = (position[0],position[1] - size[1]/2.0)
+    elif anchor == 'right':
+        lowerleft = (position[0] - size[0],position[1] - size[1]/2.0)
+    elif anchor == 'bottom':
+        lowerleft = (position[0] - size[0]/2.0,position[1])
+    elif anchor == 'top':
+        lowerleft = (position[0] - size[0]/2.0,position[1] - size[1])
+    else:
+        raise ValueError("No anchor position %s"%anchor)
+    return lowerleft
