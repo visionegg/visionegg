@@ -12,7 +12,6 @@
 import VisionEgg
 import os
 import Tkinter
-import VisionEgg
 import string
 
 __version__ = VisionEgg.release_name
@@ -52,13 +51,13 @@ class OpenScreenDialog(Tkinter.Frame):
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).pack()
 
-        # texture compression
-        self.tex_compress = Tkinter.BooleanVar()
-        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
-        Tkinter.Checkbutton(self,
-                            text='Texture compression',
-                            variable=self.tex_compress,
-                            relief=Tkinter.FLAT).pack()
+##        # texture compression
+##        self.tex_compress = Tkinter.BooleanVar()
+##        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
+##        Tkinter.Checkbutton(self,
+##                            text='Texture compression',
+##                            variable=self.tex_compress,
+##                            relief=Tkinter.FLAT).pack()
 
         # frame rate
         Tkinter.Label(self,text="What is your monitor refresh (Hz):").pack()
@@ -79,11 +78,31 @@ class OpenScreenDialog(Tkinter.Frame):
         Tkinter.Entry(self,textvariable=self.height).pack()
 
         # color depth
-        Tkinter.Label(self,text="Color depth (bits per pixel):").pack()
+        Tkinter.Label(self,text="Requested total color depth (bits per pixel):").pack()
         self.color_depth = Tkinter.StringVar()
-        default_bpp_string = "%d"%VisionEgg.config.VISIONEGG_PREFERRED_BPP
-        self.color_depth.set(default_bpp_string)
-        Tkinter.OptionMenu(self,self.color_depth,default_bpp_string,"0 (Any)","16","24","32").pack()
+        self.color_depth.set(str(VisionEgg.config.VISIONEGG_PREFERRED_BPP))
+        Tkinter.Entry(self,textvariable=self.color_depth).pack()
+
+        # red depth
+        Tkinter.Label(self,text="Requested red bits per pixel:").pack()
+        self.red_depth = Tkinter.StringVar()
+        self.red_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_RED_BITS))
+        Tkinter.Entry(self,textvariable=self.red_depth).pack()
+        # green depth
+        Tkinter.Label(self,text="Requested green bits per pixel:").pack()
+        self.green_depth = Tkinter.StringVar()
+        self.green_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS))
+        Tkinter.Entry(self,textvariable=self.green_depth).pack()
+        # blue depth
+        Tkinter.Label(self,text="Requested blue bits per pixel:").pack()
+        self.blue_depth = Tkinter.StringVar()
+        self.blue_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS))
+        Tkinter.Entry(self,textvariable=self.blue_depth).pack()
+        # alpha depth
+        Tkinter.Label(self,text="Requested alpha bits per pixel:").pack()
+        self.alpha_depth = Tkinter.StringVar()
+        self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
+        Tkinter.Entry(self,textvariable=self.alpha_depth).pack()
 
         # Start button
         Tkinter.Button(self,text="start",command=self.start).pack()
@@ -92,10 +111,14 @@ class OpenScreenDialog(Tkinter.Frame):
         
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
-        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
+#        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
-        VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(string.split(self.color_depth.get(),' ')[0])
+        VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(self.color_depth.get())
+        VisionEgg.config.VISIONEGG_REQUEST_RED_BITS = int(self.red_depth.get())
+        VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS = int(self.green_depth.get())
+        VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS = int(self.blue_depth.get())
+        VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS = int(self.alpha_depth.get())
 
         screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
                                              VisionEgg.config.VISIONEGG_SCREEN_H),
@@ -125,10 +148,10 @@ class InfoFrame(Tkinter.Frame):
             Tkinter.Label(self.sub_frame,text="fullscreen mode").pack()
         else:
             Tkinter.Label(self.sub_frame,text="window mode").pack()
-        if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
-            Tkinter.Label(self.sub_frame,text="Texture compression on").pack()
-        else:
-            Tkinter.Label(self.sub_frame,text="Texture compression off").pack()
+##        if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
+##            Tkinter.Label(self.sub_frame,text="Texture compression on").pack()
+##        else:
+##            Tkinter.Label(self.sub_frame,text="Texture compression off").pack()
 
         #Tkinter.Button(self.sub_frame,text="Update information",command=self.update).pack()
 

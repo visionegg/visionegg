@@ -43,7 +43,11 @@ defaults= {
     'VISIONEGG_FULLSCREEN':           0,
     'VISIONEGG_PREFERRED_BPP':        32,
     'VISIONEGG_MONITOR_REFRESH_HZ':   60.0,
-    'VISIONEGG_MAXPRIORITY':          0
+    'VISIONEGG_MAXPRIORITY':          0,
+    'VISIONEGG_REQUEST_RED_BITS':     8,
+    'VISIONEGG_REQUEST_GREEN_BITS':   8,
+    'VISIONEGG_REQUEST_BLUE_BITS':    8,
+    'VISIONEGG_REQUEST_ALPHA_BITS':   8,
     }
 
 ####################################################################
