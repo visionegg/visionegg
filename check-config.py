@@ -64,9 +64,9 @@ if sys.platform in ['darwin','mac','win32'] and gui_ok:
             
         elif sys.platform == 'win32':
             
-            add_str = """ After this script has finished, second GUI
-            window will appear.  Until this window is closed, it keeps
-            the console available for viewing."""
+            add_str = """ After this script has finished, a second GUI
+            window will appear.  Until the second window is closed,
+            the console will be available for viewing."""
 
         else:
             
@@ -149,9 +149,10 @@ if 'VisionEgg' in globals().keys():
             print configname + " = " + str(getattr(VisionEgg.config,configname))
     print
 
-    print "The demo files should be in %s"%(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demos'),)
-
-    print
+    if sys.executable != sys.argv[0]:
+        # Not running as binary executable in own demo directory
+        print "The demo files should be in %s"%(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demos'),)
+        print
 
     # These things have been removed from the installed library directory.
     # Print error if it's still around
@@ -159,7 +160,10 @@ if 'VisionEgg' in globals().keys():
                                'demo', # old install location
                                'test', # old install location
                                ]
-    files_installed = os.listdir(os.path.dirname(VisionEgg.__file__))
+    try:
+        files_installed = os.listdir(os.path.dirname(VisionEgg.__file__))
+    except:
+        files_installed = []
     ancient_files = []
     for filename in ancient_VisionEgg_files:
         if filename in files_installed:
@@ -267,11 +271,9 @@ if gui_ok and sys.platform == 'win32':
     showwarning(title="View the console",
                              message=
         
-        """This dialog keeps the console open until you close
-        it. However, this feature is not provided by other Vision Egg
-        scripts.  Although the Vision Egg does not print by default to the console,
-        all python errors
-
-        , so an error occursif anything (such as errors) is printed to the console
-        you have to run from the command line to see the
-        console -- sorry!""")
+        """This dialog keeps the console open until you close it.
+        Although by default the Vision Egg prints everything
+        (including errors) to VisionEgg.log, it may be necessary to
+        view the console.  In that case, you have to run the script
+        from the command line so that the console does not disappear
+        when the program is finished executing.""")
