@@ -14,7 +14,7 @@ $PYTHON pydoc.py -w VisionEgg.Deprecated
 $PYTHON pydoc.py -w VisionEgg.Dots
 $PYTHON pydoc.py -w VisionEgg.FlowControl
 $PYTHON pydoc.py -w VisionEgg.GL
-$PYTHON pydoc.py -w VisionEgg.GLTrace
+#$PYTHON pydoc.py -w VisionEgg.GLTrace # this doesn't work for some reason
 $PYTHON pydoc.py -w VisionEgg.GUI
 $PYTHON pydoc.py -w VisionEgg.Gratings
 $PYTHON pydoc.py -w VisionEgg.Lib3DS
@@ -53,6 +53,5 @@ $PYTHON pydoc.py -w VisionEgg.darwin_getrefresh
 $PYTHON pydoc.py -w VisionEgg.darwin_maxpriority
 $PYTHON pydoc.py -w VisionEgg.gl_qt
 $PYTHON pydoc.py -w VisionEgg.posix_maxpriority
-$PYTHON pydoc.py -w VisionEgg.py_logging
 $PYTHON pydoc.py -w VisionEgg.win32_getrefresh.py
 $PYTHON pydoc.py -w VisionEgg.win32_maxpriority
