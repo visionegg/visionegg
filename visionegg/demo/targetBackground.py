@@ -2,15 +2,15 @@
 
 # Display a white target moving across a textured drum.
 
-########################################################
-#  Import various modules from the Vision Egg package  #
-########################################################
+############################
+#  Import various modules  #
+############################
 
-import math
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
 from VisionEgg.Textures import *
+import math
 
 # Initialize an OpenGL window
 screen = get_default_screen()
@@ -75,8 +75,8 @@ else:
 
 # Control the small target:
 def xy_as_function_of_time(t):
-    return ( max_vel*sin(0.1*2.0*math.pi*t) + mid_x , # x
-             max_vel*sin(0.1*2.0*math.pi*t) + mid_y ) # y
+    return ( max_vel*math.sin(0.1*2.0*math.pi*t) + mid_x , # x
+             max_vel*math.sin(0.1*2.0*math.pi*t) + mid_y ) # y
 
 # Control the background:
 def angle_as_function_of_time(t):

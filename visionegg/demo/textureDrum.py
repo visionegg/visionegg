@@ -3,6 +3,7 @@
 from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.Textures import *
+import math
 
 max_speed = 500.0 # degrees per second
 
