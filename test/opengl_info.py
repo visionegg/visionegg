@@ -72,11 +72,11 @@ print "Testing OpenGL extensions"
 for ext in exts:
     print " GL_ARB_%s:"%ext,
     module_name = "OpenGL.GL.ARB.%s"%ext
-    mod = __import__(module_name,globals(),locals(),[])
-    components = string.split(module_name, '.') # make mod refer to deepest module
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
     try:
+        mod = __import__(module_name,globals(),locals(),[])
+        components = string.split(module_name, '.') # make mod refer to deepest module
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
         init_name = "glInit%sARB"%string.join(map(string.capitalize,string.split(ext,'_')),'')
         init_func = getattr(mod,init_name)
         if init_func():
@@ -85,7 +85,7 @@ for ext in exts:
             print "Failed"
     except:
         print "Failed (exception raised)"
-
+        
 print
 
 print "Texture information"
