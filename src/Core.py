@@ -72,9 +72,11 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-PlatformDependent.set_icon(os.path.abspath(
-    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                 'data/visionegg.tif')))
+if sys.platform == "darwin":
+    # override pygame's default icon
+    PlatformDependent.set_icon(os.path.abspath(
+        os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                     'data/visionegg.tif')))
 
 ####################################################################
 #
