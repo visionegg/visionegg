@@ -27,11 +27,14 @@ source code.
 
 OUTPUT LOGGING
 
-The output of the Vision Egg is logged.  The default log is a file
-named "VisionEgg.log".  If unspecified, or if there are problems
-opening the log file, the log will be printed to the system's standard
-error console.  I recommend examining the log after running Vision Egg
-scripts.
+The output of the Vision Egg is logged using the standard Python
+logging package.  The default log is a file named "VisionEgg.log".  If
+unspecified, or if there are problems opening the log file, the log
+will be printed to the system's standard error console.  I recommend
+examining the log after running Vision Egg scripts.
+
+You can increase the verbosity of the output by doing something like
+"VisionEgg.logger.setLevel( VisionEgg.logging.DEBUG )" in your script.
 
 WHEN SOMETHING GOES WRONG
 
