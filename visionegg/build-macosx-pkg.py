@@ -12,12 +12,15 @@ Author: Andrew Straw <astraw@users.sourceforge.net>
 
 """
 
-import os, string, shutil, copy, tempfile
+import os, string, shutil, copy, tempfile,sys
 import setup # from local directory
+
+if not sys.version.startswith("2.2"):
+    raise RuntimeError("Build this with Python 2.2")
 
 pkg_name = "visionegg" # Must be short to deal with Stuffit Expander braindead-ness
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
-bdist_dumb_results = "./dist/visionegg-%s.darwin-6.2-Power_Macintosh.tar.gz"%(setup.version,)
+bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-Power_Macintosh.tar.gz"%(setup.version,)
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
 # Initial screen
@@ -33,13 +36,15 @@ A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your
 
 This release exposes a few known bugs with Mac OS X versions of software that the Vision Egg depends on. Checkbuttons in dialog windows are broken until a button is pressed (Tk bug), and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working (pygame bug).
 
-This package has the following dependencies, all of which can be downloaded as a single archive from the Vision Egg website http://www.visionegg.org
+This package has the following dependencies:
 
-Python with frameworks
+Mac OS X 10.2 "Jaguar"
+Python 2.2 Mac OS X framework build with Tkinter modules
 PyOpenGL (Python module)
 pygame (Python module)
 Python Imaging Library (Python module)
 Numeric (Python module)
+Pyro (Python module) (optional)
 """%(default_location,)
 readme_txt = string.strip(readme_txt)
 
@@ -133,7 +138,7 @@ os.system(cmd)
 ##os.system(cmd)
 os.chdir(orig_dir)
 
-pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/Current")
+pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/2.2")
 
 if not os.path.isdir(dist_dir):
     os.mkdir(dist_dir)
