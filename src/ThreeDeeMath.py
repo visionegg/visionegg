@@ -23,7 +23,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def make_homogeneous_coord_rows(v):
     """Convert vertex (or row-wise vertices) into homogeneous coordinates."""
-    v = Numeric.array(v,typecode=Numeric.Float)
+    v = Numeric.array(v,typecode=Numeric.Float) # copy
     if len(v.shape) == 1:
         v = v[Numeric.NewAxis,:] # make a rank-2 array
     if v.shape[1] == 3:
@@ -31,9 +31,20 @@ def make_homogeneous_coord_rows(v):
         v = Numeric.concatenate( (v,ws), axis=1 )
     return v
 
+def normalize_homogeneous_rows(v):
+    v = Numeric.asarray(v)
+    homog = make_homogeneous_coord_rows(v)
+    r = (homog/homog[:,3,Numeric.NewAxis])[:,:3]
+    if len(homog.shape) > len(v.shape):
+        r = Numeric.reshape(r,(3,))
+    return r
+
 class TransformMatrix:
-    def __init__(self):
-        self.matrix = MLab.eye(4,typecode=Numeric.Float)
+    def __init__(self,matrix=None):
+        if matrix is None:
+            self.matrix = MLab.eye(4,typecode=Numeric.Float)
+        else:
+            self.matrix = matrix
 
     def __make_normalized_vert3(self, x, y, z ):
         mag = math.sqrt( x**2 + y**2 + z**2 )
@@ -66,9 +77,9 @@ class TransformMatrix:
 
     def translate(self, x, y, z):
         T = MLab.eye(4,typecode=Numeric.Float)
-        T[0,3] = x
-        T[1,3] = y
-        T[2,3] = z
+        T[3,0] = x
+        T[3,1] = y
+        T[3,2] = z
         self.matrix = Numeric.matrixmultiply(T,self.matrix)
     
     def scale(self, x, y, z):
@@ -77,9 +88,12 @@ class TransformMatrix:
         T[1,1] = y
         T[2,2] = z
         self.matrix = Numeric.matrixmultiply(T,self.matrix)
+
+    def get_matrix(self):
+        return self.matrix
     
     def transform_vertices(self,verts):
-        v = Numeric.array(verts)
+        v = Numeric.asarray(verts)
         homog = make_homogeneous_coord_rows(v)
         r = Numeric.matrixmultiply(homog,self.matrix)
         if len(homog.shape) > len(v.shape):
