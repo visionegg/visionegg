@@ -135,7 +135,7 @@ def set_priority(*args,**kw):
         win32_maxpriority.set_self_thread_priority(
             win32_maxpriority.THREAD_PRIORITY_HIGHEST)
         
-    elif sys.platform in ['linux2','irix','posix']:
+    elif sys.platform[:4] == 'irix' or sys.platform[:5] in ['linux','posix']:
         import posix_maxpriority
 
         policy = posix_maxpriority.SCHED_FIFO
@@ -164,7 +164,7 @@ def linux_but_unknown_drivers():
 def sync_swap_with_vbl_pre_gl_init():
     """Try to synchronize buffer swapping and vertical retrace before starting OpenGL."""
     success = 0
-    if sys.platform == "linux2":
+    if sys.platform[:5] == "linux":
         # Unfotunately, cannot check do glGetString(GL_VENDOR) to
         # check if drivers are nVidia because we have to do that requires
         # OpenGL context started, but this variable must be set
