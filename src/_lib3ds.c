@@ -25,11 +25,17 @@
 #define PY_CHECK(X,LINENO) if (!(X)) { fprintf(stderr,"Python exception _lib3ds.c line %d\n",LINENO); goto error; }
 #define L3DCK(X,LINENO) if (!(X)) { fprintf(stderr,"_lib3ds error on line %d",LINENO); goto error; }
 
-#define _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL(X) if (m->X.name[0]) { fprintf(stderr,"WARNING: ignoring " #X " \"%s\" for material \"%s\"\n",&m->X.name[0],&m->name[0]); }
+#define MAX_WARN_STR 255
+#define _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL(X) if (m->X.name[0]) { snprintf(warn_str,MAX_WARN_STR,"Ignoring data in %s because .3ds file support is incomplete. (" #X " \"%s\" for material \"%s\" was not loaded)",filename,&m->X.name[0],&m->name[0]); if (!warn_python(warn_str)) {goto error;} }
 
-// forward declaration
+static PyObject *gCore_message_add;
+static PyObject *gCore_Message_WARNING;
+
+// forward declarations
 static PyObject*
 render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node);
+
+int warn_python(char *text);
 
 //////////////////////////////////////////////
 
@@ -43,10 +49,20 @@ static PyObject *draw(PyObject *self, PyObject *args)
 
   PyObject *tex_dict=NULL;
   PyObject *tex_dict_value=NULL;
+
+  float scale_x, scale_y, scale_z;
+  float pos_x, pos_y, pos_z;
+  float orient_angle;
+  float orient_x,orient_y,orient_z;
   
-  PY_CHECK(PyArg_ParseTuple(args,"OO",
+  PY_CHECK(PyArg_ParseTuple(args,"OOffffffffff",
 			    &py_c_file,
-			    &tex_dict),__LINE__);
+			    &tex_dict,
+			    &scale_x,&scale_y,&scale_z,
+			    &pos_x,&pos_y,&pos_z,
+			    &orient_angle,
+			    &orient_x,&orient_y,&orient_z
+			    ),__LINE__);
 
   if (!PyCObject_Check(py_c_file)) {
     PyErr_SetString(PyExc_ValueError,"Must pass PyCObject as 1st argument");
@@ -60,18 +76,15 @@ static PyObject *draw(PyObject *self, PyObject *args)
 
   file = (Lib3dsFile*)PyCObject_AsVoidPtr(py_c_file);
 
-  //  file = gFile;
-
-  glShadeModel(GL_SMOOTH);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glDisable(GL_LIGHT1);
-  glDepthFunc(GL_LEQUAL);
+  glEnable(GL_TEXTURE_2D);
+  //glShadeModel(GL_SMOOTH);
+  //glEnable(GL_LIGHTING);
+  //glDepthFunc(GL_LEQUAL);
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
+  //glEnable(GL_CULL_FACE);
+  //glCullFace(GL_BACK);
 
-  glClear(GL_DEPTH_BUFFER_BIT);
+  //glClear(GL_DEPTH_BUFFER_BIT);
 
   if (!file) {
     return NULL;
@@ -79,45 +92,19 @@ static PyObject *draw(PyObject *self, PyObject *args)
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+  glTranslatef(pos_x,pos_y,pos_z);
+  glRotatef(orient_angle,orient_x,orient_y,orient_z);
   glRotatef(-90, 1.0,0,0);
+  glScalef(scale_x,scale_y,scale_z);
 
-  {
-    GLfloat a[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat c[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GLfloat p[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    Lib3dsLight *l;
-    
-    int li=GL_LIGHT0;
-    for (l=file->lights; l; l=l->next) {
-      glEnable(li);
-
-      glLightfv(li, GL_AMBIENT, a);
-      glLightfv(li, GL_DIFFUSE, c);
-      glLightfv(li, GL_SPECULAR, c);
-      
-      p[0] = l->position[0];
-      p[1] = l->position[1];
-      p[2] = l->position[2];
-      glLightfv(li, GL_POSITION, p);
-
-      if (!l->spot_light) {
-        continue;
-      }
-      
-      p[0] = l->spot[0] - l->position[0];
-      p[1] = l->spot[1] - l->position[1];
-      p[2] = l->spot[2] - l->position[2];      
-      glLightfv(li, GL_SPOT_DIRECTION, p);
-      ++li;
-    }
-  }
-  
   {
     Lib3dsNode *p;
     for (p=file->nodes; p!=0; p=p->next) {
       PY_CHECK(render_node(file,tex_dict,p),__LINE__);
     }
   }
+
+  //glDisable(GL_LIGHTING);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -127,14 +114,78 @@ static PyObject *draw(PyObject *self, PyObject *args)
 
 //////////////////////////////////////////////
 
+static PyObject *getVisionEgg_log() {
+  PyObject *coreModule, *coreDict, *core_Message, *core_message, *core_Message_WARNING, *core_message_add;
+
+  // Now get VisionEgg.Core.message to pass message 
+  coreModule = PyImport_ImportModule("VisionEgg.Core"); // New ref
+  PY_CHECK(coreModule,__LINE__);
+
+  coreDict = PyModule_GetDict(coreModule); // borrowed ref
+  PY_CHECK(coreDict,__LINE__);
+
+  // Get VisionEgg.Core.Message (the class)
+  core_Message = PyDict_GetItemString(coreDict, "Message"); // borrowed ref
+  PY_CHECK(core_Message,__LINE__);
+
+  // Get VisionEgg.Core.message (the instance)
+  core_message = PyDict_GetItemString(coreDict, "message"); // borrowed ref
+  PY_CHECK(core_message,__LINE__);
+
+  // Get VisionEgg.Core.Message.INFO
+  core_Message_WARNING = PyObject_GetAttrString(core_Message, "WARNING" ); // new ref
+  PY_CHECK(core_Message_WARNING,__LINE__);
+
+  // Get VisionEgg.Core.message.add
+  core_message_add = PyObject_GetAttrString(core_message,"add"); // new ref
+  PY_CHECK(core_message_add,__LINE__);
+
+  if (!PyCallable_Check(core_message_add)) {
+    PyErr_SetString(PyExc_SystemError,"VisionEgg.Core.message.add not callable.");
+    goto error;
+  }
+
+  gCore_message_add = core_message_add;
+  gCore_Message_WARNING = core_Message_WARNING;
+
+  Py_XDECREF(coreModule);
+  return core_message_add;
+ error:
+  Py_XDECREF(coreModule);
+  Py_XDECREF(core_Message_WARNING);
+  Py_XDECREF(core_message_add);
+  return NULL;
+}
+
+int warn_python(char *text) {
+  PyObject* temp;
+
+  if (!gCore_message_add) { // make sure can write to the log
+    gCore_message_add = getVisionEgg_log();
+    PY_CHECK(gCore_message_add,__LINE__);
+  }
+  temp = PyObject_CallObject(gCore_message_add,Py_BuildValue("(sO)",text,gCore_Message_WARNING)); // new ref
+  PY_CHECK(temp,__LINE__);
+  Py_XDECREF(temp);
+  return 1;
+ error:
+  Py_XDECREF(temp);
+  return 0;
+}
+
 static char c_init__doc__[] = 
 "C helper for Model3DS.__init__.\n";
 
 static PyObject *c_init(PyObject *dummy_self, PyObject *args)
 {
   char * filename=NULL;
+  char * warn_str=NULL;
   Lib3dsFile *file=NULL;
   Lib3dsMaterial* m;
+  Lib3dsLight *light;
+  Lib3dsNode* new_node=NULL;
+  Lib3dsNode* last_node=NULL;
+  Lib3dsMesh* mesh;
   Lib3dsTextureMap texmap;
   PyObject *self=NULL;
   PyObject *self_draw=NULL;
@@ -143,6 +194,12 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
 
   PyObject *tex_dict=NULL;
   PyObject *tex_dict_value=NULL;
+
+  warn_str = (char *)malloc(MAX_WARN_STR*sizeof(char));
+  if (!warn_str) {
+    PyErr_SetString(PyExc_SystemError,"malloc failed in _lib3ds.c");
+    goto error;
+  }
 
   PY_CHECK(PyArg_ParseTuple(args,"O!s",
 			    &PyInstance_Type,&self,
@@ -176,12 +233,12 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
   for (m=file->materials; m!=0; m=m->next ) {
     texmap = m->texture1_map;
     if (texmap.name[0]) {
-      printf("c_init texture1_map %s: %s\n",&m->name[0],&texmap.name[0]);
+      //printf("c_init texture1_map %s: %s\n",&m->name[0],&texmap.name[0]);
 
       tex_dict_value = Py_BuildValue("i",-1); // new ref
       PY_CHECK(tex_dict_value,__LINE__);
       PY_CHECK(!PyDict_SetItemString(tex_dict,&texmap.name[0],tex_dict_value),__LINE__);
-      Py_DECREF(tex_dict_value,__LINE__);
+      Py_DECREF(tex_dict_value);
 
       /*
       tex_dict_value = Py_BuildValue("si",&texmap.name[0],-1); // new ref
@@ -206,24 +263,47 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
     _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL( self_illum_mask);
     _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL( reflection_map);
     _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL( reflection_mask);
+  }
 
-    texmap = m->texture2_map;
-    if (texmap.name[0]) {
-      printf("c_init texture2_map %s: %s\n",&m->name[0],&texmap.name[0]);
+  for (light=file->lights; light; light=light->next) {
+    snprintf(warn_str,MAX_WARN_STR,"Ignoring data in %s because .3ds file support is incompelte. (Light \"%s\" not used because light support not implemented.)",filename,&light->name[0]);
+    if (!warn_python(warn_str)) {
+      goto error;
     }
-    texmap = m->bump_map;
-    if (texmap.name[0]) {
-      printf("c_init bump_map %s: %s\n",&m->name[0],&texmap.name[0]);
-    } 
   }
 
   Py_XDECREF(py_c_file);
-  //Py_INCREF(Py_None);
-  //return Py_None;
-  
+
+  // If no nodes, warn and make one for each mesh
+  if (file->nodes == 0) {
+    if (file->meshes == 0) {
+      if (!warn_python(".3ds file has no nodes and no meshes, not drawing anything.")) {
+	goto error;
+      }
+    }
+    for (mesh=file->meshes; mesh!=0; mesh=mesh->next) {
+      snprintf(warn_str,MAX_WARN_STR,".3ds file has no nodes, making one for mesh \"%s\"",&mesh->name[0]);
+      if (!warn_python(warn_str)) {
+	goto error;
+      }
+      new_node = lib3ds_node_new_object();
+      strncpy(&new_node->name[0],&mesh->name[0],64);
+      if (file->nodes == 0) {
+	file->nodes = new_node;
+      } else {
+	last_node->next = new_node;
+      }
+      last_node = new_node;
+      //file->nodes->name = &file->meshes->name[0];
+    }
+  }
+
+  free((void*)warn_str);
   return tex_dict;
 
  error:
+  free((void*)warn_str);
+
   Py_XDECREF(tex_dict);
   Py_XDECREF(tex_dict_value);
   Py_XDECREF(self_dict);
@@ -238,9 +318,11 @@ static PyObject*
 render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
 {
   PyObject *tex_dict_value=NULL;
-
-  //  file = gFile;
-
+  /*
+  Lib3dsRgba a;
+  Lib3dsRgba d;
+  Lib3dsRgba s;
+  */
   ASSERT(file);
 
   {
@@ -264,7 +346,6 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
       }
 
       node->user.d=glGenLists(1);
-      //printf("Generating new display list\n");
       glNewList(node->user.d, GL_COMPILE);
 
       {
@@ -287,6 +368,9 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
           }
 
           if (mat) {
+	    
+	    /*
+	    /////////////////////
             static GLfloat a[4]={0,0,0,1};
             float s;
             glMaterialfv(GL_FRONT, GL_AMBIENT, a);
@@ -297,35 +381,36 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
               s=128.0;
             }
             glMaterialf(GL_FRONT, GL_SHININESS, s);
+	    /////////////////////
+	    */
+
 	    if (mat->texture1_map.name[0]) { // use texture
-	      printf("loading %s: ",&mat->texture1_map.name[0]);
 
 	      tex_dict_value = PyDict_GetItemString(tex_dict,&mat->texture1_map.name[0]); // borrowed ref
 	      PY_CHECK(tex_dict_value,__LINE__);
 
-	      PyObject_Print(tex_dict_value,stdout,0);
 
-	      printf("(C: %d)\n",PyInt_AsLong(tex_dict_value));
-	      
 	      if (!PyLong_Check(tex_dict_value)) {
 		PyErr_SetString(PyExc_ValueError,"dictionary value must be int");
 		goto error;
 	      }
 
-	      printf("(C: %d)\n",PyInt_AsLong(tex_dict_value));
-	      
-
 	      glBindTexture( GL_TEXTURE_2D, PyInt_AsLong(tex_dict_value) );
 
+	    } else {
+	      // no texture...
 	    }
-          }
-          else {
-            Lib3dsRgba a={0.2f, 0.2f, 0.2f, 1.0f};
-            Lib3dsRgba d={0.8f, 0.8f, 0.8f, 1.0f};
-            Lib3dsRgba s={0.0f, 0.0f, 0.0f, 1.0f};
+          } else {
+	    /*
+	    ////////////////////////
+            a[0]=0.2f; a[1]=0.2f; a[2]=0.2f; a[3]=1.0f;
+            d[0]=0.8f; d[1]=0.8f; d[2]=0.8f; d[3]=1.0f;
+            s[0]=0.0f; s[1]=0.0f; s[2]=0.0f; s[3]=1.0f;
             glMaterialfv(GL_FRONT, GL_AMBIENT, a);
             glMaterialfv(GL_FRONT, GL_DIFFUSE, d);
             glMaterialfv(GL_FRONT, GL_SPECULAR, s);
+	    ////////////////////////
+	    */
           }
           {
             int i;
@@ -333,7 +418,9 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
               glNormal3fv(f->normal);
               for (i=0; i<3; ++i) {
                 glNormal3fv(normalL[3*p+i]);
-		glTexCoord2fv(mesh->texelL[f->points[i]]); 
+		if (mesh->texels) {
+		  glTexCoord2fv(mesh->texelL[f->points[i]]); 
+		}
                 glVertex3fv(mesh->pointL[f->points[i]].pos);
               }
             glEnd();
@@ -354,7 +441,6 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
       glMultMatrixf(&node->matrix[0][0]);
       glTranslatef(-d->pivot[0], -d->pivot[1], -d->pivot[2]);
       glCallList(node->user.d);
-      /*glutSolidSphere(50.0, 20,20);*/
       glPopMatrix();
     }
   }
@@ -368,7 +454,7 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
 //////////////////////////////////////////////
 
 static char dump_materials__doc__[] = 
-"Draw a model loaded from a .3ds file.\n";
+"Print the materials of a .3ds file.\n";
 
 static PyObject *dump_materials(PyObject *self, PyObject *args)
 {
@@ -397,7 +483,7 @@ static PyObject *dump_materials(PyObject *self, PyObject *args)
 //////////////////////////////////////////////
 
 static char dump_nodes__doc__[] = 
-"Draw a model loaded from a .3ds file.\n";
+"Print the nodes of a .3ds file.\n";
 
 static PyObject *dump_nodes(PyObject *self, PyObject *args)
 {
@@ -426,7 +512,7 @@ static PyObject *dump_nodes(PyObject *self, PyObject *args)
 //////////////////////////////////////////////
 
 static char dump_meshes__doc__[] = 
-"Draw a model loaded from a .3ds file.\n";
+"Print the meshes of a .3ds file.\n";
 
 static PyObject *dump_meshes(PyObject *self, PyObject *args)
 {
@@ -458,9 +544,9 @@ static PyMethodDef
 lib3ds_c_methods[] = {
   { "c_init", (PyCFunction)c_init, METH_VARARGS, c_init__doc__},  
   { "draw", (PyCFunction)draw, METH_VARARGS, draw__doc__},  
-  { "dump_materials", (PyCFunction)dump_materials, METH_VARARGS, draw__doc__},  
-  { "dump_nodes", (PyCFunction)dump_nodes, METH_VARARGS, draw__doc__},  
-  { "dump_meshes", (PyCFunction)dump_meshes, METH_VARARGS, draw__doc__},  
+  { "dump_materials", (PyCFunction)dump_materials, METH_VARARGS, dump_materials__doc__},  
+  { "dump_nodes", (PyCFunction)dump_nodes, METH_VARARGS, dump_nodes__doc__},  
+  { "dump_meshes", (PyCFunction)dump_meshes, METH_VARARGS, dump_meshes__doc__},  
   { NULL, NULL, 0, NULL} /* sentinel */
 };
 
