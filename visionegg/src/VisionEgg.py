@@ -605,8 +605,8 @@ class MovingTarget(Stimulus):
                  position_function,
                  durationSec=10.0,
                  orientation=0.0,
-                 width=1.0,
-                 height=1.0,
+                 width=5.0,
+                 height=5.0,
                  color=(1.0,1.0,1.0,1.0),
                  bgcolor=(0.0,0.0,0.0,0.0),
                  anti_aliasing=0,
@@ -653,16 +653,12 @@ class MovingTarget(Stimulus):
         glEndList()
 
         if self.anti_aliasing:
-            glEnable(GL_POLYGON_SMOOTH)
-            glEnable(GL_LINE_SMOOTH)
+            # Calculate coverage value for each pixel and store as alpha
+            glEnable(GL_POLYGON_SMOOTH) 
             
-            # must configure and enable blending to do anti-aliasing
-            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+            # Now specify how to use the alpha value
+            glBlendFunc(GL_SRC_ALPHA_SATURATE,GL_ONE)
             glEnable(GL_BLEND)
-
-            # Because polygon anti-aliasing doesn't work (for some reason)
-            # only draw lines, not faces
-            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
         
     def drawGLScene(self):
         glClear(GL_COLOR_BUFFER_BIT) # clear the framebuffer
