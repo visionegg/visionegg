@@ -3,18 +3,18 @@ Changes for 0.8.1:
 
 Fixed some Mac OS X glitches.
 
-Removed Overlay class from VisionEgg.Core.  (The Overlay class was
-the same as the Stimulus class with the inclusion of its own
-projection.  Now, if your stimulus has an associated projection, as
-2D stimuli would, you must keep track of that yourself.)
+Removed Overlay class from VisionEgg.Core.  (The Overlay class was the
+same as the Stimulus class with the inclusion of its own projection.
+Now, if your stimulus has an associated projection, as 2D stimuli
+would, you must keep track of that yourself.)
 
 Support for specifying the order in which stimuli are drawn added by
-draw_order argument to the add_stimulus method of the Viewport class.  (Necessary to
-ensure any graphics that must get drawn on top of everything else can
-be drawn last.)
+draw_order argument to the add_stimulus method of the Viewport class.
+(Necessary to ensure any graphics that must get drawn on top of
+everything else can be drawn last.)
 
 Added remove_stimulus method to Viewport class.  Added remove
-controller methods to Presentation class. 
+controller methods to Presentation class.
 
 Improved auto-setting of video modes.
 
