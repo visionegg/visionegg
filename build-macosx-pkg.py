@@ -42,7 +42,7 @@ current_link = os.path.join(framework_dir, "Versions" , "Current" )
 default_location = "%s/Versions/%s"%(framework_dir,py_version_short)
 if os.path.islink( current_link ):
     if os.path.realpath( current_link ) != default_location:
-        raise RuntimeError("I think your current version of Python is not specied by %s"%(current_link,))
+        raise RuntimeError("I think your current version of Python is not specied by %s.  Please make sure your build directory isn't contaminated."%(current_link,))
 bdist_dumb_results = "./dist/visionegg-%s.%s.tar.gz"%(setup.version,distutils.util.get_platform())
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
