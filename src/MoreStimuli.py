@@ -123,7 +123,8 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glColorf(*p.color)
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_BLEND)
+            gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glEnable(gl.GL_BLEND)
 
             w = p.size[0]/2.0
             h = p.size[1]/2.0
