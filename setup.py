@@ -8,7 +8,7 @@
 # set this line to 1.  Of course, that also gets rid of the Vision
 # Egg's ability to schedule itself as a real time application.
     
-skip_macosx_c_compilation = 0
+skip_c_compilation = 0
 
 from distutils.core import setup, Extension
 import sys
@@ -22,26 +22,20 @@ url = 'http://www.visionegg.org/'
 author = "Andrew Straw"
 author_email = "astraw@users.sourceforge.net"
 license = "LGPL"
-package_dir={'VisionEgg' : 'src',
-             #'VisionEgg.test' : 'test',
-             #'VisionEgg.demo' : 'demo',
-             }
-packages=[ 'VisionEgg',
-           #'VisionEgg.test',
-           #'VisionEgg.demo',
-           #'VisionEgg.demo.GUI',
-           #'VisionEgg.demo.Pyro',
-           ]
+package_dir={'VisionEgg' : 'src'}
+packages=[ 'VisionEgg' ]
 ext_package='VisionEgg'
-
 ext_modules = []
+long_description = """
+The Vision Egg is a programming library (with demo applications) that
+uses standard, inexpensive computer graphics cards to produce visual
+stimuli for vision research experiments."""
 
-if sys.platform not in ['cygwin','mac','win32'] and (sys.platform != 'darwin' or not skip_macosx_c_compilation):
-    # The maximum priority stuff should work on most versions of Unix.
-    # (It depends on the system call sched_setscheduler.)
+# Fill out ext_modules
+if not skip_c_compilation:
     ext_modules.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
-if sys.platform == "darwin" and not skip_macosx_c_compilation:
+if sys.platform == "darwin" and not skip_c_compilation:
     ext_modules.append(Extension(name='_darwin_sync_swap',
                                 sources=['src/_darwin_sync_swap.m'],
                                 include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
@@ -50,12 +44,13 @@ if sys.platform == "darwin" and not skip_macosx_c_compilation:
                                 extra_link_args=['-framework','OpenGL'],
                                 ))
 
-if sys.platform == 'linux2':
+if sys.platform == 'linux2' and not skip_c_compilation:
     ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
-if sys.platform[:4] == 'irix':
+if sys.platform[:4] == 'irix' and not skip_c_compilation:
     ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
+# Fill out data_files
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
         if filename[-3:] == '.py':
@@ -87,13 +82,6 @@ data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
 data_files.append( ('VisionEgg/demo/calibrate',['demo/calibrate/README.txt']) )
 data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
-
-long_description = """
-The Vision Egg is a programming library (with demo
-applications) that uses standard, inexpensive computer graphics
-cards to produce visual stimuli for vision research
-experiments."""
-
 
 def main():
     # Normal distutils stuff
