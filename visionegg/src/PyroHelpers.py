@@ -41,9 +41,12 @@ class PyroGoClass(Pyro.core.ObjBase):
         self.go_func = go_func
         self.quit_func = quit_func
         Pyro.core.ObjBase.__init__(self)
-    def go(self):
+    def go(self,arg=None):
         """Call the go function."""
-        self.go_func()
+        if arg:
+            self.go_func(arg)
+        else:
+            self.go_func()
     def quit(self):
         """Quit the server."""
         self.quit_func()
@@ -78,13 +81,19 @@ class EvalStringPyroController(PyroController):
     def set_value(self,eval_string):
         # Make sure eval_string can be evaluated
         try:
-            t = 1.0
+            t = 1
             test = eval(eval_string)
         except Exception,x:
             raise ValueError('"%s" raised exception when evaluated: %s'%(eval_string,str(x)))
         self.eval_string = eval_string
     def eval(self,t):
-        return eval(self.eval_string)
+        try:
+            result = eval(self.eval_string)
+        except:
+            print "ERROR when t=",t
+            print "self.eval_string =", self.eval_string
+            raise
+        return result
     
 class LocalDictPyroController(PyroController):
     """A remote controller set by key.
