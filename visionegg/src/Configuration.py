@@ -1,22 +1,23 @@
 """Load VisionEgg configuration values.
 
+Applications should not import this module directly.  Instead, "import
+VisionEgg" will result in an attribute "VisionEgg.config", which has
+the configuration options as attributes.
+
 This module searches for configuration options in the following order:
-environment variables, configuration file, generic defaults.  This
-configuration file is by default ./VisionEgg.conf, but can be
-specified with the environment variable VISIONEGG_CONFIG_FILE.
+environment variables, configuration file, generic defaults.
 
-You can create a file with defaults for your system.  This should
-be a text file with key/value pairs.  Blank lines and anything after
-the pound symbol ("#") will be treated as a comment.  Each key/value
-pairs should be on its own line and in the format "KEY=VALUE".  By
-default the file "VisionEgg.conf" from the current directory is used,
-but you can change this by setting the environment variable
-VISIONEGG_CONFIG_FILE.
+The configuration file is by default VisionEgg.conf in the
+VISIONEGG_STORAGE directory, which is by default "VisionEgg/storage"
+in the base python directory.
 
-Applications should not import this module directly, because it is
-automatically imported when any module of the VisionEgg is imported.
-Values are accessible as members of VisionEgg.config.  For example,
-VisionEgg.config.VISIONEGG_FULLSCREEN.
+You can create a file with defaults for your system.  This should be a
+text file with key/value pairs.  Blank lines and anything after the
+pound symbol ("#") will be treated as a comment.  Each key/value pairs
+should be on its own line and in the format "KEY=VALUE".  By default
+the file "VisionEgg.conf" from the VISIONEGG_STORAGE directory is used
+if present.  You can specify a different filename and directory by
+setting the environment variable VISIONEGG_CONFIG_FILE.
 """
 
 # This is the python source code for the config module of the Vision Egg package.
@@ -32,11 +33,13 @@ VisionEgg.config.VISIONEGG_FULLSCREEN.
 #
 ####################################################################
 
-# Special characters are '%c' (current directory, absolute) and
-# $STORAGE which is replaced by the VISIONEGG_STORAGE path.
+# Special values:
+#  %u means os.environ['HOME'] if defined, os.curdir otherwise
+#  %b means sys.prefix
+#  %c means os.curdir
 
 defaults= {
-    'VISIONEGG_STORAGE':              '%u/VisionEggStorage', # %u means os.environ['HOME']
+    'VISIONEGG_STORAGE':              '%b/VisionEgg/storage',
     'VISIONEGG_DEFAULT_INIT':         'config', # could also be 'GUI'
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
@@ -55,7 +58,7 @@ defaults= {
 ####################################################################
 
 import VisionEgg
-import re, os, errno                     # standard python packages
+import re, os, errno, sys                  # standard python packages
 import string
 
 __version__ = VisionEgg.release_name
@@ -69,9 +72,9 @@ class Config:
         reader = ConfigReader(defaults)
 
         # See if there's an environment variable for the config file
-        try:
+        if 'VISIONEGG_CONFIG_FILE' in os.environ.keys():
             configFile = os.environ['VISIONEGG_CONFIG_FILE']
-        except KeyError:
+        else:
             configFile = '' # If not, let the reader see if there's one in VISIONEGG_STORAGE
             
         try:
@@ -93,8 +96,15 @@ class Config:
         try:
             os.mkdir(self.VISIONEGG_STORAGE)
         except OSError,x:
+            if x.errno == 13:#errno.EPERM:
+                print "XXX hack!"
+                self.VISIONEGG_STORAGE = os.path.join(os.environ['HOME'],"VisionEgg/storage")
+                try:
+                    os.mkdir(self.VISIONEGG_STORAGE)
+                except OSError,x:
+                    if x.errno not in allowErrnos:
+                        raise 
             if x.errno not in allowErrnos:
-                print 'HMMMM errno=',repr(x.errno),type(x.errno)
                 raise 
 
 class ConfigReader:
@@ -162,9 +172,9 @@ class ConfigReader:
         # treat special escape strings
         if type(value)==type(""):
             value = re.sub('%c',os.curdir,value)
+            value = re.sub('%b',sys.prefix,value)
             try:
                 value = re.sub('%u',os.environ['HOME'],value)
             except KeyError: # no environment variable 'HOME' -- use os.curdir
                 value = re.sub('%u',os.curdir,value)
-            value = re.sub('^\$STORAGE\/',self.items['VISIONEGG_STORAGE'],value)
         return value
