@@ -25,20 +25,20 @@ def quit(event):
     p.parameters.quit = 1
 
 # set initial value
+global gamma_scale
 gamma_scale = 1.0
             
 def keydown(event):
+    global gamma_scale
     if event.key == pygame.locals.K_ESCAPE:
         quit(event)
     elif event.key in [pygame.locals.K_KP_PLUS,
                        pygame.locals.K_PLUS,
                        pygame.locals.K_EQUALS]:
-        global gamma_scale
         gamma_scale += 0.05
         do_gamma()
     elif event.key in [pygame.locals.K_KP_MINUS,
                        pygame.locals.K_MINUS]:
-        global gamma_scale
         gamma_scale -= 0.05
         do_gamma()
         
