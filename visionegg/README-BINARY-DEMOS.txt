@@ -39,6 +39,6 @@ This binary demo distribution is only possible because of the open
 source nature of the Vision Egg's dependencies.  The source code for
 any of the software used is available from its respective website.  I
 would like to thank all of the developers for their great work.  These
-packages include Python, Numeric Python, PyOpenGL, pygame, the Python
-Imaging Library, Pyro, SDL, Dincer Aydin's winioport, and Gordon
-McMillan's Installer.
+packages include Python, SDL, Numeric Python, PyOpenGL, pygame, the
+Python Imaging Library, Pyro, SDL, Dincer Aydin's winioport, Gordon
+McMillan's Python Installer, and Tcl/Tk.
