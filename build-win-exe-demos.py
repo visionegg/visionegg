@@ -76,24 +76,40 @@ demo/textureDrum.py
 demo/visual_jitter.py
 """)
 
+##scripts_orig = scripts_orig[:7]
+
 scripts_orig = [ os.path.join( *x.split('/') ) for x in scripts_orig ]
 
-inf = 'demo/README.txt'
-infd = open(inf,"r")
-fname = 'sumo_list.txt'
-fd = open(fname,"w")
-for line in infd.readlines():
-    split_line = line.strip().split()
-    if not split_line:
-        continue
-    ft = split_line[0]
-    if ft.endswith('.py') or ft.endswith('.pyw'):
-        ft = ft.split('/')[-1]
-        new_name = os.path.splitext(ft)[0] + '.exe'
-        new_line = new_name+' '+' '.join(split_line[1:])+'\n'
-        fd.write(new_line)
-infd.close()
-fd.close()
+per_file_extra_spec_lines = \
+"""this_remove = []
+for x in %(id)s.pure:
+    if x[0].startswith('VisionEgg'):
+        this_remove.append( x )
+    elif x[0].startswith('OpenGL'):
+        this_remove.append( x )
+    elif x[0] == 'Tkinter':
+        this_remove.append( x )
+common = common + this_remove
+%(id)s.pure = %(id)s.pure - this_remove
+"""
+
+### help generate list of files
+##infile = 'demo/README.txt'
+##infile_fd = open(infile,"r")
+##fname = 'sumo_list.txt'
+##fd = open(fname,"w")
+##for line in infile_fd.readlines():
+##    split_line = line.strip().split()
+##    if not split_line:
+##        continue
+##    ft = split_line[0]
+##    if ft.endswith('.py') or ft.endswith('.pyw'):
+##        ft = ft.split('/')[-1]
+##        new_name = os.path.splitext(ft)[0] + '.exe'
+##        new_line = new_name+' '+' '.join(split_line[1:])+'\n'
+##        fd.write(new_line)
+##infile_fd.close()
+##fd.close()
 
 copy_list = string.split(r"""
 data/az_el.png
@@ -123,7 +139,16 @@ re_coll = re.compile(r"coll = .*\)\s*",re.DOTALL)
 
 exes = []
 binaries = []
-sumo_buffer = ""
+sumo_buffer = """
+common_modules = ['Tkinter','ConfigParser','Image','ImageFile',
+    'Numeric','pickle','threading','traceback','warnings']
+
+pyzsupport = Analysis(['pyz_support.py'],pathex=[])
+
+common = TOC([])
+
+"""
+
 for script, opts in scripts:
     makespec_command = string.join([python,makespec,opts,script])
     print makespec_command
@@ -158,16 +183,21 @@ for script, opts in scripts:
     spec = re_a.sub(replace_a_func,spec)
     spec = re_pyz.sub(replace_pyz_func,spec)
     spec = re_exe.sub(replace_exe_func,spec)
+    spec = spec.replace('EXE(','EXE(pyzsupport.scripts,')
     spec = re_coll.sub("",spec)
     
     base_name = os.path.splitext(os.path.basename(script))[0]
     orig_build_dir = "build"+base_name
-    spec = string.replace(spec,orig_build_dir,"build"+output_dir)
+    spec = spec.replace(orig_build_dir,"build"+output_dir)
 
+    extra = per_file_extra_spec_lines%locals()
+    spec = spec.replace('pathex=[])','pathex=[])\n%s'%extra)
     sumo_buffer += spec
+
     os.remove(spec_name)
 
-sumo_buffer += "coll = COLLECT(TkTree(),\n"
+sumo_buffer += "common_pyz = PYZ(common,name='common.pyz')\n"
+sumo_buffer += "coll = COLLECT(TkTree(),common_pyz,\n"
 for i in range(len(exes)):
     sumo_buffer += "       "+exes[i]+", "+binaries[i]+",\n"
 sumo_buffer += "      name='%s')\n"%(output_dir,)
@@ -200,3 +230,6 @@ for file in copy_list:
         f = open(dest,"w")
         f.write(string.join(lines,""))
         f.close()
+
+print "************************"
+print "don't forget to copy PyWinTypes22.dll into the sumo directory!"
