@@ -15,38 +15,13 @@ import VisionEgg.Core
 import OpenGL.GL
 gl = OpenGL.GL
 
-# for Teapot
-import OpenGL.GLUT
-glut = OpenGL.GLUT
-
 import string
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-__all__ = ['Teapot','Target2D']
 
-class Teapot(VisionEgg.Core.Stimulus):
-    """A very simple stimulus because GLUT can draw a teapot"""
-    parameters_and_defaults = {'angular_position':(0.0,types.FloatType),
-                               'on':(1,types.IntType)}
-
-    def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
-        
-    def draw(self):
-        if self.parameters.on:
-            gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_BLEND)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            # clear modelview matrix
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity() 
-            gl.glTranslatef(0.0, 0.0, -6.0)
-            gl.glRotatef(self.parameters.angular_position,0.0,1.0,0.0)
-            glut.glutSolidTeapot(0.5)
-        
 class Target2D(VisionEgg.Core.Stimulus):
     parameters_and_defaults = {'on':(1,
                                      types.IntType),
