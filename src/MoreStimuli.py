@@ -45,7 +45,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
             gl.glTranslate(self.parameters.center[0],self.parameters.center[1],0.0)
-            gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
+            gl.glRotate(self.parameters.orientation,0.0,0.0,-1.0)
 
             c = self.parameters.color
             gl.glColor(c[0],c[1],c[2],c[3])
