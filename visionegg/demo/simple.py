@@ -9,12 +9,14 @@ def angle_as_function_of_time(t):
 
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=45.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
+viewport = Viewport(screen,
+                    lowerleft=(0,0),
+                    size=screen.size,
+                    projection=projection)
 stimulus = Teapot()
-stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
-p.add_realtime_time_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
+p.add_realtime_time_controller(stimulus,'angular_position', angle_as_function_of_time)
 p.go()
 
 

@@ -19,13 +19,14 @@ except:
 
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
+viewport = Viewport(screen,
+                    size=screen.size,
+                    projection=projection)
 stimulus = SpinningDrum(texture=texture)
-stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
-p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of_time)
-p.add_realtime_time_controller(stimulus.parameters,'contrast', contrast_as_function_of_time)
+p.add_realtime_time_controller(stimulus,'angular_position', angle_as_function_of_time)
+p.add_realtime_time_controller(stimulus,'contrast', contrast_as_function_of_time)
 p.go()
 
 
