@@ -9,7 +9,7 @@ import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 from VisionEgg.Core import *
-from VisionEgg.FlowControl import Presentation, Controller, FunctionController
+from VisionEgg.FlowControl import Presentation, FunctionController, TIME_INDEPENDENT
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
 import sys
@@ -100,7 +100,7 @@ p = Presentation(go_duration=('forever',),
                  )
 
 p.add_controller(None,None,FunctionController(during_go_func=update_movie,
-                                              temporal_variables=Controller.TIME_INDEPENDENT))
+                                              temporal_variables=TIME_INDEPENDENT))
 
 movie.play()
 p.go()

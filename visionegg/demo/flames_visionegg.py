@@ -10,7 +10,7 @@ import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 from VisionEgg.Core import *
-from VisionEgg.FlowControl import Presentation, Controller, FunctionController
+from VisionEgg.FlowControl import Presentation, FunctionController, TIME_INDEPENDENT
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
 import pygame.surface, pygame.locals
@@ -76,5 +76,5 @@ def keydown(event):
 p.parameters.handle_event_callbacks=[(pygame.locals.QUIT, quit),
                                      (pygame.locals.KEYDOWN, keydown)]
 p.add_controller(None,None,FunctionController(during_go_func=update_flames,
-                                              temporal_variables=Controller.TIME_INDEPENDENT))
+                                              temporal_variables=TIME_INDEPENDENT))
 p.go()
