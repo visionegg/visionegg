@@ -49,11 +49,15 @@ def set_priority(*args,**kw):
     for word in parse_me:
         # set the value from VisionEgg.config
         config_name = "VISIONEGG_"+string.upper(word)
-        value = getattr(VisionEgg.config,config_name)
-        # set the value if present in keyword arguments
+        if hasattr(VisionEgg.config,config_name):
+            value = getattr(VisionEgg.config,config_name)
+        else:
+            value = None
+        # override default value if present in keyword arguments
         if word in kw.keys():
             value = kw[word]
-        params[word] = value
+        if value is not None:
+            params[word] = value
 
     if sys.platform == 'darwin':
 
@@ -131,16 +135,29 @@ def set_priority(*args,**kw):
     elif sys.platform == 'win32':
         import win32_maxpriority
 
+        VisionEgg.Core.message.add(
+            """Setting priority for win32 platform to
+            HIGH_PRIORITY_CLASS, THREAD_PRIORITY_HIGHEST.  (This is
+            Microsoft's maximum recommended priority, but you could
+            still raise it higher.)""",
+            VisionEgg.Core.Message.INFO)
+                
         win32_maxpriority.set_self_process_priority_class(
             win32_maxpriority.HIGH_PRIORITY_CLASS )
-        
-        win32_maxpriority.self_thread_priority(
+        win32_maxpriority.set_self_thread_priority(
             win32_maxpriority.THREAD_PRIORITY_HIGHEST)
+        
     elif sys.platform in ['linux','irix','posix']:
         import posix_maxpriority
 
         policy = posix_maxpriority.SCHED_FIFO
         max_priority = posix_maxpriority.sched_get_priority_max( policy )
+
+        VisionEgg.Core.message.add(
+            """Setting priority for POSIX-compatible platform to
+            policy SCHED_FIFO and priority to %d"""%max_priority,
+            VisionEgg.Core.Message.INFO)
+                
         posix_maxpriority.set_self_policy_priority( policy, max_priority )
         posix_maxpriority.stop_memory_paging()
     else:
