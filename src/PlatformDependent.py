@@ -217,3 +217,11 @@ def sync_swap_with_vbl_post_gl_init():
         pass
     
     return success
+
+def query_refresh_rate(screen):
+    if sys.platform == 'win32':
+        import win32_getrefresh
+        return win32_getrefresh.getrefresh()
+    else:
+        raise NotImplementedError("Platform dependent code to query frame rate not implemented on this platform.")
+
