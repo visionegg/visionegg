@@ -87,11 +87,8 @@ class TCPServer:
                 try:
                     apply(Tkinter.Frame.__init__,(self),kw)
                 except AttributeError,x:
-                    import sys
                     tk=Tkinter.Tk() # restart Tk and see if that helps
                     apply(Tkinter.Frame.__init__,(self,tk),kw)
-                    sys.stderr.write("reset tk\n")
-                print "setting title"
                 self.winfo_toplevel().title("Vision Egg: TCP Server get address")
                 self.server_address = server_address
                 hostname,port = self.server_address
