@@ -37,6 +37,7 @@ demo\tcp\gratingGUI.py
 
 copy_list = string.split(r"""
 data/panorama.jpg
+data/visionegg.bmp
 VisionEgg.cfg
 README-BINARY-DEMOS.txt
 LICENSE.txt
