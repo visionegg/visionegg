@@ -810,12 +810,12 @@ class Presentation(VisionEgg.ClassWithParameters):
 
     As I update this in June 2002, I have never seen a skipped frame
     in Windows 2000 Pro (dual Athlon 1200 MHz, nVidia GeForce 2 Pro)
-    or SGI IRIX 6.5 on a (SGI FUEL/V10 workstation). Linux 2.4.12 with
-    low latency kernel patches skips the occasional frame, even with
-    POSIX scheduler calls to set FIFO maximum priority on the same
-    dual Athlon machine. Mac OS X 10.1.2 skips quite pre-empts the
-    Vision Egg quite frequently, although I have not established
-    maximum POSIX scheduler priorities.
+    or SGI IRIX 6.5 (on a SGI FUEL/V10 workstation). Linux 2.4.12 with
+    low latency kernel patches skips the occasional frame, even when
+    using maximum priority on the same dual Athlon machine. Mac OS X
+    10.1.5 preempts the Vision Egg quite frequently under normal
+    operation, but performs quite well when run under maximum
+    priority.
 
     Parameters:
 
