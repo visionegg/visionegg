@@ -9,9 +9,6 @@
  * ----------------------------------------------------------------------------- */
 
 #define SWIGPYTHON
-
-#include "Python.h"
-
 /***********************************************************************
  * common.swg
  *
@@ -69,10 +66,10 @@ typedef struct swig_type_info {
   const char             *name;                 
   swig_converter_func     converter;
   const char             *str;
-  void                   *clientdata;	
   swig_dycast_func        dcast;
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
+  void                   *clientdata;	
 } swig_type_info;
 
 #ifdef SWIG_NOINCLUDE
@@ -98,7 +95,6 @@ SWIG_TypeRegister(swig_type_info *ti)
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
-      if (tc->clientdata) ti->clientdata = tc->clientdata;	
       head = tc;
       next = tc->next;
       goto l1;
@@ -134,7 +130,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
-  do {
+  while (s) {
     if (strcmp(s->name,c) == 0) {
       if (s == ty->next) return s;
       /* Move s to the top of the linked list */
@@ -149,7 +145,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       return s;
     }
     s = s->next;
-  } while (s && (s != ty->next));
+  }
   return 0;
 }
 
@@ -190,7 +186,7 @@ SWIG_TypeQuery(const char *name) {
 SWIGRUNTIME(void)
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_type_info *tc, *equiv;
-  if (ti->clientdata == clientdata) return;
+  if (ti->clientdata) return;
   ti->clientdata = clientdata;
   equiv = ti->next;
   while (equiv) {
@@ -222,6 +218,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
  * Author : David Beazley (beazley@cs.uchicago.edu)
  ************************************************************************/
 
+#include <stdlib.h>
 #include "Python.h"
 
 #ifdef __cplusplus
@@ -233,14 +230,6 @@ extern "C" {
 #define SWIG_PY_STRING  3
 #define SWIG_PY_POINTER 4
 #define SWIG_PY_BINARY  5
-
-/* Flags for pointer conversion */
-
-#define SWIG_POINTER_EXCEPTION     0x1
-#define SWIG_POINTER_DISOWN        0x2
-
-/* Exception handling in wrappers */
-#define SWIG_fail   goto fail
 
 /* Constant information structure */
 typedef struct swig_const_info {
@@ -416,7 +405,6 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   char  *c;
   static PyObject *SWIG_this = 0;
   int    newref = 0;
-  PyObject  *pyobj = 0;
 
   if (!obj) return 0;
   if (obj == Py_None) {
@@ -426,8 +414,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
 #ifdef SWIG_COBJECT_TYPES
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
-      SWIG_this = PyString_FromString("this");
-    pyobj = obj;
+      SWIG_this = PyString_InternFromString("this");
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
     if (!obj) goto type_error;
@@ -435,7 +422,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
       Py_DECREF(obj);
       goto type_error;
     }
-  }  
+  } 
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   if (newref) Py_DECREF(obj);
@@ -443,8 +430,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
 #else
   if (!(PyString_Check(obj))) {
     if (!SWIG_this)
-      SWIG_this = PyString_FromString("this");
-    pyobj = obj;
+      SWIG_this = PyString_InternFromString("this");
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
     if (!obj) goto type_error;
@@ -479,16 +465,10 @@ cobject:
     if (!tc) goto type_error;
     *ptr = SWIG_TypeCast(tc,(void*) *ptr);
   }
-
-  if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
-      PyObject *zero = PyInt_FromLong(0);
-      PyObject_SetAttrString(pyobj,(char*)"thisown",zero);
-      Py_DECREF(zero);
-  }
   return 0;
 
 type_error:
-  if (flags & SWIG_POINTER_EXCEPTION) {
+  if (flags) {
     if (ty) {
       char *temp = (char *) malloc(64+strlen(ty->name));
       sprintf(temp,"Type error. Expected %s", ty->name);
@@ -561,14 +541,12 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     Py_DECREF(robj);
     inst = PyObject_CallObject((PyObject *) type->clientdata, args);
     Py_DECREF(args);
-    if (inst) {
-      if (own) {
-	PyObject *n = PyInt_FromLong(1);
-	PyObject_SetAttrString(inst,(char*)"thisown",n);
-	Py_DECREF(n);
-      }
-      robj = inst;
+    if (own) {
+      PyObject *n = PyInt_FromLong(1);
+      PyObject_SetAttrString(inst,(char*)"thisown",n);
+      Py_DECREF(n);
     }
+    robj = inst;
   }
   return robj;
 }
