@@ -26,7 +26,8 @@ package_dir={'VisionEgg' : 'src'}
 packages=[ 'VisionEgg' ]
 ext_package='VisionEgg'
 ext_modules = []
-long_description = """The Vision Egg is a programming library (with demo applications) that
+long_description = \
+"""The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
 stimuli for vision research experiments.
 
@@ -47,7 +48,7 @@ Andrew
 
 # Fill out ext_modules
 if not skip_c_compilation:
-    # priority raising/setting stuff
+    # priority raising/setting C extensions
     if sys.platform == 'darwin':
         ext_modules.append(Extension(name='_darwin_maxpriority',
                                      sources=['src/darwin_maxpriority.c',
