@@ -9,9 +9,6 @@ important of these is that only the first texture map is used from the
 material properties of an object.  Lighting is not used, so the
 specular, ambient and diffuse material properties will have no effect.
 
-It is a known limitation that this module does not currently work on
-Mac OS X.
-
 Classes:
 
 Model3DS -- A 3D model from a .3ds file
@@ -46,6 +43,7 @@ class Model3DS(VisionEgg.Core.Stimulus):
                                         'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,types.IntType),
                                         'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,types.IntType),
                                         'mipmaps_enabled':(1,types.IntType),
+                                        'shrink_texture_ok':(0,types.IntType), # boolean
                                         }
     def __init__(self,**kw):
         # Initialize base class
@@ -64,26 +62,51 @@ class Model3DS(VisionEgg.Core.Stimulus):
         if directory:
             os.chdir(directory)
         tex_dict = VisionEgg._lib3ds.c_init(self,name)
+        self.textures = [] # keep a list of textures we're using so they don't go out of scope and get deleted
         # now load the textures to OpenGL
         for filename in tex_dict.keys():
             try:
                 texture = VisionEgg.Textures.Texture(filename)
             except IOError, x: # Might be file not found due to case error
                 texture = VisionEgg.Textures.Texture(string.lower(filename))
-            current_texture_object = TextureObject(dimensions=2)
-            texture.load(current_texture_object,
-                         build_mipmaps=1,
-                         rescale_original_to_fill_texture_object=1)
-            tex_dict[filename] = current_texture_object.gl_id # keep the GL texture object id
+            if not cp.shrink_texture_ok:
+                texture.load(VisionEgg.Textures.TextureObject(dimensions=2),
+                             build_mipmaps=cp.mipmaps_enabled,
+                             rescale_original_to_fill_texture_object=1)
+            else:
+                max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
+                resized = 0
+                while max(texture.size) > max_dim:
+                    texture.make_half_size()
+                    resized = 1
+                loaded_ok = 0
+                while not loaded_ok:
+                    try:
+                        # send texture to OpenGL
+                        texture.load( VisionEgg.Textures.TextureObject(dimensions=2),
+                                      build_mipmaps=cp.mipmaps_enabled,
+                                      rescale_original_to_fill_texture_object=1)
+                    except VisionEgg.Textures.TextureTooLargeError:
+                        texture.make_half_size()
+                        resized = 1
+                    else:
+                        loaded_ok = 1
+                if resized:
+                    VisionEgg.Core.message.add(
+                        "Resized texture in %s to %d x %d"%(
+                        str(self),texture.size[0],texture.size[1]),VisionEgg.Core.Message.WARNING)
+                        
+            tex_dict[filename] = texture.texture_object.gl_id # keep the GL texture object id
 
             # set the texture defaults
-            if not self.constant_parameters.mipmaps_enabled:
-                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+            if not cp.mipmaps_enabled:
+                if cp.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            current_texture_object.set_min_filter( p.texture_min_filter )
-            current_texture_object.set_mag_filter( p.texture_mag_filter )
-            current_texture_object.set_wrap_mode_s( p.texture_wrap_s )
-            current_texture_object.set_wrap_mode_t( p.texture_wrap_t )
+            texture.texture_object.set_min_filter( cp.texture_min_filter )
+            texture.texture_object.set_mag_filter( cp.texture_mag_filter )
+            texture.texture_object.set_wrap_mode_s( cp.texture_wrap_s )
+            texture.texture_object.set_wrap_mode_t( cp.texture_wrap_t )
+            self.textures.append(texture)
                                                                                     
         gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
@@ -132,4 +155,3 @@ class Model3DS(VisionEgg.Core.Stimulus):
     def dump_meshes(self):
         # call the C function that does the work
         VisionEgg._lib3ds.dump_meshes(self._lib3ds_file)
-
