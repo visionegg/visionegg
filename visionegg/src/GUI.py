@@ -18,12 +18,6 @@ import os
 import Tkinter
 import VisionEgg
 
-####################################################################
-#
-#        StartGraphicsFrame
-#
-####################################################################
-
 class AppWindow(Tkinter.Frame):
     """A GUI Window to be subclassed for your main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
@@ -123,7 +117,21 @@ class InfoFrame(Tkinter.Frame):
 
         #Tkinter.Button(self.sub_frame,text="Update information",command=self.update).pack()
 
-class GetKeypressDialog(Tkinter.Toplevel):
+class ToplevelDialog(Tkinter.Toplevel):
+    """Base class for a dialog that runs on the top level."""
+    def __init__(self,master=None,**kw):
+        if not master:
+            master = Tkinter._default_root
+        apply(Tkinter.Toplevel.__init__,(self,master),kw)
+        self.transient(master)
+        self.frame = Tkinter.Frame(self)
+        self.frame.pack()
+        self.frame.focus_set()
+
+    def destroy(self):
+        Tkinter.Toplevel.destroy(self)
+
+class GetKeypressDialog(ToplevelDialog):
     """Open a dialog box which returns when a valid key is pressed.
 
     Arguments are:
@@ -146,29 +154,17 @@ class GetKeypressDialog(Tkinter.Toplevel):
                  key_list=[],
                  **kw):
         
-        if not master:
-            master = Tkinter._default_root
-        Tkinter.Toplevel.__init__(self,master)
-        self.transient(master)
-
+        apply(ToplevelDialog.__init__,(self,master),kw)
         self.title(title)
         self.result = None
 
         # The dialog box body
-        body = Tkinter.Frame(self)
-        body.pack()
-
-        Tkinter.Label(body, text=text).pack()
+        Tkinter.Label(self.frame, text=text).pack()
 
         for key in key_list:
             self.bind(key,self.keypress)
-        
-        body.focus_set()
         self.wait_window(self)
-
-    def destroy(self):
-        Tkinter.Toplevel.destroy(self)
-
+        
     def keypress(self,tkinter_event):
         self.result = tkinter_event.keysym
         self.destroy()
