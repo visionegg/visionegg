@@ -649,6 +649,8 @@ class PerspectiveProjection(Projection):
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
+        if type(matrix) != Numeric.ArrayType:
+            matrix = Numeric.array(matrix) # Convert to Numeric array
         apply(Projection.__init__,(self,),{'matrix':matrix})
 
 ####################################################################
