@@ -742,16 +742,9 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_translate(self,x,y,z):
         """Compose a translation without changing OpenGL state."""
-        # XXX could do this all in software        
-        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glPushMatrix()
-        gl.glLoadMatrixf(self.parameters.matrix)
-        gl.glTranslatef(x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
-        gl.glPopMatrix()
-        if matrix_mode is not None:
-            gl.glMatrixMode(matrix_mode)
+        M = VisionEgg.ThreeDeeMath.TransformMatrix(self.parameters.matrix)
+        M.translate(x,y,z)
+        self.parameters.matrix = M.get_matrix()
 
     def rotate(self,angle_degrees,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
@@ -762,16 +755,9 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_rotate(self,angle_degrees,x,y,z):
         """Compose a rotation without changing OpenGL state."""
-        # XXX could do this all in software
-        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glPushMatrix()
-        gl.glLoadMatrixf(self.parameters.matrix)
-        gl.glRotatef(angle_degrees,x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
-        gl.glPopMatrix()
-        if matrix_mode is not None:
-            gl.glMatrixMode(matrix_mode)
+        M = VisionEgg.ThreeDeeMath.TransformMatrix(self.parameters.matrix)
+        M.rotate(angle_degrees,x,y,z)
+        self.parameters.matrix = M.get_matrix()
 
     def scale(self,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
@@ -782,16 +768,9 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def stateless_scale(self,x,y,z):
         """Compose a rotation without changing OpenGL state."""
-        # XXX could do this all in software        
-        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glPushMatrix()
-        gl.glLoadMatrixf(self.parameters.matrix)
-        gl.glScalef(x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
-        gl.glPopMatrix()
-        if matrix_mode is not None:
-            gl.glMatrixMode(matrix_mode)
+        M = VisionEgg.ThreeDeeMath.TransformMatrix(self.parameters.matrix)
+        M.scale(x,y,z)
+        self.parameters.matrix = M.get_matrix()
 
     def get_matrix(self):
         return self.parameters.matrix
@@ -1236,7 +1215,7 @@ class Viewport(VisionEgg.ClassWithParameters):
             
     def norm_device_2_window(self,norm_device_vertex):
         """Transform normalized device coordinates to window coordinates"""
-        v = Numeric.array(norm_device_vertex)
+        v = Numeric.asarray(norm_device_vertex)
         homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
         xd = homog[:,0,Numeric.NewAxis]
         yd = homog[:,1,Numeric.NewAxis]
@@ -1259,6 +1238,9 @@ class Viewport(VisionEgg.ClassWithParameters):
         xw = (px/2.0)*xd + ox
         yw = (py/2.0)*yd + oy
         zw = ((f-n)/2.0)*zd + (n+f)/2.0
+        # XXX I think zw (or zd) is clamped in OpenGL, but I can't
+        # find it in any spec!
+        #zw = Numeric.clip(zw,0.0,1.0) # clamp
         r = Numeric.concatenate((xw,yw,zw),axis=1)
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(3,))
