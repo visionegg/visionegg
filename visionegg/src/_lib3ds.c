@@ -1,3 +1,16 @@
+/*
+ * This is the C source code for interfacing with the Vision Egg with
+ * the lib3ds library
+ *
+ * Copyright (c) 2002 Andrew Straw.  Distributed under the terms of
+ * the GNU Lesser General Public License (LGPL).
+ *
+ * $Revision$
+ * $Date$
+ * Author = Andrew Straw <astraw@users.sourceforge.net>
+ *
+ */
+
 #include "Python.h"
 
 #include <lib3ds/file.h>                        
