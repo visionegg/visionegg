@@ -143,10 +143,11 @@ class Screen(VisionEgg.ClassWithParameters):
             global SyncMaster # import into global namespace
             import SyncMaster
             try:
-                print "Loading SyncMaster."
+                #print "Loading SyncMaster."
                 SyncMaster.init()
                 VisionEgg.config._SYNCMASTER_CONNECTED = 1
-                VisionEgg.config._SYNCMASTER_THREAD = SyncMaster.get_kernel_interaction_thread()
+                message.add( "Connected to SyncMaster device", 
+                             level=Message.INFO )
             except SyncMaster.SyncMasterError, x:
                 message.add( "Could not connect to SyncMaster device (SyncMasterError: %s)."%(str(x),),
                              level=Message.WARNING )
@@ -1185,10 +1186,10 @@ class Presentation(VisionEgg.ClassWithParameters):
                 
             # Swap the buffers
             if VisionEgg.config._SYNCMASTER_CONNECTED:
-                a=VisionEgg.timing_func()
+                #a=VisionEgg.timing_func()
                 SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS + SyncMaster.IN_GO_LOOP )
-                b=VisionEgg.timing_func()
-                print (b-a)*1000.0,"msec"
+                #b=VisionEgg.timing_func()
+                #print (b-a)*1000.0,"msec"
             swap_buffers()
             
             # Set the time variables for the next frame
@@ -1469,7 +1470,7 @@ class Presentation(VisionEgg.ClassWithParameters):
     def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
         timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
         if VisionEgg.config._SYNCMASTER_CONNECTED:
-            timing_string += "(SyncMaster reports "+str(SyncMaster.get_vsync_count())+" frames displayed.)\n"
+            timing_string += "(SyncMaster counted "+str(SyncMaster.get_vsync_count())+" VSYNCs.)\n"
         timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
         timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
         timing_string += "\n"
@@ -2163,22 +2164,24 @@ class Message:
             my_str = ""
             level,text,preserve_formatting,date_str = self.message_queue.pop(0)
             if level >= self.print_level:
-                my_str=my_str+self.prefix+" "
+                my_str= my_str+date_str+" "
+                #my_str=my_str+self.prefix+" "
                 if level == Message.TRIVIAL:
-                    my_str=my_str+" trivial"
+                    my_str=my_str+"trivial"
                 elif level == Message.INFO:
-                    my_str=my_str+" info"
+                    my_str=my_str+"info"
                 elif level == Message.NAG:
-                    my_str=my_str+" nag"
+                    my_str=my_str+"nag"
                 elif level == Message.DEPRECATION:
-                    my_str=my_str+" DEPRECATION WARNING"
+                    my_str=my_str+"DEPRECATION WARNING"
                 elif level == Message.WARNING:
-                    my_str=my_str+" WARNING"
+                    my_str=my_str+"WARNING"
                 elif level == Message.ERROR:
-                    my_str=my_str+" ERROR"
+                    my_str=my_str+"ERROR"
                 elif level == Message.FATAL:
-                    my_str=my_str+" FATAL"
-                my_str=my_str+" ("+date_str+"): "+text
+                    my_str=my_str+"FATAL"
+                my_str += ": "
+                my_str += text
                 if not preserve_formatting:
                     my_str = self.format_string(my_str)
                 self.output_stream.write(my_str)
