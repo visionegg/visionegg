@@ -35,7 +35,6 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
         
         self.screen = screen
-        self.screen.parameters.bgcolor = self.meta_params.bgcolor
         self.p = presentation
         self.stim = target
 
@@ -46,6 +45,8 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         self.p.add_controller(self.stim,'center',VisionEgg.Core.FunctionController(
             during_go_func=self.center_during_go,
             between_go_func=self.center_between_go))
+
+        self.update() # set stimulus parameters to initial defaults
 
     def __del__(self):
         self.p.remove_controller(self.stim,'on')

@@ -76,7 +76,6 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
         
         self.screen = screen
-        self.screen.parameters.bgcolor = self.meta_params.bgcolor
         self.p = presentation
         self.stim = target
 
@@ -88,6 +87,8 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         self.p.add_controller(None,None,self.mouse_position_controller)
         self.orig_event_handlers = self.p.parameters.handle_event_callbacks
         self.p.parameters.handle_event_callbacks = handle_event_callbacks
+
+        self.update() # set stimulus parameters to initial defaults
 
     def __del__(self):
         self.p.parameters.handle_event_callbacks = self.orig_event_handlers
@@ -114,12 +115,6 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         # colors
         stim_params.color = meta_params.color
         self.screen.parameters.bgcolor = meta_params.bgcolor
-
-##        # size and orientation
-##        stim_params.size = (meta_params.width, meta_params.height)
-##        stim_params.orientation = meta_params.orientation_deg
-        
-##        self.p.parameters.go_duration = ( meta_params.pre_stim_sec + meta_params.stim_sec + meta_params.post_stim_sec, 'seconds')
 
     def go(self):
         pass
