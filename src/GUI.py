@@ -128,7 +128,7 @@ def get_screen_via_GUI():
         global opened_screen # Python doesn't support nested namespace, so this is a trick
         opened_screen = screen
     global opened_screen
-    window = OpenScreenWindow(set_screen_callback=callback)
+    window = OpenScreenDialog(set_screen_callback=callback)
     window.mainloop()
     local_screen = opened_screen
     del opened_screen # Get rid of evil global variables!
