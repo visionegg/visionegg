@@ -25,19 +25,7 @@ import pygame.surface, pygame.image             # pygame
 import math, types, os
 import Numeric, MLab
 
-import OpenGL.GL as gl
-
-try:
-    import OpenGL.GL.ARB.multitexture # Not necessary for most Vision Egg functions
-except ImportError:
-    pass
-else:
-    OpenGL.GL.ARB.multitexture.glInitMultitextureARB()
-    for attr in dir(OpenGL.GL.ARB.multitexture):
-        # put attributes from multitexture module in "gl" module dictionary
-        # (Namespace overlap as you'd get OpenGL apps written in C)
-        if attr[0:2] != "__":
-            setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
+gl = VisionEgg.Core.gl # get (modified) OpenGL module from Core
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
@@ -48,8 +36,8 @@ import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 
 import string
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -68,12 +56,22 @@ else:
 #
 # XXX ToDo:
 #
+
 # The main remaining feature to add to this module is automatic
 # management of texture objects.  This would allow many small images
 # (e.g. a bit of text) to live in one large texture object.  This
 # would be much faster when many small textures are drawn in rapid
-# succession.
-#
+# succession. (Apparently this might not be such a big improvement on
+# OS X. (See http://crystal.sourceforge.net/phpwiki/index.php?MacXGL)
+
+# Here's a sample from Apple's TextureRange demo which is supposed
+# to speed up texture transfers.
+# glBindTextures( target, &texID);
+# glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, 1);
+# glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,image_ptr);
+# Update the texture with:
+# glTexSubImage2D(target, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,image_ptr);
+
 ####################################################################
 
 ####################################################################
@@ -136,6 +134,8 @@ class Texture:
             texels = Image.open(texels) # Attempt to open as an image stream
 
         if isinstance(texels, Image.Image): # PIL Image
+            if texels.mode == 'P': # convert from paletted
+                texels = texels.convert('RGBX')
             self.size = texels.size
         elif isinstance(texels, pygame.surface.Surface): # pygame surface
             self.size = texels.get_size()
@@ -228,9 +228,7 @@ class Texture:
         the TextureObject class, which is a wrapper for the OpenGL
         texture object holding the resident texture.
 
-        To remove a texture from OpenGL's resident textures: 1) make
-        sure no references are maintained to the instance of
-        TextureObject passed as the texture_object argument and 2)
+        To remove a texture from OpenGL's resident textures:       TextureObject passed as the texture_object argument and 2)
         call the unload() method"""
 
         assert( isinstance( texture_object, TextureObject ))
@@ -355,20 +353,9 @@ class TextureObject:
                             'positive_z', 'negative_z']
     
     def __init__(self,
-                 dimensions = 2,
-                 multitexture_unit_num = None): # None if no multitexturing
+                 dimensions = 2):
         if dimensions not in [1,2,3,'cube']:
             raise ValueError("TextureObject dimensions must be 1,2,3, or 'cube'")
-        if multitexture_unit_num is None:
-            self.multitexture_unit = None
-        else:
-            if not hasattr(VisionEgg.config,"_glInitMultitextureARB_done"):
-                if not gl.glInitMultitextureARB():
-                    raise RuntimeError("Need GL_ARB_multitexture OpenGL extension.")
-                else:
-                    VisionEgg.config._glInitMultitextureARB_done = True
-            attr_name = "GL_TEXTURE%d_ARB"%multitexture_unit_num
-            self.multitexture_unit = getattr(gl,attr_name)
         # default OpenGL values for these values
         self.min_filter = gl.GL_NEAREST_MIPMAP_LINEAR
         self.mag_filter = gl.GL_LINEAR
@@ -404,47 +391,35 @@ class TextureObject:
         self.gl_module.glDeleteTextures(self.gl_id)
 
     def set_min_filter(self, filter):
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_MIN_FILTER,filter)
         self.min_filter = filter
 
     def set_mag_filter(self, filter):
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_MAG_FILTER, filter)
         self.mag_filter = filter
 
     def set_wrap_mode_s(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_S, wrap_mode)
         self.wrap_mode_s = wrap_mode
 
     def set_wrap_mode_t(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_T, wrap_mode)
         self.wrap_mode_t = wrap_mode
 
     def set_wrap_mode_r(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_R, wrap_mode)
         self.wrap_mode_r = wrap_mode
 
     def set_border_color(self, border_color):
         """Set to a sequence of 4 floats in the range 0.0 to 1.0"""
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteriv( self.target, gl.GL_TEXTURE_BORDER_COLOR, border_color)
         self.border_color = border_color
@@ -531,8 +506,6 @@ class TextureObject:
             raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
 
         # make myself the active texture
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
 
         # create local mipmap_array data
@@ -760,8 +733,6 @@ class TextureObject:
             raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
 
         # make myself the active texture
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
 
         if self.dimensions != 'cube':
@@ -905,8 +876,6 @@ class TextureObject:
             raise ValueError('No support for "%s" framebuffer'%buffer)        
         
         # make myself the active texture
-        if self.multitexture_unit:
-            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
 
         # create local mipmap_array data
@@ -1115,13 +1084,8 @@ class Mask2D(VisionEgg.ClassWithParameters):
         if height != next_power_of_2(height):
             raise RuntimeError("Mask must have height num_samples power of 2")
         
-        if not hasattr(VisionEgg.config,"_glInitMultitextureARB_done"):
-            if not gl.glInitMultitextureARB():
-                raise RuntimeError("Need GL_ARB_multitexture OpenGL extension.")
-            else:
-                VisionEgg.config._glInitMultitextureARB_done = 1
-        self.texture_object = TextureObject(dimensions=2,
-                                            multitexture_unit_num=1)
+        gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB)
+        self.texture_object = TextureObject(dimensions=2)
         
         if cp.function == "gaussian":
             xx = Numeric.outerproduct(Numeric.ones((1.0,cp.num_samples[1])),
@@ -1198,7 +1162,6 @@ class Mask2D(VisionEgg.ClassWithParameters):
         gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # return to 1st texture unit
         
-
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle.
 
@@ -1228,11 +1191,11 @@ class TextureStimulus(TextureStimulusBaseClass):
         'color':((1.0,1.0,1.0), # texture environment color. alpha is ignored (if given) -- use max_alpha parameter
                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                 ve_types.Sequence4(ve_types.Real))),
+        'depth_test':(False,
+                      ve_types.Boolean),
         }
     
     def __init__(self,**kw):
-        if 'mask' in kw.keys():
-            gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         TextureStimulusBaseClass.__init__(self,**kw)
         if self.parameters.size is None:
             if hasattr(self.parameters.texture,'size'): # Texture.size isn't really part of the API, so this is naughty...
@@ -1242,8 +1205,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                 
     def draw(self):
         p = self.parameters
-        if p.mask:
-            gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
             self._reload_texture()
         if p.lowerleft != None:
@@ -1260,8 +1221,11 @@ class TextureStimulus(TextureStimulusBaseClass):
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
-            
-            gl.glDisable(gl.GL_DEPTH_TEST)
+
+            if p.depth_test:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+            else:
+                gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glEnable( gl.GL_TEXTURE_2D )
             
             # allow max_alpha value to control blending
@@ -1279,7 +1243,7 @@ class TextureStimulus(TextureStimulusBaseClass):
 
             translate_vector = p.position
             if len(translate_vector) == 2:
-                translate_vector = translate_vector[0], translate_vector[1], 0.0
+                translate_vector = translate_vector[0], translate_vector[1], 0
             gl.glTranslate(*translate_vector)
             gl.glRotate(p.angle,0,0,1)
 
@@ -1287,7 +1251,7 @@ class TextureStimulus(TextureStimulusBaseClass):
 
             tex.update()
             
-            gl.glColor(p.color[0],p.color[1],p.color[2],p.max_alpha)
+            gl.glColorf(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
             l = lowerleft[0] - p.position[0]
             r = l + p.size[0]
@@ -1315,15 +1279,19 @@ class TextureStimulus(TextureStimulusBaseClass):
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
     parameters_and_defaults = {'on':(True,
-                                     ve_types.Boolean),
-                               'lowerleft':((0.0,0.0,-1.0),
-                                            ve_types.Sequence3(ve_types.Real)), # in eye coordinates
-                               'lowerright':((1.0,0.0,-1.0),
-                                             ve_types.Sequence3(ve_types.Real)), # in eye coordinates
-                               'upperleft':((0.0,1.0,-1.0),
-                                            ve_types.Sequence3(ve_types.Real)), # in eye coordinates
-                               'uppperright':((1.0,1.0,-1.0),
-                                              ve_types.Sequence3(ve_types.Real)), # in eye coordinates
+                                     ve_types.Boolean),                               
+                               'lowerleft':((0.0,0.0,-1.0), # in eye coordinates
+                                            ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                                           ve_types.Sequence4(ve_types.Real))),
+                               'lowerright':((1.0,0.0,-1.0), # in eye coordinates
+                                             ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                                            ve_types.Sequence4(ve_types.Real))),
+                               'upperleft':((0.0,1.0,-1.0), # in eye coordinates
+                                            ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                                           ve_types.Sequence4(ve_types.Real))),
+                               'upperright':((1.0,1.0,-1.0), # in eye coordinates
+                                             ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                                            ve_types.Sequence4(ve_types.Real))),
                                'depth_test':(True,
                                              ve_types.Boolean),
                                }
@@ -1344,7 +1312,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 
             gl.glDisable(gl.GL_BLEND)
             gl.glEnable(gl.GL_TEXTURE_2D)
-            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
+            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -1361,16 +1329,16 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             
             gl.glBegin(gl.GL_QUADS)
             gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-            gl.glVertex3fv(p.lowerleft)
+            gl.glVertex(*p.lowerleft)
 
             gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-            gl.glVertex3fv(p.lowerright)
+            gl.glVertex(*p.lowerright)
 
             gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-            gl.glVertex3fv(p.upperright)
+            gl.glVertex(*p.upperright)
 
             gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-            gl.glVertex3fv(p.upperleft)
+            gl.glVertex(*p.upperleft)
             gl.glEnd() # GL_QUADS
                 
 ####################################################################
@@ -1451,7 +1419,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -1466,12 +1434,12 @@ class SpinningDrum(TextureStimulusBaseClass):
                 lowerleft = lowerleft[0], lowerleft[1], p.position[2]
                 
                 # do the orientation
-                gl.glRotatef(p.orientation,0.0,0.0,1.0)
+                gl.glRotatef(p.orientation,0,0,1)
                 gl.glTranslate(lowerleft[0],lowerleft[1],lowerleft[2])
                 
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
-                w,h = p.texture.size
+                w,h = p.texture.size # XXX was checking this... check again before CVS check in!
 
                 # calculate texture coordinates based on current angle
                 tex_phase = p.angular_position/360.0 + 0.5 # offset to match non-flat
@@ -1539,15 +1507,15 @@ class SpinningDrum(TextureStimulusBaseClass):
                 gl.glTranslatef(p.position[0],p.position[1],p.position[2])
 
                 # center the drum on new coordinates
-                gl.glRotatef(p.drum_center_azimuth,0.0,-1.0,0.0)
-                gl.glRotatef(p.drum_center_elevation,1.0,0.0,0.0)
+                gl.glRotatef(p.drum_center_azimuth,0,-1,0)
+                gl.glRotatef(p.drum_center_elevation,1,0,0)
 
                 # do the orientation
-                gl.glRotatef(p.orientation,0.0,0.0,1.0)
+                gl.glRotatef(p.orientation,0,0,1)
                 
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
-                gl.glRotatef(p.angular_position,0.0,-1.0,0.0)
+                gl.glRotatef(p.angular_position,0,-1,0)
 
                 if p.num_sides != self.cached_display_list_num_sides:
                     self.rebuild_display_list()
@@ -1656,5 +1624,5 @@ class FixationCross(VisionEgg.Core.Stimulus):
         contained.on = my.on
         self.texture_stimulus.draw()
             
-class TextureTooLargeError(VisionEgg.Core.EggError):
+class TextureTooLargeError( RuntimeError ):
     pass
