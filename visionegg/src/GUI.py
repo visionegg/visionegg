@@ -98,6 +98,14 @@ class OpenScreenDialog(Tkinter.Frame):
                             text='Fullscreen',
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).pack()
+        
+        # Maximum priority
+        self.max_priority = Tkinter.BooleanVar()
+        self.max_priority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
+        Tkinter.Checkbutton(self,
+                            text='Maximum priority',
+                            variable=self.max_priority,
+                            relief=Tkinter.FLAT).pack()
 
 ##        # texture compression
 ##        self.tex_compress = Tkinter.BooleanVar()
@@ -162,6 +170,7 @@ class OpenScreenDialog(Tkinter.Frame):
         
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
+        VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
 #        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
@@ -175,7 +184,8 @@ class OpenScreenDialog(Tkinter.Frame):
                                              VisionEgg.config.VISIONEGG_SCREEN_H),
                                        fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
                                        preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                                       bgcolor=(0.5,0.5,0.5,0.0))
+                                       bgcolor=(0.5,0.5,0.5,0.0),
+                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
 
         for child in self.children.values():
             child.destroy()
