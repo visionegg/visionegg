@@ -14,7 +14,7 @@ stimulus = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/
                         temporal_freq_hz = 5.0,
                         orientation      = 45.0 )
 viewport = Viewport( screen=screen, stimuli=[stimulus] )
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
 
 # Create a trigger output controller
 trigger_out_controller = LPTTriggerOutController()

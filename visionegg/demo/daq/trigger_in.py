@@ -15,7 +15,7 @@ stimulus = SinGrating2D(on               = 0, # turn grating is off when not in 
                         temporal_freq_hz = 5.0,
                         orientation      = 45.0 )
 viewport = Viewport( screen=screen, stimuli=[stimulus] )
-p = Presentation(duration=(5.0,'seconds'),
+p = Presentation(go_duration=(5.0,'seconds'),
                  trigger_go_if_armed=0, # wait for trigger
                  viewports=[viewport])
 
