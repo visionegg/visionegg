@@ -179,7 +179,6 @@ def save_settings():
     dont_save = ['VISIONEGG_CONFIG_FILE',
                  'VISIONEGG_SYSTEM_DIR',
                  'VISIONEGG_USER_DIR',
-                 'VISIONEGG_TEXTURE_COMPRESSION', # Not a supported variable at the moment
                  ]
     
     if not VisionEgg.config.VISIONEGG_CONFIG_FILE:
