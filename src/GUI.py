@@ -233,7 +233,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             import _imaging, _imagingtk
             import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin
             import Image,ImageTk
-            im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp'))
+            im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data','visionegg.bmp'))
             self.tk_im=ImageTk.PhotoImage(im)
             Tkinter.Label(topframe,image=self.tk_im).grid(row=0,rowspan=topframe_row,column=0)
         except Exception,x:
