@@ -241,7 +241,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 pass
         
         found_mode = 0
-        for bpp in try_bpps:
+        for bpp in try_bpps: # try_bpps is ordered by preference
             modeList = pygame.display.list_modes( bpp, flags )
             if modeList == -1: # equal to -1 if any resolution will work
                 found_mode = 1
@@ -251,14 +251,15 @@ class Screen(VisionEgg.ClassWithParameters):
                 else:
                     if self.constant_parameters.size in modeList:
                         found_mode = 1
-                    else:
-                        self.constant_parameters.size = modeList[0]
-                        message.add(
-                            """WARNING: Using Screen size %dx%d instead
-                            of requested size."""%
-                            (self.constant_parameters.size[0],
-                             self.constant_parameters.size[1]),
-                            level=Message.WARNING)
+##                    else:
+##                        self.constant_parameters.size = modeList[0]
+##                        message.add(
+##                            """Using Screen size %dx%d instead of
+##                            requested size at %d bpp."""%
+##                            (self.constant_parameters.size[0],
+##                             self.constant_parameters.size[1],
+##                             bpp),
+##                            level=Message.WARNING)
                             
             if found_mode: # found the color depth to tell pygame
                 try_bpp = bpp 
@@ -609,7 +610,7 @@ class Screen(VisionEgg.ClassWithParameters):
             else:
                 message.add( "Gamma set sucessfully: %s"%gamma_set_string, Message.INFO )
         return screen
-    create_default = VisionEgg.StaticClassMethod(create_default)
+    create_default = staticmethod(create_default)
 
     def _create_inverted_gamma_ramp(self, gamma):
         # c is a constant scale factor.  It is always 1.0 when
@@ -646,18 +647,6 @@ class Screen(VisionEgg.ClassWithParameters):
             
 def get_default_screen():
     """Make an instance of Screen using a GUI window or from config file."""
-    # I'm thinking about deprecating this function -- what do people think??
-    
-    # I think it is cleaner (although less intuitive to those that
-    # don't know object oriented programming) to use an alternate
-    # constructor of class Screen to create an instance of Screen
-    # based on the values in VisionEgg.config (including the "use GUI"
-    # toggle -- VISIONEGG_GUI_INIT).  In other words, I like "screen =
-    # Screen.create_default()" more than "screen =
-    # get_default_screen()".
-    
-    #message.add(message="Called VisionEgg.Core.get_default_screen(). Use VisionEgg.Core.Screen.create_default() instead",
-    #            level=Message.DEPRECATION)
     return Screen.create_default()
 
 ####################################################################
@@ -941,11 +930,11 @@ class Stimulus(VisionEgg.ClassWithParameters):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         
     def draw(self):
-    	"""Called by Viewport. Draw the stimulus.
-
+        """Called by Viewport. Draw the stimulus.
+        
         This method is called every frame.  This method actually
         performs the OpenGL calls to draw the stimulus.
-
+        
         Override this method in a subclass .In this base class it does
         nothing.
         """
@@ -2002,10 +1991,8 @@ class ConstantController(Controller):
                  between_go_value = None,
                  **kw
                  ):
-        if 'return_type' not in kw.keys():
-            kw['return_type'] = ve_types.get_type(during_go_value)
-        if 'eval_frequency' not in kw.keys():
-            kw['eval_frequency'] = Controller.ONCE | Controller.TRANSITIONS
+        kw.setdefault('return_type',ve_types.get_type(during_go_value))
+        kw.setdefault('eval_frequency',Controller.ONCE | Controller.TRANSITIONS)
         Controller.__init__(self,**kw)
         if self.return_type is not types.NoneType and during_go_value is None:
             raise ValueError("Must specify during_go_value")
@@ -2095,7 +2082,7 @@ class EvalStringController(Controller):
             
         # Check to make sure return_type is set
         set_return_type = 0
-        if 'return_type' not in kw.keys():
+        if not kw.has_key('return_type'):
             set_return_type = 1
             kw['return_type'] = types.NoneType
             
@@ -2213,7 +2200,7 @@ class ExecStringController(Controller):
 
         # Check to make sure return_type is set
         set_return_type = 0
-        if 'return_type' not in kw.keys():
+        if not kw.has_key('return_type'):
             set_return_type = 1
             kw['return_type'] = types.NoneType
 
@@ -2331,11 +2318,10 @@ class FunctionController(Controller):
             raise ValueError("Must specify during_go_func")
             
         # Set default value if not set
-        if 'temporal_variables' not in kw.keys():
-            kw['temporal_variables'] = Controller.TIME_SEC_SINCE_GO # default value
+        kw.setdefault('temporal_variables',Controller.TIME_SEC_SINCE_GO) # default value
 
         # Check to make sure return_type is set
-        if 'return_type' not in kw.keys():
+        if not kw.has_key('return_type'):
             message.add('Evaluating %s to test for return type.'%(str(during_go_func),),
                         Message.TRIVIAL)
             call_args = {}
@@ -2446,15 +2432,20 @@ class Message:
     class Tee:
         """Private class internal to class Message"""
         def __init__(self,*streams):
+            self.streams = []
             for stream in streams:
-                if not hasattr(stream,"write") or not hasattr(stream,"flush"):
-                    raise ValueError("stream must have write and flush function")
-            self.streams = streams
+                if not hasattr(stream,"write"):
+                    raise ValueError("stream must have write method")
+                if hasattr(stream,"flush"):
+                    self.streams.append(stream)
+                else:
+                    stream.flush = lambda : None # no-op
+                    self.streams.append(stream)
             self._sys = sys # keeps a ref that stays even when deleted from namespace
         def write(self,*args,**kw):
             # Hack to prevent writing to sys.stderr when not necessary
-            if "_no_sys_stderr" in kw.keys():
-                no_sys_stderr = kw["_no_sys_stderr"]
+            if kw.has_key('_no_sys_stderr'):
+                no_sys_stderr = kw['_no_sys_stderr']
                 del kw["_no_sys_stderr"]
             else:
                 no_sys_stderr = 0
