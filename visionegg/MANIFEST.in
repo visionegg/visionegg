@@ -3,6 +3,7 @@ include CHANGELOG.txt
 include README.txt
 include VisionEgg.cfg
 include src/*.c
+include src/*.m
 include src/*.h
 include doc/*.pdf
 include doc/*.html
