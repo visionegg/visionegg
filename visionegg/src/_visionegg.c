@@ -20,13 +20,13 @@
 #include <unistd.h>
 
 /* For _visionegg_setRealtime */
+#ifndef __APPLE_CC__
 #include <sys/mman.h>
 #include <sched.h>
 #include <errno.h>
+#endif
 
-#define XXX_LPT_DOUT // Very non-portable i386 linux hack
-
-#ifdef XXX_LPT_DOUT
+#ifdef XXX_LPT_DOUT // This turns on a very non-portable i386 linux hack
 #include <stdio.h> // for ioperm
 #include <asm/io.h> // for outb
 #define LPT 0x378
@@ -85,6 +85,7 @@ static PyObject *_visionegg_preciseSleep(PyObject * self, PyObject * args)
 
 static PyObject *_visionegg_setRealtime(PyObject * self, PyObject * args)
 {
+#ifndef __APPLE_CC__ // Mac OS X doesn't support setscheduler() commands
   int policy;
   struct sched_param params;
 
@@ -139,6 +140,8 @@ static PyObject *_visionegg_setRealtime(PyObject * self, PyObject * args)
   }
 #endif /* closes ifdef MCL_FUTURE */
 #endif /* closes ifdef MCL_CURRENT */
+
+#endif /* closes ifndef __APPLE_CC__ */
 
   Py_INCREF(Py_None);
   return Py_None;  /* It worked OK. */
