@@ -80,7 +80,7 @@ if not skip_c_compilation:
                                               os.path.join('src','win32_getrefresh_wrap.c')],
                                      libraries=['User32'],
                                      ))
-    elif sys.platform[:4] == 'irix' or sys.platform[:5] in ['linux','posix']:
+    elif sys.platform.startswith('irix') or sys.platform.startswith('linux'):
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
                                               'src/posix_maxpriority_wrap.c']))
@@ -94,7 +94,7 @@ if not skip_c_compilation:
         gl_extra_link_args = []
     if sys.platform == 'win32':
         gl_libraries = ['opengl32']
-    elif sys.platform[:5] == 'linux':
+    elif sys.platform.startswith('linux'):
         gl_libraries = ['GL']
     else:
         gl_libraries = []
@@ -126,16 +126,16 @@ if not skip_c_compilation:
                                               'src/darwin_app_stuff_wrap.c'],
                                      extra_link_args=['-framework','Cocoa']))
 
-    if sys.platform[:5] == 'linux':
+    if sys.platform.startswith('linux'):
         ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
-    if sys.platform[:4] == 'irix':
+    if sys.platform.startswith('irix'):
         ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
 # Find the demo scripts
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
-        if filename[-3:] == '.py' or filename[-4:] == '.pyw':
+        if filename.endswith('.py') or filename.endswith('.pyw'):
             if filename != '__init__.py':
                 scripts.append(os.path.join(dirname,filename))
 
