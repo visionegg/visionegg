@@ -24,6 +24,7 @@ class MousePositionController( Controller ):
         Controller.__init__(self,
                             return_type=type(None),
                             eval_frequency=Controller.EVERY_FRAME)
+        self.between_go_eval = self.during_go_eval # duplicate reference to function
         
     def during_go_eval(self,t=None):
         # Convert pygame mouse position to OpenGL position
@@ -32,8 +33,6 @@ class MousePositionController( Controller ):
         y = screen.size[1]-y
         mouse_position = (x,y)
         return None
-
-    between_go_eval = during_go_eval
 
 grating_orient_method = 'reorient stimulus' # start with this as default
 
@@ -47,16 +46,16 @@ def az_el_controller(t=None):
     text1.parameters.text = "Mouse moves window, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation)
     mask.parameters.window_center_azimuth = azimuth
     mask.parameters.window_center_elevation = elevation
-    if grating_orient_method == 'normal':
-        grating_stimulus.parameters.grating_center_azimuth = 0.0
-        grating_stimulus.parameters.grating_center_elevation = 0.0
-        grid_stimulus.parameters.center_azimuth = 0.0
-        grid_stimulus.parameters.center_elevation = 0.0
-    else:
+    if grating_orient_method == 'reorient stimulus': # normal
         grid_stimulus.parameters.center_azimuth = azimuth
         grid_stimulus.parameters.center_elevation = elevation
         grating_stimulus.parameters.grating_center_azimuth = azimuth
         grating_stimulus.parameters.grating_center_elevation = elevation
+    elif grating_orient_method == 'mask only':
+        grating_stimulus.parameters.grating_center_azimuth = 0.0
+        grating_stimulus.parameters.grating_center_elevation = 0.0
+        grid_stimulus.parameters.center_azimuth = 0.0
+        grid_stimulus.parameters.center_elevation = 0.0
     
 def quit(event):
     global p # get presentation instance
@@ -65,7 +64,7 @@ def quit(event):
 def mouse_button_down(event):
     if event.button == 1:
         global grating_orient_method
-        grating_orient_method = 'normal'
+        grating_orient_method = 'mask only'
 
 def mouse_button_up(event):
     if event.button == 1:
