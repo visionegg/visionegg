@@ -1,0 +1,64 @@
+\documentclass{manual}
+
+\title{The Vision Egg Manual}
+
+\author{Andrew Straw}
+
+\date{\today}			% XXX update before release!
+\release{0.8.3}			% software release, not documentation
+\setreleaseinfo{a0}		% empty for final release
+\setshortversion{0.8.3}		% major.minor only for software
+
+\makeindex                      % tell \index to actually write the
+                                % .idx file
+\makemodindex                   % ... and the module index as well.
+
+\begin{document}
+
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+Copyright \copyright{} 2001-2002 Andrew Straw
+All rights reserved.
+
+\begin{abstract}
+
+\noindent
+This manual documents the Vision Egg.
+\end{abstract}
+
+\tableofcontents
+
+\input{opengl.tex} % Info about OpenGL
+
+\chapter{Vision Egg Reference \label{visionegg-modules}}
+
+The following modules comprise the Vision Egg, and are documented
+here:
+
+\input{libcore}
+%\input{libtextures}
+%\input{libtext}
+%\input{libmorestimuli}
+%\input{libapphelper}
+%\input{libconfiguration}
+%\input{libdaq}
+%\input{libdaqovertcp}
+%\input{libgui}
+%\input{libplatformdependent}
+%\input{libpyrohelpers}
+
+%begin{latexonly}
+\renewcommand{\indexname}{Module Index}
+%end{latexonly}
+\input{modvisionegg.ind}              % Module Index
+
+%begin{latexonly}
+\renewcommand{\indexname}{Index}
+%end{latexonly}
+\input{visionegg.ind}                 % Index
+
+\end{document}

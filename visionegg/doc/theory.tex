@@ -1,0 +1,35 @@
+\chapter{theory of operation \label{theory}}
+
+The Vision Egg can coordinate just about any task that is possible
+with a computer.  This document is a high level overview of how the
+Vision Egg works.
+
+If you need to do triggering, data acquisition, precise temporal
+control of stimuli, integration with other software or hardware, read
+this document.
+
+\section{Architecture}
+
+The Vision Egg is more than a simple library for drawing visual
+stimuli. The Vision Egg allows coordination with just about any
+element of a computer.  It is an experimental time-keeper and command
+delegator for calling functions with sophisticated and precise
+temporal control.
+
+To perform this role, the Vision Egg uses a paradigm in which
+\strong{contollers} can modify any \strong{parameter}. A controller
+is called at pre-defined moments in time and typically functions to
+calculate the value of a variable that affects some aspect of the
+experiment.
+
+The \seealso{API reference} has more extensive documentation for the
+\class{Presentation}, \class{Controller}, and
+\class{ClassWithParameters} classes.
+
+\section{Timing of stimulus display}
+
+\section{Triggering}
+
+\section{Data acquisition}
+
+\section{Stimulus drawing}

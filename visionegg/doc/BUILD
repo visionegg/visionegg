@@ -1,0 +1,26 @@
+This directory contains the source for the Vision Egg
+documentation. 
+
+The source for the manual is in LaTeX using the classes, styles, and
+tools from the Python language documentation itself. These files are
+not included with the Vision Egg, but should be copied/linked into the
+Vision Egg doc directory.  Link the following directories from the
+directory of the same name in the Python documentation source.
+
+html
+paper-a4
+paper-letter
+perl
+templates
+tools
+
+Additionally, create a link called icons that links html/icons.
+
+To make the manual in HTML form, run:
+
+python tools/mkhowto visionegg.tex
+
+To make the manual in PDF form, run:
+
+python tools/mkhowto --pdf visionegg.tex
+
