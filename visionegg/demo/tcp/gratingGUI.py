@@ -190,8 +190,6 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
             except:
                 port = self.port.get()
 
-            print host
-            
             try:
                 host = socket.getfqdn(host)
             except Exception,x:
@@ -200,11 +198,8 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
                 return
 
-            print host
-            
             self.socket = SocketLogger(socket.AF_INET,socket.SOCK_STREAM)
 
-            print host
             try:
                 self.socket.connect((host,port))
             except Exception,x:
