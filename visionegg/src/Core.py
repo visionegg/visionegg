@@ -142,19 +142,21 @@ class Viewport:
     def __init__(self,screen,lower_left,size,projection=None):
         self.screen = screen
         self.stimuli = []
-        self.lower_left = lower_left
-        self.size = size
-
-        if projection is None:
-            projection = OrthographicProjection(left=lower_left[0],
-                                                right=lower_left[0]+size[0],
-                                                bottom=lower_left[1],
-                                                top=lower_left[1]+size[1],
-                                                z_clip_near=0.1,
-                                                z_clip_far=100.0)            
-        
         self.parameters = Parameters()
-        self.parameters.projection = projection
+        self.parameters.lower_left = lower_left
+        self.parameters.size = size
+        if projection is None:
+            self.set_projection_screen_coords()
+        else:
+            self.parameters.projection = projection
+
+    def set_projection_screen_coords(self):
+        self.parameters.projection = OrthographicProjection(left=self.parameters.lower_left[0],
+                                                            right=self.parameters.lower_left[0]+self.parameters.size[0],
+                                                            bottom=self.parameters.lower_left[1],
+                                                            top=self.parameters.lower_left[1]+self.parameters.size[1],
+                                                            z_clip_near=0.1,
+                                                            z_clip_far=100.0)
 
     def add_stimulus(self,stimulus,draw_order=-1):
         """Add a stimulus to the list of those drawn in the viewport
@@ -173,7 +175,7 @@ class Viewport:
     def draw(self):
         """Set the viewport and draw stimuli."""
         self.screen.make_current()
-        glViewport(self.lower_left[0],self.lower_left[1],self.size[0],self.size[1])
+        glViewport(self.parameters.lower_left[0],self.parameters.lower_left[1],self.parameters.size[0],self.parameters.size[1])
 
         self.parameters.projection.set_GL_projection_matrix()
         
