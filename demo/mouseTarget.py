@@ -64,16 +64,38 @@ class TargetPositionController( Controller ):
         global mouse_position
         return mouse_position
 
+def cross_product(b,c):
+    """Cross product between vectors, represented as tuples of length 3."""
+    det_i = b[1]*c[2] - b[2]*c[1]
+    det_j = b[0]*c[2] - b[2]*c[0]
+    det_k = b[0]*c[1] - b[1]*c[0]
+    return (det_i,-det_j,det_k)
+
+def mag(b):
+    """Magnitude of a vector."""
+    return b[0]**2.0 + b[1]**2.0 + b[2]**2.0
+    
 class TargetOrientationController( Controller ):
     def __init__(self):
         Controller.__init__(self,
                             return_type=type(90.0),
                             eval_frequency=Controller.EVERY_FRAME)
+        self.c = (0.0,0.0,1.0)
+        self.last_orientation = 0.0
 
     def during_go_eval(self):
         global mouse_position, last_mouse_position
-        # should use cross product!
-        return 90.0
+
+        b = (float(last_mouse_position[0]-mouse_position[0]),
+             float(last_mouse_position[1]-mouse_position[1]),
+             0.0)
+
+        if mag(b) > 5.0: # Must mouse 5 pixels before changing orientation (rejects noise)
+            # find cross product b x c. assume b and c are 3-vecs, b has
+            # 3rd component 0.
+            orientation_vector = cross_product(b,self.c)
+            self.last_orientation = atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
+        return self.last_orientation
 
 #############################################
 #  Create event handler callback functions  #
@@ -90,7 +112,7 @@ handle_event_callbacks = [(pygame.locals.QUIT, quit),(pygame.locals.KEYDOWN, key
 
 # Create an instance of the Presentation class.  This contains the
 # the Vision Egg's runtime control abilities.
-p = Presentation(duration=('forever',),
+p = Presentation(go_duration=('forever',),
                  viewports=[viewport],
                  check_events=1,
                  handle_event_callbacks=handle_event_callbacks)
