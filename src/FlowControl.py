@@ -1,11 +1,28 @@
+"""Flow control for the Vision Egg
+
+Classes:
+
+Presentation -- Handles the timing and coordination of stimulus presentation
+Controller -- Control parameters
+
+Subclasses of Controller:
+
+ConstantController -- constant value
+EvalStringController -- use dynamically interpreted Python string
+ExecStringController -- use potentially complex Python string
+FunctionController -- use a Python function
+EncapsulatedController -- use a controller to control a controller
+
+"""
+
 import VisionEgg
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import VisionEgg.ParameterTypes as ve_types
 import Numeric, math, types
 import pygame
 
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
-# of the GNU Lesser General Public License (LGPL).
+# Copyright (c) 2003 Andrew Straw.  Distributed under the terms of the
+# GNU Lesser General Public License (LGPL).
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
