@@ -77,6 +77,7 @@ defaults= {
     'VISIONEGG_REQUEST_BLUE_BITS':    8,
     'VISIONEGG_REQUEST_GREEN_BITS':   8,
     'VISIONEGG_REQUEST_RED_BITS':     8,
+    'VISIONEGG_REQUEST_STEREO':       0,
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
     'VISIONEGG_SYNC_SWAP':            1,

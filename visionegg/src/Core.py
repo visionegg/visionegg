@@ -93,13 +93,14 @@ class Screen(VisionEgg.ClassWithParameters):
     separate viewports for the portion of the window on each monitor,
     a multiple screen effect can be created.
 
-    Public variables
-    ================
+    Public read-only variables
+    ==========================
     size -- Tuple of 2 integers specifying width and height
     red_bits -- Integer (or None if not supported) specifying framebuffer depth
     green_bits -- Integer (or None if not supported) specifying framebuffer depth
     blue_bits -- Integer (or None if not supported) specifying framebuffer depth
     alpha_bits -- Integer (or None if not supported) specifying framebuffer depth
+    is_stereo -- Boolean (or None if not supported) specifying if stereo used
 
     Parameters
     ==========
@@ -160,6 +161,7 @@ class Screen(VisionEgg.ClassWithParameters):
         'green_bits',
         'blue_bits',
         'alpha_bits',
+        'is_stereo',
         '__cursor_visible_func__',
         '__pygame_quit__',
         '_put_pixels_texture_stimulus',
@@ -215,14 +217,16 @@ class Screen(VisionEgg.ClassWithParameters):
         g = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
         b = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
         a = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
+        stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
         if hasattr(pygame.display,"gl_set_attribute"):
             pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE,r)
             pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE,g)
             pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,b)
             pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,a)
+	    pygame.display.gl_set_attribute(pygame.locals.GL_STEREO,stereo)
         else:
-            logger.debug("Could not request or query exact bit depths "
-                         "or alpha in framebuffer because you need "
+            logger.debug("Could not request or query exact bit depths, "
+                         "alpha or stereo because you need "
                          "pygame release 1.4.9 or greater. This is "
                          "only of concern if you use a stimulus that "
                          "needs this. In that case, the stimulus "
@@ -301,14 +305,20 @@ class Screen(VisionEgg.ClassWithParameters):
         self.green_bits = None
         self.blue_bits = None
         self.alpha_bits = None
+        self.is_stereo = None
         got_bpp = pygame.display.Info().bitsize
-        append_str = ""
+        append_str = ''
         if hasattr(pygame.display,"gl_get_attribute"):
             self.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
             self.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
             self.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
             self.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
-            append_str = " (%d %d %d %d RGBA)"%(self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits)
+            self.is_stereo = pygame.display.gl_get_attribute(pygame.locals.GL_STEREO)
+            if self.is_stereo: stereo_string = ' stereo'
+            else: stereo_string = ''
+            append_str = " (%d %d %d %d RGBA%s)"%(
+                self.red_bits,self.green_bits,self.blue_bits,self.alpha_bits,
+                stereo_string)
         logger.info("Video system reports %d bpp%s."%(got_bpp,append_str))
         if got_bpp < try_bpp:
             logger.warning("Video system reports %d bits per pixel, "
@@ -726,7 +736,7 @@ class Projection(VisionEgg.ClassWithParameters):
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0 for this to work!
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
 
     def push_and_set_gl_projection(self):
         """Set the OpenGL projection matrix, pushing current projection matrix to stack."""
