@@ -1,3 +1,36 @@
+Changes for 0.9.0:
+------------------
+
+MAJOR: Overall quality of code and base feature set now approaching
+1.0 status.
+
+MAJOR: Parameter control over TCP interface implemented using
+TCPController class.
+
+MAJOR: Triggering, both out and in, (re)implemented.  Same for other
+data acquisition.
+
+MAJOR: Gratings module, with SinGrating2D and SinGrating3D (with
+perspective distorition) added.
+
+MAJOR: Support for SGI IRIX now added.
+
+MAJOR: Support for variable size (including 10 bits per channel) frame
+buffers added.
+
+MAJOR: Support for gamma table setting (including greater than 8 bit)
+added. (Requires pygame 1.5.)
+
+MAJOR: ``Run forever'' mode added.
+
+MAJOR: Type-checking implemented for parameters under realtime
+control. Complete re-design and re-implementation of realtime
+controllers.
+
+MINOR: Too many to list!
+
+Changed license to LGPL from GPL.
+
 Changes for 0.8.2:
 ------------------
 MAJOR: Added frame-by-frame control with realtime_frame_contoller.
