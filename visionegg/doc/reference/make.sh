@@ -13,5 +13,7 @@ python pydoc.py -w VisionEgg.PlatformDependent
 python pydoc.py -w VisionEgg.PyroHelpers
 python pydoc.py -w VisionEgg.TCPController
 python pydoc.py -w VisionEgg.Text
+python pydoc.py -w VisionEgg.SphereMap
 python pydoc.py -w VisionEgg.Textures
+
 
