@@ -20,7 +20,7 @@ def projection_matrix_f(t):
 screen = get_default_screen()
 
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/mercator.png")
-texture = TextureFromFile(filename)
+texture = Texture(filename)
 
 projection = SimplePerspectiveProjection(fov_x=90.0)
 stimulus = SphereMap(texture=texture,shrink_texture_ok=1,stacks=100,slices=100)
