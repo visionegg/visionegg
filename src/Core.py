@@ -263,7 +263,12 @@ class Screen(VisionEgg.ClassWithParameters):
         version = gl.glGetString(gl.GL_VERSION)
 
         message.add("OpenGL %s, %s, %s"%(version, renderer, vendor),Message.INFO)
-        
+
+        if renderer == "GDI Generic" and vendor == "Microsoft Corporation":
+            message.add("Using default Microsoft Windows OpenGL drivers. "
+                        "Please (re-)install the latest video drivers from "
+                        "your video card manufacturer.",Message.WARNING)
+            
         self.red_bits = None
         self.green_bits = None
         self.blue_bits = None
