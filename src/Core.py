@@ -1128,7 +1128,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             # and only print this warning if that variable is true
             message.add(
                 """Calculated frames per second was %.3f, while
-                VisionEgg.config specified %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
+                the VISIONEGG_MONITOR_REFRESH_HZ variable is %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
                 level=Message.WARNING
                 )
 
