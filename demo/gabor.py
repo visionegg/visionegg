@@ -24,7 +24,7 @@ mask = Mask2D(function='gaussian',   # also supports 'circle'
               num_samples=(256,256)) # this many texture elements in mask (covers whole size specified below)
 
 stimulus = SinGrating2D(mask             = mask,
-                        center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                        position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                         size             = ( 300.0 , 300.0 ),
                         spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
                         temporal_freq_hz = 1.0,
