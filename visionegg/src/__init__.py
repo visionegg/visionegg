@@ -164,16 +164,16 @@ def recursive_base_class_finder(klass):
 ############# Setup timing functions #############
 if sys.platform == "win32":
     # on win32, time.clock() theoretically has better resolution than time.time()
-    real_timing_func = time.clock 
+    true_time_func = time.clock 
 else:
-    real_timing_func = time.time
+    true_time_func = time.time
 
 config._FRAMECOUNT_ABSOLUTE = 0 # initialize global variable
-def timing_func():
+def time_func():
     if config.VISIONEGG_LOCK_TIME_TO_FRAMES:
         return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
     else:
-        return real_timing_func()
+        return true_time_func()
 
 ####################################################################
 #
