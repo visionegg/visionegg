@@ -56,12 +56,16 @@ class ScrollListFrame(Tkinter.Frame):
         self.frame = Tkinter.Frame(self,borderwidth=2)
         self.frame.pack(fill=Tkinter.BOTH,expand=1)
         self.header = Tkinter.StringVar(self)
-        self.frame.label = Tkinter.Label(self.frame, relief=Tkinter.FLAT,anchor=Tkinter.NW,borderwidth=0,
+        self.frame.label = Tkinter.Label(self.frame, 
+                                 relief=Tkinter.FLAT,
+                                 anchor=Tkinter.NW,
+                                 borderwidth=0,
                                  font='*-Courier-Bold-R-Normal-*',
                                  textvariable=self.header)
-        self.frame.label.pack(fill=Tkinter.Y,anchor=Tkinter.W)
+        self.frame.label.grid(row=0,column=0,columnspan=2,sticky='we')
 
         self.frame.vscroll = Tkinter.Scrollbar(self.frame,orient=Tkinter.VERTICAL)
+        self.frame.hscroll = Tkinter.Scrollbar(self.frame,orient=Tkinter.HORIZONTAL)
         self.frame.list = Tkinter.Listbox(
             self.frame,
             relief=Tkinter.SUNKEN,
@@ -70,18 +74,23 @@ class ScrollListFrame(Tkinter.Frame):
             selectbackground='#eed5b7',
             selectborderwidth=0,
             selectmode=Tkinter.BROWSE,
+            xscroll=self.frame.hscroll.set,
             yscroll=self.frame.vscroll.set)
-                                          
+
+        self.frame.hscroll['command'] = self.frame.list.xview
+        self.frame.hscroll.grid(row=2,column=0,sticky='we')
         self.frame.vscroll['command'] = self.frame.list.yview
-        self.frame.vscroll.pack(side=Tkinter.RIGHT, fill=Tkinter.Y, expand=1)
-        self.frame.list.pack(fill=Tkinter.BOTH,expand=1)
-##        self.frame.list.bind('<Double-Button-1>',self.edit_selected)
+        self.frame.vscroll.grid(row=1,column=1,sticky='ns')
+        self.frame.list.grid(row=1,column=0)
+        self.frame.list.bind('<Double-Button-1>',self.edit_selected)
         
         # The buttons on bottom
         self.bar = Tkinter.Frame(self,borderwidth=2)
         self.bar.pack(fill=Tkinter.X)
         self.bar.add = Tkinter.Button(self.bar,text='Add...',command=self.add_new)
         self.bar.add.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.edit = Tkinter.Button(self.bar,text='Edit...',command=self.edit_selected)
+        self.bar.edit.pack(side=Tkinter.LEFT,fill=Tkinter.X)
         self.bar.remove = Tkinter.Button(self.bar,text='Remove',command=self.remove_selected)
         self.bar.remove.pack(side=Tkinter.LEFT,fill=Tkinter.X)
         self.bar.tk_menuBar(self.bar.add,self.bar.remove)
@@ -105,6 +114,21 @@ class ScrollListFrame(Tkinter.Frame):
         if blah:
             self.list.append( blah )
         self.update_now()
+
+    def edit_selected(self):
+        selected = self.get_selected()
+        if selected is not None:
+            orig_blah = self.list[selected]
+            # delete old original, make new with defaults from old original
+            modified_blah = self.edit_blah( orig_blah )
+            self.list[selected] = modified_blah
+            self.update_now()
+
+    def remove_selected(self):
+        selected = self.get_selected()
+        if selected is not None:
+            del self.list[selected]
+            self.update_now()
 
     def make_blah(self, container_class):
         """Factory function for Blahbject"""
@@ -132,6 +156,16 @@ class ScrollListFrame(Tkinter.Frame):
         contained = container_class.contained_class(**params) # call constructor
         return container_class(contained)
 
+    def edit_blah(self, blah_object):
+        if not isinstance(blah_object,LoopBlah):
+            raise NotImplementedError("")
+        orig_contained = blah_object.get_contained()
+        d = LoopParamDialog(self, title="Loop Parameters", orig_values=orig_contained )
+        if d.result:
+            return LoopBlah(d.result)
+        else:
+            return
+
     def make_loop_blah(self):
         d = LoopParamDialog(self, title="Loop Parameters" )
         if d.result:
@@ -148,12 +182,6 @@ class ScrollListFrame(Tkinter.Frame):
             return items[0]
         else:
             return None
-
-    def remove_selected(self):
-        selected = self.get_selected()
-        if selected is not None:
-            del self.list[self.get_selected()]
-            self.update_now()
 
 ###################################################
 
@@ -193,6 +221,15 @@ class LoopBlah(Blahbject):
         return "% 15s % 4s  %s"%(name_str, str(p.rest_duration_sec), seq_str)
 
 class LoopParamDialog(tkSimpleDialog.Dialog):
+    def __init__(self,*args,**kw):
+        #intercept orig_values argument
+        if 'orig_values' in kw.keys():
+            self.orig_values = kw['orig_values']
+            del kw['orig_values']
+        else:
+            self.orig_values = None
+        return apply( tkSimpleDialog.Dialog.__init__, (self,)+args, kw )
+        
     def body(self,master):
         Tkinter.Label(master,
                       text="Add sequence of automatic variable values",
@@ -308,8 +345,8 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
 
         Tkinter.Label(rest_dur_frame,
                       text="Interval duration (seconds)").grid(row=1,column=0)
-        self.rest_dur = Tkinter.StringVar()
-        self.rest_dur.set("0.5")
+        self.rest_dur = Tkinter.DoubleVar()
+        self.rest_dur.set(0.5)
         Tkinter.Entry(rest_dur_frame,
                       textvariable=self.rest_dur,
                       width=10).grid(row=1,column=1)
@@ -319,6 +356,18 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
         Tkinter.Checkbutton( rest_dur_frame,
                              text="Shuffle sequence order",
                              variable=self.shuffle_tk_var).grid(row=2,column=0,columnspan=2)
+                             
+        if self.orig_values is not None:
+            print "Setting original values"
+            print self.orig_values.parameters.variable
+            self.var_name.set( self.orig_values.parameters.variable )
+            
+            print self.orig_values.parameters.sequence
+            self.sequence_manual_string.set( str(self.orig_values.parameters.sequence) )
+            
+            print self.orig_values.parameters.rest_duration_sec
+            self.rest_dur.set( self.orig_values.parameters.rest_duration_sec )
+            
 
     def validate(self):
         if self.sequence_type.get() == "manual":
@@ -373,13 +422,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
                                      "Invalid sequence type.",
                                      parent=self)
             return 0
-        try:
-            rest_dur_sec = float(self.rest_dur.get()) # convert from string
-        except Exception, x:
-            tkMessageBox.showwarning("Invalid sequence parameters",
-                                     "Rest duration invalid: %s"%(str(x),),
-                                     parent=self)
-            return 0
+        rest_dur_sec = self.rest_dur.get()
 
         if self.shuffle_tk_var.get():
             random.shuffle(seq)
@@ -625,10 +668,30 @@ class AppWindow(Tkinter.Frame):
             return
 
         def process_loops(depth): # recursive processing of loops
+            
+            class LoopInfoFrame(Tkinter.Frame):
+                def __init__(self, master=None, **kw):
+                    apply(Tkinter.Frame.__init__,(self,master),kw)
+                    Tkinter.Label(self, 
+                        text="Doing sequence").grid(row=0,column=0)
+                    self.status_tk_var = Tkinter.StringVar()
+                    Tkinter.Label(self,
+                        textvariable = self.status_tk_var).grid(row=1, column=0)
+                    self.cancel_asap = 0
+                    Tkinter.Button(self,
+                        text="Cancel",command=self.cancel).grid(row=2,column=0)
+                def cancel(self, dummy_arg=None):
+                    self.cancel_asap = 1
+        
             global need_rest_period
+
+            top = Tkinter.Toplevel(self)
+            loop_info_frame = LoopInfoFrame(top)
+            loop_info_frame.pack()
+                        
             loop = loop_list[depth]
             max_depth = len(loop_list)-1
-            while not loop.is_done():
+            while not loop.is_done() and not loop_info_frame.cancel_asap:
                 if loop.parameters.variable != "<repeat>":
                     self.stim_frame.set_loopable_variable(loop.parameters.variable,loop.get_current())
                 if depth < max_depth:
@@ -642,6 +705,7 @@ class AppWindow(Tkinter.Frame):
                     raise RuntimeError("Called with max_depth==-1:")
                 loop.advance()
             loop.reset()
+            top.destroy()
 
         process_loops(0) # start recursion on top level
 
@@ -701,17 +765,16 @@ class BarButton(Tkinter.Menubutton):
 if __name__ == '__main__':
     try:
         app_window = AppWindow(master=None,client_list=client_list)
-    except Pyro.errors.ProtocolError, x:
-        if str(x) == 'connection failed': # Can't find UberServer running on network
-            try:
-                tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
-                sys.exit(1)
-            except:
-                raise # Can't find UberServer running on network
-        else:
-            raise
     except Pyro.errors.PyroError, x:
-        if str(x) in ["Name Server not responding","connection failed"]:
+        uber_server_error = 0
+        if isinstance(x, Pyro.errors.ProtocolError) and str(x) == 'connection failed': # Can't find UberServer running on network
+            uber_server_error = 1
+        if isinstance(x, Pyro.errors.NamingError) and str(x) == 'name not found': # Can't find UberServer running on network
+            uber_server_error = 1
+        if uber_server_error:
+            tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
+            sys.exit(1)
+        elif str(x) in ["Name Server not responding","connection failed"]:
             try:
                 tkMessageBox.showerror("Can't find Pyro Name Server","Can't find Pyro Name Server on network.")
                 sys.exit(1)
