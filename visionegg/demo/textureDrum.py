@@ -24,7 +24,7 @@ viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
                     stimuli=[stimulus])
-p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(10.0,'seconds'),viewports=[viewport])
 p.add_controller(stimulus,'angular_position', FunctionController(during_go_func=angle_as_function_of_time))
 p.add_controller(stimulus,'contrast', FunctionController(during_go_func=contrast_as_function_of_time))
 p.go()

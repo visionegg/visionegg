@@ -34,5 +34,5 @@ viewport = Viewport( screen=screen, stimuli=[stimulus] )
 #  Create presentation object and go!  #
 ########################################
 
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
 p.go()

@@ -23,5 +23,5 @@ viewport = Viewport(screen=screen,
                     size=screen.size,
                     stimuli=[stimulus])
 
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
 p.go()
