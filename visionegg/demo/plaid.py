@@ -27,7 +27,7 @@ mask = Mask2D(function='circle',     # also supports 'gaussian'
 # arithmetic used when combining these gratings is what people want.
 # Please submit any suggestions.
 
-sin1 = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+sin1 = SinGrating2D(position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                     mask             = mask,
                     size             = ( 500.0 , 500.0 ),
                     spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
@@ -35,7 +35,7 @@ sin1 = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/2.0 
                     orientation      = 45.0,
                     max_alpha        = 0.5) # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
 
-sin2 = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+sin2 = SinGrating2D(position         = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                     mask             = mask,
                     size             = ( 500.0 , 500.0 ),
                     spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
