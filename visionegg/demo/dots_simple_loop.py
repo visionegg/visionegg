@@ -40,4 +40,4 @@ while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
     viewport.draw()
     swap_buffers()
     frame_timer.tick()
-frame_timer.log_histogram()
+frame_timer.print_histogram()
