@@ -32,7 +32,10 @@ from pygame.locals import *
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,1.0) # background blue (RGB)
 
-font_name = '/usr/share/fonts/truetype/Arial.ttf'
+if sys.platform == 'win32':
+    font_name = r'C:\Windows\Fonts\Arial.ttf'
+else:
+    font_name = '/usr/share/fonts/truetype/Arial.ttf'
 
 if not os.path.exists(font_name):
     print 'WARNING: font_name "%s" does not exist, using default font'%font_name
@@ -41,7 +44,7 @@ if not os.path.exists(font_name):
 text = Text(color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
             position=(screen.size[0]/2,screen.size[1]/2),
             ignore_size_parameter=False, # ignore font size (use texture size)
-            size = (640,40),
+            size = (screen.size[0],max(screen.size[0]/10,10)),
             anchor='center',
             font_name=font_name)
 
