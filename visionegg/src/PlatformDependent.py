@@ -25,7 +25,11 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-############# Import Vision Egg C routines, if they exist #############
+def set_icon( name ):
+    if sys.platform == 'darwin':
+        import darwin_app_stuff
+        darwin_app_stuff.set_icon( name )
+
 def set_priority(*args,**kw):
     """Set the priority of the Vision Egg application.
 
