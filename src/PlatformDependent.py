@@ -1,3 +1,20 @@
+"""VisionEgg Platform Dependent Library
+"""
+
+# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms
+# of the GNU General Public License (GPL).
+
+####################################################################
+#
+#        Import all the necessary packages
+#
+####################################################################
+
+import string
+__version__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
 import sys,os,string
 import VisionEgg.Core
 
@@ -53,7 +70,7 @@ elif sys.platform == 'win32':
             win32_platform_dependent_global_lpt_state = value
             winioport.out(0x378,win32_platform_dependent_global_lpt_state)
     except Exception, x:
-        print x
+#        print x
         pass
             
 def linux_but_not_nvidia():
