@@ -2123,48 +2123,65 @@ class Message:
                  prefix="VisionEgg",
                  exception_level=ERROR,
                  print_level=VisionEgg.config.VISIONEGG_MESSAGE_LEVEL,
-                 output_stream=None):
+                 main_global_instance=0):
         self.prefix = prefix
         self.message_queue = []
         self.exception_level = exception_level
         self.print_level = print_level
         self.orig_stderr = sys.stderr
         self._sent_initial_newline = 0
-        if output_stream is None:
-            if VisionEgg.config.VISIONEGG_LOG_FILE:
-                try:
-                    self.output_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
-                except:
-                    self.output_stream = sys.stderr
-                    self.add("Could not open log file %s, writing to stderr instead."%(VisionEgg.config.VISIONEGG_LOG_FILE,),
-                             level=Message.WARNING)
-            else:
-                self.output_stream = sys.stderr
-        else:
-            if hasattr(output_stream,"write") and hasattr(output_stream,"flush"):
-                self.output_stream = output_stream
-            else:
-                raise TypeError("argument output_stream must have write and flush methods.")
-        if self.output_stream != sys.stderr:
-            if not (sys.executable == sys.argv[0] and sys.platform == 'win32'): # don't do this if Windows binary
-                # reassign stderr to print to logfile
-                VisionEgg.config._orig_stderr = sys.stderr
-                sys.stderr = self.output_stream
-                VisionEgg.config._orig_stderr.write("Vision Egg logging to %s\n"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),))
-                VisionEgg.config._orig_stderr.flush()
-            
-        self.add(sys.argv[0]+" started.",level=Message.INFO)
+        try:
+            self.pid = os.getpid()
+        except:
+            self.pid = None
+        class Tee:
+            def __init__(self,*streams):
+                for stream in streams:
+                    if not hasattr(stream,"write") or not hasattr(stream,"flush"):
+                        raise ValueError("stream must have write and flush function")
+                self.streams = streams
+                self._sys = sys # keeps a ref that stays even when deleted from namespace
+            def write(self,*args,**kw):
+                # Hack to prevent writing to sys.stderr when not necessary
+                if "_no_sys_stderr" in kw.keys():
+                    no_sys_stderr = kw["_no_sys_stderr"]
+                    del kw["_no_sys_stderr"]
+                else:
+                    no_sys_stderr = 0
+                for stream in self.streams:
+                    if stream != self._sys.stderr or not no_sys_stderr:
+                        apply(stream.write,args,kw)
+
+            def flush(self,*args,**kw):
+                for stream in self.streams:
+                    apply(stream.flush,args,kw)
+        output_streams = []
+        if VisionEgg.config.VISIONEGG_LOG_FILE:
+            try:
+                log_file_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
+                output_streams.append(log_file_stream)
+            except:
+                self.add("Could not open log file %s, writing only to stderr."%(VisionEgg.config.VISIONEGG_LOG_FILE,),
+                         level=Message.WARNING)
+        if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
+            output_streams.append(sys.stderr)
+
+        self.output_stream = apply(Tee, output_streams)
+
+        if main_global_instance:
+            VisionEgg.config._message = self
+
+        script_name = sys.argv[0]
+        if not script_name:
+            script_name = "(interactive shell)"
+        self.add("Vision Egg script "+script_name+" started with process id %d."%(self.pid,),level=Message.INFO)
 
     def __del__(self):
-        self.output_stream.write("\n")
-        try:
-            sys.stderr = self.orig_stderr
-        except:
-            pass
+        self.output_stream.write("\n",_no_sys_stderr=1)
         
-    def add(self,message,level=INFO,preserve_formatting=0):
+    def add(self,message,level=INFO,preserve_formatting=0,no_sys_stderr=0):
         date_str = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.message_queue.append((level,message,preserve_formatting,date_str))
+        self.message_queue.append((level,message,preserve_formatting,date_str,no_sys_stderr))
         self.handle()
         
     def format_string(self,in_str):
@@ -2185,14 +2202,16 @@ class Message:
             
     def handle(self):
         if not self._sent_initial_newline:
-            self.output_stream.write("\n")
+            self.output_stream.write("\n",_no_sys_stderr=1)
             self.output_stream.flush()
             self._sent_initial_newline = 1
         while len(self.message_queue) > 0:
             my_str = ""
-            level,text,preserve_formatting,date_str = self.message_queue.pop(0)
+            level,text,preserve_formatting,date_str,no_sys_stderr = self.message_queue.pop(0)
             if level >= self.print_level:
                 my_str= my_str+date_str+" "
+                if self.pid:
+                    my_str += "(%d) "%(self.pid,)
                 #my_str=my_str+self.prefix+" "
                 if level == Message.TRIVIAL:
                     my_str=my_str+"trivial"
@@ -2212,14 +2231,14 @@ class Message:
                 my_str += text
                 if not preserve_formatting:
                     my_str = self.format_string(my_str)
-                self.output_stream.write(my_str)
+                self.output_stream.write(my_str,_no_sys_stderr=no_sys_stderr)
                 self.output_stream.flush()
             if level >= self.exception_level:
                 raise EggError(text)
             if level == Message.FATAL:
                 sys.exit(-1)
 
-message = Message() # create instance of Message class for everything to use
+message = Message(main_global_instance=1) # create instance of Message class for everything to use
     
 class EggError(Exception):
     """A Vision Egg specific error"""
