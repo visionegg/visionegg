@@ -13,9 +13,9 @@ from VisionEgg.Text import *
 from VisionEgg.Dots import *
 
 screen = get_default_screen()
-screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # black (RGBA)
+screen.parameters.bgcolor = (0.0,0.0,0.0) # black (RGB)
 
-dots = DotArea2D( center                  = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+dots = DotArea2D( position                = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                   size                    = ( 300.0 , 300.0 ),
                   signal_fraction         = 0.1,
                   signal_direction_deg    = 180.0,
@@ -27,14 +27,17 @@ dots = DotArea2D( center                  = ( screen.size[0]/2.0, screen.size[1]
 text = Text( text = "Vision Egg dot_simple_loop demo.",
              position = (screen.size[0]/2,2),
              anchor = 'bottom',
-             color = (1.0,1.0,1.0,1.0))
+             color = (1.0,1.0,1.0))
 
 viewport = Viewport( screen=screen, stimuli=[dots,text] )
 
 # The main loop below is an alternative to using the
 # VisionEgg.Core.Presentation class.
 
+frame_timer = FrameTimer()
 while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
     screen.clear()
     viewport.draw()
     swap_buffers()
+    frame_timer.tick()
+frame_timer.print_histogram()
