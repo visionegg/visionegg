@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-DEBUG = 0
+DEBUG = 1
 
 import unittest
 import VisionEgg
 import VisionEgg.Core
+import OpenGL.GL as gl
 
 if DEBUG:
     import VisionEgg.GLTrace
@@ -20,7 +21,7 @@ except NameError:
 
 class VETestCase(unittest.TestCase):
     def setUp(self):
-        self.screen = VisionEgg.Core.Screen( size          = (320,240),
+        self.screen = VisionEgg.Core.Screen( size          = (512,512),
                                              fullscreen    = False,
                                              preferred_bpp = 32,
                                              maxpriority   = False,
@@ -31,11 +32,11 @@ class VETestCase(unittest.TestCase):
     def tearDown(self):
         del self.screen
 
-    def test_core_screen_get_framerate_fast(self):
-        fps = self.screen.get_framerate()
+    def test_core_screen_query_refresh_rate(self):
+        fps = self.screen.query_refresh_rate()
 
-    def test_core_screen_get_framerate_slow(self):
-        fps = self.screen.get_framerate(average_over_seconds=0.5)
+    def test_core_screen_measure_refresh_rate(self):
+        fps = self.screen.measure_refresh_rate()
 
     def test_texture_pil(self):
         if DEBUG:
@@ -75,6 +76,10 @@ class VETestCase(unittest.TestCase):
             texture = VisionEgg.Textures.Texture(orig),
             position = (0,0),
             anchor = 'lowerleft',
+            texture_min_filter = gl.GL_NEAREST,
+            texture_mag_filter = gl.GL_NEAREST,
+            texture_wrap_s = gl.GL_REPEAT,
+            texture_wrap_t = gl.GL_REPEAT,
             )
 
         self.ortho_viewport.parameters.stimuli = [ texture_stimulus ]
@@ -104,20 +109,34 @@ class VETestCase(unittest.TestCase):
             position = (0,0),
             anchor = 'lowerleft',
             mipmaps_enabled = False, # not (yet?) supported for Numeric arrays
+            texture_min_filter = gl.GL_NEAREST,
+            texture_mag_filter = gl.GL_NEAREST,
+            texture_wrap_s = gl.GL_REPEAT,
+            texture_wrap_t = gl.GL_REPEAT,
             )
 
         self.ortho_viewport.parameters.stimuli = [ texture_stimulus ]
         self.ortho_viewport.draw()
         result = self.screen.get_framebuffer_as_array()
         if DEBUG:
+            print "low low"
             print orig[:10,:10,0]
             print result[:10,:10,0]
+            print "low high"
+            print orig[:10,-10:,0]
+            print result[:10,-10:,0]
+            print "high low"
+            print orig[-10:,:10,0]
+            print result[-10:,:10,0]
+            print "high high"
+            print orig[-10:,-10:,0]
+            print result[-10:,-10:,0]
         self.failUnless(Numeric.allclose(orig,result),'exact texture reproduction with Numeric textures failed')
 
 def suite():
     ve_test_suite = unittest.TestSuite()
-    ve_test_suite.addTest( VETestCase("test_core_screen_get_framerate_fast") )
-    ve_test_suite.addTest( VETestCase("test_core_screen_get_framerate_slow") )
+    ve_test_suite.addTest( VETestCase("test_core_screen_query_refresh_rate") )
+    ve_test_suite.addTest( VETestCase("test_core_screen_measure_refresh_rate") )
     ve_test_suite.addTest( VETestCase("test_texture_pil") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_pil") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_numpy") )
