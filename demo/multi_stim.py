@@ -193,8 +193,6 @@ while not pygame.event.peek((pygame.locals.QUIT,
     drum_viewport.draw() # draw spinning drum
     viewport_2d.draw() # draw 2D stimuli
 
-    copy_framebuffer() # make copy of framebuffer in texture for draw on next frame
-    
     pixels =  RandomArray.randint(0,256,(20,20,3)).astype(Numeric.UnsignedInt8)
     screen.put_pixels(pixels,
                       scale_x=5.0,
@@ -202,4 +200,7 @@ while not pygame.event.peek((pygame.locals.QUIT,
                       position=(x3,y2),
                       anchor='center',
                       )
+
+    copy_framebuffer() # make copy of framebuffer in texture for draw on next frame
+    
     swap_buffers() # display the frame we've drawn in back buffer
