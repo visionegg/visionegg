@@ -223,12 +223,6 @@ while not quit_now:
                 mask.parameters.window_shape_radius_parameter *= 0.8
             elif event.key == pygame.locals.K_EQUALS:
                 mask.parameters.window_shape_radius_parameter *= (1.0/0.8)
-##            elif event.key == pygame.locals.K_SPACE:
-##                import os, sys
-##                im = screen.get_framebuffer_as_image()
-##                filename = os.path.splitext( sys.argv[0] )[0] + ".png"
-##                print "saving",filename
-##                im.save(filename)
 
     screen.clear()
     x,y = get_mouse_position()
@@ -238,4 +232,4 @@ while not quit_now:
     swap_buffers()
     frame_timer.tick()
     
-frame_timer.print_histogram()
+frame_timer.log_histogram()
