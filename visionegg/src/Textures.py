@@ -12,7 +12,7 @@
 import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
-import math
+import math,types
 import OpenGL.GL
 gl = OpenGL.GL
 
@@ -265,13 +265,13 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
     Don't instantiate this class directly."""
-    parameters_and_defaults = {'texture_scale_linear_interp':1,
-                               'texture_repeat':0}    # if 0 clamp to edge
+    parameters_and_defaults = {'texture_scale_linear_interp':(1,types.IntType),
+                               'texture_repeat':(0,types.IntType)}    # if 0 clamp to edge
 
 class TextureStimulus(TextureStimulusBaseClass):
-    parameters_and_defaults = {'on':1,
-                               'lowerleft':(0.0,0.0),
-                               'size':(640.0,480.0)}
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'lowerleft':((0.0,0.0),types.TupleType),
+                               'size':((640.0,480.0),types.TupleType)}
     def __init__(self,texture=None,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
         if texture is not None:
@@ -334,12 +334,12 @@ class TextureStimulus(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
-    parameters_and_defaults = {'num_sides':50,
-                               'angular_position':0.0,
-                               'contrast':1.0,
-                               'on':1,
-                               'flat':0, # toggles flat vs. cylinder
-                               'dist_from_o':1.0 # z if flat, radius if cylinder
+    parameters_and_defaults = {'num_sides':(50,types.IntType),
+                               'angular_position':(0.0,types.FloatType),
+                               'contrast':(1.0,types.FloatType),
+                               'on':(1,types.IntType),
+                               'flat':(0,types.IntType), # toggles flat vs. cylinder
+                               'dist_from_o':(1.0,types.FloatType) # z if flat, radius if cylinder
                                }
     
     # To avoid rescaling the texture size, make sure you are using a

@@ -12,8 +12,7 @@
 import VisionEgg
 import VisionEgg.Core
 import Numeric
-import math
-import string
+import math, types, string
 import OpenGL.GL
 gl = OpenGL.GL
 
@@ -32,14 +31,14 @@ __all__ = ['SinGrating2D','SinGrating3D']
 
 class SinGrating2D(VisionEgg.Core.Stimulus):
     """Sine wave grating stimulus"""
-    parameters_and_defaults = {'on':1,
-                               'contrast':1.0,
-                               'lowerleft':(0.0,0.0),
-                               'size':(640.0,480.0),
-                               'wavelength':128.0, # in eye coord units
-                               'phase':0.0, # degrees
-                               'orientation':0.0, # 0=right, 90=down
-                               'num_samples':256 # number of spatial samples, should be a power of 2
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'contrast':(1.0,types.FloatType),
+                               'lowerleft':((0.0,0.0),types.TupleType),
+                               'size':((640.0,480.0),types.TupleType),
+                               'wavelength':(128.0,types.FloatType), # in eye coord units
+                               'phase':(0.0,types.FloatType), # degrees
+                               'orientation':(0.0,types.FloatType), # 0=right, 90=down
+                               'num_samples':(512, types.IntType) # number of spatial samples, should be a power of 2
                                }
     def __init__(self,projection = None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
@@ -161,15 +160,15 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
 
 class SinGrating3D(VisionEgg.Core.Stimulus):
     """Sine wave grating mapped on the inside of a cylinder."""
-    parameters_and_defaults = {'on':1,
-                               'contrast':1.0,
-                               'radius':1.0,
-                               'height':10000.0,
-                               'wavelength':36.0, # in degrees
-                               'phase':0.0, # degrees
-                               'orientation':0.0, # 0=right, 90=down
-                               'num_samples':1024, # number of spatial samples, should be a power of 2
-                               'num_sides':50 # number of sides of cylinder
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'contrast':(1.0,types.FloatType),
+                               'radius':(1.0,types.FloatType),
+                               'height':(10000.0,types.FloatType),
+                               'wavelength':(36.0,types.FloatType), # in degrees
+                               'phase':(0.0,types.FloatType), # degrees
+                               'orientation':(0.0,types.FloatType), # 0=right, 90=down
+                               'num_samples':(1024,types.IntType), # number of spatial samples, should be a power of 2
+                               'num_sides':(50,types.IntType) # number of sides of cylinder
                                }
     def __init__(self,projection = None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
