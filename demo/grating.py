@@ -8,7 +8,6 @@
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
-from VisionEgg.AppHelper import *
 
 #####################################
 #  Initialize OpenGL window/screen  #

@@ -4,7 +4,6 @@
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
-from VisionEgg.AppHelper import *
 from VisionEgg.TCPController import *
 import sys
 
@@ -19,7 +18,7 @@ elif len(sys.argv) == 3:
     hostname = sys.argv[1]
     port = int(sys.argv[2])
     
-tcp_server = TCPServer(hostname=hostname,port=port)
+tcp_server = TCPServer(hostname=hostname,port=port,single_socket_but_reconnect_ok=1)
 tcp_listener = tcp_server.create_listener_once_connected()
 
 # Initialize OpenGL graphics screen.
@@ -67,7 +66,7 @@ bit_depth_controller = tcp_listener.create_tcp_controller(
 # Another contoller for the duration
 duration_controller = tcp_listener.create_tcp_controller(
     tcp_name="duration",
-    initial_controller=ConstantController(during_go_value=(60.0,'seconds'))
+    initial_controller=ConstantController(during_go_value=('forever',))
     )
 
 # Create the instance SinGrating with appropriate parameters
@@ -78,7 +77,7 @@ stimulus = SinGrating2D(center=(screen.size[0]/2.0,screen.size[1]/2.0))
 viewport = Viewport( screen=screen, stimuli=[stimulus] )
 
 # Create an instance of the Presentation class
-p = Presentation(duration=('forever',),viewports=[viewport],check_events=1)
+p = Presentation(viewports=[viewport],check_events=1)
 
 # Register the controller functions, connecting them with the parameters they control
 p.add_controller(None,None, tcp_listener) # Actually listens to the TCP socket

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.Text import *
 import math
 
@@ -27,8 +26,8 @@ viewport = Viewport(screen=screen,
                     projection=projection,
                     stimuli=[text])
 p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
-p.add_realtime_time_controller(text,'lowerleft', lowerleft_as_function_of_time)
-p.add_transitional_controller(text,'on', on_during_experiment)
+p.add_controller(text,'lowerleft', FunctionController(during_go_func=lowerleft_as_function_of_time))
+p.add_controller(text,'on', FunctionController(during_go_func=on_during_experiment))
 p.go()
 
 

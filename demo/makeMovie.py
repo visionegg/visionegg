@@ -2,86 +2,75 @@
 
 # Make a movie of a black target moving across a white background.
 
-fps = 12.0 # frames per second
+fps = 12.0
 
-########################################################
-#  Import various modules from the Vision Egg package  #
-########################################################
+############################
+#  Import various modules  #
+############################
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
+from math import *
+from types import *
+import os
 
 #################################
 #  Initialize the various bits  #
 #################################
 
-# Initialize OpenGL graphics screen
+# Initialize OpenGL graphics screen.
 screen = get_default_screen()
 
-# Set the background color (RGBA) white
+# Set the background color to white (RGBA).
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 
-# Create an orthographic projection that so that OpenGL object
-# coordinates are equal to window (pixel) coordinates.
-pixel_coords = OrthographicProjection(left=0,right=screen.size[0],
-                                      bottom=0,top=screen.size[1])
+# Create an instance of the Target2D class with appropriate parameters.
+target = Target2D(size  = (25.0,10.0),
+                  color      = (0.0,0.0,0.0,1.0), # Set the target color (RGBA) black
+                  orientation = 135.0)
 
-# Create a viewport on the screen
-viewport = Viewport(screen,
-                    size=screen.size,
-                    projection=pixel_coords)
+# Create a Viewport instance
+viewport = Viewport(screen=screen, stimuli=[target])
 
-# Create an instance of the Target2D class with appropriate parameters
-target = Target2D(size  = (25.0,10.0), 
-                  color = (0.0,0.0,0.0,1.0)) # Set the target color (RGBA) black
+# Create an instance of the Presentation class.  This contains the
+# the Vision Egg's runtime control abilities.
+p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
 
-# Tell the viewport to draw the target
-viewport.add_stimulus(target)
+#######################
+#  Define controller  #
+#######################
 
-# Create an instance of the Presentation class
-p = Presentation(duration=(60,'frames'),viewports=[viewport])
-
-#################################
-#  Define controller functions  #
-#################################
-
-# A few variables used to calculate postion based on screen size
+# calculate a few variables we need
 mid_x = screen.size[0]/2.0
 mid_y = screen.size[1]/2.0
-if screen.size[0] < screen.size[1]:
-    max_vel = screen.size[0] * 0.4
-else:
-    max_vel = screen.size[1] * 0.4
+max_vel = min(screen.size[0],screen.size[1]) * 0.4
 
-def xy_as_function_of_frame(frame):
-    t = float(frame) / fps
-    return (max_vel*sin(0.1*2.0*math.pi*t) + mid_x,  # x
-            max_vel*sin(0.1*2.0*math.pi*t) + mid_y ) # y
+# define position as a function of time
+def get_target_position(t):
+    global mid_x, mid_y, max_vel
+    return ( max_vel*sin(0.1*2.0*pi*t) + mid_x , # x
+             max_vel*sin(0.1*2.0*pi*t) + mid_y ) # y
 
-def orientation(dummy_argument):
-    return 135.0
-
-def on_during_experiment(t):
-    if t < 0.0:
-        return 0 # off between stimuli
-    else:
-        return 1 # on during stimulus presentation
+# Create an instance of the Controller class
+target_position_controller = FunctionController(during_go_func=get_target_position)
 
 #############################################################
 #  Connect the controllers with the variables they control  #
 #############################################################
 
-p.add_realtime_frame_controller(target,'center', xy_as_function_of_frame)
-p.add_transitional_controller(target,'orientation', orientation)
-p.add_transitional_controller(target,'on', on_during_experiment)
+p.add_controller(target,'center', target_position_controller )
 
 #######################
 #  Run the stimulus!  #
 #######################
 
-save_directory = os.path.join(VisionEgg.config.VISIONEGG_STORAGE,'movie')
+save_directory = os.path.join(VisionEgg.config.VISIONEGG_USER_DIR,'movie')
 if not os.path.isdir(save_directory):
-    print "Error: cannot save movie, because directory '%s' does not exist."%save_directory
-else:
-    p.export_movie_go(frames_per_sec=fps,path=save_directory)
+    os.mkdir(save_directory)
+    if not os.path.isdir(save_directory):
+        message.add( "Error: cannot make movie directory '%s'."%save_directory,
+                     level=Message.ERROR )
+basename = "movie_"+os.path.splitext(os.path.basename(sys.argv[0]))[0]
+p.export_movie_go(frames_per_sec=fps,filename_base=basename,path=save_directory)
+
+

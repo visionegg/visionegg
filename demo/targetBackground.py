@@ -7,7 +7,6 @@
 ############################
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
 from VisionEgg.Textures import *
 from math import *
@@ -62,36 +61,23 @@ p = Presentation(duration=(10.0,'seconds'),viewports=[drum_viewport,target_viewp
 #  Define controllers  #
 ########################
 
-class TargetPositionController( Controller ):
-    def __init__(self):
-        Controller.__init__(self, return_type=TupleType)
-                           
-        # A few variables used to calculate postion based on screen size
-        self.mid_x = screen.size[0]/2.0
-        self.mid_y = screen.size[1]/2.0
-        if screen.size[0] < screen.size[1]:
-            self.max_vel = screen.size[0] * 0.4
-        else:
-            self.max_vel = screen.size[1] * 0.4
+# calculate a few variables we need
+mid_x = screen.size[0]/2.0
+mid_y = screen.size[1]/2.0
+max_vel = min(screen.size[0],screen.size[1]) * 0.4
 
-    def during_go_eval(self):
-        t = self.temporal_variable
-        return ( self.max_vel*sin(0.1*2.0*pi*t) + self.mid_x , # x
-                 self.max_vel*sin(0.1*2.0*pi*t) + self.mid_y ) # y
+# define target position as a function of time
+def get_target_position(t):
+    global mid_x, mid_y, max_vel
+    return ( max_vel*sin(0.1*2.0*pi*t) + mid_x , # x
+             max_vel*sin(0.1*2.0*pi*t) + mid_y ) # y
 
-# create an instance of this controller class
-target_position_controller = TargetPositionController()
+def get_drum_angle(t):
+    return 50.0*math.cos(0.2*2*math.pi*t)
 
-class DrumAngleController( Controller ):
-    def __init__(self):
-        Controller.__init__(self, return_type=FloatType)
-
-    def during_go_eval(self):
-        t = self.temporal_variable
-        return 50.0*math.cos(0.2*2*math.pi*t)
-
-# create an instance of this controller class
-drum_angle_controller = DrumAngleController()
+# Create instances of the Controller class
+target_position_controller = FunctionController(during_go_func=get_target_position)
+drum_angle_controller = FunctionController(during_go_func=get_drum_angle)
 
 #############################################################
 #  Connect the controllers with the variables they control  #
