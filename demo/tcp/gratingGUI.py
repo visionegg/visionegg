@@ -133,21 +133,9 @@ def connect():
 
             real_problem = 0
             try:
-                addrinfo = socket.getaddrinfo(host,port)
-            except Exception, x:
-                if host != "" or port != 5000:
-                    try:
-                        addrinfo = socket.getaddrinfo(host,port)
-                    except:
-                        real_problem = x
-                else:
-                    real_problem = x
-            host = addrinfo[0][4][0]
-            try:
                 host = socket.getfqdn(host)
             except Exception, x:
                 real_problem = x
-            port = addrinfo[0][4][1]
             if real_problem:
                 tkMessageBox.showerror(title="Fatal Error",
                                        message="Could not get default hostname and port:\n%s\n%s"%(str(real_problem.__class__),str(real_problem)))
@@ -167,6 +155,8 @@ their functionality.
 Any errors produced by this program will be sent to Python's standard
 error console.  Any errors produced by the gratingTCP program should
 be logged in the normal Vision Egg way.
+
+It is a known bug that this program does not run on Mac OS X.
 
 In this demo is possible to crash the Vision Egg TCP server. Because
 this is still beta software, and because the purpose of this
@@ -203,7 +193,7 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
                 port = self.port.get()
                 
             try:
-                addrinfo = socket.getaddrinfo(host,port)
+                host = socket.getfqdn()
             except Exception,x:
                 tkMessageBox.showwarning(title="Connection Error",
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
@@ -212,7 +202,7 @@ the server.""").grid(row=self.next_row,column=0,columnspan=2)
             self.socket = SocketLogger(socket.AF_INET,socket.SOCK_STREAM)
 
             try:
-                self.socket.connect(addrinfo[0][4])
+                self.socket.connect((host,port))
             except Exception,x:
                 tkMessageBox.showwarning(title="Connection Error",
                                          message="%s:\n%s"%(str(x.__class__),str(x)))
@@ -447,97 +437,109 @@ class GratingControl(Tkinter.Frame):
     def make_updater(self,tcp_name,attr_name):
         my_last_value_key = tcp_name+"_"+attr_name # sf_during
         my_value_var = getattr(self,my_last_value_key) # my_value_var = self.sf_during
-        def update_func(dummy_arg=None):
-            new_value = my_value_var.get()
-            if new_value != self.last_values[my_last_value_key]:
-                self.last_values[my_last_value_key] = new_value
-                if tcp_name in self.complete_list.keys():
-                    # send string over TCP
-                    controller_tuple = self.complete_list[tcp_name]
-                    klass, during, between, eval_frequency, temporal_variables, return_type = controller_tuple
-                    if attr_name == "class":
-                        if klass != "const" and new_value == "const":
-                            #convert from strings
-                            try:
-                                during = eval(during,{},{})
-                            except:
-                                during = 0.
-                                during_var = getattr(self,tcp_name+"_during")
-                                during_var.set(str(during))
-                            try:
-                                between = eval(between,{},{})
-                            except:
-                                between = 0.
-                                between_var = getattr(self,tcp_name+"_between")
-                                between_var.set(str(between))
-                        elif klass == "const" and new_value != "const":
-                            #convert to strings
-                            during = str(during)
-                            between = str(between)
-                        klass = new_value
-                    elif attr_name == "during":
-                        if klass == "const":
-                            try:
-                                new_value = eval(new_value,{},{})
-                            except:
-                                new_value = 0.0
-                                my_value_var.set(str(new_value))
-                        during = new_value
-                    elif attr_name == "between":
-                        if klass == "const":
-                            try:
-                                new_value = eval(new_value,{},{})
-                            except:
-                                new_value = 0.0
-                                my_value_var.set(str(new_value))
-                        between = new_value
-                    elif attr_name == "eval_flag_every":
-                        mask = eval_frequency_flags['EVERY_FRAME']
-                        # set the mask bit, but leave the others unchanged
-                        eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
-                    elif attr_name == "eval_flag_trans":
-                        mask = eval_frequency_flags['TRANSITIONS']
-                        # set the mask bit, but leave the others unchanged
-                        eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
-                    elif attr_name == "eval_flag_ndur":
-                        mask = eval_frequency_flags['NOT_DURING_GO']
-                        # set the mask bit, but leave the others unchanged
-                        eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
-                    elif attr_name == "eval_flag_nbet":
-                        mask = eval_frequency_flags['NOT_BETWEEN_GO']
-                        # set the mask bit, but leave the others unchanged
-                        eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
-                    elif attr_name == "t_flag_t_abs":
-                        mask = temporal_variables_flags['TIME_SEC_ABSOLUTE']
-                        # set the mask bit, but leave the others unchanged
-                        temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
-                    elif attr_name == "t_flag_t":
-                        mask = temporal_variables_flags['TIME_SEC_SINCE_GO']
-                        # set the mask bit, but leave the others unchanged
-                        temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
-                    elif attr_name == "t_flag_f_abs":
-                        mask = temporal_variables_flags['FRAMES_ABSOLUTE']
-                        # set the mask bit, but leave the others unchanged
-                        temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
-                    elif attr_name == "t_flag_f":
-                        mask = temporal_variables_flags['FRAMES_SINCE_GO']
-                        # set the mask bit, but leave the others unchanged
-                        temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
-                    controller_tuple = klass, during, between, eval_frequency, temporal_variables, return_type
-                    self.complete_list[tcp_name] = controller_tuple
-                    if type(during) == types.StringType:
-                        send_during = '"' + during + '"'
-                    else:
-                        send_during = str(during)
-                    if type(between) == types.StringType:
-                        send_between = '"' + between + '"'
-                    else:
-                        send_between = str(between)
-                    send_eval = eval2str(eval_frequency) + " | ONCE"
-                    send_temporal = temporal2str(temporal_variables)
-                    tcp_command = "%s=%s( %s, %s, %s, %s)\n"%(tcp_name,klass,send_during,send_between,send_eval,send_temporal)
-                    self.socket.send(tcp_command)
-        return update_func
+        class UpdaterClass:
+            def __init__(self,my_value_var,my_last_value_key,parent,tcp_name,attr_name):
+                self.my_value_var = my_value_var
+                self.my_last_value_key = my_last_value_key
+                self.parent = parent
+                self.tcp_name = tcp_name
+                self.attr_name = attr_name
+            def update_func(self,dummy_arg=None):
+                tcp_name = self.tcp_name
+                attr_name = self.attr_name
+                my_value_var = self.my_value_var
+                my_last_value_key = self.my_last_value_key
+                new_value = my_value_var.get()
+                if new_value != self.parent.last_values[my_last_value_key]:
+                    self.parent.last_values[my_last_value_key] = new_value
+                    if tcp_name in self.parent.complete_list.keys():
+                        # send string over TCP
+                        controller_tuple = self.parent.complete_list[tcp_name]
+                        klass, during, between, eval_frequency, temporal_variables, return_type = controller_tuple
+                        if attr_name == "class":
+                            if klass != "const" and new_value == "const":
+                                #convert from strings
+                                try:
+                                    during = eval(during,{},{})
+                                except:
+                                    during = 0.
+                                    during_var = getattr(self.parent,tcp_name+"_during")
+                                    during_var.set(str(during))
+                                try:
+                                    between = eval(between,{},{})
+                                except:
+                                    between = 0.
+                                    between_var = getattr(self.parent,tcp_name+"_between")
+                                    between_var.set(str(between))
+                            elif klass == "const" and new_value != "const":
+                                #convert to strings
+                                during = str(during)
+                                between = str(between)
+                            klass = new_value
+                        elif attr_name == "during":
+                            if klass == "const":
+                                try:
+                                    new_value = eval(new_value,{},{})
+                                except:
+                                    new_value = 0.0
+                                    my_value_var.set(str(new_value))
+                            during = new_value
+                        elif attr_name == "between":
+                            if klass == "const":
+                                try:
+                                    new_value = eval(new_value,{},{})
+                                except:
+                                    new_value = 0.0
+                                    my_value_var.set(str(new_value))
+                            between = new_value
+                        elif attr_name == "eval_flag_every":
+                            mask = eval_frequency_flags['EVERY_FRAME']
+                            # set the mask bit, but leave the others unchanged
+                            eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
+                        elif attr_name == "eval_flag_trans":
+                            mask = eval_frequency_flags['TRANSITIONS']
+                            # set the mask bit, but leave the others unchanged
+                            eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
+                        elif attr_name == "eval_flag_ndur":
+                            mask = eval_frequency_flags['NOT_DURING_GO']
+                            # set the mask bit, but leave the others unchanged
+                            eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
+                        elif attr_name == "eval_flag_nbet":
+                            mask = eval_frequency_flags['NOT_BETWEEN_GO']
+                            # set the mask bit, but leave the others unchanged
+                            eval_frequency = (new_value * mask) + (eval_frequency & ~mask)
+                        elif attr_name == "t_flag_t_abs":
+                            mask = temporal_variables_flags['TIME_SEC_ABSOLUTE']
+                            # set the mask bit, but leave the others unchanged
+                            temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
+                        elif attr_name == "t_flag_t":
+                            mask = temporal_variables_flags['TIME_SEC_SINCE_GO']
+                            # set the mask bit, but leave the others unchanged
+                            temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
+                        elif attr_name == "t_flag_f_abs":
+                            mask = temporal_variables_flags['FRAMES_ABSOLUTE']
+                            # set the mask bit, but leave the others unchanged
+                            temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
+                        elif attr_name == "t_flag_f":
+                            mask = temporal_variables_flags['FRAMES_SINCE_GO']
+                            # set the mask bit, but leave the others unchanged
+                            temporal_variables = (new_value * mask) + (temporal_variables & ~mask)
+                        controller_tuple = klass, during, between, eval_frequency, temporal_variables, return_type
+                        self.parent.complete_list[tcp_name] = controller_tuple
+                        if type(during) == types.StringType:
+                            send_during = '"' + during + '"'
+                        else:
+                            send_during = str(during)
+                        if type(between) == types.StringType:
+                            send_between = '"' + between + '"'
+                        else:
+                            send_between = str(between)
+                        send_eval = eval2str(eval_frequency) + " | ONCE"
+                        send_temporal = temporal2str(temporal_variables)
+                        tcp_command = "%s=%s( %s, %s, %s, %s)\n"%(tcp_name,klass,send_during,send_between,send_eval,send_temporal)
+                        self.parent.socket.send(tcp_command)
+        instance = UpdaterClass(my_value_var,my_last_value_key,self,tcp_name,attr_name)
+        return instance.update_func
 
     def check_dict(self,name_dict):
         for name in self.names:
@@ -713,14 +715,9 @@ class TCPApp(Tkinter.Frame):
         Tkinter.Label(self,text="Go loop duration (value, units):").grid(row=self.next_row, column=1, sticky=Tkinter.E)
         self.go_duration = Tkinter.StringVar()
         self.last_duration_value = self.go_duration.get()
-        def duration_updater(dummy_arg=None):
-            new_value = self.go_duration.get()
-            if new_value != self.last_duration_value:
-                self.last_duration_value=new_value
-                self.socket.send("go_duration=const(%s,None,ONCE)\n"%(new_value,))
         e = Tkinter.Entry(self,textvariable=self.go_duration)
-        e.bind("<FocusOut>",duration_updater)
-        e.bind("<Return>",duration_updater)
+        e.bind("<FocusOut>",self.duration_updater)
+        e.bind("<Return>",self.duration_updater)
         e.grid(row=self.next_row, column=2,sticky=Tkinter.W+Tkinter.E)
         self.next_row += 1
 
@@ -732,6 +729,13 @@ class TCPApp(Tkinter.Frame):
 
         self.socket_checker = SocketChecker(self.socket,starting_buffer,self.name_dict)
         self.after(100,self.check_socket) # check socket every 100 msec
+        
+    def duration_updater(self,dummy_arg=None):
+        new_value = self.go_duration.get()
+        if new_value != self.last_duration_value:
+            self.last_duration_value=new_value
+            self.socket.send("go_duration=const(%s,None,ONCE)\n"%(new_value,))
+            
     def register_interest(self,instance):
         self.other_interested_instances.append(instance)
     def go(self,dummy_arg=None):
@@ -762,6 +766,7 @@ if __name__ == '__main__':
     # Connect
     (socket, start_buffer) = connect()
     if socket is None:
+        print "Didn't get a socket, quitting."
         sys.exit()
 
     # Create main application window
