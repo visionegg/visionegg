@@ -48,7 +48,10 @@ def organize_script_dirs(scripts):
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
 data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
-data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg']) )
+data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
+data_files.append( ('VisionEgg/demo/calibrate',['demo/calibrate/README.txt']) )
+data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
+data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 long_description = """
 The Vision Egg is a programming library (with demo
