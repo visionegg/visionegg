@@ -261,7 +261,7 @@ class Loop(VisionEgg.ClassWithParameters):
     __slots__ = (
         'num_done',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.num_done = 0
@@ -278,7 +278,7 @@ class LoopContainedObject(ContainedObjectBase):
     """Container for Loop class"""
     contained_class = Loop
     header = "     variable    rest   N  values"
-    def __init__(self,contained=None):
+    def __init__(self,contained):
         self.contained = contained
     def get_str_30(self):
         p = self.contained.parameters
