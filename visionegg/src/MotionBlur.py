@@ -23,9 +23,8 @@ from imageConvolution import *
 import Image, ImageDraw                         # Python Imaging Library packages
 						                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
-from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
-from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
-from OpenGL.GLU import *                        #   utility routines
+#from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
+#from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
 from OpenGL.GLUT import *						#   only if used if no SDL
 from Numeric import * 							# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
@@ -169,10 +168,10 @@ class BlurTextureFamily:
                     
 class BlurredDrum(SpinningDrum):
 
-    def __init__(self,durationSec,unblurred_filename,posDegFunc,contrastFunc,numSides=30,radius=3.0,fovx=45.0,blur='gaussian',numCachedTextures=10,nominal_fps=180.0):
+    def __init__(self,durationSec,unblurred_filename,posDegFunc,contrastFunc,numSides=30,radius=3.0,blur='gaussian',numCachedTextures=10,nominal_fps=180.0,projection=PerspectiveProjection()):
         self.texs = BlurTextureFamily(unblurred_filename,numCachedTextures=numCachedTextures)
         self.blurOn = 1
-        SpinningDrum.__init__(self,durationSec,TextureFromPILImage(self.texs.orig),posDegFunc,contrastFunc,numSides,radius,fovx) # XXX should change so it doesn't load base texture again
+        SpinningDrum.__init__(self,durationSec,TextureFromPILImage(self.texs.orig),posDegFunc,contrastFunc,numSides,radius,projection) # XXX should change so it doesn't load base texture again
 
     def setBlurOn(self,on):
         self.blurOn = on
