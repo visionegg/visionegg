@@ -109,7 +109,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         if sys.platform == 'darwin':
             Tkinter.Label(topframe,
-                          text=self.format_string("On Mac OS X, an error dialog will appear after you run a Vision Egg application in non fullscreen mode which erroneously says \"The application Python has quit unexpectedly.\" This is a known bug and will be addressed in future releases."),
+                          text=self.format_string("On Mac OS X, an error dialog may appear after you run a Vision Egg application in non fullscreen mode which erroneously says \"The application Python has quit unexpectedly.\" This is a known bug and will be addressed in future releases."),
                           ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
             topframe_row += 1
 
@@ -224,38 +224,30 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         self.maxpriority = Tkinter.BooleanVar()
         self.maxpriority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
 
-	try:
-	    import _maxpriority
-            self.show_maxpriority_option = 1
-	except:
-            self.show_maxpriority_option = 0
+        Tkinter.Checkbutton(cf,
+                            text='Maximum priority (use with caution)',
+                            variable=self.maxpriority,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
 
-        if self.show_maxpriority_option:
-	    # Only display checkbutton if we have the module
-	    Tkinter.Checkbutton(cf,
-                                text='Maximum priority (use with caution)',
-                                variable=self.maxpriority,
-                                relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        if sys.platform=='darwin':
+            # Only used on darwin platform
+            self.darwin_conventional = Tkinter.IntVar()
+            self.darwin_conventional.set(VisionEgg.config.VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME)
+            self.darwin_priority = Tkinter.StringVar()
+            self.darwin_priority.set(str(VisionEgg.config.VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY))
+            self.darwin_realtime_period_denom = Tkinter.StringVar()
+            self.darwin_realtime_period_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM))
+            self.darwin_realtime_computation_denom = Tkinter.StringVar()
+            self.darwin_realtime_computation_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM))
+            self.darwin_realtime_constraint_denom = Tkinter.StringVar()
+            self.darwin_realtime_constraint_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM))
+            self.darwin_realtime_preemptible = Tkinter.IntVar()
+            self.darwin_realtime_preemptible.set(not VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
+            Tkinter.Button(cf,text="Maximum priority options...",
+                           command=self.darwin_maxpriority_tune).grid(row=cf_row,column=0)
             cf_row += 1
 
-            if sys.platform=='darwin':
-                # Only used on darwin platform
-                self.darwin_conventional = Tkinter.IntVar()
-                self.darwin_conventional.set(VisionEgg.config.VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME)
-                self.darwin_priority = Tkinter.StringVar()
-                self.darwin_priority.set(str(VisionEgg.config.VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY))
-                self.darwin_realtime_period_denom = Tkinter.StringVar()
-                self.darwin_realtime_period_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM))
-                self.darwin_realtime_computation_denom = Tkinter.StringVar()
-                self.darwin_realtime_computation_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM))
-                self.darwin_realtime_constraint_denom = Tkinter.StringVar()
-                self.darwin_realtime_constraint_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM))
-                self.darwin_realtime_preemptible = Tkinter.IntVar()
-                self.darwin_realtime_preemptible.set(not VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
-                Tkinter.Button(cf,text="Maximum priority options...",
-                               command=self.darwin_maxpriority_tune).grid(row=cf_row,column=0)
-                cf_row += 1
-                
         # Sync swap
         self.sync_swap = Tkinter.BooleanVar()
         self.sync_swap.set(VisionEgg.config.VISIONEGG_SYNC_SWAP)
@@ -492,7 +484,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS = int(self.blue_depth.get())
         VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS = int(self.alpha_depth.get())
 
-        if self.show_maxpriority_option and sys.platform=='darwin':
+        if sys.platform=='darwin':
             # Only used on darwin platform
             VisionEgg.config.VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME = self.darwin_conventional.get()
             VisionEgg.config.VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY = int(self.darwin_priority.get())
