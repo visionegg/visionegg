@@ -4,8 +4,8 @@
  * This is the C source code for setting maximum priority by the Vision Egg
  * library.
  *
- * It requires some POSIX (I believe) commands, but anyhow, I know
- * it works on linux and doesn't on Mac OS X 10.1.2 or Windows NT.
+ * I believe it requires some POSIX commands or a darwin system. I know
+ * it works on linux and Mac OS X 10.1.4 but not Windows.
  *
  * Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of
  * the GNU Lesser General Public License (LGPL).
@@ -15,11 +15,24 @@
  * Author = Andrew Straw <astraw@users.sourceforge.net>
  *
  */
- 
-/* For _maxpriority_set_realtime */
+
+#ifndef __APPLE__
 #include <sys/mman.h>
 #include <sched.h>
 #include <errno.h>
+#else
+/* Everything to support realtime in Apple Mac OS X is based on the following two things:
+
+   1) http://developer.apple.com/techpubs/macosx/Darwin/General/KernelProgramming/scheduler/Using_Mach__pplications.html
+
+   2) The Mac OS X port of the Esound daemon.
+
+*/
+
+#include "darwin_pthread_modified.h"
+#include <mach/mach.h>
+#include <sys/sysctl.h>
+#endif /* closes ifndef __APPLE__ */
 
 #define TRY(E)     if(! (E)) return NULL
 
@@ -28,10 +41,22 @@ static char set_realtime__doc__[] =
 
 static PyObject *set_realtime(PyObject * self, PyObject * args)
 {
-  int policy;
+#ifndef __APPLE__
   struct sched_param params;
+  int policy;
+#else /* ifndef __APPLE__ */
+  struct thread_time_constraint_policy ttcpolicy;
+  int ret;
+  int bus_speed, mib [2] = { CTL_HW, HW_BUS_FREQ };
+  size_t len;
+#endif /* ifndef __APPLE__ */
 
   TRY(PyArg_ParseTuple(args,""));
+
+#ifndef __APPLE__
+
+  /* This should work on all POSIX non-Apple platforms. See below for
+     Apple Mac OS X implementation. */
 
   /* First, tell the scheduler that we want maximum priority! */
   //  policy = SCHED_RR;
@@ -84,6 +109,30 @@ static PyObject *set_realtime(PyObject * self, PyObject * args)
   }
 #endif /* closes ifdef MCL_FUTURE */
 #endif /* closes ifdef MCL_CURRENT */
+#endif /* closes ifndef __APPLE__ */
+
+#ifdef __APPLE__
+  /* The Apple Mac OS X specific version */
+
+  len = sizeof(bus_speed);
+  sysctl( mib, 2, &bus_speed, &len, NULL, 0);
+
+  ttcpolicy.period= bus_speed/120;
+  ttcpolicy.computation=bus_speed / 2400;
+  ttcpolicy.constraint=bus_speed/1200;
+  ttcpolicy.preemptible=0;
+
+  ret=thread_policy_set(mach_thread_self(),
+			THREAD_TIME_CONSTRAINT_POLICY,
+			(int *)&ttcpolicy,
+			THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+
+  if (ret != KERN_SUCCESS) {
+    PyErr_SetString(PyExc_RuntimeError,"Failed trying to set realtime priority in Mac OS X.");
+    return NULL;
+  }
+
+#endif /* clases ifdef __APPLE__ */
 
   Py_INCREF(Py_None);
   return Py_None;  /* It worked OK. */
