@@ -776,10 +776,11 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                     # send texture to OpenGL
                     p.texture.load( self.texture_object,
                                        build_mipmaps = self.constant_parameters.mipmaps_enabled )
-                    loaded_ok = 1
                 except TextureTooLargeError:
                     p.texture.make_half_size()
                     resized = 1
+                else:
+                    loaded_ok = 1
             if resized:
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
