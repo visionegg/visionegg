@@ -173,7 +173,7 @@ class Screen(VisionEgg.ClassWithParameters):
             
         pygame.display.set_caption("Vision Egg")
         
-        flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF #| pygame.locals.NOFRAME
+        flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
         if self.constant_parameters.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
 
@@ -1057,7 +1057,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # Create timing histogram if necessary
         if p.collect_timing_info:
-            time_msec_bins = range(1,20)
+            time_msec_bins = range(2,40,2)
             timing_histogram = [0]*len(time_msec_bins)
             
         while (not p.trigger_armed) or (not p.trigger_go_if_armed):
@@ -1121,9 +1121,11 @@ class Presentation(VisionEgg.ClassWithParameters):
             
             # If wanted, save time this frame was drawn for
             if p.collect_timing_info:
-                index = int(math.ceil(this_frame_draw_time_sec*1000.0))-1
+                #print this_frame_draw_time_sec*1000.0
+                index = int(math.ceil(this_frame_draw_time_sec*1000.0/float(time_msec_bins[1]-time_msec_bins[0])))-1
                 if index > (len(timing_histogram)-1):
                     index = -1
+                #print "index=",index
                 try:
                     timing_histogram[index] += 1
                 except OverflowError:
@@ -1202,7 +1204,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 level=Message.TRIVIAL)
                 
         if p.collect_timing_info:
-            self.__print_frame_timing_stats(timing_histogram,longest_frame_draw_time_sec*1000.0)
+            self.__print_frame_timing_stats(timing_histogram,longest_frame_draw_time_sec*1000.0,time_msec_bins)
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Emulates method 'go' but saves a movie."""
@@ -1377,17 +1379,17 @@ class Presentation(VisionEgg.ClassWithParameters):
         swap_buffers()
         self.frames_absolute = self.frames_absolute+1
         
-    def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec):
+    def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
         timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
         timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
-        timing_string = self.__print_hist(timing_histogram,timing_string)
+        timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
         timing_string += "\n"
         message.add(timing_string,level=Message.INFO,preserve_formatting=1)
 
-    def __print_hist(self,hist, timing_string):
+    def __print_hist(self,hist, timing_string,time_msec_bins):
         """Print a pretty histogram"""
-        lines = 10
         maxhist = float(max(hist))
+	lines = min(10,int(math.ceil(maxhist)))
         h = hist
         hist = Numeric.array(hist,'f')/maxhist*float(lines) # normalize to number of lines
         timing_string += "histogram:\n"
@@ -1402,7 +1404,9 @@ class Presentation(VisionEgg.ClassWithParameters):
                 timing_string = timing_string + "%4s "%(s,)
             timing_string = timing_string + "\n"
         timing_string = timing_string + " Time: "
-        for bin in Numeric.arange(len(hist)).astype('f'):
+        
+        timing_string = timing_string + "%4d "%(0,)
+        for bin in time_msec_bins[:-1]:
             timing_string = timing_string + "%4d "%(bin,)
         timing_string = timing_string + "+(msec)\n"
         timing_string = timing_string + "Total:    "
