@@ -16,7 +16,7 @@ greatly eased by routines within the Vision Egg.
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.8.3a0'
+release_name = '0.9.0 (1.0 beta1)'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
