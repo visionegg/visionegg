@@ -123,6 +123,56 @@ class InfoFrame(Tkinter.Frame):
 
         #Tkinter.Button(self.sub_frame,text="Update information",command=self.update).pack()
 
+class GetKeypressDialog(Tkinter.Toplevel):
+    """Open a dialog box which returns when a valid key is pressed.
+
+    Arguments are:
+    master - a Tkinter widget (defaults to None)
+    title - a string for the title bar of the widget
+    text - a string to display as the text in the body of the dialog
+    key_list - a list of acceptable keys, e.g. ['q','1','2','<Return>']
+
+    The following example will print whatever character was pressed:
+    d = GetKeypressDialog(key_list=['q','1','2','<Return>','<Escape>'])
+    print d.result
+    
+    The implementation is somewhat obscure because a new Tk/Tcl
+    interpreter may be created if this Dialog is called with no
+    master widget."""
+    def __init__(self,
+                 master=None,
+                 title="Press a key",
+                 text="Press a key",
+                 key_list=[],
+                 **kw):
+        
+        if not master:
+            master = Tkinter._default_root
+        Tkinter.Toplevel.__init__(self,master)
+        self.transient(master)
+
+        self.title(title)
+        self.result = None
+
+        # The dialog box body
+        body = Tkinter.Frame(self)
+        body.pack()
+
+        Tkinter.Label(body, text=text).pack()
+
+        for key in key_list:
+            self.bind(key,self.keypress)
+        
+        body.focus_set()
+        self.wait_window(self)
+
+    def destroy(self):
+        Tkinter.Toplevel.destroy(self)
+
+    def keypress(self,tkinter_event):
+        self.result = tkinter_event.keysym
+        self.destroy()
+
 def get_screen_via_GUI():
     def callback(screen):
         global opened_screen # Python doesn't support nested namespace, so this is a trick
