@@ -172,7 +172,7 @@ class SinGrating2D(LuminanceGratingCommon):
                                 ve_types.Real),
         'phase_at_t0':(0.0, # degrees [0.0-360.0]
                        ve_types.Real),
-        'orientation':(0.0, # 0=right, 90=down
+        'orientation':(0.0, # 0=right, 90=up
                        ve_types.Real),
         'num_samples':(512, # number of spatial samples, should be a power of 2
                        ve_types.Integer),
@@ -265,7 +265,7 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glTranslate(p.center[0],
                            p.center[1],
                            0.0)
-            gl.glRotate(p.orientation,0.0,0.0,-1.0)
+            gl.glRotate(p.orientation,0.0,0.0,1.0)
 
             if p.depth is None:
                 gl.glDisable(gl.GL_DEPTH_TEST)
