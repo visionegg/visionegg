@@ -70,7 +70,7 @@ class GratingExperimentMetaController( Pyro.core.ObjBase ):
         self.stim.parameters.orientation = self.meta_params.orient
         self.stim.parameters.spatial_freq = self.meta_params.sf
         self.stim.parameters.temporal_freq_hz = self.meta_params.tf
-        self.p.go_duration = self.meta_params.pre_stim_sec + self.meta_params.stim_sec + self.meta_params.post_stim_sec
+        self.p.parameters.go_duration = ( self.meta_params.pre_stim_sec + self.meta_params.stim_sec + self.meta_params.post_stim_sec, 'seconds')
 
     def go(self):
         self.p.parameters.enter_go_loop = 1
