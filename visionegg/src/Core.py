@@ -156,7 +156,8 @@ class Screen:
 
     def __del__(self):
         """Make sure mouse is visible after screen closed."""
-        self.cursor_visible_func(1)
+        if hasattr(self,"cursor_visible_func"):
+            self.cursor_visible_func(1)
         
 ####################################################################
 #
@@ -282,6 +283,9 @@ class OrthographicProjection(Projection):
         glLoadIdentity() # Clear the projection matrix
         glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if self.parameters.matrix is None:
+            # OpenGL wasn't started
+            raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
@@ -292,6 +296,9 @@ class SimplePerspectiveProjection(Projection):
         glLoadIdentity() # Clear the projection matrix
         gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if self.parameters.matrix is None:
+            # OpenGL wasn't started
+            raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
 
 class PerspectiveProjection(Projection):
     """A perspective projection"""
@@ -301,6 +308,9 @@ class PerspectiveProjection(Projection):
         glLoadIdentity() # Clear the projection matrix
         glFrustrum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if self.parameters.matrix is None:
+            # OpenGL wasn't started
+            raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
 
 ####################################################################
 #
@@ -397,8 +407,31 @@ class Stimulus:
     glGetBoolean, glGetInteger, glGetFloat, or a similar function to 
     query its value and restore it later.
     """
-    def __init__(self):
-        self.parameters = Parameters()
+    parameters_and_defaults = {} # empty for base Stimulus class
+    
+    def __init__(self,**kw):
+        self.parameters = Parameters() # create self.parameters
+        
+        # Get a list of all classes this instance is derived from
+        classes = [self.__class__]
+        for base_class in self.__class__.__bases__:
+            classes.append(base_class)
+
+        # Fill self.parameters with parameter names and set to default values
+        for klass in classes:
+            for parameter_name in klass.parameters_and_defaults.keys():
+                # Make sure this parameter key/value pair doesn't exist already
+                if hasattr(self.parameters,parameter_name):
+                    raise ValueError("More than one definition of parameter '%s'"%parameter_name)
+                setattr(self.parameters,parameter_name,klass.parameters_and_defaults[parameter_name])
+
+        # Set self.parameters to the value in "kw"
+        for kw_parameter_name in kw.keys():
+            # Make sure this parameter exists already
+            if not hasattr(self.parameters,kw_parameter_name):
+                raise ValueError("parameter '%s' unknown"%kw_parameter_name)
+            else:
+                setattr(self.parameters,kw_parameter_name,kw[kw_parameter_name])
         
     def draw(self):
     	"""Draw the stimulus.  This method is called every frame.
@@ -421,26 +454,34 @@ class Stimulus:
 ####################################################################
 
 class FixationSpot(Stimulus):
-    def __init__(self,position=(320,240),projection=None):
+    parameters_and_defaults = {'projection':None, # set in __init__
+                               'on':1,
+                               'color':(1.0,1.0,1.0,1.0),
+                               'width':0.01,
+                               'height':0.01*4.0/3.0, # assume 4:3 aspect ratio of projection to make square
+                               'x':0.5,
+                               'y':0.5}
+    
+    def __init__(self,projection=None,**kw):
         """Create a fixation spot.
         
         If no projection is specified, assume the position of the
         fixation spot, which is by default equal to (320,240), is in
         the middle of the viewport.
         """
-        self.parameters = Parameters()
-        self.parameters.on = 1
-        if projection is None:
-            # assume spot is in center of viewport
-            w,h=(position[0]*2.0,position[1]*2.0)
-            self.parameters.projection = OrthographicProjection(right=w,top=h)
-        else:
+        apply(Stimulus.__init__,(self,),kw)
+        # Make sure the projection is set
+        if projection is not None:
+            # Use the user-supplied projection
             self.parameters.projection = projection
+        else:
+            # No user-supplied projection, use the default. (Which is probably None.)
+            if self.parameters.projection is None:
+                # Since the default projection is None, set it to something useful.
+                # Assume spot is in center of viewport.
+                w,h=(2*self.parameters.x,2*self.parameters.y)
+                self.parameters.projection = OrthographicProjection(right=w,top=h)
             
-        self.parameters.size = 5.0 # length of side
-        self.parameters.color = (1.0,1.0,1.0,1.0)
-        self.parameters.position = position
-
     def init_gl(self):
         pass
 
@@ -462,10 +503,11 @@ class FixationSpot(Stimulus):
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
             # still use one of the matrices to make it change size.
-            size = self.parameters.size/2.0 # self.parameters.size is in pixels
-            x,y = self.parameters.position
-            x1 = x-size; x2 = x+size
-            y1 = y-size; y2 = y+size
+            x_size = self.parameters.width/2.0
+            y_size = self.parameters.height/2.0
+            x,y = self.parameters.x,self.parameters.y
+            x1 = x-x_size; x2 = x+x_size
+            y1 = y-y_size; y2 = y+y_size
             glBegin(GL_QUADS)
             glVertex2f(x1,y1)
             glVertex2f(x2,y1)
