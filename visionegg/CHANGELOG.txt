@@ -4,7 +4,8 @@ Changes for 0.9.1:
 Windows demos now distributed in standalone directory that does not
 require python installation.
 
-TCPServer mode can print current state, prints command summary, has help.
+TCPServer mode can print current state, prints command summary, has
+help, minor bugfixes.
 
 Lots of little GUI adjustments, including automatic pop-up of
 exception dialog box.
@@ -24,7 +25,7 @@ MAJOR: Triggering, both out and in, (re)implemented.  Same for other
 data acquisition.
 
 MAJOR: Gratings module, with SinGrating2D and SinGrating3D (with
-perspective distorition) added.
+perspective distortion) added.
 
 MAJOR: Support for SGI IRIX now added.
 
