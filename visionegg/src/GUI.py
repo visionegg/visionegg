@@ -81,8 +81,18 @@ class OpenScreenDialog(Tkinter.Frame):
                       text="The default value for these variables and the\npresence of this dialog window can be\ncontrolled via the Vision Egg config file.",
                       ).grid(row=row,columnspan=2)
         row += 1
-        
 
+        if sys.platform == 'darwin':
+            Tkinter.Label(self,
+                          text="On Mac OS X, an error dialog will appear\nafter you run a Vision Egg application which says\n\"The application Python has quit unexpectedly.\"\nThis is a known bug and will be addressed in future releases.",
+                          ).grid(row=row,columnspan=2)
+            row += 1
+
+            Tkinter.Label(self,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=row,column=0,sticky=Tkinter.E)
+            Tkinter.Button(self,text="PRESS ME FIRST").grid(row=row,column=1,sticky=Tkinter.W)
+            row += 1
+
+        
         file_frame = Tkinter.Frame(self)
         file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
         
@@ -129,8 +139,7 @@ class OpenScreenDialog(Tkinter.Frame):
                                 relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
             row += 1
 	except:
-	    pass
-
+            pass
 
         # Sync swap
         self.sync_swap = Tkinter.BooleanVar()
@@ -214,11 +223,6 @@ class OpenScreenDialog(Tkinter.Frame):
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
         Tkinter.Entry(self,textvariable=self.alpha_depth).grid(row=row,column=1,sticky=Tkinter.W)
         row += 1
-
-        if sys.platform == 'darwin':
-            Tkinter.Label(self,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=row,column=0,sticky=Tkinter.E)
-            Tkinter.Button(self,text="PRESS ME FIRST").grid(row=row,column=1,sticky=Tkinter.W)
-            row += 1
 
         # Start button
         b = Tkinter.Button(self,text="start",command=self.start)
