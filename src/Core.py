@@ -1164,6 +1164,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             synclync_connection.next_control_packet.action_flags += (synclync.SL_CLEAR_VSYNC_COUNT +
                                                                      synclync.SL_CLEAR_NOTIFY_SWAPPED_COUNT +
                                                                      synclync.SL_CLEAR_FRAMESKIP_COUNT)
+            synclync_hack_done_once = 0
         
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
@@ -1204,14 +1205,12 @@ class Presentation(VisionEgg.ClassWithParameters):
                 
             # Swap the buffers
             if synclync_connection:
-                # Notify SyncLync device if present
-                #a=VisionEgg.timing_func()
-                synclync_connection.next_control_packet.action_flags += (synclync.SL_NOTIFY_SWAPPED_BUFFERS +
-                                                                         synclync.SL_NOTIFY_IN_GO_LOOP)
-                synclync_connection.send_control_packet()
+                if not synclync_hack_done_once:
+                    synclync_connection.next_control_packet.action_flags += (synclync.SL_NOTIFY_SWAPPED_BUFFERS +
+                                                                             synclync.SL_NOTIFY_IN_GO_LOOP)
+                    synclync_connection.send_control_packet()
+                    synclync_hack_done_once = 1
                 data_packet = synclync_connection.get_latest_data_packet()
-                #b=VisionEgg.timing_func()
-                #print (b-a)*1000.0,"msec"
             swap_buffers()
             
             # Set the time variables for the next frame
