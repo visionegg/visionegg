@@ -13,7 +13,11 @@ def angle_as_function_of_time(t):
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
-stimulus = BlurredDrum(max_speed=max_speed)
+try:
+    texture = TextureFromFile("orig.bmp")
+except:
+    texture = Texture(size=(256,32))
+stimulus = BlurredDrum(max_speed=max_speed,texture=texture)
 stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 
