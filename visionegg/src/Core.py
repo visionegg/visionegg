@@ -1861,6 +1861,7 @@ class Message:
         self.message_queue = []
         self.exception_level = exception_level
         self.print_level = print_level
+        self.orig_stderr = sys.stderr
         if output_stream is None:
             if VisionEgg.config.VISIONEGG_LOG_FILE:
                 try:
@@ -1876,6 +1877,11 @@ class Message:
                 self.output_stream = output_stream
             else:
                 raise TypeError("argument output_stream must have write and flush methods.")
+        if self.output_stream != sys.stderr:
+            sys.stderr = self.output_stream
+
+    def __del__(self):
+        sys.stderr = self.orig_stderr
         
     def add(self,text,level=INFO):
         self.message_queue.append((level,text))
