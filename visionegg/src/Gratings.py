@@ -201,14 +201,11 @@ class SinGrating2D(LuminanceGratingCommon):
         if p.num_samples > max_dim:
             raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
-        if p.t0_time_sec_absolute is None:
-            p.t0_time_sec_absolute = VisionEgg.time_func()
-
         self.calculate_bit_depth_dependencies()
         
         w = p.size[0]
         inc = w/float(p.num_samples)
-        phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+        phase = 0.0 # this data won't get used - don't care about phase
         floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
         floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -284,6 +281,9 @@ class SinGrating2D(LuminanceGratingCommon):
             else:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
             
+            if p.t0_time_sec_absolute is None:
+                p.t0_time_sec_absolute = VisionEgg.time_func()
+
             w = p.size[0]
             inc = w/float(p.num_samples)
             phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
