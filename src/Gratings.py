@@ -512,6 +512,8 @@ class SinGrating3D(LuminanceGratingCommon):
         if self.parameters.num_samples > max_dim:
             raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
+        self.calculate_bit_depth_dependencies()
+        
         if self.parameters.t0_time_sec_absolute is None:
             self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
             
