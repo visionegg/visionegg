@@ -1,11 +1,16 @@
 Changes for 0.9.5:
 ------------------
+Redesign of type check system for accuracy and clarity
 Allow use of pygame Surfaces as source of texture data
 TrueType font rendering
-Positioning of TextureStimulus can use 'anchor' for flexibility
+Positioning of TextureStimulus and Text can use 'anchor' for flexibility
 Renamed timing_func() to time_func()
 EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
 Screen.put_pixels() method for (pseudo)blitting of raw pixel data
+Textures with alpha bugfixes and examples
+Documentation de-emphasis on Presentation class
+Now requires Python 2.2 and pygame 1.5
+Changed orientations such that 0 degrees is right and 90 degrees is up.
 Many small enhancements and bugfixes
 
 New demos:
