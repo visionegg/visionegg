@@ -65,10 +65,10 @@ release_name -- Version information
 config -- Instance of Config class from Configuration module
 
 """
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5b2'
+release_name = '0.9.5b3'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -236,7 +236,7 @@ class Parameters:
     Simple empty class to act something like a C struct."""
     pass
 
-class ClassWithParameters:
+class ClassWithParameters( object ):
     """Base class for any class that uses parameters.
 
     Any class that uses parameters potentially modifiable in realtime
@@ -258,6 +258,8 @@ class ClassWithParameters:
     parameters_and_defaults = {} # empty for base class
     constant_parameters_and_defaults = {} # empty for base class
 
+    __slots__ = ('parameters','constant_parameters') # limit access only to specified attributes
+
     def __init__(self,**kw):
         """Create self.parameters and set values."""
         self.constant_parameters = Parameters() # create self.constant_parameters
@@ -272,6 +274,8 @@ class ClassWithParameters:
         
         # Fill self.parameters with parameter names and set to default values
         for klass in classes:
+            if klass == object:
+                continue # base class of new style classes - ignore
             # Create self.parameters and set values to keyword argument if found,
             # otherwise to default value.
             #
@@ -354,11 +358,13 @@ class ClassWithParameters:
         for kw_parameter_name in kw.keys():
             if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
-            
+
     def is_constant_parameter(self,parameter_name):
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
+            if klass == object:
+                continue # base class of new style classes - ignore            
             if klass.constant_parameters_and_defaults.has_key(parameter_name):
                 return True
         # The for loop only completes if parameter_name is not in any subclass
@@ -368,6 +374,8 @@ class ClassWithParameters:
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
+            if klass == object:
+                continue # base class of new style classes - ignore            
             if klass.parameters_and_defaults.has_key(parameter_name):
                 return klass.parameters_and_defaults[parameter_name][1]
         # The for loop only completes if parameter_name is not in any subclass
@@ -393,7 +401,7 @@ class ClassWithParameters:
         #
         # (We could make a checked_parameters attribute though.)
         for parameter_name in kw.keys():
-            setattr(self,parameter_name,kw[parameter_name])
+            setattr(self.parameters,parameter_name,kw[parameter_name])
             require_type = self.get_specified_type(parameter_name)
             value = kw[parameter_name]
             this_type = ve_types.get_type(value)
