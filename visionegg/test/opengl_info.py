@@ -6,15 +6,14 @@
 # It is part of the Vision Egg package, but does not require
 # the Vision Egg to be installed.
 #
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
+# of the GNU General Public License (GPL).
 
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import time, sys
+import time, sys, string
 import pygame
 from pygame.locals import *
 from OpenGL.GL import * # PyOpenGL packages
@@ -170,39 +169,4 @@ print
 
 print "Texture information"
 max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
-print " GL_MAX_TEXTURE_SIZE is", max_dim
-
-def list_smaller_pow2s(pow2_list):
-    """Recursive function for generating all powers of 2 less than a number.
-
-    >>>list_smaller_pow2s([1024])
-    [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
-    """
-    smallest = 128
-    next = pow2_list[-1]/2
-    pow2_list.append(next)
-    if next <= smallest:
-        return pow2_list
-    else:
-        return list_smaller_pow2s(pow2_list)
-
-try_dims = list_smaller_pow2s([max_dim])
-try_dims.reverse()
-
-for w in try_dims:
-    for h in try_dims:
-        print " GL_PROXY_TEXTURE_2D trying (%d x %d):"%(w,h),
-        data = resize(3.0*arange(w)*2.0*math.pi/w,(w,h)).astype('b')
-        
-        tic = time_func()
-        glTexImage2D(GL_PROXY_TEXTURE_2D,0,GL_RGB,w,h,0,GL_RGB,GL_UNSIGNED_BYTE,data)
-        toc = time_func()
-        if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) != 0:
-            if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) != 0:
-                print "OK (%.1f msec)"%((toc-tic)*1000.0,)
-            else:
-                print "Failed"
-        else:
-            print "Failed"
-        sys.stdout.flush()
-            
+print " GL_MAX_TEXTURE_SIZE is", max_dim            
