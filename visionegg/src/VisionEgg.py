@@ -16,6 +16,7 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, os.path, math                   # standard python packages
+import time
 import Image, ImageDraw                         # Python Imaging Library packages
 
 import pygame                                   # pygame handles OpenGL window setup
@@ -477,11 +478,11 @@ class Stimulus:
         for daq in self.daqs:
             daq.go()
         
-        self.start_time_absolute = getTime()
+        self.start_time_absolute = time.clock()
         self.cur_time = 0.0
         while (self.cur_time <= self.duration_sec):
             self.draw_GL_scene()
-            cur_time_absolute = getTime()
+            cur_time_absolute = time.clock()
             self.cur_time = cur_time_absolute-self.start_time_absolute
         self.stimulus_done()
 
@@ -559,7 +560,7 @@ class SpinningDrum(Stimulus):
         if self.fixation_spot_on: # draw fixation target
             self.draw_fixation_spot()
             
-        #self.drawTimes.append(getTime())
+        #self.drawTimes.append(time.clock())
         if self.swap_buffers:
             swap_buffers()
 
