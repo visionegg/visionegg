@@ -1,7 +1,7 @@
 # This is the python source code for the primary module of the Vision Egg package.
 #
 #
-# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
 ####################################################################
@@ -15,26 +15,23 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import sys, os, math                            # standard python packages
+import sys, os, os.path, math                   # standard python packages
 import Image, ImageDraw                         # Python Imaging Library packages
+
+import pygame                                   # pygame handles OpenGL window setup
+from pygame.locals import *
+
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
-from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
+#from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
 from OpenGL.GLU import *                        #   utility routines
-from OpenGL.GLUT import *			#   only if used if no SDL
+from OpenGL.GLUT import *			#   only used for glutSolidTeapot
+
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
 from _visionegg import *                        # internal C code
-
-global use_sdl
-try:
-    from SDL import * # This is really VisionEgg.SDL (Why doesn't "from VisionEgg.SDL import *" work?)
-    use_sdl = 1
-except:
-    print "WARNING: python module SDL not found.  Performance and features may be affected."
-    use_sdl = 0
 
 ####################################################################
 #
@@ -161,6 +158,7 @@ class TextureBuffer:
     def __init__(self,sizeTuple,mode="RGB",color=(127,127,127)):
         self.im = Image.new(mode,sizeTuple,color)
     def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR):
+        """This loads the texture into OpenGL's texture memory."""
         self.gl_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFilter)
@@ -168,20 +166,41 @@ class TextureBuffer:
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP) # Hopefully make artifacts more visible
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP)
         if self.im.mode == "RGB":
-            glTexImage2D(GL_TEXTURE_2D,                  # target
-                         0, # level
-#                         GL_RGB,                         # video RAM internal format: RGB
-                         GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
+            image_data = self.im.tostring("raw","RGB", 0, -1)
+
+            # Do error-checking on texture to make sure it will load
+            max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
+            if self.im.size[0] > max_dim or self.im.size[1] > max_dim:
+                raise EggError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
+            
+            # Because the MAX_TEXTURE_SIZE method is insensitive to the current
+            # state of the video system, another check must be done using
+            # "proxy textures".
+            glTexImage2D(GL_PROXY_TEXTURE_2D,                  # target
+                         0,                              # level
+                         GL_RGB8,                         # video RAM internal format: RGB
+#                         GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
                          self.im.size[0],                # width
                          self.im.size[1],                # height
                          0,                              # border
                          GL_RGB,                         # format of image data
                          GL_UNSIGNED_BYTE,               # type of image data
-                         self.im.tostring("raw","RGB"))  # image data
-#        elif self.im.mode == "RGBA":
-#            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-#                         self.im.size[0], self.im.size[1],
-#                         0,GL_RGBX, GL_UNSIGNED_BYTE,self.im.tostring("raw","RGBA"))#,0,-1))
+                         image_data)                     # image data
+            if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) == 0:
+                raise EggError("Texture is too wide for your video system!")
+            if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) == 0:
+                raise EggError("Texture is too tall for your video system!")
+
+            glTexImage2D(GL_TEXTURE_2D,                  # target
+                         0,                              # level
+                         GL_RGB8,                         # video RAM internal format: RGB
+#                         GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
+                         self.im.size[0],                # width
+                         self.im.size[1],                # height
+                         0,                              # border
+                         GL_RGB,                         # format of image data
+                         GL_UNSIGNED_BYTE,               # type of image data
+                         image_data)                     # image data
         else:
             raise EggError("Unknown image mode '%s'"%(self.im.mode,))
         del self.im  # remove the image from system memory
@@ -334,33 +353,6 @@ class Stimulus:
         if matrix_mode != GL_MODELVIEW:
             glMatrixMode(matrix_mode)   # restore matrix state
 
-    def glut_idle(self): # only called if running in GLUT
-        self.draw_GL_scene()
-        cur_time_absolute = getTime()
-        self.cur_time = cur_time_absolute-self.start_time_absolute
-        if self.cur_time > self.duration_sec:
-            self.stimulus_done()
-
-    def glut_go(self): # only called if running in GLUT
-        self.start_time_absolute = getTime()
-        self.cur_time = 0.0
-        glutIdleFunc(self.glut_idle)
-        glutDisplayFunc(self.draw_GL_scene)
-        glutMainLoop()
-        
-    def sdl_go(self):
-        """Could put in C to run faster.
-
-        Bare bones timing routines.
-        """
-        self.start_time_absolute = getTime()
-        self.cur_time = 0.0
-        while (self.cur_time <= self.duration_sec):
-            self.draw_GL_scene()
-            cur_time_absolute = getTime()
-            self.cur_time = cur_time_absolute-self.start_time_absolute
-        self.stimulus_done()
-
     def draw_GL_scene(self):
     	"""Redraw the scene on every frame.
     
@@ -449,32 +441,46 @@ class Stimulus:
         
         print "Texture finding"
         self.print_hist(drawTimes3,bins)
+
+    def export_movie_go(self, frames_per_sec = 12.0, filename_suffix = ".tif" , filename_base = "movie_export", path="." ):
+        """Call this method rather than go() if you want to export a movie of your stimulus.
+        """
+        self.cur_time = 0.0
+        image_no = 1
+        print "Exporting movie sequence to directory '%s'"%os.path.abspath( path )
+        while (self.cur_time <= self.duration_sec):
+            self.draw_GL_scene()
+            glPixelStorei(GL_PACK_ALIGNMENT, 1)
+            framebuffer = glReadPixels(0,0,640,480,GL_RGB,GL_UNSIGNED_BYTE)
+            fb_image = Image.fromstring('RGB',(640,480),framebuffer)
+            filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
+            savepath = os.path.join( path, filename )
+            print "Saving '%s'"%filename
+            fb_image.save( savepath )
+            image_no = image_no + 1
+            self.cur_time = self.cur_time + 1.0/frames_per_sec
+        self.stimulus_done()
         
     def go(self):
-        global use_sdl
+        """Prepare and start DAQ, then run stimulus.
 
+        Could put in C to run faster.
+        """
         for daq in self.daqs:
             daq.prepare_to_go()
         
         for daq in self.daqs:
             daq.go()
         
-        if use_sdl:
-            self.sdl_go()
-        else:
-            self.glut_go()
+        self.start_time_absolute = getTime()
+        self.cur_time = 0.0
+        while (self.cur_time <= self.duration_sec):
+            self.draw_GL_scene()
+            cur_time_absolute = getTime()
+            self.cur_time = cur_time_absolute-self.start_time_absolute
+        self.stimulus_done()
 
     def stimulus_done(self):
-        global use_sdl
-        
-        if use_sdl:
-            pass
-        else:
-            # I'd really like to break out of the glutMainLoop, but I can't
-            print "WARNING: because GLUT support is not complete, you"
-            print "may have to abort this program now."
-            glutIdleFunc(self.do_nothing)
-            glutDisplayFunc(self.do_nothing)
         self.clear_GL()
 #        self.frameStats()
 
@@ -741,9 +747,7 @@ class MovingTarget(Stimulus):
 #
 ####################################################################            
 
-def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,try_sdl=1):
-    global use_sdl
-    global glut_window
+def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
     global screen_width,screen_height
     global graphicsKeeper
 
@@ -756,71 +760,39 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0,t
     if realtime_priority:
         setRealtime()
 
-    if not try_sdl:
-        use_sdl = 0
-
     caption = "Vision Egg"
 
-    if use_sdl:
-        print "Using SDL"
-        # Initialize SDL, we only need the video section
-        SDL_Init(SDL_INIT_VIDEO)
-        
-        # Setup double buffering in OpenGL
-        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 )
+    pygame.init()
+    flags = OPENGL | DOUBLEBUF
+    if fullscreen:
+        flags = flags | FULLSCREEN
 
-        # Setup OpenGL framebuffer
-        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 )
-        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 )
-        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 )
-        #SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 )
-
-        # Set the video mode
-        if fullscreen:
-            flags = SDL_OPENGL | SDL_FULLSCREEN
+    try_bpps = [24,32,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha)
+    found_mode = 0
+    for bpp in try_bpps:
+        modeList = pygame.display.list_modes( bpp, flags )
+        if modeList == -1: # equal to -1 if any resolution will work
+            found_mode = 1
         else:
-            flags = SDL_OPENGL
-        modeList = SDL_ListModes(None,flags)
-        if modeList is not None: # we have limited modes
-            if (screen_width,screen_height) not in modeList:
-                screen_width = modeList[0][0]
-                screen_height = modeList[0][1]
-                print "WARNING: Using %dx%d video mode instead of requested size."%(width,height)
-        SDL_SetVideoMode(screen_width, screen_height, 0, flags )
+            if len(modeList) >= 1:
+                if (screen_width,screen_height) in modeList:
+                    found_mode = 1
+                else:
+                    screen_width = modeList[0][0]
+                    screen_height = modeList[0][1]
+                    print "WARNING: Using %dx%d video mode instead of requested size."%(width,height)
+        if found_mode:
+            break
+    if found_mode == 0:
+        print "WARNING: Could not find acceptable video mode! Trying anyway..."
 
-        if 0:
-            print "SDL_GL_GetAttribute( SDL_GL_RED_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_RED_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_ALPHA_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_ALPHA_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER ) =", SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER )
-            print "SDL_GL_GetAttribute( SDL_GL_BUFFER_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_BUFFER_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_ACCUM_RED_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_ACCUM_RED_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_ACCUM_GREEN_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_ACCUM_GREEN_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_ACCUM_BLUE_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_ACCUM_BLUE_SIZE )
-            print "SDL_GL_GetAttribute( SDL_GL_ACCUM_ALPHA_SIZE ) =", SDL_GL_GetAttribute( SDL_GL_ACCUM_BLUE_SIZE )
-            print "glGetIntegerv(GL_MAX_TEXTURE_SIZE) = ", glGetIntegerv(GL_MAX_TEXTURE_SIZE ) 
-            #print "glGetFloatv(GL_COLOR_MATRIX) = ", glGetFloatv(GL_COLOR_MATRIX) # requires imaging subset
-            for extension in glGetString(GL_EXTENSIONS).split():
-                print extension
-
-        # Set the window caption
-        SDL_WM_SetCaption(caption)
-        # Hide the cursor 
-        SDL_ShowCursor(SDL_DISABLE)
-
-    else: # closes "if use_sdl:"
-        print "Using GLUT"
-        # need to figure out if fullscreen is possible with GLUT
-        glutInit(sys.argv)
-        glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB )
-        glutInitWindowSize(screen_width,screen_height)
-        glut_window = glutCreateWindow(caption)
-        if fullscreen:
-            glutFullScreen()
-
+    print "Initializing graphics at %d x %d ( %d bpp )."%(screen_width,screen_height,bpp)
+    pygame.display.set_mode((screen_width,screen_height), flags, bpp )
+                
+    pygame.display.set_caption(caption)
+    if fullscreen:
+        pygame.mouse.set_visible(0)
+    
     # Initialize OpenGL viewport
     glViewport(0,0,screen_width,screen_height)
 
@@ -841,19 +813,12 @@ class __GraphicsKeeper__:
     def __init__(self):
         # Set all this stuff up so that I can call functions after
         # their references have been dropped from the global namespace.
-        global use_sdl
-        
-        self.use_sdl = use_sdl
-        self.sdl_showcursor_func = SDL_ShowCursor
-        self.sdl_enable = SDL_ENABLE
-        self.sdl_quit_func = SDL_Quit
         self.set_dout = set_dout
+        self.set_visible_func = pygame.mouse.set_visible
         
     def __del__(self):
         self.set_dout(0) # set dout to 0 (if supported)
-        if self.use_sdl:
-            self.sdl_showcursor_func(self.sdl_enable)
-            self.sdl_quit_func()
+        self.set_visible_func(1) # make mouse visible again
 
 ####################################################################
 #
@@ -864,12 +829,5 @@ class __GraphicsKeeper__:
 def swap_buffers():
     """Swap OpenGL buffers."""
 
-    # Of all the routines that could be put in C for speed, this may
-    # be the biggest bang for the buck.  Then again, it may not.
-    global use_sdl
-
-    if use_sdl:
-        SDL_GL_SwapBuffers()
-    else:
-        glutSwapBuffers()
+    pygame.display.flip()
     toggleDOut()
