@@ -11,7 +11,7 @@
 
 import VisionEgg
 import os
-import Tkinter
+import Tkinter, tkMessageBox
 import string
 import sys
 
@@ -24,29 +24,29 @@ class showexception(Tkinter.Frame):
     """A window that shows a string and has a quit button."""
     def __init__(self,exc_type, exc_value, traceback_str):
         title="Vision Egg: exception caught"
-        try:
-            self.winfo_toplevel().title(title)
-            self.winfo_toplevel().protocol("WM_DELETE_WINDOW",self.close_window)
-        except:
-            VisionEgg.Core.message.add("Tkinter problems when trying to display exception. Continuing attempt to open dialog.",level=VisionEgg.Core.Message.INFO)
         first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
-        
         type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
-        Tkinter.Frame.__init__(self,borderwidth=20)
-        self.pack()
+
+        apply(Tkinter.Frame.__init__,(self,),{'borderwidth':20})
+        frame = self
+
+        frame.pack()
+        top = frame.winfo_toplevel()
+        top.title(title)
+        top.protocol("WM_DELETE_WINDOW",self.close_window)
         
-        Tkinter.Label(self,text=first_str).pack()
-        Tkinter.Label(self,text=type_value_str).pack()
-        Tkinter.Label(self,text="Traceback (most recent call last):").pack()
-        Tkinter.Label(self,text=traceback_str).pack()
+        Tkinter.Label(frame,text=first_str).pack()
+        Tkinter.Label(frame,text=type_value_str).pack()
+        Tkinter.Label(frame,text="Traceback (most recent call last):").pack()
+        Tkinter.Label(frame,text=traceback_str).pack()
         
-        b = Tkinter.Button(self,text="Quit",command=self.close_window)
+        b = Tkinter.Button(frame,text="Quit",command=self.close_window)
         b.pack()
         b.focus_force()
         b.bind('<Return>',self.close_window)
-        self.mainloop()
+        
     def close_window(self,dummy_arg=None):
-        self.winfo_toplevel().destroy()
+        self.quit()
                 
 class AppWindow(Tkinter.Frame):
     """A GUI Window to be subclassed for your main application window"""
@@ -463,7 +463,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = not self.darwin_realtime_preemptible.get()
         
-    def save(self):
+    def save(self,dummy_arg=None):
         self._set_config_values()
         try:
             VisionEgg.Configuration.save_settings()
@@ -476,7 +476,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             except:
                 raise x
 
-    def start(self):
+    def start(self,dummy_arg=None):
         self.clicked_ok = 1
         self._set_config_values()
         for child in self.children.values():
