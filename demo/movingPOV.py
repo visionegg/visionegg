@@ -45,11 +45,11 @@ stimulus.init_gl()
 viewport1.add_stimulus(stimulus)
 viewport2.add_stimulus(stimulus)
 
-p = Presentation(duration_sec=10.0,viewports=[viewport1,viewport2])
+p = Presentation(duration=(10.0,'seconds'),viewports=[viewport1,viewport2])
 
-p.add_realtime_controller(stimulus.parameters,'angle', angle_as_function_of_time)
-p.add_realtime_controller(stimulus.parameters,'cur_time', lambda t: t)
-p.add_realtime_controller(projection2.parameters,'matrix', projection_matrix_f)
+p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of_time)
+p.add_realtime_time_controller(stimulus.parameters,'cur_time', lambda t: t)
+p.add_realtime_time_controller(projection2.parameters,'matrix', projection_matrix_f)
 
 p.go()
 
