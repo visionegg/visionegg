@@ -319,7 +319,7 @@ class OrthographicProjection(Projection):
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
-    def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
+    def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
         fov_y = fov_x / aspect_ratio
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadIdentity() # Clear the projection matrix
@@ -335,7 +335,7 @@ class PerspectiveProjection(Projection):
     def __init__(self,left,right,bottom,top,near,far):
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadIdentity() # Clear the projection matrix
-        glFrustum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
+        gl.glFrustum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
         matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         if matrix is None:
             # OpenGL wasn't started
@@ -861,7 +861,9 @@ class Presentation(VisionEgg.ClassWithParameters):
                 current_duration_value = current_frame
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-
+            for event in pygame.event.get():
+                pass
+            
         # Tell transitional controllers a presentation is starting
         self.call_controllers(go_started=0,doing_transition=1)
         
