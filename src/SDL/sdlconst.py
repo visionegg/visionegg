@@ -3,6 +3,10 @@
 # There are only enough here to use the subset of SDL functions
 # wrapped by the Vision Egg.  These functions are mainly
 # the video subsystem of SDL.
+#
+# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# GNU General Public License (GPL).
+
 import string
 __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
