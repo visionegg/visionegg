@@ -85,289 +85,616 @@ if "GL_CLAMP_TO_EDGE" not in dir(gl):
 ####################################################################
 
 class Texture:
-    """Base class to handle textures, whether loaded to OpenGL or not."""
-    def __init__(self,size=(128,128)):
-    	"""Base class is a white 'x' on a blue background."""
-        # Create a default texture
-        self.orig = Image.new("RGB",size,(0,0,255))
-        draw = ImageDraw.Draw(self.orig)
-        draw.line((0,0) + self.orig.size, fill=(255,255,255))
-        draw.line((0,self.orig.size[1],self.orig.size[0],0), fill=(255,255,255))
+    """A 2D dimensional texture.
 
-    def load(self, build_mipmaps=1, rescale_original_to_fill_texture_object=0):
-        """Load texture into OpenGL."""
-        # Someday put all this in a texture buffer manager.
-        # The buffer manager will do a much better job of putting
-        # images in texture memory, packing them closely, keeping
-        # everything organized, and making the world a better place.
-        # For now, though, we're stuck with this!
+    The pixel data can come from an image file, an image file stream,
+    an instance of Image from the Python Imaging Library, a Numeric
+    Python array, or None.
 
-        # Is there already a copy loaded into OpenGL video RAM?
-        if hasattr(self,'_loaded_texID'):
-            return self._loaded_texID
+    If the data is a Numeric python array, floating point numbers are
+    assumed to be in the range 0.0 to 1.0, and integers are assumed to
+    be in the range 0 to 255.
+    
+    The 2D texture data is not sent to OpenGL (video texture memory)
+    until the load() method is called."""
+    
+    def __init__(self,pixels=None):
 
-        # Create a buffer whose sides are a power of 2
+        if pixels is None: # draw default white "X" on blue background
+            self.size = (256,256) # default size
+            pixels = Image.new("RGB",size,(0,0,255))
+            draw = ImageDraw.Draw(pixels)
+            draw.line((0,0) + self.size, fill=(255,255,255))
+            draw.line((0,size.size[1]) + (self.size[0],0), fill=(255,255,255))
+
+        if type(pixels) == types.FileType:
+            pixels = Image.open(pixels) # Attempt to open as an image file
+        elif type(pixels) == types.StringType:
+            pixels = Image.open(pixels) # Attempt to open as an image stream
+
+        if isinstance(pixels, Image.Image): # PIL Image
+            self.size = pixels.size
+        elif type(pixels) == Numeric.ArrayType: # Numeric Python array
+            if len(pixels.shape) == 3:
+                if pixels.shape[2] not in [3,4]:
+                    raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
+            elif len(pixels.shape) != 2:
+                raise ValueError("Only 2D luminance, 3D RGB, and 3D RGBA arrays allowed")
+            self.size = ( pixels.shape[1], pixels.shape[0] )
+        else:
+            raise TypeError("pixel data could not be recognized. (Use a PIL Image or a Numeric array.)")
+
+        self.pixels = pixels
+        self.texture_object = None
+
+    def make_half_size(self):
+        if self.texture_object is not None:
+            raise RuntimeError("make_half_size() only available BEFORE texture loaded to OpenGL.")
+        
+        if isinstance(self.pixels,Image.Image):
+            w = self.size[0]/2
+            h = self.size[1]/2
+            small_pixels = self.pixels.resize((w,h),Image.BICUBIC)
+            self.pixels = small_pixels
+            self.size = (w,h)
+        else:
+            raise RuntimeError("Texture too large, but auto-rescaling of Numeric arrays not supported.")
+
+    def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0):
+        """Load texture data to video texture memory.
+
+        This will cause the texture data to become resident in OpenGL
+        video texture memory, enabling fast drawing."""
+
+        assert( isinstance( texture_object, TextureObject ))
+        assert( texture_object.dimensions == 2 )
+
         def next_power_of_2(f):
-            return max(math.pow(2.0,math.ceil(math.log(f)/math.log(2.0))),1.0)
+            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
 
-        width = self.orig.size[0]
-        height = self.orig.size[1]
+        width, height = self.size
 
         width_pow2  = int(next_power_of_2(width))
         height_pow2  = int(next_power_of_2(height))
 
-        
-        if self.orig.mode != "RGB":
-            VisionEgg.Core.message.add("Converting non-RGB texture to RGB (non RGB textures not yet implemented)",
-                                       level=VisionEgg.Core.Message.WARNING)
-
-        self.buf = TextureBuffer( size=(width_pow2, height_pow2) )
         if rescale_original_to_fill_texture_object:
-            rescaled = self.orig.resize((width_pow2,height_pow2),Image.BICUBIC)
-            self.buf.im.paste(rescaled,(0,0,width_pow2,height_pow2))
-            # Location of myself in the buffer, in pixels
-            # This is a semi-private variable: you should probably use the
-            # fractional variables (see below), because those will be the
-            # same, regardless of mipmap level, while the absolute
-            # position in pixels (these variables) will vary.
-            self._buf_l = 0
-            self._buf_r = width_pow2
-            self._buf_t = 0
-            self._buf_b = height_pow2
+            if type(self.pixels) == Numeric.ArrayType:
+                raise NotImpelementedError("Automatic rescaling of Numeric arrays not implemented.")
 
-            # my size
-            self.width = width_pow2
-            self.height = height_pow2
-            # location of myself in the buffer, in fraction
-            self.buf_lf = 0.0
-            self.buf_rf = 1.0
-            self.buf_bf = 1.0 # handle OpenGL "flip" by called the bottom of the texture the top
-            self.buf_tf = 0.0
+        # fractional coverage
+        self.buf_lf = 0.0
+        self.buf_rf = float(width)/width_pow2
+        self.buf_bf = 0.0
+        self.buf_tf = float(height)/height_pow2
+
+        # absolute (texel units) coverage
+        self._buf_l = 0
+        self._buf_r = width
+        self._buf_b = 0
+        self._buf_t = height
+
+        if width != width_pow2 or height != height_pow2:
+            if type(self.pixels) == Numeric.ArrayType:
+                if len(self.pixels.shape) == 2:
+                    buffer = Numeric.zeros( (height_pow2,width_pow2), self.pixels.typecode() )
+                    buffer[0:height,0:width] = self.pixels
+                elif len(self.pixels.shape) == 3:
+                    buffer = Numeric.zeros( (height_pow2,width_pow2,self.pixels.shape[2]), self.pixels.typecode() )
+                    buffer[0:height,0:width,:] = self.pixels
+                else:
+                    raise RuntimeError("Unexpected shape for self.pixels")
+            else:
+                if rescale_original_to_fill_texture_object:
+                    buffer = self.pixels.resize((width_pow2,height_pow2),Image.BICUBIC)
+                    
+                    self._buf_l = 0
+                    self._buf_r = width_pow2
+                    self._buf_t = 0
+                    self._buf_b = height_pow2
+                    
+                    self.buf_lf = 0.0
+                    self.buf_rf = 1.0
+                    self.buf_bf = 0.0
+                    self.buf_tf = 1.0
+                else:
+                    buffer = Image.new(self.pixels.mode,(width_pow2, height_pow2))
+                    buffer.paste( self.pixels, (0,height_pow2-height,width,height_pow2))
         else:
-            self.buf.im.paste(self.orig,(0,0,width,height))
-            self._buf_l = 0
-            self._buf_r = width
-            self._buf_t = 0
-            self._buf_b = height
+            buffer = self.pixels
 
-            # my size
-            self.width = width
-            self.height = height
-        
-            # location of myself in the buffer, in fraction
-            self.buf_lf = 0.0
-            self.buf_rf = float(width)/float(width_pow2)
-            self.buf_bf = float(height)/float(height_pow2) # handle OpenGL "flip" by called the bottom of the texture the top
-            self.buf_tf = 0.0
-
-        texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
-
+        # Put data in texture object
+        texture_object.put_new_image( buffer, mipmap_level=0 )
         if build_mipmaps:
-            # Could use GLU to do this, but let's do it ourselves for more control
-            this_width = self.width
-            this_height = self.height
+            # Mipmap generation could be done in the TextureObject
+            # class by GLU, but here we have more control
+            if type(self.pixels) == Numeric.ArrayType:
+                raise NotImplementedError("Building of mipmaps not implemented for Numeric arrays.")
+            this_width, this_height = self.size
             biggest_dim = max(this_width,this_height)
             mipmap_level = 1
             while biggest_dim > 1:
                 this_width = this_width/2.0
                 this_height = this_height/2.0
-
+                
                 width_pix = int(math.ceil(this_width))
                 height_pix = int(math.ceil(this_height))
-                shrunk = self.orig.resize((width_pix,height_pix),Image.BICUBIC)
+                shrunk = self.pixels.resize((width_pix,height_pix),Image.BICUBIC)
                 
-                width_pow2  = int(next_power_of_2(this_width))
-                height_pow2  = int(next_power_of_2(this_height))
-
-                im = Image.new( mode="RGB",size=(width_pow2,height_pow2), color=(127,127,127))
-                im.paste(shrunk,(0,0,width_pix,height_pix))
-
-                self.buf.im = im
-                self.buf.load(mipmap_level=mipmap_level)
+                width_pow2  = int(next_power_of_2(width_pix))
+                height_pow2  = int(next_power_of_2(height_pix))
+                
+                im = Image.new(shrunk.mode,(width_pow2,height_pow2))
+                im.paste(shrunk,(0,height_pow2-height_pix,width_pix,height_pow2))
+                
+                texture_object.put_new_image( im, mipmap_level=mipmap_level )
                 
                 mipmap_level += 1
                 biggest_dim = max(this_width,this_height)
-        
-        #del self.orig # clear Image from system RAM
-        self._loaded_texID = texId
-        return texId
+                
+        # Keep reference to texture_object
+        self.texture_object = texture_object
 
-    def get_pil_image(self):
-        """Returns a PIL Image of the texture."""
-        return self.orig
+    def get_texture_object(self):
+        return self.texture_object
 
-    def get_texture_buffer(self):
-        return self.buf
+class TextureFromFile( Texture ):
+    def __init__(self, filename ):
+        pixels = Image.open(filename)
+        Texture.__init__(self,pixels)
 
-class TextureFromFile(Texture):
-    """A Texture that is loaded from a graphics file"""
-    def __init__(self,file):
-        self.orig = Image.open(file)
-        if hasattr(file,"seek"):
-            file.seek(0) # go back to beginning
+class TextureObject:
+    """Texture data in OpenGL. Potentially resident in video texture memory.
 
-class TextureFromPILImage(Texture):
-    """A Texture that is loaded from a Python Imaging Library Image."""
-    def __init__(self,image):
-        if isinstance(image,Image.Image):
-            self.orig = image
+    This class encapsulates the state variables in OpenGL texture objects.  Do not
+    change attribute values directly.  Use the methods provided instead."""
+
+    _cube_map_side_names = ['positive_x', 'negative_x',
+                            'positive_y', 'negative_y',
+                            'positive_z', 'negative_z']
+    
+    def __init__(self,dimensions=2):
+        if dimensions not in [1,2,3,'cube']:
+            raise ValueError("TextureObject dimensions must be 1,2,3, or 'cube'")
+        # default OpenGL values for these values
+        self.min_filter = gl.GL_NEAREST_MIPMAP_LINEAR
+        self.mag_filter = gl.GL_LINEAR
+        self.wrap_mode_s = gl.GL_REPEAT
+        if dimensions != 1:
+            self.wrap_mode_t = gl.GL_REPEAT
+        if dimensions == 3:
+            self.wrap_mode_r = gl.GL_REPEAT
+        self.border_color = (0, 0, 0, 0)
+
+        # assign Vision Egg variables (not local copies of OpenGL information)
+        if dimensions != 'cube':
+            self.mipmap_arrays = {}
         else:
-            raise ValueError("TextureFromPILImage expecting instance of Image.Image")
+            self.cube_mipmap_arrays = {}
+            for side in TextureObject._cube_map_side_names:
+                self.cube_mipmap_arrays[side] = {}
 
-class TextureFromNumpyArray(Texture):
-    """A Texture that is loaded from a Numeric Python array."""
-    def __init__(self,image_data):
-        assert( type(image_data) == Numeric.ArrayType )
-        if len(image_data.shape) != 2:
-            raise NotImplementedError("Only 2D (grayscale) arrays currently supported.")
-        if image_data.typecode() != 'b':
-            scaled_data = image_data*255.0
-            ubyte_data = scaled_data.astype('b')
-        else: # image_data.typecode() == 'b':
-            ubyte_data = image_data
-        rows, cols = ubyte_data.shape
-        self.orig = Image.new('L',(cols,rows))
-        self.orig.fromstring(ubyte_data.tostring())
+        if dimensions == 1:
+            self.target = gl.GL_TEXTURE_1D
+        elif dimensions == 2:
+            self.target = gl.GL_TEXTURE_2D
+        elif dimensions == 3:
+            self.target = gl.GL_TEXTURE_3D
+        elif dimensions == 'cube':
+            self.target = gl.GL_TEXTURE_CUBE
 
-class TextureBuffer:
-    """Pixel data size n^2 b m^2 that can be loaded as an OpenGL texture."""
-    def __init__(self,size=(256,256),mode="RGB",color=(127,127,127)):
+        self.dimensions = dimensions
+        self.gl_id = gl.glGenTextures(1)
+
+    def __del__(self):
+        gl.glDeleteTextures(self.gl_id)
+
+    def set_min_filter(self, filter):
+        gl.glBindTexture(self.target, self.gl_id)
+        gl.glTexParameteri( self.target, gl.GL_TEXTURE_MIN_FILTER,filter)
+        self.min_filter = filter
+
+    def set_mag_filter(self, filter):
+        gl.glBindTexture( self.target, self.gl_id)
+        gl.glTexParameteri( self.target, gl.GL_TEXTURE_MAG_FILTER, filter)
+        self.mag_filter = filter
+
+    def set_wrap_mode_s(self, wrap_mode):
+        """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        gl.glBindTexture( self.target, self.gl_id)
+        gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_S, wrap_mode)
+        self.wrap_mode_s = wrap_mode
+
+    def set_wrap_mode_t(self, wrap_mode):
+        """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        gl.glBindTexture( self.target, self.gl_id)
+        gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_T, wrap_mode)
+        self.wrap_mode_t = wrap_mode
+
+    def set_wrap_mode_r(self, wrap_mode):
+        """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        gl.glBindTexture( self.target, self.gl_id)
+        gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_R, wrap_mode)
+        self.wrap_mode_r = wrap_mode
+
+    def set_border_color(self, border_color):
+        """Set to a sequence of 4 floats in the range 0.0 to 1.0"""
+        gl.glBindTexture( self.target, self.gl_id)
+        gl.glTexParameteriv( self.target, gl.GL_TEXTURE_BORDER_COLOR, border_color)
+        self.border_color = border_color
+
+    def put_new_image(self,
+                      image_data,
+                      mipmap_level = 0,
+                      border = 0,
+                      check_opengl_errors = 1,
+                      internal_format = gl.GL_RGB,
+                      data_format = None,
+                      data_type = None,
+                      cube_side = None,
+                      ):
+        
+        """Put Numeric array or PIL Image into OpenGL as texture data.
+
+        The image_data parameter contains the texture data.  If it is
+        a Numeric array, it must be 1D, 2D, or 3D data in grayscale or
+        color (RGB or RGBA).  Remember that OpenGL begins its textures
+        from the lower left corner, so image_data[0,:] = 1.0 would set
+        the bottom line of the texture to white, while image_data[:,0]
+        = 1.0 would set the left line of the texture to white.
+
+        The mipmap_level parameter specifies which of the texture
+        object's mipmap arrays you are filling.
+
+        The border parameter specifies the width of the border.
+
+        The check_opengl_errors parameter turns on (more
+        comprehensible) error messages when something goes wrong.  It
+        also slows down performance a little bit.
+
+        The internal_format parameter specifies the format in which
+        the image data is stored on the video card.  See the OpenGL
+        specification for all possible values.
+        
+        If the data_format parameter is None (the default), an attempt
+        is made to guess data_format according to the following
+        description. For Numeric arrays: If image_data.shape is equal
+        to the dimensions of the texture object, image_data is assumed
+        to contain luminance (grayscale) information and data_format
+        is set to GL_LUMINANCE.  If image_data.shape is equal to one
+        plus the dimensions of the texture object, image_data is
+        assumed to contain color information.  If image_data.shape[-1]
+        is 3, this is assumed to be RGB data and data_format is set to
+        GL_RGB.  If, image_data.shape[-1] is 4, this is assumed to be
+        RGBA data and data_format is set to GL_RGBA. For PIL images:
+        the "mode" attribute is queried.
+
+        If the data_type parameter is None (the default), it is set to
+        GL_UNSIGNED_BYTE. For Numeric arrays: image_data is (re)cast
+        as UnsignedInt8 and, if it is a floating point type, values
+        are assumed to be in the range 0.0-1.0 and are scaled to the
+        range 0-255.  If the data_type parameter is not None, the
+        image_data is not rescaled or recast.  Currently only
+        GL_UNSIGNED_BYTE is supported. For PIL images: image_data is
+        used as unsigned bytes.  This is the usual format for common
+        computer graphics files."""
+
+        if type(image_data) == Numeric.ArrayType:
+            if self.dimensions != 'cube':
+                assert(cube_side == None)
+                data_dimensions = len(image_data.shape)
+                assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
+            else:
+                assert(cube_side in TextureObject._cube_map_side_names)
+        elif isinstance(image_data,Image.Image):
+            assert( self.dimensions == 2 )
+        else:
+            raise TypeError("Expecting Numeric array or PIL image")
+
+        # make myself the active texture
+        gl.glBindTexture(self.target, self.gl_id)
+
+        # create local mipmap_array data
+        new_mipmap_array = {}
+
+        if self.dimensions != 'cube':
+            self.mipmap_arrays[mipmap_level] = new_mipmap_array
+        else:
+            self.cube_mipmap_arrays[cube_side][mipmap_level] = new_mipmap_array
+
+        # add data to mipmap array
+        new_mipmap_array['border'] = border
+        new_mipmap_array['internal_format'] = internal_format
+
+        # Determine the data_format, data_type and rescale the data if needed
+        data = image_data
+        
+        if data_format is None: # guess the format of the data
+            if type(data) == Numeric.ArrayType:
+                if len(data.shape) == self.dimensions:
+                    data_format = gl.GL_LUMINANCE
+                elif len(data.shape) == (self.dimensions+1):
+                    if data.shape[-1] == 3:
+                        data_format = gl.GL_RGB
+                    elif data.shape[-1] == 4:
+                        data_format = gl.GL_RGBA
+                    else:
+                        raise RuntimeError("Couldn't determine a format for your image_data.")
+                else:
+                    raise RuntimeError("Couldn't determine a format for your image_data.")
+            else: # instance of Image.Image
+                if data.mode == 'L':
+                    data_format = gl.GL_LUMINANCE
+                elif data.mode == 'RGB':
+                    data_format = gl.GL_RGB
+                elif data.mode in ['RGBA','RGBX']:
+                    data_format = gl.GL_RGBA
+                else:
+                    raise RuntimeError("Couldn't determine a format for your image_data.")
+
+        if data_type is None: # guess the data type
+            data_type = gl.GL_UNSIGNED_BYTE
+            if type(data) == Numeric.ArrayType:
+                if data.typecode() == Numeric.Float:
+                    data = data*255.0
+
+        if data_type == gl.GL_UNSIGNED_BYTE:
+            if type(data) == Numeric.ArrayType:
+                data = data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+        else:
+            raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
+
+        # determine size and make sure its power of 2
         def next_power_of_2(f):
             return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
-        if next_power_of_2(size[0]) != size[0] or next_power_of_2(size[1]) != size[1]:
-            raise ValueError("TextureBuffer size must be power of 2.")
-        self.im = Image.new(mode,size,color)
-            
-    def load(self,mipmap_level=0):
-        """This loads the texture into OpenGL's texture memory."""
-        if mipmap_level == 0: # Normal case
-            self.gl_id = gl.glGenTextures(1)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-            gl.glEnable( gl.GL_TEXTURE_2D )
-        else: # special case, make sure you've called mipmap_level 0 beforehand
-            gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-            gl.glEnable( gl.GL_TEXTURE_2D )
-        if self.im.mode == "RGB":
-            image_data = self.im.tostring("raw","RGB")
+        def check_power_of_2(f):
+            if f != next_power_of_2(f):
+                raise ValueError("image_data does not have all dimensions == n^2")
+        if self.dimensions == 1:
+            # must be Numeric array
+            width = data.shape[0]
+            check_power_of_2(width)
+            new_mipmap_array['width'] = width
+        else:
+            if type(data) == Numeric.ArrayType:
+                width = data.shape[1]
+                height = data.shape[0]
+            else:
+                width, height = data.size
+            check_power_of_2(width)
+            check_power_of_2(height)
+            new_mipmap_array['width'] = width
+            new_mipmap_array['height'] = height
+            if self.dimensions == 3:
+                # must be Numeric array
+                depth = data.shape[2]
+                check_power_of_2(depth)
+                new_mipmap_array['depth'] = height
 
-            # Do error-checking on texture to make sure it will load
+        # check for OpenGL errors
+        if check_opengl_errors:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
-            if type(max_dim) != types.IntType:
-                raise VisionEgg.Core.EggError("An OpenGL screen must be open before creating a texture.")
-            if self.im.size[0] > max_dim or self.im.size[1] > max_dim:
-                self.free() # Delete texture from OpenGL
-                raise TextureTooLargeError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
-            
-            # Because the MAX_TEXTURE_SIZE method is insensitive to the current
-            # state of the video system, another check must be done using
-            # "proxy textures".
-            if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
-                gl.glTexImage2D(gl.GL_PROXY_TEXTURE_2D,            # target
-                                mipmap_level,                                 # level
-                                gl.GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
-                                self.im.size[0],                   # width
-                                self.im.size[1],                   # height
-                                0,                                 # border
-                                gl.GL_RGB,                         # format of image data
-                                gl.GL_UNSIGNED_BYTE,               # type of image data
-                                image_data)                        # image data
+            if width > max_dim:
+                raise TextureTooLargeError("image_data is too wide for your video system.")
+            if self.dimensions == 1:
+                gl.glTexImage1Dub(gl.GL_PROXY_TEXTURE_1D,
+                                mipmap_level,
+                                internal_format,
+                                border,
+                                data_format,
+                                data)
+                if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise TextureTooLargeError("image_data is too wide for your video system.")
+            elif self.dimensions in [2,'cube']:
+                if height > max_dim:
+                    raise TextureTooLargeError("image_data is too tall for your video system.")
+                if self.dimensions == 2:
+                    target = gl.GL_PROXY_TEXTURE_2D
+                else:
+                    target = gl.GL_PROXY_CUBE_MAP
+                if type(data) == Numeric.ArrayType:
+                    gl.glTexImage2Dub(target,
+                                      mipmap_level,
+                                      internal_format,
+                                      border,
+                                      data_format,
+                                      data)
+                else:
+                    raw_data = data.tostring('raw',data.mode,0,-1)
+                    gl.glTexImage2D(target,
+                                    mipmap_level,
+                                    internal_format,
+                                    width,
+                                    height,
+                                    border,
+                                    data_format,
+                                    data_type,
+                                    raw_data)
+                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise TextureTooLargeError("image_data is too wide for your video system.")
+                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
+                    raise TextureTooLargeError("image_data is too tall for your video system.")
+            elif self.dimensions == 3:
+                if max(height,depth) > max_dim:
+                    raise TextureTooLargeError("image_data is too large for your video system.")
+                gl.glTexImage3Dub(gl.GL_PROXY_TEXTURE_3D,
+                                  mipmap_level,
+                                  internal_format,
+                                  border,
+                                  data_format,
+                                  data)
+                if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_3D,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
+                    raise TextureTooLargeError("image_data is too wide for your video system.")
+                if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_3D,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
+                    raise TextureTooLargeError("image_data is too tall for your video system.")
+                if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_3D,mipmap_level,gl.GL_TEXTURE_DEPTH) == 0:
+                    raise TextureTooLargeError("image_data is too deep for your video system.")
             else:
-                gl.glTexImage2D(gl.GL_PROXY_TEXTURE_2D,            # target
-                                mipmap_level,                                 # level
-                                gl.GL_RGB,                         # video RAM internal format: RGB
-                                self.im.size[0],                   # width
-                                self.im.size[1],                   # height
-                                0,                                 # border
-                                gl.GL_RGB,                         # format of image data
-                                gl.GL_UNSIGNED_BYTE,               # type of image data
-                                image_data)                        # image data
+                raise RuntimeError("Unknown number of dimensions.")
                 
-            if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_WIDTH) == 0:
-                self.free() # Delete texture from OpenGL
-                raise TextureTooLargeError("Texture is too wide for your video system!")
-            if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_HEIGHT) == 0:
-                self.free() # Delete texture from OpenGL
-                raise TextureTooLargeError("Texture is too tall for your video system!")
-
-            if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
-                gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
-                                mipmap_level,                                 # level
-                                gl.GL_COMPRESSED_RGB_ARB,          # video RAM internal format: compressed RGB
-                                self.im.size[0],                   # width
-                                self.im.size[1],                   # height
-                                0,                                 # border
-                                gl.GL_RGB,                         # format of image data
-                                gl.GL_UNSIGNED_BYTE,               # type of image data
-                                image_data)                        # image data
+        # No OpenGL error, put the texture in!
+        if self.dimensions == 1:
+            gl.glTexImage1Dub(gl.GL_TEXTURE_1D,
+                              mipmap_level,
+                              internal_format,
+                              border,
+                              data_format,
+                              data)
+        elif self.dimensions in [2,'cube']:
+            if self.dimensions == 2:
+                target = gl.GL_TEXTURE_2D
             else:
-                gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
-                                mipmap_level,                      # mipmap level
-                                gl.GL_RGB,                         # video RAM internal format: RGB                             self.im.size[0],                # width
-                                self.im.size[0],                   # width
-                                self.im.size[1],                   # height
-                                0,                                 # border
-                                gl.GL_RGB,                         # format of image data
-                                gl.GL_UNSIGNED_BYTE,               # type of image data
-                                image_data)                        # image data
+                target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
+                target = getattr(gl,target_name)
+            if type(data) == Numeric.ArrayType:
+                gl.glTexImage2Dub(target,
+                                  mipmap_level,
+                                  internal_format,
+                                  border,
+                                  data_format,
+                                  data)
+            else:
+                raw_data = data.tostring('raw',data.mode,0,-1)
+                gl.glTexImage2D(target,
+                                mipmap_level,
+                                internal_format,
+                                width,
+                                height,
+                                border,
+                                data_format,
+                                data_type,
+                                raw_data)
+        elif self.dimensions == 3:
+            gl.glTexImage3Dub(gl.GL_TEXTURE_3D,
+                              mipmap_level,
+                              internal_format,
+                              border,
+                              data_format,
+                              data)
         else:
-            raise VisionEgg.Core.EggError("Unsupported image mode '%s'"%(self.im.mode,))
-        del self.im  # remove the image from system memory
-        # Set some texture object defaults
-        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
-        return self.gl_id
+            raise RuntimeError("Unknown number of dimensions.")
 
-    def put_sub_image_pil(self,pil_image):#,lower_left, size):
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-        if pil_image.mode == "RGB":
-            image_data = pil_image.tostring("raw","RGB")
-            # XXX Should do error checking to make sure dimensions are OK
-            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
-                               0,                                 # mipmap level
-                               0,                                 # x offset
-                               0,                                 # y offset
-                               pil_image.size[0],                 # width
-                               pil_image.size[1],                 # height
-                               gl.GL_RGB,                         # format of image data
-                               gl.GL_UNSIGNED_BYTE,               # type of image data
-                               image_data)                        # image data
-        elif pil_image.mode == "L":
-            image_data = pil_image.tostring("raw","L")
-            # XXX Should do error checking to make sure dimensions are OK
-            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
-                               0,                                 # mipmap level
-                               0,                                 # x offset
-                               0,                                 # y offset
-                               pil_image.size[0],                 # width
-                               pil_image.size[1],                 # height
-                               gl.GL_LUMINANCE,                   # format of image data
-                               gl.GL_UNSIGNED_BYTE,               # type of image data
-                               image_data)                        # image data
+    def put_sub_image(self,
+                      image_data,
+                      mipmap_level = 0,
+                      offset_tuple = None,
+                      data_format = None,
+                      data_type = None,
+                      cube_side = None,
+                      ):
+
+        """Replace all or part of a texture object.
+
+        This is faster that put_new_image(), and can be used to
+        rapidly update textures.
+
+        The offset_tuple parameter determines the lower left corner
+        (for 2D textures) of your data in pixel units.  For example,
+        (0,0) would be no offset and thus the new data would be placed
+        in the lower left of the texture.
+
+        For an explanation of most parameters, see the
+        put_new_image() method."""
+
+        if type(image_data) == Numeric.ArrayType:
+            if self.dimensions != 'cube':
+                assert(cube_side == None)
+                data_dimensions = len(image_data.shape)
+                assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
+            else:
+                assert(cube_side in TextureObject._cube_map_side_names)
+        elif isinstance(image_data,Image.Image):
+            assert( self.dimensions == 2 )
         else:
-            raise VisionEgg.Core.EggError("Unsupported image mode '%s'"%(pil_image.mode,))
+            raise TypeError("Expecting Numeric array or PIL image")
 
-    def put_sub_image_numpy(self,numpy_image):#,lower_left, size):
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
-        assert( type(numpy_image) == Numeric.ArrayType)
-        if len(numpy_image.shape) == 2:
-            texel_data = (numpy_image*255).astype(Numeric.UnsignedInt8).tostring()
-            # XXX Should do error checking to make sure dimensions are OK
-            gl.glTexSubImage2D(gl.GL_TEXTURE_2D,                  # target
-                               0,                                 # mipmap level
-                               0,                                 # x offset
-                               0,                                 # y offset
-                               numpy_image.shape[0],              # width
-                               numpy_image.shape[1],              # height
-                               gl.GL_LUMINANCE,                         # format of image data
-                               gl.GL_UNSIGNED_BYTE,               # type of image data
-                               texel_data)                        # image data
+        # make myself the active texture
+        gl.glBindTexture(self.target, self.gl_id)
+
+        if self.dimensions != 'cube':
+            previous_mipmap_array = self.mipmap_arrays[mipmap_level]
         else:
-            raise VisionEgg.Core.EggError("Only luminance arrays currently supported.")
+            previous_mipmap_array = self.cube_mipmap_arrays[cube_side][mipmap_level]
 
-    def free(self):
-        gl.glDeleteTextures(self.gl_id)
+        # Determine the data_format, data_type and rescale the data if needed
+        data = image_data
+        
+        if data_format is None: # guess the format of the data
+            if type(data) == Numeric.ArrayType:
+                if len(data.shape) == self.dimensions:
+                    data_format = gl.GL_LUMINANCE
+                elif len(data.shape) == (self.dimensions+1):
+                    if data.shape[-1] == 3:
+                        data_format = gl.GL_RGB
+                    elif data.shape[-1] == 4:
+                        data_format = gl.GL_RGBA
+                    else:
+                        raise RuntimeError("Couldn't determine a format for your image_data.")
+                else:
+                    raise RuntimeError("Couldn't determine a format for your image_data.")
+            else: # instance of Image.Image
+                if data.mode == 'L':
+                    data_format = gl.GL_LUMINANCE
+                elif data.mode == 'RGB':
+                    data_format = gl.GL_RGB
+                elif data.mode in ['RGBA','RGBX']:
+                    data_format = gl.GL_RGBA
+                else:
+                    raise RuntimeError("Couldn't determine a format for your image_data.")
+
+        if data_type is None: # guess the data type
+            data_type = gl.GL_UNSIGNED_BYTE
+            if type(data) == Numeric.ArrayType:
+                if data.typecode() == Numeric.Float:
+                    data = data*255.0
+
+        if data_type == gl.GL_UNSIGNED_BYTE:
+            if type(data) == Numeric.ArrayType:
+                data = data.astype(Numeric.UnsignedInt8) # (re)cast if necessary
+        else:
+            raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
+
+        if self.dimensions == 1:
+            if not offset_tuple:
+                offset_tuple = (0,)
+            if (offset_tuple[0] + data.shape[0]) > previous_mipmap_array['width']:
+                raise TextureTooLargeException("put_sub_image trying to exceed previous width.")
+            raw_data = data.astype(Numeric.UnsignedInt8).tostring()
+            gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
+                               mipmap_level,
+                               offset_tuple[0],
+                               data.shape[0],
+                               data_format,
+                               data_type,
+                               raw_data)
+        elif self.dimensions in [2,'cube']:
+            if self.dimensions == 2:
+                target = gl.GL_TEXTURE_2D
+            else:
+                target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
+                target = getattr(gl,target_name)
+            if not offset_tuple:
+                offset_tuple = (0,0)
+            if type(data) == Numeric.ArrayType:
+                width = data.shape[1]
+                height = data.shape[0]
+                raw_data = data.astype(Numeric.UnsignedInt8).tostring()
+            else:
+                width = data.size[0]
+                height = data.size[1]
+                raw_data = data.tostring('raw',data.mode,0,-1)
+            gl.glTexSubImage2D(target,
+                               mipmap_level,
+                               offset_tuple[0],
+                               offset_tuple[1],
+                               width,
+                               height,
+                               data_format,
+                               data_type,
+                               raw_data)
+        elif self.dimensions == 3:
+            raise RuntimeError("Cannot put_sub_image on 3D texture_object.")
+        else:
+            raise RuntimeError("Unknown number of dimensions.")        
 
 ####################################################################
 #
@@ -411,35 +738,38 @@ class TextureStimulus(TextureStimulusBaseClass):
     def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
 
-        if texture is not None:
-            self.texture = texture
-        else:
-            self.texture = Texture(size=(256,16))
+        # Create an OpenGL texture object this instance "owns"
+        self.texture_object = TextureObject(dimensions=2)
+
+        # Get texture data that goes into texture object
+        if not isinstance(texture,Texture):
+            texture = Texture(texture)
+        self.texture = texture
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+            # send texture to OpenGL
+            self.texture.load( self.texture_object,
+                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
-            while max(self.texture.orig.size) > max_dim:
-                w = self.texture.orig.size[0]/2
-                h = self.texture.orig.size[1]/2
-                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+            while max(self.texture.size) > max_dim:
+                self.texture.make_half_size()
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+                    # send texture to OpenGL
+                    self.texture.load( self.texture_object,
+                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
                 except TextureTooLargeError,x:
-                    w = self.texture.orig.size[0]/2
-                    h = self.texture.orig.size[1]/2
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    self.texture.make_half_size()
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
-                    str(self),w,h),VisionEgg.Core.Message.WARNING)
+                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
 
     def draw(self):
         p = self.parameters
@@ -451,16 +781,14 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_BLEND)
             gl.glEnable(gl.GL_TEXTURE_2D)
-            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
-            
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
+
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
-                
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
             
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
@@ -484,7 +812,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
             gl.glVertex2f(l,t)
             gl.glEnd() # GL_QUADS
-            
+
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
     parameters_and_defaults = {'on':(1,types.IntType),
@@ -497,41 +825,43 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                'upperright':(Numeric.array((1.0,1.0,-1.0)),
                                              Numeric.ArrayType), # in eye coordinates
                                'depth_test':(1,types.IntType),
-                               #'anti_aliasing':(0,types.IntType),
                                }
     def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
 
-        if texture is not None:
-            self.texture = texture
-        else:
-            self.texture = Texture(size=(256,16))
+        # Create an OpenGL texture object this instance "owns"
+        self.texture_object = TextureObject(dimensions=2)
+        
+        # Get texture data that goes into texture object
+        if not isinstance(texture,Texture):
+            texture = Texture(texture)
+        self.texture = texture
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+            # send texture to OpenGL
+            self.texture.load( self.texture_object,
+                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
-            while max(self.texture.orig.size) > max_dim:
-                w = self.texture.orig.size[0]/2
-                h = self.texture.orig.size[1]/2
-                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+            while max(self.texture.size) > max_dim:
+                self.texture.make_half_size()
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+                    # send texture to OpenGL
+                    self.texture.load( self.texture_object,
+                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
                 except TextureTooLargeError,x:
-                    w = self.texture.orig.size[0]/2
-                    h = self.texture.orig.size[1]/2
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    self.texture.make_half_size()
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
-                    str(self),w,h),VisionEgg.Core.Message.WARNING)
-
+                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
+                                                                                
     def draw(self):
         p = self.parameters
         if p.on:
@@ -544,29 +874,18 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             else:
                 gl.glDisable(gl.GL_DEPTH_TEST)
 
-##            # XXX slow, should implement machinery to save state
-##            # within VisionEgg to avoid querying OpenGL itself.
-##            orig_polygon_smooth_state = gl.glIsEnabled(gl.GL_POLYGON_SMOOTH)
-            
-##            if p.anti_aliasing:
-##                gl.glEnable(gl.GL_POLYGON_SMOOTH)
-##                #gl.glHint(gl.GL_POLYGON_SMOOTH_HINT,gl.GL_NICEST) # terrbile on nVidia
-##            else:
-##                gl.glDisable(gl.GL_POLYGON_SMOOTH)
-                
             gl.glDisable(gl.GL_BLEND)
             gl.glEnable(gl.GL_TEXTURE_2D)
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object)
-            
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
+
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
-                
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
-            
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
+                                                                                                    
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             tex = self.texture
@@ -584,12 +903,6 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
             gl.glVertex3fv(p.upperleft)
             gl.glEnd() # GL_QUADS
-##            if orig_polygon_smooth_state:
-##                if not p.anti_aliasing:
-##                    gl.glEnable(gl.GL_POLYGON_SMOOTH)
-##            else:
-##                if p.anti_aliasing:
-##                    gl.glDisable(gl.GL_POLYGON_SMOOTH)
                 
 ####################################################################
 #
@@ -606,44 +919,41 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'dist_from_o':(1.0,types.FloatType) # z if flat, radius if cylinder
                                }
     
-    # To avoid rescaling the texture size, make sure you are using a
-    # viewport with an orthographic projection where left=0,
-    # right=viewport.parameters.size[0],
-    # bottom=0,top=viewport.parameters.size[1].
-
     def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
-        if texture is not None:
-            self.texture = texture
-        else:
-            self.texture = Texture(size=(256,16))
+
+        # Create an OpenGL texture object this instance "owns"
+        self.texture_object = TextureObject(dimensions=2)
+        
+        # Get texture data that goes into texture object
+        if not isinstance(texture,Texture):
+            texture = Texture(texture)
+        self.texture = texture
 
         if not shrink_texture_ok:
-            self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+            # send texture to OpenGL
+            self.texture.load( self.texture_object,
+                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
-            while max(self.texture.orig.size) > max_dim:
-                w = self.texture.orig.size[0]/2
-                h = self.texture.orig.size[1]/2
-                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+            while max(self.texture.size) > max_dim:
+                self.texture.make_half_size()
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
                 try:
-                    self.texture_object = self.texture.load(build_mipmaps=self.constant_parameters.mipmaps_enabled)
+                    # send texture to OpenGL
+                    self.texture.load( self.texture_object,
+                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
                 except TextureTooLargeError,x:
-                    w = self.texture.orig.size[0]/2
-                    h = self.texture.orig.size[1]/2
-                    if min(w,h) <= 0:
-                        raise TextureTooLargeError("Strange: even a 0 size texture is too large.")
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    self.texture.make_half_size()
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
-                    str(self),w,h),VisionEgg.Core.Message.WARNING)
+                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
             
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.rebuild_display_list()
@@ -683,21 +993,17 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glLoadIdentity()
 
             gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
-            # Make sure texture object parameters set the way we want
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,p.texture_mag_filter)
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                     raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,p.texture_min_filter)
-                
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
-                w = self.texture.width
-                h = self.texture.height
+                w,h = self.texture.size
 
                 # calculate texture coordinates based on current angle
                 tex_phase = p.angular_position/-360.0 + 0.5 # offset to match non-flat
@@ -779,7 +1085,7 @@ class SpinningDrum(TextureStimulusBaseClass):
         # to be used by those vertices.
         r = self.parameters.dist_from_o # in OpenGL (arbitrary) units
         circum = 2.0*math.pi*r
-        h = circum/float(self.texture.width)*float(self.texture.height)/2.0
+        h = circum/float(self.texture.size[0])*float(self.texture.size[1])/2.0
 
         num_sides = self.parameters.num_sides
         self.cached_display_list_num_sides = num_sides
@@ -792,8 +1098,8 @@ class SpinningDrum(TextureStimulusBaseClass):
             theta1 = i*deltaTheta
             theta2 = (i+1)*deltaTheta
             # fraction of texture
-            frac1 = (self.texture.buf_lf + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
-            frac2 = (self.texture.buf_lf + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
+            frac1 = (self.texture.buf_lf + (float(i)/num_sides*self.texture.size[0]))/float(self.texture.size[0])
+            frac2 = (self.texture.buf_lf + (float(i+1)/num_sides*self.texture.size[0]))/float(self.texture.size[0])
             # location of sides
             x1 = r*math.cos(theta1)
             z1 = r*math.sin(theta1)
