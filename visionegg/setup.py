@@ -4,20 +4,15 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-description      = "Vision Egg"
-url              = "http://www.visionegg.org/"
+name             = "visionegg"
+version          = "0.9.4a4"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
-version          = "0.9.4a3"
+home_page        = "http://www.visionegg.org/"
 license          = "LGPL" # Lesser GNU Public License
+description      = "2D/3D visual stimulus generation"
+platform         = ['win32','darwin','linux','irix','others']
 
-name             = "visionegg"
-package_dir      = {'VisionEgg'          : 'src',
-                    'VisionEgg.PyroApps' : 'src/PyroApps'}
-packages         = [ 'VisionEgg',
-                     'VisionEgg.PyroApps' ]
-ext_package      = 'VisionEgg'
-ext_modules      = []
 long_description = \
 """The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
@@ -29,26 +24,43 @@ This is release %s. Although it is already suitable for experiments,
 this is still beta software.  Any feedback, questions, or comments,
 should go to the mailing list at visionegg@freelists.org
 
-The Vision Egg is copyright (c) Andrew D. Straw, 2001-2002 and is
+The Vision Egg is copyright (c) Andrew D. Straw, 2001-2003 and is
 distributed under the GNU Lesser General Public License (LGPL).  This
 software comes with absolutely no warranties, either expressed or
 implied.
-
-Thanks, and enjoy!
-Andrew
 """%(version,)
 
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Environment :: Win32 (MS Windows)',
+    'Environment :: X11 Applications',
+    'Environment :: MacOS X',
+    'Environment :: Other Environment',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+    'Natural Language :: English',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: POSIX :: IRIX',
+    'Programming Language :: Python',
+    'Topic :: Multimedia :: Graphics',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Medical Science Apps.',
+    ]
 
+package_dir      = {'VisionEgg'          : 'src',
+                    'VisionEgg.PyroApps' : os.path.join('src','PyroApps')}
+packages         = [ 'VisionEgg',
+                     'VisionEgg.PyroApps' ]
+ext_package      = 'VisionEgg'
+ext_modules      = []  # filled in later
 
 from distutils.core import setup, Extension
 from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError
-import sys
-import os.path
-import glob
-import traceback
-
-
+import sys, os.path, glob, traceback
 
 # Fill out ext_modules
 skip_c_compilation = 0
@@ -60,16 +72,16 @@ if not skip_c_compilation:
                                               'src/darwin_maxpriority_wrap.c']))
     elif sys.platform == 'win32':
         ext_modules.append(Extension(name='_win32_maxpriority',
-                                     sources=['src/win32_maxpriority.c',
-                                              'src/win32_maxpriority_wrap.c']))
+                                     sources=[os.path.join('src','win32_maxpriority.c'),
+                                              os.path.join('src','win32_maxpriority_wrap.c')]))
     elif sys.platform in ['linux2','irix','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
                                               'src/posix_maxpriority_wrap.c']))
 
     # _lib3ds
-    lib3ds_sources = glob.glob('lib3ds/*.c')
-    lib3ds_sources.append('src/_lib3ds.c')
+    lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
+    lib3ds_sources.append(os.path.join('src','_lib3ds.c'))
     if sys.platform == 'darwin':
         extra_link_args = ['-framework','OpenGL']
     else:
@@ -129,12 +141,14 @@ def organize_script_dirs(scripts):
 
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
-data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
-data_files.append( ('VisionEgg/data',['data/az_el.png']) )
-data_files.append( ('VisionEgg/data',['data/visionegg.bmp']) )
-data_files.append( ('VisionEgg/data',['data/visionegg.tif']) )
-data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
-data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
+data_dir = os.path.join('VisionEgg','data')
+demo_dir = os.path.join('VisionEgg','demo')
+data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
+data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
+data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
+data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
+data_files.append( (demo_dir,[os.path.join('demo','README.txt')]) )
+data_files.append( (os.path.join(demo_dir,'tcp'),[os.path.join('demo','tcp','README.txt')]) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
 global extension_build_failed
@@ -172,22 +186,30 @@ class ve_build_ext( build_ext ):
                 extension_build_failed = 1
 
 def main():
-    # Normal distutils stuff
-    setup(name=name,
-          version = version,
-          description = description,
-          url = url,
-          author = author,
-          author_email = author_email,
-          license = license,
-          package_dir=package_dir,
-          packages=packages,
-          ext_package=ext_package,
-          ext_modules=ext_modules,
-          data_files = data_files,
-          long_description = long_description,
-          cmdclass = {'build_ext':ve_build_ext}, # replace Python default build_ext class with ours
-          )
+    # patch distutils if it can't cope with the "classifiers" keyword
+    if sys.version < '2.2.3':
+        from distutils.dist import DistributionMetadata
+        DistributionMetadata.classifiers = None
+        
+    # Call setup - normal distutils behavior
+    setup(
+        name=name,
+        version=version,
+        description=description,
+        author=author,
+        author_email=author_email,
+        url=home_page,
+        license=license,
+        package_dir=package_dir,
+        packages=packages,
+        ext_package=ext_package,
+        ext_modules=ext_modules,
+        data_files=data_files,
+        long_description=long_description,
+        cmdclass={'build_ext':ve_build_ext}, # replace Python default build_ext class with ours
+        classifiers=classifiers
+        )
+
     if extension_build_failed:
         print ('*'*70+'\n')*3
         
@@ -198,9 +220,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
