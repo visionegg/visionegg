@@ -13,10 +13,10 @@
 
 """Handle small target stimulus (client-side)"""
 
-import VisionEgg, string
+import VisionEgg
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
