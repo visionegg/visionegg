@@ -1175,7 +1175,8 @@ class AppWindow(Tkinter.Frame):
         stop_time = start_time + duration_sec
         percent_done = 0
         while percent_done < 100:
-            self.progress.updateProgress(percent_done)
+            if sys.platform != 'darwin': # Mac OS X Tk bug... sigh...
+                self.progress.updateProgress(percent_done)
             time.sleep(0.01) # wait 10 msec
             percent_done = (time.time() - start_time)/duration_sec*100
 
