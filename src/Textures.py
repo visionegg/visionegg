@@ -1389,7 +1389,6 @@ class TextureStimulus(TextureStimulusBaseClass):
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
         if p.on:
             tex = p.texture
-            tex.update()
 
             if p.size is None:
                 # Note: 'size' attribute is not supposed to be part of the API,
@@ -1436,6 +1435,8 @@ class TextureStimulus(TextureStimulusBaseClass):
             r = l + size[0]
             b = lowerleft[1] - p.position[1]
             t = b + size[1]
+
+            tex.update()
 
             if p.mask:
                 p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
