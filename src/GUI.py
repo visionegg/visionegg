@@ -100,11 +100,27 @@ class OpenScreenDialog(Tkinter.Frame):
                             relief=Tkinter.FLAT).pack()
         
         # Maximum priority
-        self.max_priority = Tkinter.BooleanVar()
-        self.max_priority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
+        self.maxpriority = Tkinter.BooleanVar()
+        self.maxpriority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
         Tkinter.Checkbutton(self,
                             text='Maximum priority',
-                            variable=self.max_priority,
+                            variable=self.maxpriority,
+                            relief=Tkinter.FLAT).pack()
+
+        # Sync swap
+        self.sync_swap = Tkinter.BooleanVar()
+        self.sync_swap.set(VisionEgg.config.VISIONEGG_SYNC_SWAP)
+        Tkinter.Checkbutton(self,
+                            text='Synchronize buffer swaps',
+                            variable=self.sync_swap,
+                            relief=Tkinter.FLAT).pack()
+
+        # Record times
+        self.record_times = Tkinter.BooleanVar()
+        self.record_times.set(VisionEgg.config.VISIONEGG_RECORD_TIMES)
+        Tkinter.Checkbutton(self,
+                            text='Record frame timing information',
+                            variable=self.record_times,
                             relief=Tkinter.FLAT).pack()
 
 ##        # texture compression
@@ -171,6 +187,8 @@ class OpenScreenDialog(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
+        VisionEgg.config.VISIONEGG_SYNC_SWAP = self.sync_swap.get()
+        VisionEgg.config.VISIONEGG_RECORD_TIMES = self.record_times.get()
 #        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
