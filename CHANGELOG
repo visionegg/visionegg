@@ -7,6 +7,13 @@ sync if you use this feature!
 
 Must specify duration of stimulus units now, either seconds or frames.
 
+Created new module PlatformDependent, which houses all the platform
+dependent C code.  Re-enabled setting of maximum priority (on linux,
+at least).
+
+Made lower_left and size attributes of Viewport class part of
+parameters, so now they can be changed in realtime.
+
 Changes for 0.8.1:
 ------------------
 
