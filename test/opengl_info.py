@@ -76,12 +76,15 @@ for ext in exts:
     components = string.split(module_name, '.') # make mod refer to deepest module
     for comp in components[1:]:
         mod = getattr(mod, comp)
-    init_name = "glInit%sARB"%string.join(map(string.capitalize,string.split(ext,'_')),'')
-    init_func = getattr(mod,init_name)
-    if init_func():
-        print "OK"
-    else:
-        print "Failed"
+    try:
+        init_name = "glInit%sARB"%string.join(map(string.capitalize,string.split(ext,'_')),'')
+        init_func = getattr(mod,init_name)
+        if init_func():
+            print "OK"
+        else:
+            print "Failed"
+    except:
+        print "Failed (exception raised)"
 
 print
 
