@@ -29,7 +29,7 @@ screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 target = Target2D(size  = (25.0,10.0),
                   color      = (0.0,0.0,0.0,1.0)) # Set the target color (RGBA) black
 
-text = BitmapText( text = "Press Esc to quit, arrow keys to change size of target.", lowerleft = (0,5), color = (0.0,0.0,0.0,0.0))
+text = BitmapText( text = "Press Esc to quit, arrow keys to change size of target.", lowerleft = (0,5), color = (0.0,0.0,0.0,1.0))
 
 # Create a Viewport instance
 viewport = Viewport(screen=screen, stimuli=[target,text])
