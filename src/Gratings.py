@@ -20,8 +20,6 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-__all__ = ['SinGrating2D','SinGrating3D']
-
 
 ####################################################################
 #
@@ -35,8 +33,8 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
                                'contrast':(1.0,types.FloatType),
                                'lowerleft':((0.0,0.0),types.TupleType),
                                'size':((640.0,480.0),types.TupleType),
-                               'wavelength':(128.0,types.FloatType), # in eye coord units
-                               'phase':(0.0,types.FloatType), # degrees
+                               'wavelength':(128.0,types.FloatType), # in eye coord units, 1/spatial frequency
+                               'phase':(0.0,types.FloatType), # degrees [0.0-360.0]
                                'orientation':(0.0,types.FloatType), # 0=right, 90=down
                                'num_samples':(512, types.IntType) # number of spatial samples, should be a power of 2
                                }
