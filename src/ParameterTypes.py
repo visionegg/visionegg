@@ -8,7 +8,7 @@ all = ['AnyOf', 'Boolean', 'Callable', 'AnyClass', 'Instance',
        'Sequence2', 'Sequence3', 'Sequence4', 'Sequence4x4', 'String',
        'UnsignedInteger', 'assert_type', 'get_type', 'is_parameter_type_def']
 
-import types
+import types, warnings
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -35,6 +35,12 @@ def is_parameter_type_def(item_type):
     if type(item_type) == types.ClassType:
         return ParameterTypeDef in get_all_classes_list(item_type)
     elif isinstance(item_type,ParameterTypeDef):
+        return True
+    elif item_type == types.NoneType:
+        warnings.warn("types.NoneType will stop being a supported type "+\
+                      "argument.  Please call "+\
+                      "VisionEgg.ParameterTypes.get_type(None) to get the "+\
+                      "supported value",DeprecationWarning,stacklevel=2)
         return True
     else:
         return False
@@ -243,6 +249,8 @@ def assert_type(check_type,require_type):
     if check_type == require_type:
         return
     else:
+        if check_type in (Integer,UnsignedInteger) and require_type == Boolean:
+            return # let integers pass as booleans
         # XXX doesn't check if Instance is actually instance of proper class
         if isinstance(check_type,ParameterTypeDef):
             check_class = check_type.__class__
