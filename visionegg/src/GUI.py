@@ -507,6 +507,19 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         b2.focus_force()
         b2.bind('<Return>',self.start)
 
+        # Raise our application on darwin
+        if sys.platform == 'darwin':
+            try:
+                # from Jack Jansen email 20 April 2003
+                # WMAvailable() returns true if you can use the window
+                # manager, and as a side #effect it raises the
+                # application to the foreground.
+                import MacOS
+                if not MacOS.WMAvailable():
+                    raise "Cannot reach the window manager"
+            except:
+                pass
+
     def set_gamma_file(self,dummy_arg=None):
         filename = tkFileDialog.askopenfilename(
             parent=self,
