@@ -58,7 +58,7 @@ experiments."""
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.9.0",
+      version = "0.9.1",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
