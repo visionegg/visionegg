@@ -1297,6 +1297,9 @@ class AppWindow(Tkinter.Frame):
             file_stream.close()
 
     def do_single_trial_pre(self, file_stream):
+        # Ensure that we have the most up-to-date values
+        self.stim_frame.send_values() # copy values from Tkinter to self.stim_frame.meta_params and send to server
+
         # if file_stream is None, open default file
         if self.autosave.get():
             duration_sec = self.stim_frame.get_duration_sec()
