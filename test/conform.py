@@ -48,6 +48,7 @@ class VETestCase(unittest.TestCase):
                      'hide_mouse'    : False,
                      'frameless'     : False,
                      'bgcolor'       : (0.0, 0.0, 1.0),
+                     'sync_swap'     : True,
                      }
         try:
             self.screen = VisionEgg.Core.Screen( **kw_params )
@@ -177,7 +178,7 @@ class VETestCase(unittest.TestCase):
         # measure frame rate over a longish period for accuracy
         fps2 = self.screen.measure_refresh_rate(average_over_seconds=1.0)
         percent_diff = abs(fps1-fps2)/max(fps1,fps2)*100.0
-        self.failUnless(percent_diff < 5.0,'measured and queried frame rates different (swap buffers may not be synced to vsync)')
+        self.failUnless(percent_diff < 5.0,'measured (%.1f fps) and queried (%.1f fps) frame rates different (swap buffers may not be synced to vsync)'%(fps2,fps1))
 
     def test_core_fixation_spot(self):
         stimulus = VisionEgg.Core.FixationSpot()
