@@ -32,7 +32,25 @@ from OpenGL.GLUT import *			#   only used for glutSolidTeapot
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-from _visionegg import *                        # internal C code
+############# Import Vision Egg C routines, if they exist #############
+try:
+    from _maxpriority import *                  # pickup set_realtime() function
+except:
+    def set_realtime():
+        """Fake function definition.  Your system doesn't support the real function.
+        """
+        pass
+try:
+    from _dout import *
+except:
+    def toggle_dout():
+        """Fake function definition.  Your system doesn't support the real function.
+        """
+        pass
+    def set_dout(dummy_argument):
+        """Fake function definition.  Your system doesn't support the real function.
+        """
+        pass
 
 ####################################################################
 #
@@ -774,7 +792,7 @@ def graphicsInit(width=640,height=480,fullscreen=0,realtime_priority=0,vsync=0):
         os.environ["__GL_SYNC_TO_VBLANK"] = "1" # This works for nVidia drivers on linux
 
     if realtime_priority:
-        setRealtime()
+        set_realtime()
 
     caption = "Vision Egg"
 
@@ -849,4 +867,4 @@ def swap_buffers():
     """Swap OpenGL buffers."""
 
     pygame.display.flip()
-    toggleDOut()
+    toggle_dout()
