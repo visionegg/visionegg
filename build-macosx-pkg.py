@@ -17,12 +17,12 @@ import setup # from local directory
 
 pkg_name = "%s-%s.macosx.py22"%(setup.name,setup.version,)
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
-bdist_dumb_results = "/Users/astraw/src/visionegg/visionegg-devel/dist/visionegg-0.9.2a1.darwin-5.5-Power_Macintosh.tar.gz"
+bdist_dumb_results = "/Users/astraw/src/visionegg/visionegg-devel/dist/visionegg-%s.darwin-5.5-Power_Macintosh.tar.gz"%(setup.version,)
 
 readme_txt = """
 This package installs the Vision Egg library and associated files, including the demos.
 
-This release exposes two known Mac OS X specific bugs in the Vision Egg's dependencies. Checkbuttons in dialog windows are broken until a button is pressed, and the application always ends with an erroneous error "The application Python has unexpectedly quit." These bugs are not serious, just annoying.
+This release exposes two known Mac OS X specific bugs in the Vision Egg's dependencies. Checkbuttons in dialog windows are broken until a button is pressed, and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." These bugs are not serious, just annoying.
 
 The files will be installed to %s. This is the default Python 2.2 frameworks directory.
 
@@ -38,6 +38,29 @@ readme_txt = string.strip(readme_txt)
 
 welcome_txt = string.join(map(string.strip,string.split(setup.long_description)))
 
+install_sh = """#!/bin/sh
+
+echo "Running post-install script"
+
+SCRIPTS=%s/VisionEgg
+
+echo "Creating a link on your desktop to the VisionEgg script directory."
+ln -s $SCRIPTS ~/Desktop/VisionEgg
+chmod a+wx ~/Desktop/VisionEgg
+"""%(default_location,)
+
+post_install = """#!/bin/sh
+# executed by Installer.app after installing the Vision Egg for the first time.
+
+/bin/sh $1/install.sh
+"""
+
+post_upgrade = """#!/bin/sh
+# executed by Installer.app after upgrading. (The Vision Egg was previously installed.)
+
+/bin/sh $1/install.sh
+"""
+
 packageInfoDefaults = {
     'Title': None,
     'Version': None,
@@ -48,6 +71,7 @@ packageInfoDefaults = {
     'NeedsAuthorization': 'NO',
     'DisableStop': 'NO',
     'UseUserMask': 'YES',
+    'OverwritePermissions' : 'NO',
     'Application': 'NO',
     'Relocatable': 'NO',
     'Required': 'NO',
@@ -84,6 +108,8 @@ os.mkdir(bdist_dumb_dir)
 os.chdir(bdist_dumb_dir)
 cmd = "tar -xvzf %s"%(bdist_dumb_results,)
 os.system(cmd)
+##cmd = "sudo chown -R root.admin *"
+##os.system(cmd)
 os.chdir(orig_dir)
 
 pkg_source = os.path.join(bdist_dumb_dir,"Library/Frameworks/Python.framework/Versions/Current")
@@ -101,8 +127,11 @@ bom_file = os.path.abspath(os.path.join(pkg_dir,"%s.bom"%(pkg_name,)))
 pax_file = os.path.abspath(os.path.join(pkg_dir,"%s.pax"%(pkg_name,)))
 info_file = os.path.abspath(os.path.join(pkg_dir,"%s.info"%(pkg_name,)))
 sizes_file = os.path.abspath(os.path.join(pkg_dir,"%s.sizes"%(pkg_name,)))
+post_install_file = os.path.abspath(os.path.join(pkg_dir,"%s.post_install"%(pkg_name,)))
+post_upgrade_file = os.path.abspath(os.path.join(pkg_dir,"%s.post_upgrade"%(pkg_name,)))
 welcome_file = os.path.abspath(os.path.join(pkg_dir,"Welcome.txt"))
 readme_file = os.path.abspath(os.path.join(pkg_dir,"ReadMe.txt"))
+install_sh_file = os.path.abspath(os.path.join(pkg_dir,"install.sh"))
 
 make_bom_command = string.join(["mkbom",pkg_source,bom_file])
 print make_bom_command
@@ -125,7 +154,7 @@ os.system("pax -f %s"%(pax_file,))
 pkg_info = copy.deepcopy(packageInfoDefaults)
 pkg_info['Title'] = "Vision Egg %s"%(setup.version)
 pkg_info['Version'] = setup.version
-pkg_info['Description'] = string.join(map(string.strip,string.split(setup.long_description)))
+pkg_info['Description'] = "Vision Egg for Mac OS X (http://www.visionegg.org)"
 pkg_info['DefaultLocation'] = default_location
 pkg_info['NeedsAuthorization'] =  "YES"
 
@@ -170,5 +199,28 @@ f.write(readme_txt)
 print "Writing %s"%(welcome_file,)
 f = open(welcome_file, "w")
 f.write(welcome_txt)
+
+print "Writing %s"%(install_sh_file,)
+f = open(install_sh_file, "w")
+f.write(install_sh)
+f.close()
+os.chmod(install_sh_file,0555) # a+rw
+
+print "Writing %s"%(post_install_file,)
+f = open(post_install_file, "w")
+f.write(post_install)
+f.close()
+os.chmod(post_install_file,0555) # a+rw
+
+print "Writing %s"%(post_upgrade_file,)
+f = open(post_upgrade_file, "w")
+f.write(post_upgrade)
+f.close()
+os.chmod(post_upgrade_file,0555) # a+rw
+
+##os.chdir(bdist_dumb_dir)
+##cmd = "sudo chown -R astraw *"
+##os.system(cmd)
+##os.chdir(orig_dir)
 
 shutil.rmtree(bdist_dumb_dir)
