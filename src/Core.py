@@ -408,14 +408,13 @@ class Stimulus:
     query its value and restore it later.
     """
     parameters_and_defaults = {} # empty for base Stimulus class
-    
+
     def __init__(self,**kw):
+
         self.parameters = Parameters() # create self.parameters
         
         # Get a list of all classes this instance is derived from
-        classes = [self.__class__]
-        for base_class in self.__class__.__bases__:
-            classes.append(base_class)
+        classes = recursive_base_class_finder(self.__class__)
 
         # Fill self.parameters with parameter names and set to default values
         for klass in classes:
