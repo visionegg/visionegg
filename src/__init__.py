@@ -60,9 +60,10 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5a1'
+release_name = '0.9.5a2'
 
-import Configuration # a Vision Egg module
+import VisionEgg.Configuration
+import VisionEgg.ParameterTypes as ve_types
 import string, os, sys, time, types # standard python modules
 import Numeric
 import warnings
@@ -77,6 +78,13 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 # Make sure we don't have an old version of the VisionEgg installed.
 # (There used to be a module named VisionEgg.VisionEgg.  If it still
 # exists, it will randomly crash things.)
@@ -89,7 +97,7 @@ else:
     raise RuntimeError('Outdated "VisionEgg.py" and/or "VisionEgg.pyc" found.  Please delete from your VisionEgg package directory.')
 
 ############# Get config defaults #############
-config = Configuration.Config()
+config = VisionEgg.Configuration.Config()
 
 ############# Default exception handler #############
 
@@ -179,13 +187,10 @@ def time_func():
 
 def timing_func():
     """DEPRECATED.  Use time_func instead"""
-    if globals().has_key('_gave_timing_func_warning'):
-        global _gave_timing_func_warning
-        _gave_timing_func_warning = 1
-        warnings.warn("timing_func() has been changed to time_func(). "+\
-                      "This warning will only be issued once, but each call to "+\
-                      "timing_func() will be slower than if you called time_func() "+\
-                      "directly",DeprecationWarning, stacklevel=2)
+    warnings.warn("timing_func() has been changed to time_func(). "+\
+                                 "This warning will only be issued once, but each call to "+\
+                                 "timing_func() will be slower than if you called time_func() "+\
+                                 "directly",DeprecationWarning, stacklevel=2)
     return time_func()
 
 ####################################################################
@@ -231,21 +236,6 @@ class ClassWithParameters:
     the value is a tuple of length 2 containing the default value and
     the type.  For example, an acceptable dictionary would be
     {"parameter1" : (1.0, types.FloatType)}
-    
-    The name "constant_parameters_and_defaults" is slightly
-    misleading. Although the distinction is fine, a more precise name
-    would be "immutable" rather than "constant".  The Vision Egg does
-    no checking to see if applications follow these rules, but to
-    violate them risks undefined behavior.  Here's a quote from the
-    Python Reference Manual that describes immutable containers, such
-    as a tuple:
-
-        The value of an immutable container object that contains a
-        reference to a mutable object can change when the latter's
-        value is changed; however the container is still considered
-        immutable, because the collection of objects it contains
-        cannot be changed. So, immutability is not strictly the same
-        as having an unchangeable value, it is more subtle.
 
     """
     parameters_and_defaults = {} # empty for base class
@@ -281,31 +271,29 @@ class ClassWithParameters:
                         raise ValueError("Definition of parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
                     value,tipe = klass.parameters_and_defaults[parameter_name]
 
-                    if type(tipe) not in [types.TypeType,types.ClassType]:
+                    if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
                     if kw.has_key(parameter_name): 
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
-                    # Allow None to pass as acceptable value -- lets __init__ set own default
-                    if type(value) != types.NoneType:
+                    # Allow None to pass as acceptable value -- lets __init__ set own defaults
+                    if type(value) != type(None):
                         # Check anything other than None
-                        if not tipe == CallableType:
-                            if not isinstance(value,tipe):
-                                if type(value) != Numeric.ArrayType:
-                                    value_str = str(value)
+                        if not tipe.verify(value):
+                            if type(value) != Numeric.ArrayType:
+                                value_str = str(value)
+                            else:
+                                if Numeric.multiply.reduce(value.shape) < 10:
+                                    value_str = str(value) # print array if it's smallish
                                 else:
-                                    if Numeric.multiply.reduce(value.shape) < 10:
-                                        value_str = str(value) # print array if it's smallish
-                                    else:
-                                        value_str = "(array data)" # don't pring if it's big
-                                raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value_str,type(value),tipe))
-                        else: # make sure it's a callable type
-                            if not type(value) == types.FunctionType:
-                                if not type(value) == types.MethodType:
-                                    raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
+                                    value_str = "(array data)" # don't pring if it's big
+                            raise TypeError("Parameter '%s' value %s is type %s (not type %s) in %s"%(parameter_name,value_str,type(value),tipe,self))
                     setattr(self.parameters,parameter_name,value)
                 done_parameters_and_defaults.append(klass.parameters_and_defaults)
+
+            # Same thing as above for self.constant_parameters:
+            #
             # Create self.constant_parameters and set values to keyword argument if found,
             # otherwise to default value.
             #
@@ -323,18 +311,25 @@ class ClassWithParameters:
                     if len(klass.constant_parameters_and_defaults[parameter_name]) != 2:
                         raise ValueError("Definition of constant parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
                     value,tipe = klass.constant_parameters_and_defaults[parameter_name]
-                    if type(tipe) not in [types.TypeType,types.ClassType]:
+                    
+                    if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of constant parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
                     if kw.has_key(parameter_name): 
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own default
-                    if type(value) != types.NoneType:
+                    if type(value) != type(None):
                         # Check anything other than None
-                        if not isinstance(value,tipe):
-                            if not (type(value) == types.IntType and tipe == types.FloatType): # allow ints to pass as floats
-                                raise TypeError("Constant parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
+                        if not tipe.verify(value):
+                            if type(value) != Numeric.ArrayType:
+                                value_str = str(value)
+                            else:
+                                if Numeric.multiply.reduce(value.shape) < 10:
+                                    value_str = str(value) # print array if it's smallish
+                                else:
+                                    value_str = "(array data)" # don't pring if it's big
+                            raise TypeError("Constant parameter '%s' value %s is type %s (not type %s) in %s"%(parameter_name,value_str,type(value),tipe,self))
                     setattr(self.constant_parameters,parameter_name,value)
                 done_constant_parameters_and_defaults.append(klass.constant_parameters_and_defaults)
 
@@ -348,9 +343,9 @@ class ClassWithParameters:
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
             if klass.constant_parameters_and_defaults.has_key(parameter_name):
-                return 1
+                return True
         # The for loop only completes if parameter_name is not in any subclass
-        return 0
+        return False
 
     def get_specified_type(self,parameter_name):
         # Get a list of all classes this instance is derived from
@@ -372,34 +367,16 @@ class StaticClassMethod:
         self.__call__ = method
 
 def get_type(value):
-    """Get the type of a value.
+    warnings.warn("VisionEgg.get_type() has been moved to "+\
+                  "VisionEgg.ParameterTypes.get_type()",
+                  DeprecationWarning, stacklevel=2)
+    return  ve_types.get_type(value)
 
-    This implements a Vision Egg specific version of "type" used for
-    type checking by the VisionEgg.Core.Controller class. Return the
-    type if it the value is not an instance of a class, return the
-    class if it is."""
-    
-    my_type = type(value)
-    if my_type == types.InstanceType:
-        my_type = value.__class__
-    return my_type
-
-def assert_type(check_type,require_type):
-    """Perform type check for the Vision Egg.
-
-    All type checking done to verify that a parameter is set to the
-    type defined in its class's "parameters_and_defaults" attribute
-    should call use method."""
-    
-    if check_type != require_type:
-        type_error = 0
-        if type(require_type) == types.ClassType:
-            if not issubclass( check_type, require_type ):
-                type_error = 1
-        else:
-            type_error = 1
-        if type_error:
-            raise TypeError("%s is not of type %s"%(check_type,require_type))
+def assert_type(*args):
+    warnings.warn("VisionEgg.assert_type() has been moved to "+\
+                  "VisionEgg.ParameterTypes.assert_type()",
+                  DeprecationWarning, stacklevel=2)
+    return ve_types.assert_type(*args)
 
 def _get_lowerleft(position,anchor,size):
     """Private helper function"""

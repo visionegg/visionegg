@@ -12,7 +12,12 @@ considered unstable.
 # Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL)
 
+all = ['Analog', 'Buffered', 'Channel', 'ChannelParameters',
+       'DaqMode', 'Device', 'Digital', 'Functionality', 'Immediate', 'Input',
+       'Output', 'SignalType', 'Trigger']
+
 import VisionEgg
+import VisionEgg.ParameterTypes as ve_types
 import types, string
 
 __version__ = VisionEgg.release_name
@@ -27,7 +32,10 @@ class ChannelParameters(VisionEgg.ClassWithParameters):
     pass
 
 class SignalType(ChannelParameters):
-    constant_parameters_and_defaults = {'units':('Unknown units',types.StringType)}
+    constant_parameters_and_defaults = {
+        'units':('Unknown units',
+                 ve_types.String),
+        }
     def __init__(self,**kw):
         if self.__class__ == SignalType:
             raise RuntimeError("Trying to instantiate abstract base class.")
@@ -35,8 +43,11 @@ class SignalType(ChannelParameters):
             ChannelParameters.__init__(self,**kw)
 
 class Analog(SignalType):
-    constant_parameters_and_defaults = {'gain':(1.0,types.FloatType),
-                                        'offset':(0.0,types.FloatType)}
+    constant_parameters_and_defaults = {
+        'gain':(1.0,
+                ve_types.Real),
+        'offset':(0.0,
+                  ve_types.Real)}
 
 class Digital(SignalType):
     pass
@@ -49,9 +60,14 @@ class DaqMode(ChannelParameters):
             ChannelParameters.__init__(self,**kw)
 
 class Buffered(DaqMode):
-    parameters_and_defaults = {'sample_rate_hz':(5000.0,types.FloatType),
-                               'duration_sec':(5.0,types.FloatType),
-                               'trigger':(None,Trigger)}
+    parameters_and_defaults = {
+        'sample_rate_hz':(5000.0,
+                          ve_types.Real),
+        'duration_sec':(5.0,
+                        ve_types.Real),
+        'trigger':(None,
+                   ve_types.Instance(Trigger)),
+        }
 
 class Immediate(DaqMode):
     pass
@@ -72,9 +88,14 @@ class Output(Functionality):
         raise RuntimeError("Must override put_data method with daq implementation!")
 
 class Channel(VisionEgg.ClassWithParameters):
-    constant_parameters_and_defaults = { 'signal_type' : (None,SignalType),
-                                         'daq_mode' : (None,DaqMode),
-                                         'functionality' : (None,Functionality)}
+    constant_parameters_and_defaults = {
+        'signal_type' : (None,
+                         ve_types.Instance(SignalType)),
+        'daq_mode' : (None,
+                      ve_types.Instance(DaqMode)),
+        'functionality' : (None,
+                           ve_types.Instance(Functionality)),
+        }
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.constant_parameters.signal_type.channel = self

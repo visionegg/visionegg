@@ -3,6 +3,10 @@
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
+all = ['AlphaGratingCommon', 'LuminanceGratingCommon',
+       'NumSamplesTooLargeError', 'SinGrating2D', ]
+
+
 ####################################################################
 #
 #        Import all the necessary packages
@@ -12,6 +16,7 @@
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Textures
+import VisionEgg.ParameterTypes as ve_types
 import Numeric
 import math, types, string
 import OpenGL.GL as gl
@@ -32,10 +37,20 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing luminance gratings."""
 
-    parameters_and_defaults = {'bit_depth':(8,types.IntType)}
+    parameters_and_defaults = {
+        'bit_depth':(8,
+                     ve_types.UnsignedInteger),
+        }
     
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
@@ -86,7 +101,10 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
 
     This class is currently not used by any other classes."""
 
-    parameters_and_defaults = {'bit_depth':(8,types.IntType)}
+    parameters_and_defaults = {
+        'bit_depth':(8,
+                     ve_types.UnsignedInteger),
+        }
     
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
@@ -131,23 +149,42 @@ class SinGrating2D(LuminanceGratingCommon):
     horizontal and vertical, draw a large grating in a small viewport.
     (The viewport will clip anything beyond its edges.)"""
 
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'mask':(None,VisionEgg.Textures.Mask2D), # allows window onto otherwise (tilted) rectangular grating
-                               'contrast':(1.0,types.FloatType),
-                               'max_alpha':(1.0,types.FloatType), # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
-                               'pedestal':(0.5,types.FloatType),
-                               'center':((320.0,240.0),types.TupleType),
-                               'depth':(None,types.FloatType), # if not None, turns on depth testing and allows for occlusion
-                               'size':((640.0,480.0),types.TupleType), # in eye coordinates
-                               'spatial_freq':(1.0/128.0,types.FloatType), # cycles/eye coord units
-                               'temporal_freq_hz':(5.0,types.FloatType), # hz
-                               't0_time_sec_absolute':(None,types.FloatType),
-                               'phase_at_t0':(0.0,types.FloatType), # degrees [0.0-360.0]
-                               'orientation':(0.0,types.FloatType), # 0=right, 90=down
-                               'num_samples':(512, types.IntType), # number of spatial samples, should be a power of 2
-                               'color1':((1.0, 1.0, 1.0, 1.0), types.TupleType), # alpha is ignored for max_alpha value
-                               'color2':(None, types.TupleType), # ignored when None
-                               }
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'mask':(None, # allows window onto otherwise (tilted) rectangular grating
+                ve_types.Instance(VisionEgg.Textures.Mask2D)),
+        'contrast':(1.0,
+                    ve_types.Real),
+        'pedestal':(0.5,
+                    ve_types.Real),
+        'center':((320.0,240.0), # in eye coordinates
+                  ve_types.Sequence2(ve_types.Real)),
+        'depth':(None, # if not None, turns on depth testing and allows for occlusion
+                 ve_types.Real),
+        'size':((640.0,480.0), # in eye coordinates
+                ve_types.Sequence2(ve_types.Real)),
+        'spatial_freq':(1.0/128.0, # cycles/eye coord units
+                        ve_types.Real), 
+        'temporal_freq_hz':(5.0, # hz
+                            ve_types.Real),
+        't0_time_sec_absolute':(None,
+                                ve_types.Real),
+        'phase_at_t0':(0.0, # degrees [0.0-360.0]
+                       ve_types.Real),
+        'orientation':(0.0, # 0=right, 90=down
+                       ve_types.Real),
+        'num_samples':(512, # number of spatial samples, should be a power of 2
+                       ve_types.Integer),
+        'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
+                     ve_types.Real), 
+        'color1':((1.0, 1.0, 1.0), # alpha is ignored (if given) -- use max_alpha parameter
+                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                 ve_types.Sequence4(ve_types.Real))),
+        'color2':(None, # alpha is ignored (if given) -- use max_alpha parameter
+                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                 ve_types.Sequence4(ve_types.Real))),
+        }
     
     def __init__(self,**kw):
         LuminanceGratingCommon.__init__(self,**kw)

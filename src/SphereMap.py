@@ -8,6 +8,7 @@ import math, types, string
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.Gratings
+import VisionEgg.ParameterTypes as ve_types
 
 import Numeric  				# Numeric Python package
 import Image
@@ -19,16 +20,32 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     """Mercator mapping of rectangular texture onto sphere."""
-    parameters_and_defaults = {'contrast':(1.0,types.FloatType),
-                               'on':(1,types.IntType),
-                               'center_azimuth':(0.0,types.FloatType), # 0=right, 90=right
-                               'center_elevation':(0.0,types.FloatType), # 0=right, 90=down
-                               # Changing these parameters will cause re-computation of display list (may cause frame skip)
-                               'radius':(1.0,types.FloatType),
-                               'slices':(30,types.IntType),
-                               'stacks':(30,types.IntType)}
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'contrast':(1.0,
+                    ve_types.Real),
+        'center_azimuth':(0.0, # 0=right, 90=right
+                          ve_types.Real),
+        'center_elevation':(0.0, # 0=right, 90=up
+                            ve_types.Real),
+        
+        # Changing these parameters will cause re-computation of display list (may cause frame skip)
+        'radius':(1.0,
+                  ve_types.Real),
+        'slices':(30,
+                  ve_types.UnsignedInteger),
+        'stacks':(30,
+                  ve_types.UnsignedInteger)}
 
     def __init__(self,**kw):
         VisionEgg.Textures.TextureStimulusBaseClass.__init__(self,**kw)
@@ -152,21 +169,36 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
 
 class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     """Map 2D sinusoidal grating onto sphere."""
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'contrast':(1.0,types.FloatType),
-                               'spatial_freq_cpd':(1.0/36.0,types.FloatType), # cycles/degree
-                               'temporal_freq_hz':(5.0,types.FloatType), # hz
-                               't0_time_sec_absolute':(None,types.FloatType),
-                               'phase_at_t0':(0.0,types.FloatType), # degrees
-                               'orientation':(0.0,types.FloatType), # 0=right, 90=down
-                               'grating_center_azimuth':(0.0,types.FloatType), # 0=right, 90=down
-                               'grating_center_elevation':(0.0,types.FloatType), # 0=right, 90=down
-                               # changing this parameters causes re-drawing of the texture object and may cause frame skipping
-                               'num_samples':(1024,types.IntType), # number of spatial samples, should be a power of 2
-                               # Changing these parameters will cause re-computation of display list (may cause frame skip)
-                               'radius':(1.0,types.FloatType),
-                               'slices':(30,types.IntType),
-                               'stacks':(30,types.IntType)}
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'contrast':(1.0,
+                    ve_types.Real),
+        'spatial_freq_cpd':(1.0/36.0, # cycles/degree
+                            ve_types.Real),
+        'temporal_freq_hz':(5.0, # hz
+                            ve_types.Real),
+        't0_time_sec_absolute':(None,
+                                ve_types.Real),
+        'phase_at_t0':(0.0,  # degrees
+                       ve_types.Real),
+        'orientation':(0.0,  # 0=right, 90=down
+                       ve_types.Real),
+        'grating_center_azimuth':(0.0, # 0=right, 90=down
+                                  ve_types.Real),
+        'grating_center_elevation':(0.0, # 0=right, 90=down
+                                    ve_types.Real),
+        # changing this parameters causes re-drawing of the texture object and may cause frame skipping
+        'num_samples':(1024,  # number of spatial samples, should be a power of 2
+                       ve_types.UnsignedInteger),
+        # Changing these parameters will cause re-computation of display list (may cause frame skip)
+        'radius':(1.0,
+                  ve_types.Real),
+        'slices':(30,
+                  ve_types.UnsignedInteger),
+        'stacks':(30,
+                  ve_types.UnsignedInteger),
+        }
     
     def __init__(self,**kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self,**kw)
@@ -347,20 +379,32 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     Note that the bit depth of the alpha component of the framebuffer
     is important for producing smooth transitions in color."""
     
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'window_center_elevation':(0.0,types.FloatType),
-                               'window_center_azimuth':(0.0,types.FloatType),
-                               'opaque_color':((0.5,0.5,0.5,0.0),types.TupleType),
-                               # changing these parameters causes re-drawing of the texture object and may cause frame skipping
-                               'window_shape':('gaussian',types.StringType), # can be 'circle' or 'gaussian'
-                               'window_shape_radius_parameter':(36.0,types.FloatType), # radius (degrees) for circle, sigma (degrees) for gaussian
-                               'num_s_samples':(512, types.IntType), # number of horizontal spatial samples, should be a power of 2
-                               'num_t_samples':(512, types.IntType), # number of vertical spatial samples, should be a power of 2
-                               # Changing these parameters will cause re-computation of display list (may cause frame skip)
-                               'radius':(1.0,types.FloatType),
-                               'slices':(30,types.IntType),
-                               'stacks':(30,types.IntType),
-                               }
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'window_center_elevation':(0.0,
+                                   ve_types.Real),
+        'window_center_azimuth':(0.0,
+                                 ve_types.Real),
+        'opaque_color':((0.5,0.5,0.5,0.0),
+                        ve_types.Sequence4(ve_types.Real)),
+        # changing these parameters causes re-drawing of the texture object and may cause frame skipping
+        'window_shape':('gaussian', # can be 'circle' or 'gaussian'
+                        ve_types.String), 
+        'window_shape_radius_parameter':(36.0,
+                                         ve_types.Real), # radius (degrees) for circle, sigma (degrees) for gaussian
+        'num_s_samples':(512,  # number of horizontal spatial samples, should be a power of 2
+                         ve_types.UnsignedInteger),
+        'num_t_samples':(512,  # number of vertical spatial samples, should be a power of 2
+                         ve_types.UnsignedInteger),
+        # Changing these parameters will cause re-computation of display list (may cause frame skip)
+        'radius':(1.0,
+                  ve_types.Real),
+        'slices':(30,
+                  ve_types.UnsignedInteger),
+        'stacks':(30,
+                  ve_types.UnsignedInteger),
+        }
     
     def __init__(self, **kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self, **kw )

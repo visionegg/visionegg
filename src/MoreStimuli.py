@@ -1,7 +1,9 @@
 """Assorted stimuli"""
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
+
+all = ['Rectangle3D', 'Target2D', ]
 
 ####################################################################
 #
@@ -9,8 +11,9 @@
 #
 ####################################################################
 
-import types
 import VisionEgg.Core
+import VisionEgg.ParameterTypes as ve_types
+
 import OpenGL.GL
 import Numeric
 gl = OpenGL.GL
@@ -22,20 +25,29 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 class Target2D(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'on':(1,
-                                     types.IntType),
-                               'color':((1.0,1.0,1.0,1.0),
-                                        types.TupleType),
-                               'anti_aliasing':(1,
-                                                types.IntType),
-                               'orientation':(0.0,
-                                              types.FloatType),
-                               'center':((320.0,240.0),
-                                         types.TupleType),
-                               'size':((64.0,16.0),
-                                       types.TupleType)}
-                        
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'color':((1.0,1.0,1.0,1.0),
+                 ve_types.Sequence4(ve_types.Real)),
+        'anti_aliasing':(True,
+                         ve_types.Boolean),
+        'orientation':(0.0,
+                       ve_types.Real),
+        'center':((320.0,240.0),
+                  ve_types.Sequence2(ve_types.Real)),
+        'size':((64.0,16.0),
+                ve_types.Sequence2(ve_types.Real)),
+        }
+    
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         self._gave_alpha_warning = 0
@@ -104,15 +116,20 @@ class Target2D(VisionEgg.Core.Stimulus):
                 gl.glDisable(gl.GL_LINE_SMOOTH)
 
 class Rectangle3D(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'on':(1,
-                                     types.IntType),
-                               'color':((1.0,1.0,1.0,1.0),
-                                        types.TupleType),
-                               'vertex1':(Numeric.array(( -10.0, 0.0, -10.0)),Numeric.ArrayType),
-                               'vertex2':(Numeric.array(( -10.0, 0.0,  10.0)),Numeric.ArrayType),
-                               'vertex3':(Numeric.array((  10.0, 0.0,  10.0)),Numeric.ArrayType),
-                               'vertex4':(Numeric.array((  10.0, 0.0, -10.0)),Numeric.ArrayType),
-                               }
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'color':((1.0,1.0,1.0,1.0),
+                 ve_types.Sequence4(ve_types.Real)),
+        'vertex1':(( -10.0, 0.0, -10.0),
+                   ve_types.Sequence3(ve_types.Real)),
+        'vertex2':(( -10.0, 0.0,  10.0),
+                   ve_types.Sequence3(ve_types.Real)),
+        'vertex3':((  10.0, 0.0,  10.0),
+                   ve_types.Sequence3(ve_types.Real)),
+        'vertex4':((  10.0, 0.0, -10.0),
+                   ve_types.Sequence3(ve_types.Real)),
+        }
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
 

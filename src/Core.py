@@ -48,6 +48,14 @@ message -- Instance of Message class
 # Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
+all = ['ConstantController', 'Controller', 'EggError',
+       'EncapsulatedController', 'EvalStringController',
+       'ExecStringController', 'FixationSpot', 'FunctionController',
+       'Message', 'OrthographicProjection', 'PerspectiveProjection',
+       'Presentation', 'Projection', 'Screen', 'SimplePerspectiveProjection',
+       'Stimulus', 'Viewport', 'add_gl_assumption', 'check_gl_assumptions',
+       'get_default_screen', 'message', 'swap_buffers']
+
 ####################################################################
 #
 #        Import all the necessary packages
@@ -56,7 +64,8 @@ message -- Instance of Message class
 
 import sys, types, string, math, time, os       # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
-import PlatformDependent                        # platform dependent Vision Egg C code
+import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
+import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
@@ -77,9 +86,16 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 if sys.platform == "darwin":
     # override pygame's default icon
-    PlatformDependent.set_icon(os.path.abspath(
+    VisionEgg.PlatformDependent.set_icon(os.path.abspath(
         os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
                      'data','visionegg.tif')))
+
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
 
 ####################################################################
 #
@@ -125,22 +141,27 @@ class Screen(VisionEgg.ClassWithParameters):
     alpha_bits -- Integer (or None if not supported) specifying framebuffer depth
 
     """
-    constant_parameters_and_defaults = {'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
-                                                 VisionEgg.config.VISIONEGG_SCREEN_H),
-                                                types.TupleType),
-                                        'fullscreen':(VisionEgg.config.VISIONEGG_FULLSCREEN,
-                                                      types.IntType),
-                                        'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                                                         types.IntType),
-                                        'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                                                       types.IntType),
-                                        'hide_mouse':(VisionEgg.config.VISIONEGG_HIDE_MOUSE,
-                                                      types.IntType),
-                                        'frameless':(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
-                                                           types.IntType)}
+    
+    constant_parameters_and_defaults = {
+        'size':((VisionEgg.config.VISIONEGG_SCREEN_W,
+                 VisionEgg.config.VISIONEGG_SCREEN_H),
+                ve_types.Sequence2(ve_types.Real)),
+        'fullscreen':(VisionEgg.config.VISIONEGG_FULLSCREEN,
+                      ve_types.Boolean),
+        'preferred_bpp':(VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                         ve_types.UnsignedInteger),
+        'maxpriority':(VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                       ve_types.Boolean),
+        'hide_mouse':(VisionEgg.config.VISIONEGG_HIDE_MOUSE,
+                      ve_types.Boolean),
+        'frameless':(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                     ve_types.Boolean),
+        }
 
-    parameters_and_defaults = {'bgcolor':((0.5,0.5,0.5,0.0),
-                                          types.TupleType)}
+    parameters_and_defaults = {
+        'bgcolor':((0.5,0.5,0.5,0.0),
+                   ve_types.Sequence4(ve_types.Real)),
+        }
     
     def __init__(self,**kw):
         
@@ -163,7 +184,7 @@ class Screen(VisionEgg.ClassWithParameters):
 
         # Attempt to synchronize buffer swapping with vertical sync
         if VisionEgg.config.VISIONEGG_SYNC_SWAP:
-            sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
+            sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
         # Initialize pygame stuff
         if sys.platform == "darwin": # bug in Mac OS X version of pygame
@@ -321,7 +342,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # Attempt to synchronize buffer swapping with vertical sync again
         if VisionEgg.config.VISIONEGG_SYNC_SWAP:
             if not sync_success:
-                if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
+                if not VisionEgg.PlatformDependent.sync_swap_with_vbl_post_gl_init():
                     message.add(
                         
                         """Although the configuration variable
@@ -349,7 +370,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # thing, not a screen-level thing, but it fits reasonably well
         # here for now.)
         if self.constant_parameters.maxpriority:
-            PlatformDependent.set_priority() # defaults to max priority
+            VisionEgg.PlatformDependent.set_priority() # defaults to max priority
             
         if hasattr(VisionEgg.config,'_open_screens'):
             VisionEgg.config._open_screens.append(self)
@@ -481,13 +502,16 @@ class Screen(VisionEgg.ClassWithParameters):
 
         Call pygame.display.set_gamma_ramp, if available.
 
-        Returns 1 on success, 0 otherwise."""
+        Returns True on success, False otherwise."""
         if not hasattr(pygame.display,"set_gamma_ramp"):
             message.add(
                 """Need pygame 1.5 or greater for set_gamma_ramp
                 function.""", level=Message.ERROR)
-            return 0
-        return pygame.display.set_gamma_ramp(*args,**kw)
+            return False
+        if pygame.display.set_gamma_ramp(*args,**kw):
+            return True
+        else:
+            return False
 
     def close(self):
         """Close the screen.
@@ -652,12 +676,11 @@ class Projection(VisionEgg.ClassWithParameters):
     PROJECTION_MATRIX.
 
     """
-    parameters_and_defaults = {'matrix':(
-        Numeric.array([[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
-                       [0.0, 1.0, 0.0, 0.0],
-                       [0.0, 0.0, 1.0, 0.0],
-                       [0.0, 0.0, 0.0, 1.0]]),
-                      Numeric.ArrayType) }
+    
+    parameters_and_defaults = {
+        'matrix':( Numeric.identity(4), # 4x4 identity matrix
+                   ve_types.Sequence4x4(ve_types.Real)),
+        }
                                
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
@@ -731,7 +754,7 @@ class Projection(VisionEgg.ClassWithParameters):
             gl.glMatrixMode(matrix_mode)
 
     def get_matrix(self):
-        return Numeric.array(self.parameters.matrix)
+        return self.parameters.matrix
 
     def look_at(self, eye, center, up ):
         # Basically the same as gluLookAt
@@ -820,118 +843,6 @@ class PerspectiveProjection(Projection):
         if type(matrix) != Numeric.ArrayType:
             matrix = Numeric.array(matrix) # Convert to Numeric array
         Projection.__init__(self,**{'matrix':matrix})
-
-####################################################################
-#
-#        Viewport
-#
-####################################################################
-
-class Viewport(VisionEgg.ClassWithParameters):
-    """Connects stimuli to a screen.
-
-    A viewport defines a (possibly clipped region) of the screen on
-    which stimuli are drawn.
-
-    A screen may have multiple viewports.  The viewports may be
-    overlapping.
-
-    A viewport may have multiple stimuli.
-
-    A single stimulus may be drawn simultaneously by several
-    viewports, although this is typically useful only for 3D stimuli
-    to represent different views of the same object.
-
-    The coordinates of the stimulus are converted to screen
-    coordinates via several steps, the most important of which is the
-    projection, which is defined by an instance of the Projection
-    class.
-
-    By default, a viewport has a projection which maps eye coordinates
-    to viewport coordinates in 1:1 manner.  In other words, eye
-    coordinates specify pixel location in the viewport.
-
-    For cases where pixel units are not natural to describe
-    coordinates of a stimulus, the application should specify the a
-    projection other than the default.  This is usually the case for
-    3D stimuli.
-    
-    For details of the projection and clipping process, see the
-    section 'Coordinate Transformations' in the book/online document
-    'The OpenGL Graphics System: A Specification'
-
-    User methods:
-
-    make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
-
-    Parameters:
-
-    screen -- Instance of Screen on which to draw
-    lowerleft -- Tuple (length 2) specifying viewport lowerleft corner position in pixels relative to screen lowerleft corner.
-    size -- Tuple (length 2) specifying viewport size in pixels
-    projection -- Instance of Projection
-    stimuli -- List of instances of Stimulus to draw
-    
-    """
-    parameters_and_defaults = {'screen':(None,
-                                         Screen),
-                               'lowerleft':((0,0), # tuple of length 2
-                                            types.TupleType), 
-                               'size':(None,       # tuple of length 2, will use screen.size if not specified
-                                       types.TupleType),
-                               'projection':(None, # instance of VisionEgg.Core.Projection
-                                             Projection),
-                               'stimuli':(None,
-                                          types.ListType)} 
-
-    def __init__(self,**kw):
-        """Create a new instance.
-
-        Required arguments:
-
-        screen
-
-        Optional arguments (specify parameter value other than default):
-
-        lowerleft -- defaults to (0,0)
-        size -- defaults to screen.size
-        projection -- defaults to self.make_new_pixel_coord_projection()
-        stimuli -- defaults to empty list
-        """
-        VisionEgg.ClassWithParameters.__init__(self,**kw)
-
-        if self.parameters.screen is None:
-            raise EggError("Must specify screen when creating an instance of Viewport.")
-        
-        self.stimuli = []
-        if self.parameters.size is None:
-            self.parameters.size = self.parameters.screen.constant_parameters.size
-        if self.parameters.projection is None:
-            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
-            self.parameters.projection = self.make_new_pixel_coord_projection()
-        if self.parameters.stimuli is None:
-            self.parameters.stimuli = []
-
-    def make_new_pixel_coord_projection(self):
-        """Create instance of Projection mapping eye coordinates 1:1 with pixel coordinates."""
-        return OrthographicProjection(left=0,right=self.parameters.size[0],
-                                      bottom=0,top=self.parameters.size[1],
-                                      z_clip_near=0.0,
-                                      z_clip_far=1.0)
-
-    def draw(self):
-        """Called by Presentation. Set the viewport and draw stimuli."""
-        self.parameters.screen.make_current()
-
-        gl.glViewport(self.parameters.lowerleft[0],
-                      self.parameters.lowerleft[1],
-                      self.parameters.size[0],
-                      self.parameters.size[1])
-
-        self.parameters.projection.set_gl_projection()
-
-        for stimulus in self.parameters.stimuli:
-            stimulus.draw()
 
 ####################################################################
 #
@@ -1039,6 +950,120 @@ class Stimulus(VisionEgg.ClassWithParameters):
         nothing.
         """
         pass
+
+####################################################################
+#
+#        Viewport
+#
+####################################################################
+
+class Viewport(VisionEgg.ClassWithParameters):
+    """Connects stimuli to a screen.
+
+    A viewport defines a (possibly clipped region) of the screen on
+    which stimuli are drawn.
+
+    A screen may have multiple viewports.  The viewports may be
+    overlapping.
+
+    A viewport may have multiple stimuli.
+
+    A single stimulus may be drawn simultaneously by several
+    viewports, although this is typically useful only for 3D stimuli
+    to represent different views of the same object.
+
+    The coordinates of the stimulus are converted to screen
+    coordinates via several steps, the most important of which is the
+    projection, which is defined by an instance of the Projection
+    class.
+
+    By default, a viewport has a projection which maps eye coordinates
+    to viewport coordinates in 1:1 manner.  In other words, eye
+    coordinates specify pixel location in the viewport.
+
+    For cases where pixel units are not natural to describe
+    coordinates of a stimulus, the application should specify the a
+    projection other than the default.  This is usually the case for
+    3D stimuli.
+    
+    For details of the projection and clipping process, see the
+    section 'Coordinate Transformations' in the book/online document
+    'The OpenGL Graphics System: A Specification'
+
+    User methods:
+
+    make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
+
+    Parameters:
+
+    screen -- Instance of Screen on which to draw
+    lowerleft -- Tuple (length 2) specifying viewport lowerleft corner position in pixels relative to screen lowerleft corner.
+    size -- Tuple (length 2) specifying viewport size in pixels
+    projection -- Instance of Projection
+    stimuli -- List of instances of Stimulus to draw
+    
+    """
+    parameters_and_defaults = {
+        'screen':(None,
+                  ve_types.Instance(Screen)),
+        'lowerleft':((0,0),
+                     ve_types.Sequence2(ve_types.Real)), 
+        'size':(None, # will use screen.size if not specified
+                ve_types.Sequence2(ve_types.Real)),
+        'projection':(None, # instance of VisionEgg.Core.Projection
+                      ve_types.Instance(Projection)),
+        'stimuli':(None,
+                   ve_types.Sequence(ve_types.Instance(Stimulus))),
+        } 
+
+    def __init__(self,**kw):
+        """Create a new instance.
+
+        Required arguments:
+
+        screen
+
+        Optional arguments (specify parameter value other than default):
+
+        lowerleft -- defaults to (0,0)
+        size -- defaults to screen.size
+        projection -- defaults to self.make_new_pixel_coord_projection()
+        stimuli -- defaults to empty list
+        """
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
+
+        if self.parameters.screen is None:
+            raise EggError("Must specify screen when creating an instance of Viewport.")
+        
+        self.stimuli = []
+        if self.parameters.size is None:
+            self.parameters.size = self.parameters.screen.constant_parameters.size
+        if self.parameters.projection is None:
+            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
+            self.parameters.projection = self.make_new_pixel_coord_projection()
+        if self.parameters.stimuli is None:
+            self.parameters.stimuli = []
+
+    def make_new_pixel_coord_projection(self):
+        """Create instance of Projection mapping eye coordinates 1:1 with pixel coordinates."""
+        return OrthographicProjection(left=0,right=self.parameters.size[0],
+                                      bottom=0,top=self.parameters.size[1],
+                                      z_clip_near=0.0,
+                                      z_clip_far=1.0)
+
+    def draw(self):
+        """Called by Presentation. Set the viewport and draw stimuli."""
+        self.parameters.screen.make_current()
+
+        gl.glViewport(self.parameters.lowerleft[0],
+                      self.parameters.lowerleft[1],
+                      self.parameters.size[0],
+                      self.parameters.size[1])
+
+        self.parameters.projection.set_gl_projection()
+
+        for stimulus in self.parameters.stimuli:
+            stimulus.draw()
         
 ####################################################################
 #
@@ -1048,14 +1073,17 @@ class Stimulus(VisionEgg.ClassWithParameters):
 
 class FixationSpot(Stimulus):
     """A rectangle stimulus, typically used as a fixation spot."""
-    parameters_and_defaults = {'on':(1,
-                                     types.IntType),
-                               'color':((1.0,1.0,1.0,1.0),
-                                        types.TupleType),
-                               'center':((320.0,240.0), # center if in 640x480 viewport
-                                         types.TupleType),
-                               'size':((4.0,4.0), # horiz and vertical size
-                                       types.TupleType)} 
+    
+    parameters_and_defaults = {
+        'on':(True,
+              ve_types.Boolean),
+        'color':((1.0,1.0,1.0,1.0),
+                 ve_types.Sequence4(ve_types.Real)),
+        'center':((320.0,240.0), # center if in 640x480 viewport
+                  ve_types.Sequence2(ve_types.Real)),
+        'size':((4.0,4.0), # horiz and vertical size
+                ve_types.Sequence2(ve_types.Real)),
+        }
     
     def __init__(self,**kw):
         Stimulus.__init__(self,**kw)
@@ -1145,31 +1173,33 @@ class Presentation(VisionEgg.ClassWithParameters):
     between_presentations() -- Maintain display between stimulus presentations
     
     """
-    parameters_and_defaults = {'viewports' : (None,
-                                              types.ListType),
-                               'collect_timing_info' : (None,
-                                                        types.IntType),
-                               'go_duration' : ((5.0,'seconds'),
-                                                types.TupleType),
-                               'check_events' : (1, # May cause performance hit if non zero
-                                                 types.IntType),
-                               'handle_event_callbacks' : (None,
-                                                           types.ListType),
-                               'trigger_armed':(1, # boolean
-                                                types.IntType),
-                               'trigger_go_if_armed':(1, #boolean
-                                                      types.IntType),
-                               'enter_go_loop':(0, #boolean
-                                                types.IntType),
-                               'quit':(0, #boolean
-                                       types.IntType),
-                               'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
-                                                          types.FloatType),
-                               'warn_longest_frame_threshold':(2.0, # fraction (set to 2.0 for no false alarms)
-                                                               types.FloatType),
-                               'override_t_abs_sec':(None, # override t_abs (in seconds) -- set only when reconstructing experiments
-                                                     types.FloatType),
-                               }
+    parameters_and_defaults = {
+        'viewports' : (None,
+                       ve_types.Sequence(ve_types.Instance(Viewport))),
+        'collect_timing_info' : (None,
+                                 ve_types.Boolean),
+        'go_duration' : ((5.0,'seconds'),
+                         ve_types.Sequence(ve_types.AnyOf(ve_types.Real,
+                                                          ve_types.String))),
+        'check_events' : (True, # May cause slight performance hit, but probably negligible
+                          ve_types.Boolean),
+        'handle_event_callbacks' : (None,
+                                    ve_types.Sequence(ve_types.Callable)),
+        'trigger_armed':(True, 
+                         ve_types.Boolean),
+        'trigger_go_if_armed':(True,
+                               ve_types.Boolean),
+        'enter_go_loop':(False,
+                         ve_types.Boolean),
+        'quit':(False,
+                ve_types.Boolean),
+        'warn_mean_fps_threshold':(0.01, # fraction (0.1 = 10%)
+                                   ve_types.Real),
+        'warn_longest_frame_threshold': (2.0, # fraction (set to 2.0 for no false alarms)
+                                         ve_types.Real),
+        'override_t_abs_sec':(None, # override t_abs (in seconds) -- set only when reconstructing experiments
+                              ve_types.Real),
+        }
     
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
@@ -1192,8 +1222,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_absolute=VisionEgg.time_func()
         self.frames_absolute=0
 
-        self.in_go_loop = 0
-        self.frames_dropped_in_last_go_loop = 0 # boolean
+        self.in_go_loop = False
+        self.frames_dropped_in_last_go_loop = False
         self.last_go_loop_start_time_absolute_sec = None
 
     def add_controller( self, class_with_parameters, parameter_name, controller ):
@@ -1205,11 +1235,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 raise TypeError("Attempt to control constant parameter '%s' of class %s."%(parameter_name,class_with_parameters))
             require_type = class_with_parameters.get_specified_type(parameter_name)
             try:
-                VisionEgg.assert_type(controller.returns_type(),require_type)
+                ve_types.assert_type(controller.returns_type(),require_type)
             except TypeError:
                 raise TypeError("Attempting to control parameter '%s' of type %s with controller that returns type %s"%(
                     parameter_name,
-                    class_with_parameters.get_specified_type(parameter_name),
+                    require_type,
                     controller.returns_type()))                
             if not hasattr(class_with_parameters.parameters,parameter_name):
                 raise AttributeError("%s has no instance '%s'"%parameter_name)
@@ -1332,7 +1362,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.in_go_loop = 1
         
         # Clear boolean indicator
-        self.frames_dropped_in_last_go_loop = 0 # boolean
+        self.frames_dropped_in_last_go_loop = False
 
         # Create shorthand notation, which speeds the main loop
         # slightly by not performing name lookup each time.
@@ -1502,7 +1532,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
 
         if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
-            self.frames_dropped_in_last_go_loop = 1 # boolean
+            self.frames_dropped_in_last_go_loop = False
             message.add(
 
                 """One or more frames took %.1f msec, which is
@@ -1892,8 +1922,10 @@ class Controller:
         """
         if return_type is None: # Can be types.NoneType, but not None!
             raise ValueError("Must set argument 'return_type' in Controller.")
-        if type(return_type) not in [types.TypeType,types.ClassType]:
-            raise TypeError("argument 'return_type' must specify a type or class.")
+        if not ve_types.is_parameter_type_def(return_type):
+            raise TypeError("Must argument 'return_type' in Controller must be a VisionEgg parameter type definition")
+        #if type(return_type) not in [types.TypeType,types.ClassType]:
+        #    raise TypeError("argument 'return_type' must specify a type or class.")
         self.return_type = return_type
         
         self.temporal_variables = temporal_variables
@@ -1958,7 +1990,7 @@ class ConstantController(Controller):
                  **kw
                  ):
         if 'return_type' not in kw.keys():
-            kw['return_type'] = VisionEgg.get_type(during_go_value)
+            kw['return_type'] = ve_types.get_type(during_go_value)
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = Controller.ONCE | Controller.TRANSITIONS
         Controller.__init__(self,**kw)
@@ -1966,8 +1998,8 @@ class ConstantController(Controller):
             raise ValueError("Must specify during_go_value")
         if between_go_value is None:
             between_go_value = during_go_value
-        VisionEgg.assert_type(VisionEgg.get_type(during_go_value),self.return_type)
-        VisionEgg.assert_type(VisionEgg.get_type(between_go_value),self.return_type)
+        ve_types.assert_type(ve_types.get_type(during_go_value),self.return_type)
+        ve_types.assert_type(ve_types.get_type(between_go_value),self.return_type)
         self.during_go_value = during_go_value
         self.between_go_value = between_go_value
 
@@ -2303,7 +2335,7 @@ class FunctionController(Controller):
             if kw['temporal_variables'] & Controller.FRAMES_SINCE_GO:
                 call_args['f'] = 0
             # Call the function with time variables
-            kw['return_type'] = type(during_go_func(**call_args))
+            kw['return_type'] = ve_types.get_type(during_go_func(**call_args))
         Controller.__init__(self,**kw)
         self.during_go_func = during_go_func
         self.between_go_func = between_go_func
