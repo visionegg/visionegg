@@ -15,7 +15,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gui_ok = 1
 
-print "check-config.py for Vision Egg 0.9.3."
+print "check-config.py for Vision Egg 0.9.4."
 print "[%s CVS revision %s]"%(__date__,__cvs__)
 print "Beginning configuration check."
 
@@ -159,6 +159,10 @@ traceback printed above.
 
 if 'VisionEgg' in globals().keys():
     print "VisionEgg version %s"%(VisionEgg.release_name,)
+    print
+    print "VisionEgg modules in %s"%(os.path.split(os.path.abspath(VisionEgg.__file__))[0],)
+    print "VisionEgg system directory %s"%(VisionEgg.config.VISIONEGG_SYSTEM_DIR,)
+    print "VisionEgg user directory %s"%(VisionEgg.config.VISIONEGG_USER_DIR,)
     print
     if VisionEgg.config.VISIONEGG_CONFIG_FILE:
         print "Config file found at %s"%(VisionEgg.config.VISIONEGG_CONFIG_FILE,)
