@@ -18,14 +18,11 @@ except:
     texture = Texture(size=(256,32))
 
 perspective_proj = SimplePerspectiveProjection(fov_x=98.0)
-half_vertical = float(screen.size[1]-1)*0.5
-half_horiz = float(screen.size[0]-1)*0.5
-ortho_proj = OrthographicProjection(left=-half_horiz,right=half_horiz,
-                                    bottom=-half_vertical,top=half_vertical,
-                                    z_clip_near=0.0001,z_clip_far=1000.0)
+ortho_proj = OrthographicProjection(right=screen.size[0],top=screen.size[1])
+ortho_proj.translate(screen.size[0]/2-texture.orig.size[0]/2,screen.size[1]/2-texture.orig.size[1]/2,0) # Draw flat texture in middle of viewport
 viewport = Viewport(screen,(0,0),screen.size,perspective_proj)
 
-drum = SpinningDrum(texture=texture)
+drum = SpinningDrum(texture=texture,flat_projection=ortho_proj)
 drum.init_gl()
 fixation_spot = FixationSpot()
 fixation_spot.init_gl()
