@@ -73,25 +73,11 @@ legends.append(
 #  Color grating                    #
 #####################################
 
-try:
-    circle_mask = Mask2D(function='circle',
-                         radius_parameter=100,
-                         num_samples=(256,256))
-except Exception, x:
-    warning_stimuli.append(
-        Text( text = "Circular mask",
-              position           = (x1,y2),
-              anchor             = 'center',
-              color = warning_color,
-              font_size = warning_font_size,
-              )
-    )
-    message.add( "Exception while trying to create Mask2D for color grating: %s: %s"%(x.__class__,str(x)),
-                 level=Message.WARNING)
-    circle_mask = None
-    
-color_grating = SinGrating2D(color1           = (0.5, 0.25, 0.5, 0.0), # RGBA, Alpha ignored
-                             color2           = (1.0, 0.5,  0.1, 0.0), # RGBA, Alpha ignored
+circle_mask = Mask2D(function='circle',
+                     radius_parameter=100,
+                     num_samples=(256,256))
+color_grating = SinGrating2D(color1           = (0.5, 0.25, 0.5), # RGB, Alpha ignored if given
+                             color2           = (1.0, 0.5,  0.1), # RGB, Alpha ignored if given
                              contrast         = 0.2,
                              pedestal         = 0.1,
                              mask             = circle_mask,
@@ -152,29 +138,15 @@ drum_projection = SimplePerspectiveProjection() # Parameters set in realtime, so
 #  Gabor #
 ##########
 
-
-try:
-    gaussian_mask = Mask2D(function='gaussian',
-                           radius_parameter=25,
-                           num_samples=(256,256))
-except Exception, x:
-    warning_stimuli.append(
-        Text( text = "Gaussian mask",
-              position           = (x2,y1),
-              anchor             = 'center',
-              color = warning_color,
-              font_size = warning_font_size,              
-              )
-    )
-    message.add( "Exception while trying to create Mask2D for gabor: %s: %s"%(x.__class__,str(x)),
-                 level=Message.WARNING)
-    gaussian_mask = None
-
 gray_rect = Target2D( position = ( x2, y1 ),
                       anchor   = 'center',
                       size     = ( width, height ),
                       color    = (0.5, 0.5, 0.5, 1.0),
                       )
+
+gaussian_mask = Mask2D(function='gaussian',
+                       radius_parameter=25,
+                       num_samples=(256,256))
 
 gabor = SinGrating2D(mask             = gaussian_mask,
                      position         = ( x2, y1 ),
@@ -256,7 +228,8 @@ def copy_framebuffer():
 #  Create viewports                    #
 ########################################
 
-stimuli_2d = [dots, color_grating, gray_rect, gabor, text]
+stimuli_2d = [dots, gray_rect, gabor, text, color_grating]
+
 if framebuffer_copy_works:
     stimuli_2d.append(framebuffer_copy)
 
@@ -271,7 +244,7 @@ if len(warning_stimuli):
         )
     stimuli_2d.extend(warning_stimuli)
 stimuli_2d.extend(legends)
-    
+
 viewport_2d = Viewport( screen  = screen,
                         stimuli = stimuli_2d,
                         )
@@ -283,9 +256,12 @@ drum_viewport = Viewport( screen     = screen,
                           projection = drum_projection,
                           stimuli    = [drum])
 
-#####################################################
-#  Main loop (non VisionEgg.Core.Presentation way)  #
-#####################################################
+#######################################################
+#  Main loop (not using VisionEgg.Core.Presentation)  #
+#######################################################
+
+# save time
+frame_timer = VisionEgg.Core.FrameTimer()
 
 # quit on any of these events
 while not pygame.event.peek((pygame.locals.QUIT,
@@ -315,3 +291,7 @@ while not pygame.event.peek((pygame.locals.QUIT,
         copy_framebuffer() # make copy of framebuffer in texture for draw on next frame
     
     swap_buffers() # display the frame we've drawn in back buffer
+    frame_timer.tick()
+
+frame_timer.print_histogram()
+    
