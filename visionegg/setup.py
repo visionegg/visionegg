@@ -11,7 +11,7 @@ author_email     = "astraw@users.sourceforge.net"
 version          = "0.9.4a2"
 license          = "LGPL" # Lesser GNU Public License
 
-name             = "visionegg"
+name             = "VisionEgg"
 package_dir      = {'VisionEgg'          : 'src',
                     'VisionEgg.PyroApps' : 'src/PyroApps'}
 packages         = [ 'VisionEgg',
