@@ -6,6 +6,8 @@ This bypasses the VisionEgg.FlowControl.Presentation class.  It may be easier
 to create simple scripts this way."""
 
 import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
+
 from VisionEgg.Core import *
 import pygame
 from pygame.locals import *
@@ -31,14 +33,10 @@ text = Text( text = "Vision Egg makeMovie2 demo.",
 
 viewport = Viewport( screen=screen, stimuli=[dots,text] )
 
-# Switch function VisionEgg.time_func
-fake_time_sec = VisionEgg.time_func() # Set for real once
-def fake_time_func():
-    return fake_time_sec
-VisionEgg.time_func = fake_time_func
+VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = 60.0 # fake framerate
+VisionEgg.set_time_func_to_frame_locked() # force VisionEgg to fake this framerate
 
 num_frames = 5
-framerate = 60.0 # simulated frames per second
 for i in range(num_frames):
     screen.clear()
     viewport.draw()
@@ -46,5 +44,5 @@ for i in range(num_frames):
     im = screen.get_framebuffer_as_image(buffer='front',format=gl.GL_RGB)
     filename = "movie_%02d.jpg"%(i+1)
     im.save(filename)
-    fake_time_sec += 1.0/framerate
+    print 'saved',filename
     
