@@ -7,7 +7,7 @@
 from distutils.core import setup, Extension
 import os, sys
 
-find_SDL_command = 'sdl-config'
+find_SDL_command = 'sdl-config --version'
 print "Attempting to find SDL by executing '%s'." % find_SDL_command
 No_SDL_On_Path = os.system( find_SDL_command )
 
