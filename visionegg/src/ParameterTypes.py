@@ -80,7 +80,7 @@ class SubClass(ParameterTypeDef):
             raise TypeError("base_class must be ClassType")
         self.base_class = base_class
     def verify(self,is_class):
-        if type(base_class) != types.ClassType:
+        if type(self.base_class) != types.ClassType:
             return False
         return self.base_class in get_all_classes_list(is_class)
 
