@@ -22,7 +22,7 @@ if sys.platform == 'linux2' or is_source_distribution:
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.8.0-alpha1",
+      version = "0.8.0",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",
