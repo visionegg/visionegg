@@ -2118,6 +2118,30 @@ class Message:
     WARNING = 4
     ERROR = 5
     FATAL = 6
+
+    class Tee:
+        """Private class internal to class Message"""
+        def __init__(self,*streams):
+            for stream in streams:
+                if not hasattr(stream,"write") or not hasattr(stream,"flush"):
+                    raise ValueError("stream must have write and flush function")
+            self.streams = streams
+            self._sys = sys # keeps a ref that stays even when deleted from namespace
+        def write(self,*args,**kw):
+            # Hack to prevent writing to sys.stderr when not necessary
+            if "_no_sys_stderr" in kw.keys():
+                no_sys_stderr = kw["_no_sys_stderr"]
+                del kw["_no_sys_stderr"]
+            else:
+                no_sys_stderr = 0
+            for stream in self.streams:
+                if stream != self._sys.stderr or not no_sys_stderr:
+                    apply(stream.write,args,kw)
+
+        def flush(self,*args,**kw):
+            for stream in self.streams:
+                apply(stream.flush,args,kw)
+
     
     def __init__(self,
                  prefix="VisionEgg",
@@ -2134,27 +2158,6 @@ class Message:
             self.pid = os.getpid()
         except:
             self.pid = None
-        class Tee:
-            def __init__(self,*streams):
-                for stream in streams:
-                    if not hasattr(stream,"write") or not hasattr(stream,"flush"):
-                        raise ValueError("stream must have write and flush function")
-                self.streams = streams
-                self._sys = sys # keeps a ref that stays even when deleted from namespace
-            def write(self,*args,**kw):
-                # Hack to prevent writing to sys.stderr when not necessary
-                if "_no_sys_stderr" in kw.keys():
-                    no_sys_stderr = kw["_no_sys_stderr"]
-                    del kw["_no_sys_stderr"]
-                else:
-                    no_sys_stderr = 0
-                for stream in self.streams:
-                    if stream != self._sys.stderr or not no_sys_stderr:
-                        apply(stream.write,args,kw)
-
-            def flush(self,*args,**kw):
-                for stream in self.streams:
-                    apply(stream.flush,args,kw)
         output_streams = []
         if VisionEgg.config.VISIONEGG_LOG_FILE:
             try:
@@ -2166,7 +2169,7 @@ class Message:
         if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
             output_streams.append(sys.stderr)
 
-        self.output_stream = apply(Tee, output_streams)
+        self.output_stream = apply(Message.Tee, output_streams)
 
         if main_global_instance:
             VisionEgg.config._message = self
