@@ -1957,13 +1957,14 @@ class Message:
         self.exception_level = exception_level
         self.print_level = print_level
         self.orig_stderr = sys.stderr
+        self._sent_initial_newline = 0
         if output_stream is None:
             if VisionEgg.config.VISIONEGG_LOG_FILE:
                 try:
                     self.output_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
                 except:
                     self.output_stream = sys.stderr
-                    self.add("Could not open log file %s, writing to stderr instead.",
+                    self.add("Could not open log file %s, writing to stderr instead."%(VisionEgg.config.VISIONEGG_LOG_FILE,),
                              level=Message.WARNING)
             else:
                 self.output_stream = sys.stderr
@@ -2003,6 +2004,10 @@ class Message:
         return out_str
             
     def handle(self):
+        if not self._sent_initial_newline:
+            self.output_stream.write("\n")
+            self.output_stream.flush()
+            self._sent_initial_newline = 1
         while len(self.message_queue) > 0:
             my_str = ""
             level,text,preserve_formatting,date_str = self.message_queue.pop(0)
