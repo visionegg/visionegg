@@ -251,12 +251,13 @@ priority, because this may result in locking up the computer.
 
 \section{The log file: Warnings and errors}
 
-The Vision Egg logs information including warnings and errors to two
-locations by default: the standard error stream (as standard for
-Python scripts) and to a file called ``VisionEgg.log'' in the current
-directory.  The standard error stream is typically printed on the
-console, which may only be visible when running your script from the
-command line.  If your script (or modules it imports) raise a
+The Vision Egg uses the standard Python loggin package to log
+information including warnings and errors to two locations by default:
+the standard error stream (as standard for Python scripts) and to a
+file called ``VisionEgg.log'' in the current directory.  The standard
+error stream is typically printed on the console, which may only be
+visible when running your script from the command line.  If your
+script (or modules it imports) raise a
 \exception{SyntaxError}, the Vision Egg will be unable to start and
 therefore unable to copy the exception traceback to the log file, and
 viewing the standard error is the only way to see what went wrong.
@@ -264,6 +265,10 @@ Therefore, if your log file does not display an error but your script
 is not executing, run it from the command line.  Also, on Mac OS X,
 the standard error output is only visible through the Console.app
 available in ``/Applications/Utilities''.
+
+You can increase the verbosity of the output by doing something like
+``VisionEgg.logger.setLevel( VisionEgg.logging.DEBUG )'' in your
+script.
 
 \section{Configuration options}
 
