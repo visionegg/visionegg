@@ -21,14 +21,30 @@ import Image, ImageDraw                         # Python Imaging Library package
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 
+def no_clamp_to_edge():
+    failed = 1
+    try:
+        import OpenGL.GL.SGIS.texture_edge_clamp
+        if OpenGL.GL.SGIS.texture_edge_clamp.glInitTextureEdgeClampSGIS():
+            GL_CLAMP_TO_EDGE = OpenGL.GL.SGIS.texture_edge_clamp.GL_CLAMP_TO_EDGE_SGIS
+            failed = 0
+    except:
+        pass
+    if failed:
+         print "VISIONEGG WARNING: Your version of OpenGL is less than 1.2,"
+         print "and you do not have the GL_SGIS_texture_edge_clamp OpenGL"
+         print "extension.  therefore, you do not have GL_CLAMP_TO_EDGE"
+         print "available.  It may be impossible to get exact 1:1"
+         print "reproduction of your textures.  Using GL_CLAMP instead of"
+         print "GL_CLAMP_TO_EDGE."
+         GL_CLAMP_TO_EDGE = GL_CLAMP
+
 if "GL_CLAMP_TO_EDGE" not in dir():
     # Hack because this isn't defined in my PyOpenGL modules:
-    VisionEgg.Core.add_gl_assumption("GL_VERSION",1.2,"Failed assumption made in Textures.py")
-    # If this assumption fails, there may be a way around it using an extensions, but no Vision Egg support for that yet.
-    
-    print "HACK: - setting GL_CLAMP_TO_EDGE.  If your textures are messed up, this may be why!"
+    VisionEgg.Core.add_gl_assumption("GL_VERSION",1.2,no_clamp_to_edge)
+    #print "HACK: setting GL_CLAMP_TO_EDGE.  If your textures are messed up, this may be why!"
     GL_CLAMP_TO_EDGE = 0x812F # This value is in Mesa gl.h and nVidia gl.h, so hopefully it's OK
-    
+
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
@@ -255,25 +271,12 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                                'texture_repeat':0}    # if 0 clamp to edge
 
 class TextureStimulus(TextureStimulusBaseClass):
-    parameters_and_defaults = {'projection':None, # set in __init__
-                               'on':1,
-                               'left':0.0, # In eye coords (window coords depend on projection)
-                               'right':1.0,
-                               'bottom':0.0,
-                               'top':1.0}
-    def __init__(self,texture=Texture(size=(256,16)),projection = None,**kw):
+    parameters_and_defaults = {'on':1,
+                               'lowerleft':(0.0,0.0),
+                               'size':(640.0,480.0)}
+    def __init__(self,texture=Texture(size=(256,16)),**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
         self.texture = texture
-        # Make sure the projection is set
-        if projection is not None:
-            # Use the user-supplied projection
-            self.parameters.projection = projection
-        else:
-            # No user-supplied projection, use the default. (Which is probably None.)
-            if self.parameters.projection is None:
-                # Since the default projection is None, set it to something useful.
-                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
-
         self.texture_object = self.texture.load()
 
     def draw(self):
@@ -282,9 +285,6 @@ class TextureStimulus(TextureStimulusBaseClass):
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
             
-            # Save then set the projection matrix
-            self.parameters.projection.push_and_set_gl_projection()
-
             glDisable(GL_DEPTH_TEST)
             glDisable(GL_BLEND)
             glEnable(GL_TEXTURE_2D)
@@ -307,10 +307,10 @@ class TextureStimulus(TextureStimulusBaseClass):
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
             p = self.parameters
-            l = p.left
-            r = p.right
-            b = p.bottom
-            t = p.top
+            l = p.lowerleft[0]
+            r = l + p.size[0]
+            b = p.lowerleft[1]
+            t = b + p.size[1]
             
             glBegin(GL_QUADS)
             glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
@@ -326,8 +326,6 @@ class TextureStimulus(TextureStimulusBaseClass):
             glVertex2f(l,t)
             glEnd() # GL_QUADS
             
-            glPopMatrix() # restore projection matrix
-            
 ####################################################################
 #
 #        Stimulus - Spinning Drum
@@ -335,34 +333,26 @@ class TextureStimulus(TextureStimulusBaseClass):
 ####################################################################
 
 class SpinningDrum(TextureStimulusBaseClass):
-    parameters_and_defaults = {'flat_projection':None, # set in __init__, only used when texture in flat mode
-                               'num_sides':50,
-                               'angle':0.0,
+    parameters_and_defaults = {'num_sides':50,
+                               'angular_position':0.0,
                                'contrast':1.0,
                                'on':1,
                                'flat':0, # toggles flat vs. cylinder
                                'dist_from_o':1.0 # z if flat, radius if cylinder
                                }
     
-    def __init__(self,texture=Texture(size=(256,16)),flat_projection=None,**kw):
+    # To avoid rescaling the texture size, make sure you are using a
+    # viewport with an orthographic projection where left=0,
+    # right=viewport.parameters.size[0],
+    # bottom=0,top=viewport.parameters.size[1].
+
+    def __init__(self,texture=Texture(size=(256,16)),**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
         self.texture = texture
         self.texture_object = self.texture.load()
 
-        # To make texture original size, set flat_projection as an
-        # orthographic projection where left=0,
-        # right=viewport.parameters.size[0],
-        # bottom=0,top=viewport.parameters.size[1].
-
-        # Make sure flat_projection is set
-        if flat_projection is not None:
-            # Use the user-supplied projection
-            self.parameters.flat_projection = flat_projection
-        else:
-            # No user-supplied flat_projection, use the default. (Which is probably None.)
-            if self.parameters.flat_projection is None:
-                # Since the default flat_projection is None, set it to something useful.
-                self.parameters.flat_projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
+        self.cached_display_list = glGenLists(1) # Allocate a new display list
+        self.rebuild_display_list()
 
     def draw(self):
     	"""Redraw the scene on every frame.
@@ -415,13 +405,11 @@ class SpinningDrum(TextureStimulusBaseClass):
             glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
 
             if self.parameters.flat: # draw as flat texture on a rectange
-                # save then set projection matrix
-                self.parameters.flat_projection.push_and_set_gl_projection()
                 w = self.texture.width
                 h = self.texture.height
 
                 # calculate texture coordinates based on current angle
-                tex_phase = self.parameters.angle/360.0
+                tex_phase = self.parameters.angular_position/360.0
                 tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
                 TINY = 1.0e-10
@@ -479,18 +467,25 @@ class SpinningDrum(TextureStimulusBaseClass):
                     glVertex2f(quad_x_break,h)
                     glEnd() # GL_QUADS
 
-                glPopMatrix() # restore projection matrix
-
             else: # draw as cylinder
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
-                glRotatef(self.parameters.angle,0.0,1.0,0.0)
+                glRotatef(self.parameters.angular_position,0.0,1.0,0.0)
 
                 if self.parameters.num_sides != self.cached_display_list_num_sides:
                     self.rebuild_display_list()
                 glCallList(self.cached_display_list)
 
     def rebuild_display_list(self):
+        # (Re)build the display list
+        #
+        # A "display list" is a series of OpenGL commands that is
+        # cached in a list for rapid re-drawing of the same object.
+        #
+        # This draws a display list for an approximation of a cylinder.
+        # The cylinder has "num_sides" sides. The following code
+        # generates a list of vertices and the texture coordinates
+        # to be used by those vertices.
         r = self.parameters.dist_from_o # in OpenGL (arbitrary) units
         circum = 2.0*pi*r
         h = circum/float(self.texture.width)*float(self.texture.height)/2.0
@@ -529,16 +524,3 @@ class SpinningDrum(TextureStimulusBaseClass):
             glVertex4f( x1,  h, z1, 1.0 )
         glEnd()
         glEndList()
-
-    def init_gl(self):
-        # Build the display list
-        #
-        # A "display list" is a series of OpenGL commands that is
-        # cached in a list for rapid re-drawing of the same object.
-        #
-        # This draws a display list for an approximation of a cylinder.
-        # The cylinder has "num_sides" sides. The following code
-        # generates a list of vertices and the texture coordinates
-        # to be used by those vertices.
-        self.cached_display_list = glGenLists(1) # Allocate a new display list
-        self.rebuild_display_list()
