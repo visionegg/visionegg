@@ -20,10 +20,26 @@ from pygame.locals import *
 from OpenGL.GL import * # PyOpenGL packages
 from Numeric import *
 
-exts = ['matrix_palette','multisample','multitexture','point_parameters',
+def capitalize_word(word):
+    result = word
+    if word[0] in string.lowercase:
+        result = string.upper(word[0]) + word[1:]
+    return result
+
+ARB_exts = ['matrix_palette','multisample','multitexture','point_parameters',
         'texture_border_clamp','texture_compression','texture_cube_map',
         'texture_env_add','texture_env_combine','texture_env_crossbar',
         'texture_env_dot3','transpose_matrix','vertex_blend']
+
+EXT_exts = ['abgr','bgra','blend_color','blend_minmax','blend_subtract',
+            'clip_volume_hint','compiled_vertex_array','draw_range_elements',
+            'fog_coord','multi_draw_arrays','packed_pixels',
+            'paletted_texture','point_parameters','rescale_normal',
+            'secondary_color','separate_specular_color','shared_texture_palette',
+            'stencil_wrap','texture_compression_s3tc','texture3D','texture_cube_map',
+            'texture_edge_clamp','texture_env_add','texture_env_combine',
+            'texture_env_dot3','texture_filter_anisotropic','texture_lod_bias',
+            'texture_object','vertex_array','vertex_weighting']
 
 if sys.platform == 'win32':
     time_func = time.clock
@@ -70,7 +86,7 @@ print
 
 print "Testing OpenGL extensions"
 
-for ext in exts:
+for ext in ARB_exts:
     print " GL_ARB_%s:"%ext,
     module_name = "OpenGL.GL.ARB.%s"%ext
     try:
@@ -78,7 +94,24 @@ for ext in exts:
         components = string.split(module_name, '.') # make mod refer to deepest module
         for comp in components[1:]:
             mod = getattr(mod, comp)
-        init_name = "glInit%sARB"%string.join(map(string.capitalize,string.split(ext,'_')),'')
+        init_name = "glInit%sARB"%string.join(map(capitalize_word,string.split(ext,'_')),'')
+        init_func = getattr(mod,init_name)
+        if init_func():
+            print "OK"
+        else:
+            print "Failed"
+    except Exception, x:
+        print "Failed (exception raised):",x
+        
+for ext in EXT_exts:
+    print " GL_EXT_%s:"%ext,
+    module_name = "OpenGL.GL.EXT.%s"%ext
+    try:
+        mod = __import__(module_name,globals(),locals(),[])
+        components = string.split(module_name, '.') # make mod refer to deepest module
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        init_name = "glInit%sEXT"%string.join(map(capitalize_word,string.split(ext,'_')),'')
         init_func = getattr(mod,init_name)
         if init_func():
             print "OK"
