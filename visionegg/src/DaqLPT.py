@@ -50,9 +50,9 @@ class LPTInput(VisionEgg.Daq.Input):
     def get_data(self):
         """Get status bits 0-7 of the LPT port.
 
-        The status bits were not really meant for data input
-        Nevertheless, for sampling one or two digital inputs, they
-        work fine.
+        The status bits were not meant for high speed digital input.
+        Nevertheless, for sampling one or two digital inputs at slow
+        rates, they work fine.
 
         Bits 4 and 5 (pins 13 and 12, respectively) should be first
         choice to sample a digital voltage.  The other bits have some
