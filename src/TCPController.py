@@ -89,8 +89,9 @@ class TCPServer:
 
 class SocketListenController(VisionEgg.Core.Controller):
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
-    re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.MULTILINE)
-    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.MULTILINE)
+    re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
+    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
+    re_exec_str = re.compile(r'exec_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
     def __init__(self,
                  socket,
                  disconnect_ok = 0,
@@ -242,6 +243,7 @@ class SocketListenController(VisionEgg.Core.Controller):
     
     def __do_command(self,tcp_name,command,require_type):
         new_contained_controller = None
+        command = string.replace(command,r"\n","\n") # allow newline encoding
         match = SocketListenController.re_const.match(command)
         if match is not None:
             try:
@@ -292,9 +294,34 @@ class SocketListenController(VisionEgg.Core.Controller):
                     VisionEgg.Core.message.add("Error parsing eval_str for %s: %s\n"%(tcp_name,x),
                                                level=VisionEgg.Core.Message.INFO)
             else:
-                self.socket.send("Error parsing command for %s: %s\n"%(tcp_name,command))
-                VisionEgg.Core.message.add("Error parsing command for %s: %s\n"%(tcp_name,command),
-                                           level=VisionEgg.Core.Message.INFO)
+                match = SocketListenController.re_exec_str.match(command)
+                if match is not None:
+                    try:
+                        match_groups = match.groups()
+                        kw_args = {}
+                        kw_args['during_go_exec_string'] = match_groups[0]
+                        if match_groups[1] is not None:
+                            kw_args['between_go_exec_string'] = match_groups[1]
+                        if match_groups[2] is not None:
+                            kw_args['return_type'] = eval(match_groups[2])
+                        if match_groups[3] is not None:
+                            kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[3])
+                        if match_groups[4] is not None:
+                            kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
+                        new_contained_controller = apply(VisionEgg.Core.ExecStringController,[],kw_args)
+                        new_type = new_contained_controller.returns_type()
+                        if new_type != require_type:
+                            if not issubclass( new_type, require_type):
+                                new_contained_controller = None
+                                raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
+                    except Exception, x:
+                        self.socket.send("Error parsing exec_str for %s: %s\n"%(tcp_name,x))
+                        VisionEgg.Core.message.add("Error parsing exec_str for %s: %s\n"%(tcp_name,x),
+                                                   level=VisionEgg.Core.Message.INFO)
+                else:
+                    self.socket.send("Error parsing command for %s: %s\n"%(tcp_name,command))
+                    VisionEgg.Core.message.add("Error parsing command for %s: %s\n"%(tcp_name,command),
+                                               level=VisionEgg.Core.Message.INFO)
         # create controller based on last command_queue
         if new_contained_controller is not None:
             (controller, name_re_str, parser, require_type) = self.names[tcp_name]
