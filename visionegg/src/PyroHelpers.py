@@ -113,8 +113,23 @@ class PyroServer:
         # locate the Pyro name server
         locator = Pyro.naming.NameServerLocator()
         VisionEgg.Core.message.add('Searching for Pyro Name Server.',VisionEgg.Core.Message.INFO)
-        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        #print 'Pyro Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
+        try:
+            self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
+        except Pyro.errors.PyroError, x:
+            if hasattr(os,"fork"):
+                if str(x) == "Name Server not responding":
+                    # Attempt to spawn another copy of Python running name server
+                    print "Spawning Pyro Name Server."
+                    VisionEgg.Core.message.add("Spawning Pyro Name Server.")
+                    pid = os.fork()
+                    if pid == 0: # in the child, run name server
+                        Pyro.naming.main()
+                    else: # in the parent
+                        import time
+                        time.sleep(0.2) # wait a bit for name server to start
+                        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
+            else:
+                raise
         self.daemon.useNameServer(self.ns)
         self.ok_to_run = 1
         
