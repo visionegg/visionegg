@@ -28,6 +28,7 @@ though!"""
 import string
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.ParameterTypes as ve_types
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -143,7 +144,7 @@ class PyroListenController(VisionEgg.Core.Controller):
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = VisionEgg.Core.Controller.EVERY_FRAME
         if 'return_type' not in kw.keys():
-            kw['return_type'] = type(None)
+            kw['return_type'] = ve_types.get_type(None)
         VisionEgg.Core.Controller.__init__(self,**kw)
         self.server=server
 
