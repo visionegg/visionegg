@@ -46,7 +46,7 @@ class OpenScreenDialog(Tkinter.Frame):
         self.fullscreen = Tkinter.BooleanVar()
         self.fullscreen.set(VisionEgg.config.VISIONEGG_FULLSCREEN)
         Tkinter.Checkbutton(self,
-                            text='Fullscreen - use only with multiple displays',
+                            text='Fullscreen',
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).pack()
 
@@ -59,7 +59,7 @@ class OpenScreenDialog(Tkinter.Frame):
                             relief=Tkinter.FLAT).pack()
 
         # frame rate
-        Tkinter.Label(self,text="Monitor refresh (Hz):").pack()
+        Tkinter.Label(self,text="What is your monitor refresh (Hz):").pack()
         self.frame_rate = Tkinter.StringVar()
         self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
         Tkinter.Entry(self,textvariable=self.frame_rate).pack()
