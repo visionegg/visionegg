@@ -182,11 +182,28 @@ if 'VisionEgg' in globals().keys():
             print configname + " = " + str(getattr(VisionEgg.config,configname))
     print
 
+    # Check for old demo install location
     if sys.executable != sys.argv[0]:
         # Not running as binary executable in own demo directory
-        print "The demo files should be in %s"%(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demos'),)
-        print
+        old_demo_install_dir = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demo')
+        if os.path.isdir(old_demo_install_dir):
+            print """
+            ************************************************************
 
+            WARNING: You have the old Vision Egg demos in
+
+            %(old_demo_install_dir)s
+
+            Although the old demos will not cause problems for Vision
+            Egg scripts, they may lead to confusion.  Therefore, you
+            should remove this directory and its contents.
+
+            The new demos (and documentation) are no longer installed,
+            but available with the source code or as a separate
+            package.
+            
+            ************************************************************
+            """%locals()
     # These things have been removed from the installed library directory.
     # Print error if it's still around
     ancient_VisionEgg_files = ['AppHelper.py', # old module
@@ -231,7 +248,9 @@ print "Version checklist:"
 print
 
 print "Python version %s"%(string.split(sys.version)[0],),
-if sys.version >= '2.2':
+if sys.version >= '2.2' and sys.platform != 'darwin':
+    print "(OK)"
+elif sys.version >= '2.3' and sys.platform == 'darwin':
     print "(OK)"
 else:
     print "(Unsupported, probably won't work)"
@@ -264,8 +283,8 @@ try:
         print "(OK)"
     else:
         print "(Unsupported, probably won't work)"
-except:
-    print "pygame failed"
+except Exception, x:
+    print "pygame failed:",str(x.__class__),str(x)
 
 try:
     import Image # PIL
