@@ -213,8 +213,8 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
     goto error;
   }
 
-  PY_CHECK(PyArg_ParseTuple(args,"O!s",
-			    &PyInstance_Type,&self,
+  PY_CHECK(PyArg_ParseTuple(args,"Os",
+			    &self,
 			    &filename),__LINE__);
 
   self_dict = PyObject_GetAttrString( self, "__dict__" ); // new ref
