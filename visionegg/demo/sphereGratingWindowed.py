@@ -12,6 +12,7 @@ from VisionEgg.Textures import *
 import VisionEgg.ParameterTypes as ve_types
 import math, os
 import pygame
+import OpenGL.GL as gl
 
 if show_grid:
     from VisionEgg.Textures import *
@@ -73,37 +74,74 @@ def mouse_button_up(event):
         global grating_orient_method
         grating_orient_method = 'reorient stimulus'
 
+shift_key = 0
+
+def keyup(event):
+    global shift_key
+    if event.key in [pygame.locals.K_LSHIFT,pygame.locals.K_RSHIFT]:
+        shift_key = 0
+
 def keydown(event):
-    global grating_stimulus
+    global grating_stimulus, mask, text1_5, text1_75
+    global shift_key
     if event.key == pygame.locals.K_ESCAPE:
         quit(event)
+    elif event.key in [pygame.locals.K_LSHIFT,pygame.locals.K_RSHIFT]:
+        shift_key = 1
     elif event.key == pygame.locals.K_KP1:
-        grating_stimulus.parameters.orientation = 135.0
+        grating_stimulus.parameters.orientation = 225.0
     elif event.key == pygame.locals.K_KP2:
-        grating_stimulus.parameters.orientation = 90.0
+        grating_stimulus.parameters.orientation = 270.0
     elif event.key == pygame.locals.K_KP3:
-        grating_stimulus.parameters.orientation = 45.0
+        grating_stimulus.parameters.orientation = 315.0
     elif event.key == pygame.locals.K_KP6:
         grating_stimulus.parameters.orientation = 0.0
     elif event.key == pygame.locals.K_KP9:
-        grating_stimulus.parameters.orientation = 315.0
+        grating_stimulus.parameters.orientation = 45.0
     elif event.key == pygame.locals.K_KP8:
-        grating_stimulus.parameters.orientation = 270.0
+        grating_stimulus.parameters.orientation = 90.0
     elif event.key == pygame.locals.K_KP7:
-        grating_stimulus.parameters.orientation = 235.0
+        grating_stimulus.parameters.orientation = 135.0
     elif event.key == pygame.locals.K_KP4:
         grating_stimulus.parameters.orientation = 180.0
-    elif event.key == pygame.locals.K_g:
-        grid_stimulus.parameters.on = 1
-        grating_stimulus.parameters.on = 0
     elif event.key == pygame.locals.K_s:
-        grid_stimulus.parameters.on = 0
-        grating_stimulus.parameters.on = 1
+        if shift_key:
+            grating_stimulus.parameters.spatial_freq_cpd *= (1.0/1.5)
+        else:
+            grating_stimulus.parameters.spatial_freq_cpd *= 1.5
+        text1_5.parameters.text = "'-' shrinks window, '+' grows window, 's/S' changes SF (now %.2f cycles per degree)"%(grating_stimulus.parameters.spatial_freq_cpd)
+    elif event.key == pygame.locals.K_t:
+        if shift_key:
+            grating_stimulus.parameters.temporal_freq_hz *= (1.0/1.5)
+        else:
+            grating_stimulus.parameters.temporal_freq_hz *= 1.5
+        text1_6.parameters.text = "'t/T' changes TF (now %.2f hz)"%(grating_stimulus.parameters.temporal_freq_hz)
+    elif event.key == pygame.locals.K_c:
+        if shift_key:
+            grating_stimulus.parameters.lowpass_cutoff_cycles_per_texel *= (1.0/1.5)
+        else:
+            grating_stimulus.parameters.lowpass_cutoff_cycles_per_texel *= 1.5
+        text1_75.parameters.text = "'c/C' changes cutoff SF (now %.2f cycles per texel)"%(grating_stimulus.parameters.lowpass_cutoff_cycles_per_texel)
+    elif event.key == pygame.locals.K_g:
+        grid_stimulus.parameters.on = not grid_stimulus.parameters.on
+        grating_stimulus.parameters.on = not grating_stimulus.parameters.on
+    elif event.key == pygame.locals.K_f:
+        global cur_min_filter_index
+        cur_min_filter_index = (cur_min_filter_index+1) % len(min_filters)
+        min_filter = min_filters[cur_min_filter_index]
+        text2.parameters.text = "'g' toggles grid display, 'f' cycles min_filter (now %s)"%min_filter
+        min_filter_int = eval("gl."+min_filter)
+        grating_stimulus.parameters.min_filter = min_filter_int
+    elif event.key == pygame.locals.K_MINUS:
+        mask.parameters.window_shape_radius_parameter *= 0.8
+    elif event.key == pygame.locals.K_EQUALS:
+        mask.parameters.window_shape_radius_parameter *= (1.0/0.8)
         
 handle_event_callbacks = [(pygame.locals.QUIT, quit),
                           (pygame.locals.MOUSEBUTTONDOWN, mouse_button_down),
                           (pygame.locals.MOUSEBUTTONUP, mouse_button_up),
-                          (pygame.locals.KEYDOWN, keydown)]
+                          (pygame.locals.KEYDOWN, keydown),
+                          (pygame.locals.KEYUP, keyup)]
 
 screen = get_default_screen()
 
@@ -131,6 +169,23 @@ except NumSamplesTooLargeError:
                                      temporal_freq_hz = 1.0,
                                      slices = 50,
                                      stacks = 50)
+
+min_filters = ['GL_NEAREST_MIPMAP_NEAREST',
+               'GL_NEAREST_MIPMAP_LINEAR',
+               'GL_LINEAR_MIPMAP_LINEAR',
+               'GL_LINEAR_MIPMAP_NEAREST',
+               'GL_NEAREST',
+               'GL_LINEAR']
+        
+cur_min_filter_index = None
+filter_used = grating_stimulus.parameters.min_filter
+for filter_test_index in range(len(min_filters)):
+    filter_test = min_filters[filter_test_index]
+    if filter_used == eval("gl."+filter_test):
+        cur_min_filter_index = filter_test_index
+        break
+if cur_min_filter_index is None:
+    raise RuntimeError("Couldn't find min filter used")
     
 mask = SphereWindow(radius=1.0*0.90, # make sure window is inside sphere with grating
                     window_shape_radius_parameter=40.0,
@@ -138,22 +193,43 @@ mask = SphereWindow(radius=1.0*0.90, # make sure window is inside sphere with gr
                     stacks=50)
 
 text_color = (0.0,0.0,1.0,0.0) # RGBA (light blue)
-center_x = screen.size[0]/2.0
-kw = {'anchor':'bottom','color':text_color,'font_size':30}
+xpos = 10.0
+yspace = 5
+kw = {'anchor':'lowerleft','color':text_color,'font_size':20}
 text4 = Text( text = "(Hold mouse button to prevent re-orienting stimulus with mask.)",
-              position=(center_x,0),**kw)
-ypos = text4.parameters.size[1] + 10
+              position=(xpos,0),**kw)
+ypos = text4.parameters.size[1] + yspace
 text3 = Text( text = "Numeric keypad changes grating orientation.",
-              position=(center_x,ypos),**kw)
-ypos += text3.parameters.size[1] + 10
-text2 = Text( text = "'s' displays sinusoidal grating, 'g' displays (az, el) grid.",
-              position=(center_x,ypos),**kw)
-ypos += text2.parameters.size[1] + 10
-text1 = Text( text = "Mouse moves mask, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),
-              position=(center_x,ypos),**kw)
-ypos += text1.parameters.size[1] + 10
+              position=(xpos,ypos),**kw)
+ypos += text3.parameters.size[1] + yspace
+
+text2 = Text( text = "'g' toggles grid display",
+              position=(xpos,ypos),**kw)
+
+min_filter = min_filters[cur_min_filter_index]
+text2.parameters.text = "'g' toggles grid display, 'f' cycles min_filter (now %s)"%min_filter
+
+ypos += text2.parameters.size[1] + yspace
+text1_75 = Text(text='temp text',
+               position=(xpos,ypos),**kw)
+text1_75.parameters.text = "'c/C' changes cutoff SF (now %.2f cycles per texel)"%(grating_stimulus.parameters.lowpass_cutoff_cycles_per_texel)
+
+ypos += text1_75.parameters.size[1] + yspace
+text1_6 = Text(text='temp text',
+               position=(xpos,ypos),**kw)
+text1_6.parameters.text = "'t/T' changes TF (now %.2f hz)"%(grating_stimulus.parameters.temporal_freq_hz)
+
+ypos += text1_6.parameters.size[1] + yspace
+text1_5 = Text(text='temp text',
+               position=(xpos,ypos),**kw)
+text1_5.parameters.text = "'-' shrinks window, '+' grows window, 's/S' changes SF (now %.2f cycles per degree)"%(grating_stimulus.parameters.spatial_freq_cpd)
+
+ypos += text1_5.parameters.size[1] + yspace
+text1 = Text( text = "Mouse moves window, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),
+              position=(xpos,ypos),**kw)
+ypos += text1.parameters.size[1] + yspace
 text0 = Text( text = "Demonstration of perspective distorted, windowed grating.",
-              position=(center_x,ypos),**kw)
+              position=(xpos,ypos),**kw)
 viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
@@ -163,6 +239,9 @@ viewport = Viewport(screen=screen,
 text_viewport = Viewport(screen=screen, # default (orthographic) viewport
                          stimuli=[text0,
                                   text1,
+                                  text1_5,
+                                  text1_6,
+                                  text1_75,
                                   text2,
                                   text3,
                                   text4])
