@@ -58,7 +58,7 @@ class Texture:
             draw.line((0,self.orig.size[1],self.orig.size[0],0), fill=(255,255,255))
             #draw.text((0,0),"Default texture")
 
-    def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR):
+    def load(self):
         """Load texture into video RAM"""
         # Someday put all this in a texture buffer manager.
         # The buffer manager will keep track of which
@@ -88,7 +88,7 @@ class Texture:
         self.buf_tf = 0.0
         self.buf_bf = float(self.orig.size[1])/float(self.buf.im.size[1])
 
-        texId = self.buf.load(minFilter,magFilter) # return the OpenGL Texture ID (uses "texture objects")
+        texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
 #        del self.orig # clear Image from system RAM
         return texId
 
@@ -122,7 +122,7 @@ class TextureBuffer:
     Width and height of Image should be power of 2."""
     def __init__(self,sizeTuple,mode="RGB",color=(127,127,127)):
         self.im = Image.new(mode,sizeTuple,color)
-    def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR,wrap_s=GL_REPEAT,wrap_t=GL_REPEAT):
+    def load(self):
         """This loads the texture into OpenGL's texture memory."""
         # THIS CODE HAS A BUG (OR A FEATURE, DEPENDING ON YOUR POV) ---
         # OpenGL has the y-values of pixels start at 0 at the LOWER
@@ -132,10 +132,6 @@ class TextureBuffer:
         # therefore just forces its way around the issue.
         self.gl_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFilter)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,minFilter)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,wrap_s)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,wrap_t)
         if self.im.mode == "RGB":
             image_data = self.im.tostring("raw","RGB")
 
@@ -250,14 +246,23 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         self.parameters.on = 1
         self.parameters.flat = 0 # toggles flat vs. cylinder
         self.parameters.dist_from_o = 1.0 # z or radius if flat or cylinder
-
+        self.parameters.texture_scale_linear_interp = 1 # if 0 it's nearest-neighbor
         self.texture_object = self.texture.load()
 
     def draw(self):
     	"""Redraw the scene on every frame.
         """
         if self.parameters.on:
+            # Set OpenGL state variables
             glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
+            if self.parameters.texture_scale_linear_interp:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+            else:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
 
             # Make sure texture colors are combined with the fragment
             # with the appropriate function
