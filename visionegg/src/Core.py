@@ -1659,13 +1659,13 @@ class Controller:
         """Called by Presentation. Evaluate during the main 'go' loop.
 
         Override this method in base classes."""
-        raise NotImplementedError("%s: Definition in abstract base class Contoller must be overriden."%(str(self),))
+        raise NotImplementedError("%s: Definition of during_go_eval() in abstract base class Contoller must be overriden."%(str(self),))
 
     def between_go_eval(self):
         """Called by Presentation. Evaluate between runs of the main 'go' loop.
         
         Override this method in base classes.""" 
-        raise NotImplementedError("%s: Definition in abstract base class Controller must be overriden."%(str(self),))
+        raise NotImplementedError("%s: Definition of between_go_eval() in abstract base class Controller must be overriden."%(str(self),))
 
     def _test_self(self,go_started):
         """Test whether a controller works.
