@@ -12,11 +12,16 @@
 import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
-import _imaging
-import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 import math,types
 import OpenGL.GL
 gl = OpenGL.GL
+
+# These modules are part of PIL and get loaded as needed by Image.
+# They are listed here so that Gordon McMillan's Installer properly
+# locates them.  You will not hurt anything other than your ability to
+# make executables using Intaller if you remove these lines.
+import _imaging
+import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 
 import string
 __version__ = VisionEgg.release_name
@@ -56,13 +61,17 @@ def __no_clamp_to_edge_callback():
             del gl.GL_CLAMP_TO_EDGE
             raise RuntimeError("No GL_CLAMP_TO_EDGE")
     except:
-         print "VISIONEGG WARNING: Your version of OpenGL is less than 1.2,"
-         print "and you do not have the GL_SGIS_texture_edge_clamp OpenGL"
-         print "extension.  therefore, you do not have GL_CLAMP_TO_EDGE"
-         print "available.  It may be impossible to get exact 1:1"
-         print "reproduction of your textures.  Using GL_CLAMP instead of"
-         print "GL_CLAMP_TO_EDGE."
-         gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
+        
+        VisionEgg.Core.message.add(
+            
+            """Your version of OpenGL is less than 1.2, and you do not
+            have the GL_SGIS_texture_edge_clamp OpenGL extension.
+            therefore, you do not have GL_CLAMP_TO_EDGE available.  It
+            may be impossible to get exact 1:1 reproduction of your
+            textures.  Using GL_CLAMP instead of GL_CLAMP_TO_EDGE.""",
+
+            level=VisionEgg.Core.Message.WARNING)
+        gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP
 
 if "GL_CLAMP_TO_EDGE" not in dir(gl):
     # Hack because this isn't defined in my PyOpenGL modules:
@@ -123,8 +132,8 @@ class Texture:
         # location of myself in the buffer, in fraction
         self.buf_lf = 0.0
         self.buf_rf = float(width)/float(width_pow2)
+        self.buf_bf = float(height)/float(height_pow2) # handle OpenGL "flip" by called the bottom of the texture the top
         self.buf_tf = 0.0
-        self.buf_bf = float(width)/float(width_pow2)
 
         texId = self.buf.load() # return the OpenGL Texture ID (uses "texture objects")
 
@@ -207,7 +216,7 @@ class TextureBuffer:
             gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
             gl.glEnable( gl.GL_TEXTURE_2D )
         if self.im.mode == "RGB":
-            image_data = self.im.tostring("raw","RGB")
+            image_data = self.im.tostring("raw","RGB") # -1 flips data so it's right side up in OpenGL
 
             # Do error-checking on texture to make sure it will load
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
@@ -281,7 +290,7 @@ class TextureBuffer:
         # Could it be that the width and height must be a power of 2?
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
         print "bound texture"
-        data = pil_image.tostring("raw","RGB",0,-1)
+        data = pil_image.tostring("raw","RGB")# ,0,-1) # the -1 will flip the data
         print "converted data"
         if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
             print "trying to put compressed image data"
@@ -396,18 +405,20 @@ class TextureStimulus(TextureStimulusBaseClass):
             r = l + p.size[0]
             b = p.lowerleft[1]
             t = b + p.size[1]
+
+            tex = self.texture
             
             gl.glBegin(gl.GL_QUADS)
-            gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
             gl.glVertex2f(l,b)
 
-            gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
             gl.glVertex2f(r,b)
 
-            gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
             gl.glVertex2f(r,t)
 
-            gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
             gl.glVertex2f(l,t)
             gl.glEnd() # GL_QUADS
             
