@@ -11,15 +11,15 @@
 #
 # $Id$
 
-import sys, os, string, time, types, socket
+import sys, os, time, types, socket
 import Tkinter
 import Pyro.core
 
 import VisionEgg.PyroClient
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class StimulusControlFrame(Tkinter.Frame):
@@ -218,8 +218,9 @@ class StimulusControlFrame(Tkinter.Frame):
                     time.sleep(retry_interval_seconds)
                 else:
                     raise # unknown error
-        
-        self.meta_params = self.meta_controller.get_parameters()
+
+        # attribute error: check: stimkey == short_name + "_server"
+        self.meta_params = self.meta_controller.get_parameters() 
 
         self.connected = 1
         if hasattr(self,'connected_text'): # EPhysGUI client suppresses this
