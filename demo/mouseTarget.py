@@ -71,7 +71,7 @@ def every_frame_func(t=None):
          0.0)
 
     orientation_vector = cross_product(b,(0.0,0.0,1.0))
-    target.parameters.orientation = -atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
+    target.parameters.orientation = atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
 
     # Set target size
     global target_w, target_h
