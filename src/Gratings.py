@@ -1,7 +1,7 @@
 """gratings module of the Vision Egg package"""
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
+# GNU Lesser General Public License (LGPL).
 
 ####################################################################
 #
@@ -9,27 +9,20 @@
 #
 ####################################################################
 
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 import VisionEgg
 import VisionEgg.Core
-import Image, ImageDraw                         # Python Imaging Library packages
-
-			                        # from PyOpenGL:
-from OpenGL.GL import *                         #   main package
-
-if "GL_CLAMP_TO_EDGE" not in dir(): # should have gotten from importing OpenGL.GL
-    import VisionEgg.Textures 
-    GL_CLAMP_TO_EDGE = VisionEgg.Textures.GL_CLAMP_TO_EDGE # use whatever hack is there...
-
 import Numeric
-from Numeric import * 				# Numeric Python package
-from MLab import *                              # Matlab function imitation from Numeric Python
+import math
+import string
+import OpenGL.GL
+gl = OpenGL.GL
 
-from math import *
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+__all__ = ['SinGrating2D','SinGrating3D']
+
 
 ####################################################################
 #
@@ -38,6 +31,7 @@ from math import *
 ####################################################################
 
 class SinGrating2D(VisionEgg.Core.Stimulus):
+    """Sine wave grating stimulus"""
     parameters_and_defaults = {'on':1,
                                'contrast':1.0,
                                'lowerleft':(0.0,0.0),
@@ -50,11 +44,11 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
     def __init__(self,projection = None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
 
-        self.texture_object = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_1D,self.texture_object)
+        self.texture_object = gl.glGenTextures(1)
+        gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
         
         # Do error-checking on texture to make sure it will load
-        max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
+        max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
             raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
@@ -67,32 +61,31 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
         # "proxy textures".
-        glTexImage1D(GL_PROXY_TEXTURE_1D,            # target
+        gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,            # target
                      0,                              # level
-                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     gl.GL_LUMINANCE,                   # video RAM internal format: RGB
                      self.parameters.num_samples,    # width
                      0,                              # border
-                     GL_LUMINANCE,                   # format of image data
-                     GL_UNSIGNED_BYTE,               # type of image data
+                     gl.GL_LUMINANCE,                   # format of image data
+                     gl.GL_UNSIGNED_BYTE,               # type of image data
                      texel_data)                     # texel data
-        if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_1D,0,GL_TEXTURE_WIDTH) == 0:
+        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
             raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
-        glTexImage1D(GL_TEXTURE_1D,            # target
+        gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
                      0,                              # level
-                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     gl.GL_LUMINANCE,                   # video RAM internal format: RGB
                      self.parameters.num_samples,    # width
                      0,                              # border
-                     GL_LUMINANCE,                   # format of image data
-                     GL_UNSIGNED_BYTE,               # type of image data
+                     gl.GL_LUMINANCE,                   # format of image data
+                     gl.GL_UNSIGNED_BYTE,               # type of image data
                      texel_data)                     # texel data
         # Set some texture object defaults
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_REPEAT)
-#        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_T,GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
 
         if self.parameters.size[0] != self.parameters.size[1]:
             self.give_size_warning()
@@ -111,14 +104,14 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
                     self.give_size_warning()
                     
             # Clear the modeview matrix
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
 
-            glDisable(GL_DEPTH_TEST)
-            glDisable(GL_BLEND)
-            glDisable(GL_TEXTURE_2D)
-            glEnable(GL_TEXTURE_1D)
-            glBindTexture(GL_TEXTURE_1D,self.texture_object)
+            gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glDisable(gl.GL_BLEND)
+            gl.glDisable(gl.GL_TEXTURE_2D)
+            gl.glEnable(gl.GL_TEXTURE_1D)
+            gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
 
             l = self.parameters.lowerleft[0]
             r = l + self.parameters.size[0]
@@ -126,15 +119,15 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
             floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')+(self.parameters.phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
             texel_data = (floating_point_sin*255.0).astype('b').tostring()
         
-            glTexSubImage1D(GL_TEXTURE_1D, # target
+            gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
                             0, # level
                             0, # x offset
                             self.parameters.num_samples, # width
-                            GL_LUMINANCE, # data format
-                            GL_UNSIGNED_BYTE, # data type
+                            gl.GL_LUMINANCE, # data format
+                            gl.GL_UNSIGNED_BYTE, # data type
                             texel_data)
             
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             l = self.parameters.lowerleft[0]
             r = l + self.parameters.size[0]
@@ -142,31 +135,32 @@ class SinGrating2D(VisionEgg.Core.Stimulus):
             t = b + self.parameters.size[1]
 
             # Get a matrix used to rotate the texture coordinates
-            glMatrixMode(GL_TEXTURE)
-            glPushMatrix()
-            glLoadIdentity()
-            glRotate(self.parameters.orientation,0.0,0.0,-1.0)
-            glTranslate(-0.5,-0.5,0.0) # Rotate about the center of the texture
+            gl.glMatrixMode(gl.GL_TEXTURE)
+            gl.glPushMatrix()
+            gl.glLoadIdentity()
+            gl.glRotate(self.parameters.orientation,0.0,0.0,-1.0)
+            gl.glTranslate(-0.5,-0.5,0.0) # Rotate about the center of the texture
             
-            glBegin(GL_QUADS)
-            glTexCoord2f(0.0,0.0)
-            glVertex2f(l,b)
+            gl.glBegin(gl.GL_QUADS)
+            gl.glTexCoord2f(0.0,0.0)
+            gl.glVertex2f(l,b)
 
-            glTexCoord2f(1.0,0.0)
-            glVertex2f(r,b)
+            gl.glTexCoord2f(1.0,0.0)
+            gl.glVertex2f(r,b)
 
-            glTexCoord2f(1.0,1.0)
-            glVertex2f(r,t)
+            gl.glTexCoord2f(1.0,1.0)
+            gl.glVertex2f(r,t)
 
-            glTexCoord2f(0.0,1.0)
-            glVertex2f(l,t)
-            glEnd() # GL_QUADS
+            gl.glTexCoord2f(0.0,1.0)
+            gl.glVertex2f(l,t)
+            gl.glEnd() # GL_QUADS
             
-            glPopMatrix() # restore the texture matrix
+            gl.glPopMatrix() # restore the texture matrix
             
-            glDisable(GL_TEXTURE_1D)
+            gl.glDisable(gl.GL_TEXTURE_1D)
 
 class SinGrating3D(VisionEgg.Core.Stimulus):
+    """Sine wave grating mapped on the inside of a cylinder."""
     parameters_and_defaults = {'on':1,
                                'contrast':1.0,
                                'radius':1.0,
@@ -180,11 +174,11 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
     def __init__(self,projection = None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
 
-        self.texture_object = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_1D,self.texture_object)
+        self.texture_object = gl.glGenTextures(1)
+        gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
         
         # Do error-checking on texture to make sure it will load
-        max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
+        max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if self.parameters.num_samples > max_dim:
             raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
@@ -197,34 +191,33 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
         # "proxy textures".
-        glTexImage1D(GL_PROXY_TEXTURE_1D,            # target
+        gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,            # target
                      0,                              # level
-                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     gl.GL_LUMINANCE,                   # video RAM internal format: RGB
                      self.parameters.num_samples,    # width
                      0,                              # border
-                     GL_LUMINANCE,                   # format of image data
-                     GL_UNSIGNED_BYTE,               # type of image data
+                     gl.GL_LUMINANCE,                   # format of image data
+                     gl.GL_UNSIGNED_BYTE,               # type of image data
                      texel_data)                     # texel data
-        if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_1D,0,GL_TEXTURE_WIDTH) == 0:
+        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
             raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
         
         # If we got here, it worked and we can load the texture for real.
-        glTexImage1D(GL_TEXTURE_1D,            # target
+        gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
                      0,                              # level
-                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     gl.GL_LUMINANCE,                   # video RAM internal format: RGB
                      self.parameters.num_samples,    # width
                      0,                              # border
-                     GL_LUMINANCE,                   # format of image data
-                     GL_UNSIGNED_BYTE,               # type of image data
+                     gl.GL_LUMINANCE,                   # format of image data
+                     gl.GL_UNSIGNED_BYTE,               # type of image data
                      texel_data)                     # texel data
         # Set some texture object defaults
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_REPEAT)
-#        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_T,GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)    
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_REPEAT)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_REPEAT)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)    
 
-        self.cached_display_list = glGenLists(1) # Allocate a new display list
+        self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.rebuild_display_list()
 
     def draw(self):
@@ -232,12 +225,12 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
         """
         if self.parameters.on:
             # Set OpenGL state variables
-            glDisable( GL_DEPTH_TEST )
-            glEnable( GL_TEXTURE_1D )  # Make sure textures are drawn
-            glDisable( GL_TEXTURE_2D )
-            glDisable( GL_BLEND )
+            gl.glDisable( gl.GL_DEPTH_TEST )
+            gl.glEnable( gl.GL_TEXTURE_1D )  # Make sure textures are drawn
+            gl.glDisable( gl.GL_TEXTURE_2D )
+            gl.glDisable( gl.GL_BLEND )
 
-            glBindTexture(GL_TEXTURE_1D,self.texture_object)
+            gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
 
             l = 0.0
             r = 360.0
@@ -245,28 +238,28 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
             floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')-(self.parameters.phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
             texel_data = (floating_point_sin*255.0).astype('b').tostring()
         
-            glTexSubImage1D(GL_TEXTURE_1D, # target
+            gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
                             0, # level
                             0, # x offset
                             self.parameters.num_samples, # width
-                            GL_LUMINANCE, # data format
-                            GL_UNSIGNED_BYTE, # data type
+                            gl.GL_LUMINANCE, # data format
+                            gl.GL_UNSIGNED_BYTE, # data type
                             texel_data)
             
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             # clear modelview matrix
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
 
             # do the orientation
-            glRotatef(self.parameters.orientation,0.0,0.0,1.0)
+            gl.glRotatef(self.parameters.orientation,0.0,0.0,1.0)
 
             if self.parameters.num_sides != self.cached_display_list_num_sides:
                 self.rebuild_display_list()
-            glCallList(self.cached_display_list)
+            gl.glCallList(self.cached_display_list)
 
-            glDisable( GL_TEXTURE_1D )
+            gl.glDisable( gl.GL_TEXTURE_1D )
 
     def rebuild_display_list(self):
         # (Re)build the display list
@@ -283,8 +276,8 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
         self.cached_display_list_num_sides = num_sides
         
         deltaTheta = 2.0*pi / num_sides
-        glNewList(self.cached_display_list,GL_COMPILE)
-        glBegin(GL_QUADS)
+        gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_QUADS)
         for i in range(num_sides):
             # angle of sides
             theta1 = i*deltaTheta
@@ -299,17 +292,17 @@ class SinGrating3D(VisionEgg.Core.Stimulus):
             z2 = r*math.sin(theta2)
 
             #Bottom left of quad
-            glTexCoord2f(frac1, 0.0)
-            glVertex4f( x1, -h, z1, 1.0 )
+            gl.glTexCoord2f(frac1, 0.0)
+            gl.glVertex4f( x1, -h, z1, 1.0 )
             
             #Bottom right of quad
-            glTexCoord2f(frac2, 0.0)
-            glVertex4f( x2, -h, z2, 1.0 )
+            gl.glTexCoord2f(frac2, 0.0)
+            gl.glVertex4f( x2, -h, z2, 1.0 )
             #Top right of quad
-            glTexCoord2f(frac2, 1.0); 
-            glVertex4f( x2,  h, z2, 1.0 )
+            gl.glTexCoord2f(frac2, 1.0); 
+            gl.glVertex4f( x2,  h, z2, 1.0 )
             #Top left of quad
-            glTexCoord2f(frac1, 1.0)
-            glVertex4f( x1,  h, z1, 1.0 )
-        glEnd()
-        glEndList()
+            gl.glTexCoord2f(frac1, 1.0)
+            gl.glVertex4f( x1,  h, z1, 1.0 )
+        gl.glEnd()
+        gl.glEndList()
