@@ -32,9 +32,6 @@ import VisionEgg.ParameterTypes as ve_types
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-import OpenGL.GLUT
-glut = OpenGL.GLUT
-
 import pygame
 
 __version__ = VisionEgg.release_name
@@ -48,6 +45,12 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+try:
+    import OpenGL.GLUT as glut
+    have_glut = True
+except:
+    have_glut = False
 
 class Text(VisionEgg.Textures.TextureStimulus):
     """Single line of text rendered using pygame/SDL true type fonts.
@@ -177,163 +180,165 @@ class Text(VisionEgg.Textures.TextureStimulus):
             p.size = p.texture.size
         VisionEgg.Textures.TextureStimulus.draw(self) # call base class
 
-class GlutTextBase(VisionEgg.Core.Stimulus):
-    """DEPRECATED. Base class: don't instantiate this class directly.
+if have_glut:
 
-    Base class that defines the common interface between the
-    other glut-based text stimuli.
+    class GlutTextBase(VisionEgg.Core.Stimulus):
+        """DEPRECATED. Base class: don't instantiate this class directly.
 
-    Parameters
-    ==========
-    color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
-                 Default: (1.0, 1.0, 1.0)
-    lowerleft -- (Sequence2 of Real)
-                 Default: (320, 240)
-    on        -- (Boolean)
-                 Default: True
-    text      -- (String)
-                 Default: the string to display
-    """
+        Base class that defines the common interface between the
+        other glut-based text stimuli.
 
-    parameters_and_defaults = {
-        'on':(True,
-              ve_types.Boolean),
-        'color':((1.0,1.0,1.0),
-                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
-                                ve_types.Sequence4(ve_types.Real))),
-        'lowerleft':((320,240),
-                     ve_types.Sequence2(ve_types.Real)),
-        'text':('the string to display',
-                ve_types.String)}
-    
-    def __init__(self,**kw):
-        if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
-            logger = logging.getLogger('VisionEgg.Text')
-            logger.warning("Using GlutTextBase class.  This will be "
-                           "removed in a future release. Use "
-                           "VisionEgg.Text.Text instead.")
-            VisionEgg.config._GAVE_GLUT_TEXT_DEPRECATION = 1
-            VisionEgg.Core.Stimulus.__init__(self,**kw)
-
-class BitmapText(GlutTextBase):
-    """DEPRECATED. Bitmap fonts from GLUT.
-
-    Parameters
-    ==========
-    color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
-                 Inherited from GlutTextBase
-                 Default: (1.0, 1.0, 1.0)
-    font      -- (Integer)
-                 Default: 5
-    lowerleft -- (Sequence2 of Real)
-                 Inherited from GlutTextBase
-                 Default: (320, 240)
-    on        -- (Boolean)
-                 Inherited from GlutTextBase
-                 Default: True
-    text      -- (String)
-                 Inherited from GlutTextBase
-                 Default: the string to display
-    """
-
-    parameters_and_defaults = {
-        'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
-                ve_types.Integer),
-        }
-    
-    def __init__(self,**kw):
-        GlutTextBase.__init__(self,**kw)
-
-    def draw(self):
-        if self.parameters.on:
-            gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_BLEND)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
-            gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
-
-            c = self.parameters.color
-            gl.glColorf(*c)
-            gl.glDisable(gl.GL_TEXTURE_2D)
-
-            gl.glRasterPos3f(0.0,0.0,0.0)
-            for char in self.parameters.text:
-                glut.glutBitmapCharacter(self.parameters.font,ord(char))
-
-class StrokeText(GlutTextBase):
-    """DEPRECATED. Text rendered by GLUT using stroke fonts.
-
-    Parameters
-    ==========
-    anti_aliasing -- (Boolean)
+        Parameters
+        ==========
+        color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                     Default: (1.0, 1.0, 1.0)
+        lowerleft -- (Sequence2 of Real)
+                     Default: (320, 240)
+        on        -- (Boolean)
                      Default: True
-    color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+        text      -- (String)
+                     Default: the string to display
+        """
+
+        parameters_and_defaults = {
+            'on':(True,
+                  ve_types.Boolean),
+            'color':((1.0,1.0,1.0),
+                     ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                    ve_types.Sequence4(ve_types.Real))),
+            'lowerleft':((320,240),
+                         ve_types.Sequence2(ve_types.Real)),
+            'text':('the string to display',
+                    ve_types.String)}
+
+        def __init__(self,**kw):
+            if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
+                logger = logging.getLogger('VisionEgg.Text')
+                logger.warning("Using GlutTextBase class.  This will be "
+                               "removed in a future release. Use "
+                               "VisionEgg.Text.Text instead.")
+                VisionEgg.config._GAVE_GLUT_TEXT_DEPRECATION = 1
+                VisionEgg.Core.Stimulus.__init__(self,**kw)
+
+    class BitmapText(GlutTextBase):
+        """DEPRECATED. Bitmap fonts from GLUT.
+
+        Parameters
+        ==========
+        color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
                      Inherited from GlutTextBase
                      Default: (1.0, 1.0, 1.0)
-    font          -- (Integer)
-                     Default: 0
-    linewidth     -- (Real)
-                     Default: 3.0
-    lowerleft     -- (Sequence2 of Real)
+        font      -- (Integer)
+                     Default: 5
+        lowerleft -- (Sequence2 of Real)
                      Inherited from GlutTextBase
                      Default: (320, 240)
-    on            -- (Boolean)
+        on        -- (Boolean)
                      Inherited from GlutTextBase
                      Default: True
-    orientation   -- (Real)
-                     Default: 0.0
-    text          -- (String)
+        text      -- (String)
                      Inherited from GlutTextBase
                      Default: the string to display
-    """
+        """
 
-    parameters_and_defaults = {
-        'font':(glut.GLUT_STROKE_ROMAN,
-                ve_types.Integer),
-        'orientation':(0.0,
-                       ve_types.Real),
-        'linewidth':(3.0, # pixels
-                     ve_types.Real),
-        'anti_aliasing':(True,
-                         ve_types.Boolean),
-        }
-    
-    def __init__(self,**kw):
-        raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
-        GlutTextBase.__init__(self,**kw)
+        parameters_and_defaults = {
+            'font':(glut.GLUT_BITMAP_TIMES_ROMAN_24,
+                    ve_types.Integer),
+            }
 
-    def draw(self):
-        if self.parameters.on:
-            gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_DEPTH_TEST)
+        def __init__(self,**kw):
+            GlutTextBase.__init__(self,**kw)
 
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
-            gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
-            gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
-
-            c = self.parameters.color
-            gl.glColorf(*c)
-
-            gl.glLineWidth(self.parameters.linewidth)
-
-            if self.parameters.anti_aliasing:
-                gl.glEnable(gl.GL_BLEND)
-                gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
-                gl.glEnable(gl.GL_LINE_SMOOTH)
-            else:
+        def draw(self):
+            if self.parameters.on:
+                gl.glDisable(gl.GL_TEXTURE_2D)
                 gl.glDisable(gl.GL_BLEND)
+                gl.glDisable(gl.GL_DEPTH_TEST)
 
-##            # This code successfully draws a box...
-##            gl.glBegin(gl.GL_QUADS)
-##            gl.glVertex2f(0.0,0.0)
-##            gl.glVertex2f(0.0,0.1)
-##            gl.glVertex2f(0.1,0.1)
-##            gl.glVertex2f(0.1,0.0)
-##            gl.glEnd()
+                gl.glMatrixMode(gl.GL_MODELVIEW)
+                gl.glLoadIdentity()
+                gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
 
-            # But this code does not draw the string!?!
-            for char in self.parameters.text:
-                glut.glutStrokeCharacter(self.parameters.font,ord(char))
+                c = self.parameters.color
+                gl.glColorf(*c)
+                gl.glDisable(gl.GL_TEXTURE_2D)
+
+                gl.glRasterPos3f(0.0,0.0,0.0)
+                for char in self.parameters.text:
+                    glut.glutBitmapCharacter(self.parameters.font,ord(char))
+
+    class StrokeText(GlutTextBase):
+        """DEPRECATED. Text rendered by GLUT using stroke fonts.
+
+        Parameters
+        ==========
+        anti_aliasing -- (Boolean)
+                         Default: True
+        color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                         Inherited from GlutTextBase
+                         Default: (1.0, 1.0, 1.0)
+        font          -- (Integer)
+                         Default: 0
+        linewidth     -- (Real)
+                         Default: 3.0
+        lowerleft     -- (Sequence2 of Real)
+                         Inherited from GlutTextBase
+                         Default: (320, 240)
+        on            -- (Boolean)
+                         Inherited from GlutTextBase
+                         Default: True
+        orientation   -- (Real)
+                         Default: 0.0
+        text          -- (String)
+                         Inherited from GlutTextBase
+                         Default: the string to display
+        """
+
+        parameters_and_defaults = {
+            'font':(glut.GLUT_STROKE_ROMAN,
+                    ve_types.Integer),
+            'orientation':(0.0,
+                           ve_types.Real),
+            'linewidth':(3.0, # pixels
+                         ve_types.Real),
+            'anti_aliasing':(True,
+                             ve_types.Boolean),
+            }
+
+        def __init__(self,**kw):
+            raise NotImplementedError("There's something broken with StrokeText, and I haven't figured it out yet!")
+            GlutTextBase.__init__(self,**kw)
+
+        def draw(self):
+            if self.parameters.on:
+                gl.glDisable(gl.GL_TEXTURE_2D)
+                gl.glDisable(gl.GL_DEPTH_TEST)
+
+                gl.glMatrixMode(gl.GL_MODELVIEW)
+                gl.glLoadIdentity()
+                gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
+                gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
+
+                c = self.parameters.color
+                gl.glColorf(*c)
+
+                gl.glLineWidth(self.parameters.linewidth)
+
+                if self.parameters.anti_aliasing:
+                    gl.glEnable(gl.GL_BLEND)
+                    gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
+                    gl.glEnable(gl.GL_LINE_SMOOTH)
+                else:
+                    gl.glDisable(gl.GL_BLEND)
+
+    ##            # This code successfully draws a box...
+    ##            gl.glBegin(gl.GL_QUADS)
+    ##            gl.glVertex2f(0.0,0.0)
+    ##            gl.glVertex2f(0.0,0.1)
+    ##            gl.glVertex2f(0.1,0.1)
+    ##            gl.glVertex2f(0.1,0.0)
+    ##            gl.glEnd()
+
+                # But this code does not draw the string!?!
+                for char in self.parameters.text:
+                    glut.glutStrokeCharacter(self.parameters.font,ord(char))
