@@ -24,14 +24,15 @@ import Image, ImageDraw # Python Imaging Library (PIL)
 
 import OpenGL.GL as gl # PyOpenGL
 
-import RandomArray # Numeric
+import RandomArray # from Numeric package
 
 dynamic_time = 10.0 # seconds
-static_time = 10.0 # seconds
+static_time = 10.0  # seconds
 
-scale = 6 # magification of checkerboard
-dynamic_checkerboard_size = (32,32)
-static_checkerboard_size = (50,50)
+dynamic_checkerboard_size = (32,32) # width, height in texture elements
+static_checkerboard_size = (50,50)  # width, height in texture elements
+
+scale = 6 # magification of checkerboard (this many pixels per texture element)
 
 screen = get_default_screen()
 
@@ -55,7 +56,8 @@ dynamic_checkerboard = TextureStimulus(texture=temp_texture,
                                        )
 
 # allocate static texture
-static_data = RandomArray.randint(0,2,static_checkerboard_size)*255
+# (Note: Numeric arrays have indices flipped from images, thus the re-ordering)
+static_data = RandomArray.randint(0,2,shape=(static_checkerboard_size[1],static_checkerboard_size[0]))*255
 static_texture = Texture(static_data)
     
 # create TextureStimulus for static stimulus
@@ -84,9 +86,12 @@ p = Presentation(go_duration=(dynamic_time+static_time,'seconds'),
 # Use a controller to hook into go loop, but control texture buffer
 # through direct manipulation.
 dynamic_texture_object = dynamic_checkerboard.parameters.texture.get_texture_object()
+width,height = dynamic_checkerboard_size
+# (Note: Numeric arrays have indices flipped from images, thus the re-ordering)
+flipped_shape = (height,width)
 def control_dynamic(t):
     if t <= dynamic_time:
-        random_data = RandomArray.randint(0,2,dynamic_checkerboard_size)*255
+        random_data = RandomArray.randint(0,2,shape=flipped_shape)*255
         dynamic_texture_object.put_sub_image( random_data )
 p.add_controller(None,None,FunctionController(during_go_func=control_dynamic))
 
