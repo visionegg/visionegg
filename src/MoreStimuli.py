@@ -35,7 +35,7 @@ class Target2D(VisionEgg.Core.Stimulus):
                                'size':((64.0,16.0),
                                        types.TupleType)}
                         
-    def __init__(self,projection=None,**kw):
+    def __init__(self,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
 
     def draw(self):
