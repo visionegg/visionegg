@@ -110,6 +110,10 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
         else:
             raise NotImplementedError("Only analog channels currently supported.")
 
+    def remove_channel(self,channel):
+        i = self.channels.index(channel)
+        del self.channels[i]
+
     def get_data_for_channel(self, channel_number):
         return self.connection.current_data_array[channel_number,:]
 
@@ -132,6 +136,10 @@ class TCPDaqDevice(VisionEgg.Daq.Device):
             trigger_num = None
             if buffered.parameters.trigger.parameters.mode == 'immediate':
                 trigger_num = 0
+            elif buffered.parameters.trigger.parameters.mode == 'rising_edge':
+                trigger_num = 1
+            elif buffered.parameters.trigger.parameters.mode == 'falling_edge':
+                trigger_num = 2
             else:
                 raise NotImplementedError("")
             self.connection.arm(num_channels,
@@ -184,6 +192,7 @@ class DaqConnection:
 
         self.socket.connect((hostname,port))
         self.buffer = ''
+        self.gain = None # unknown
 
         # Wait until we get a command prompt
         while not DaqConnection.command_prompt.search(self.buffer):
@@ -194,21 +203,22 @@ class DaqConnection:
         
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
-    def sync(self):
+    def set_gain(self,gain):
         if self.remote_state != DaqConnection.COMMAND_PROMPT:
             raise RuntimeError("Must be in command prompt state!")
         
         # Set the gain
-        self.socket.send('gain(%f)'%self.daq_params.parameters.gain + DaqConnection.CRLF)
+        self.socket.send('gain(%f)'%gain + DaqConnection.CRLF)
+        self.gain = gain
 
         # Get a command prompt
-        data = self.socket.recv(BUFSIZE)
+        data = self.socket.recv(DaqConnection.BUFSIZE)
         if not self.command_prompt.search(data):
             raise RuntimeError("Got unexpected reply in DaqConnection: %s"%data)
 
         # Wait until we get a command prompt
         while not self.command_prompt.search(data):
-            data = self.socket.recv(BUFSIZE)
+            data = self.socket.recv(DaqConnection.BUFSIZE)
 
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
