@@ -80,6 +80,14 @@ def sync_swap_with_vbl_post_gl_init():
                 OpenGL.WGL.EXT.swap_control.wglSwapIntervalEXT(1) # Swap only at frame syncs
                 if OpenGL.WGL.EXT.swap_control.wglGetSwapIntervalEXT() == 1:
                     success = 1
+        elif sys.platform == "darwin":
+            try:
+                import _darwin_sync_swap
+                
+                _darwin_sync_swap.sync()
+                success = 1
+            except Exception,x:
+                VisionEgg.Core.message.add("Failed trying to synchronize buffer swapping on darwin: %s: %s"%(str(x.__class__),str(x)))
     except:
         pass
     
