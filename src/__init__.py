@@ -37,13 +37,6 @@ import os, sys, time # standard python modules
 
 ############# Get config defaults #############
 config = Configuration.Config()
-try:
-    confFile = os.environ['VISIONEGG_CONFIG_FILE']
-except KeyError:
-    confFile = ''
-if not confFile and os.path.isfile('VisionEgg.conf'):
-    confFile='VisionEgg.conf'
-config.setup(confFile)
 
 ############# Now set up a bunch of obscure stuff  #############
 

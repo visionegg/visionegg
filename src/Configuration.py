@@ -35,7 +35,6 @@ VisionEgg.config.VISIONEGG_FULLSCREEN.
 # Special characters are '%c' (current directory, absolute) and
 # $STORAGE which is replaced by the VISIONEGG_STORAGE path.
 
-
 defaults= {
     'VISIONEGG_STORAGE':              '%u/VisionEggStorage', # %u means os.environ['HOME']
     'VISIONEGG_DEFAULT_INIT':         'config', # could also be 'GUI'
@@ -63,8 +62,15 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 import re, os, errno                     # standard python packages
 
 class Config:
-    def setup(self, configFile):
+    def __init__(self):
         reader = ConfigReader(defaults)
+
+        # See if there's an environment variable for the config file
+        try:
+            configFile = os.environ['VISIONEGG_CONFIG_FILE']
+        except KeyError:
+            configFile = '' # If not, let the reader see if there's one in VISIONEGG_STORAGE
+            
         try:
             reader.parse(configFile)
         except EnvironmentError,x:
@@ -94,7 +100,10 @@ class ConfigReader:
         self.items=defaults.copy()
         
     def parse(self, file):
+        done_config_file = 0
         if file:
+            done_config_file = 1
+            
             file=open(file).readlines()
             for l in file:
                 match=self.matcher.match(l)
@@ -104,13 +113,30 @@ class ConfigReader:
                             self.items[match.group(1)] = match.group(2)
                     else:
                         raise KeyError('Unknown config in configfile: '+match.group(1))
-                    
 
         # Parse the environment variables (they override the config file)
         self.items.update(self.processEnv(defaults.keys()))
 
         # First, fix up VISIONEGG_STORAGE because others depend on it.
         self.items['VISIONEGG_STORAGE'] = self.treatSpecial(self.items['VISIONEGG_STORAGE'])
+
+        # Now see if there's a config file in VISIONEGG_STORAGE and use that if we haven't already done a config file
+        if not done_config_file:
+            file = os.path.join(self.items['VISIONEGG_STORAGE'],'VisionEgg.cfg')
+            if os.path.isfile(file):
+                file=open(file).readlines()
+                for l in file:
+                    match=self.matcher.match(l)
+                    if match:
+                        if defaults.has_key(match.group(1)):
+                            if match.group(2):
+                                self.items[match.group(1)] = match.group(2)
+                        else:
+                            raise KeyError('Unknown config in configfile: '+match.group(1))
+                
+                # Parse the environment variables again (they override the config file)
+                self.items.update(self.processEnv(defaults.keys()))
+        
         # Now fix up all other items:
         for i in self.items.keys():
 
@@ -135,7 +161,7 @@ class ConfigReader:
             value = re.sub('%c',os.curdir,value)
             try:
                 value = re.sub('%u',os.environ['HOME'],value)
-            except: 
+            except KeyError: # no environment variable 'HOME' -- use os.curdir
                 value = re.sub('%u',os.curdir,value)
             value = re.sub('^\$STORAGE\/',self.items['VISIONEGG_STORAGE'],value)
         return value
