@@ -28,7 +28,7 @@ This package installs the Vision Egg library and associated files, including the
 
 The files will be installed to %s. This is the default Python 2.2 framework directory. The system files will be in the subdirectory lib/python2.2/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
 
-A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link will be made from your Desktop.
+A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link to this directory named VisionEgg will be made on your Desktop, removing anything named VisionEgg already there.
 
 This release exposes a few known bugs with Mac OS X versions of software that the Vision Egg depends on. Checkbuttons in dialog windows are broken until a button is pressed (Tk bug), and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working (pygame bug).
 
@@ -46,17 +46,24 @@ install_sh = """#!/bin/sh
 
 echo "Running post-install script"
 
-SCRIPTS=%s/VisionEgg
+INSTALLDIR=%s
+
+SCRIPTDIR=$INSTALLDIR/VisionEgg
+LIBDIR=$INSTALLDIR/lib/python2.2/site-packages/VisionEgg
 
 # Make a local user copy of the Vision Egg scripts
 echo "Copying to ~/VisionEgg"
-cp -p -r $SCRIPTS ~
+cp -p -r $SCRIPTDIR ~
 
 # Make the local copies owned by the user
 chown -R $USER ~/VisionEgg
 
+# Make sure system directories owned by root (an Installer bug changes them to user on upgrade)
+chown -R root:admin $SCRIPTDIR
+chown -R root:admin $LIBDIR
+
 # Create a link on the Desktop
-ln -s ~/VisionEgg ~/Desktop
+ln -fhs ~/VisionEgg ~/Desktop
 
 # Make the link owned by the user
 #chown $USER ~/Desktop/VisionEgg
