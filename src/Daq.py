@@ -1,79 +1,73 @@
-"""Data acquisition module for the Vision Egg library.
-"""
-
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
-
 import VisionEgg
-import string
-
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-####################################################################
-#
-#        Data acquisition classes
-#
-####################################################################
+import types
 
 class Trigger(VisionEgg.ClassWithParameters):
-    """(Abstract) Defines trigger behavior."""
-    parameters_and_defaults = { 'use_trigger' : 0 }
-    def arm(self):
-        """(Abstract) Start data acquisition when trigger received, or go immediately if use_trigger = 0."""
-        pass
-
-class DaqSetup(VisionEgg.ClassWithParameters):
-    """(Abstract) Data acquisition hardware interface."""
-    parameters_and_defaults = { 'num_channels_used' : 1,
-                                'num_channels_max' : 1,
-                                'duration_sec': 0.01,
-                                'trigger' : None,
-                                }
-    def add_daq_channel(self,daq_channel):
-        """(Abstract) Add a new data acquisition channel"""
-        pass
-
-class DaqChannel(VisionEgg.ClassWithParameters):
-    parameters_and_defaults = { 'signal_name' : 'Default signal',
-                                'channel_num' : 0,
-                                'gain' : 0.2048,
-                                'offset' : 0.0,
-                                'sample_freq_hz' : 1000.0,
-                                'units' : 'mV',
-                                }
-
-######### old crap below this line #################################
-class ChannelParams:
-    def __init__(self,channel_number,sample_freq_hz,duration_sec,gain):
-        self.channel_number = channel_number
-        self.sample_freq_hz = sample_freq_hz
-        self.duration_sec = duration_sec
-        self.gain = gain
-
-class TriggerMethod:
     pass
 
-class NoTrigger(TriggerMethod):
+class ChannelParameters(VisionEgg.ClassWithParameters):
     pass
 
-class TriggerLowToHigh(TriggerMethod):
+class SignalType(ChannelParameters):
+    constant_parameters_and_defaults = {'units':('Unknown units',types.StringType)}
+    def __init__(self,**kw):
+        if self.__class__ == SignalType:
+            raise RuntimeError("Trying to instantiate abstract base class.")
+        else:
+            apply(ChannelParameters.__init__,(self,),kw)
+
+class Analog(SignalType):
+    constant_parameters_and_defaults = {'gain':(1.0,types.FloatType),
+                                        'offset':(0.0,types.FloatType)}
+
+class Digital(SignalType):
     pass
 
-class TriggerHighToLow(TriggerMethod):
+class DaqMode(ChannelParameters):
+    def __init__(self,**kw):
+        if self.__class__ == DaqMode:
+            raise RuntimeError("Trying to instantiate abstract base class.")
+        else:
+            apply(ChannelParameters.__init__,(self,),kw)
+
+class Buffered(DaqMode):
+    parameters_and_defaults = {'sample_rate_hz':(5000.0,types.FloatType),
+                               'duration_sec':(5.0,types.FloatType),
+                               'trigger':(None,Trigger)}
+
+class Immediate(DaqMode):
     pass
-    
-class Daq:
-    """Abstract base class that defines interface for any data acquisition implementation
-    """
-    def __init__(self,channel_params_list,trigger_method):
-        if not isinstance(trigger_method,TriggerMethod):
-            raise RuntimeError("trigger_method must be a subclass of TriggerMethod")
-        for channel_params in channel_params_list:
-            if not isinstance(channel_params, ChannelParams):
-                raise RuntimeError("each element of channel_params_list must be a subclass of ChannelParams")
-        self.channel_params_list = channel_params_list
-        self.trigger_method = trigger_method
-    
+
+class Functionality(ChannelParameters):
+    def __init__(self,**kw):
+        if self.__class__ == Functionality:
+            raise RuntimeError("Trying to instantiate abstract base class.")
+        else:
+            apply(ChannelParameters.__init__,(self,),kw)
+   
+class Input(Functionality):
+    def get_data(self):
+        raise RuntimeError("Must override get_data method with daq implementation!")
+
+class Output(Functionality):
+    def put_data(self):
+        raise RuntimeError("Must override put_data method with daq implementation!")
+
+class Channel(VisionEgg.ClassWithParameters):
+    constant_parameters_and_defaults = { 'signal_type' : (None,SignalType),
+                                         'daq_mode' : (None,DaqMode),
+                                         'functionality' : (None,Functionality)}
+    def arm_trigger(self):
+        raise NotImpelemetedError("This method must be overridden.")
+
+class Device:
+    def __init__(self):
+        if self.__class__ == Device:
+            raise RuntimeError("Trying to instantiate abstract base class.")
+        self.channels = []
+        
+    def add_channel(self,channel):
+        # override this method if you need to do error checking
+        if isinstance(channel,Channel):
+            self.channels.append(channel)
+        else:
+            raise ValueError("%s not instance of VisionEgg.Daq.Channel"%channel)
