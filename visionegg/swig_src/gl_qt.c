@@ -187,6 +187,9 @@ void gl_qt_renderer_update(gl_qt_renderer * render_info) {
   register unsigned char * pTextile;
   register int row;
 
+  GLenum error;
+  const char *this_msg;
+
   row = render_info->tex_height;
   for (j = 0; j < render_info->tex_height; j++)
     {
@@ -202,13 +205,18 @@ void gl_qt_renderer_update(gl_qt_renderer * render_info) {
 	}
     }
   // Step 2 - send to OpenGL active 2D texture object
-  glTexSubImage2D (GL_TEXTURE_2D, 
-		   0, 
-		   0, 
-		   0, 
-		   render_info->tex_width, 
-		   render_info->tex_height, 
-		   GL_RGB, 
-		   GL_UNSIGNED_BYTE, 
-		   render_info->gl_texel_data);
+  glTexSubImage2D(GL_TEXTURE_2D, 
+		  0, 
+		  0, 
+		  0, 
+		  render_info->tex_width, 
+		  render_info->tex_height, 
+		  GL_RGB, 
+		  GL_UNSIGNED_BYTE, 
+		  render_info->gl_texel_data);
+  error = glGetError();
+  if (GL_NO_ERROR != error) {
+    this_msg = gluErrorString(error);
+    gl_qt_set_error(this_msg);
+  }
 }
