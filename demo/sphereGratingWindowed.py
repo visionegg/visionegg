@@ -138,12 +138,23 @@ mask = SphereWindow(radius=1.0*0.90, # make sure window is inside sphere with gr
                     window_shape_radius_parameter=40.0,
                     slices=50,
                     stacks=50)
-                    
-text0 = BitmapText(text="Demonstration of perspective distorted, windowed grating.",lowerleft=(0,105))
-text1 = BitmapText(text="Mouse moves mask, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),lowerleft=(0,80))
-text2 = BitmapText(text="'s' displays sinusoidal grating, 'g' displays (az, el) grid.",lowerleft=(0,55))
-text3 = BitmapText(text="Numeric keypad changes grating orientation.",lowerleft=(0,30))
-text4 = BitmapText(text="(Hold mouse button to prevent re-orienting stimulus with mask.)",lowerleft=(0,5))
+
+text_color = (0.0,0.0,1.0,0.0) # RGBA (light blue)
+text0 = BitmapText( text = "Demonstration of perspective distorted, windowed grating.",
+                    lowerleft=(0,105),
+                    color=text_color)
+text1 = BitmapText( text = "Mouse moves mask, press Esc to quit. Az, El = (%05.1f, %05.1f)"%(azimuth,elevation),
+                    lowerleft=(0,80),
+                    color=text_color)
+text2 = BitmapText( text = "'s' displays sinusoidal grating, 'g' displays (az, el) grid.",
+                    lowerleft=(0,55),
+                    color=text_color)
+text3 = BitmapText( text = "Numeric keypad changes grating orientation.",
+                    lowerleft=(0,30),
+                    color=text_color)
+text4 = BitmapText( text = "(Hold mouse button to prevent re-orienting stimulus with mask.)",
+                    lowerleft=(0,5),
+                    color=text_color)
 viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
