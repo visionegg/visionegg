@@ -2,16 +2,17 @@
 """
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).  
+# GNU Lesser General Public License (LGPL).
 
 import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.GUI
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def get_default_screen():
     """Return an instance of screen opened with to default values.
