@@ -226,3 +226,142 @@ class TextureBuffer:
 
     def free(self):
         glDeleteTextures(self.gl_id)
+
+####################################################################
+#
+#        Stimulus - Spinning Drum
+#
+####################################################################
+
+class SpinningDrum(VisionEgg.Core.Stimulus):
+    def __init__(self,
+                 texture=VisionEgg.Textures.Texture(size=(256,16))):
+        self.texture = texture
+        
+        self.parameters = VisionEgg.Core.Parameters()
+        self.parameters.num_sides = 50
+        self.parameters.angle = 0.0
+        self.parameters.contrast = 1.0
+        self.parameters.on = 1
+        self.parameters.flat = 0 # toggles flat vs. cylinder
+        self.parameters.dist_from_o = 1.0 # z or radius if flat or cylinder
+        self.parameters.texture_scale_linear_interp = 1 # if 0 it's nearest-neighbor
+        self.texture_object = self.texture.load()
+
+    def draw(self):
+    	"""Redraw the scene on every frame.
+        """
+        if self.parameters.on:
+            # Set OpenGL state variables
+            glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
+            glEnable( GL_BLEND ) # Contrast control implemented through blending
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+            
+            if self.parameters.texture_scale_linear_interp:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+            else:
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+
+            glLoadIdentity() # clear modelview matrix
+
+            glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
+            glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
+
+            if self.parameters.flat: # draw as flat texture on a rectange
+                z = -self.parameters.dist_from_o # in OpenGL (arbitrary) units
+                h = float(self.texture.height-1)*0.5
+                w = float(self.texture.width-1)*0.5
+                # calculate texture coordinates based on current angle
+                tex_phase = self.parameters.angle/360.0
+
+                # For this to work, the texture must be repeat mode
+
+                # XXX Because the textures are flipped, the texture
+                # coordinates are vertically flipped below
+
+                glBegin(GL_QUADS)
+                #Bottom left of quad
+                glTexCoord2f(tex_phase,self.texture.buf_bf)
+                glVertex4f( -w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+
+                #Bottom right of quad
+                glTexCoord2f(tex_phase+1.0,self.texture.buf_bf)
+                glVertex4f( w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                #Top right of quad
+                glTexCoord2f(tex_phase+1.0,self.texture.buf_tf)
+                glVertex4f( w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                #Top left of quad
+                glTexCoord2f(tex_phase,self.texture.buf_tf)
+                glVertex4f( -w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                glEnd()
+        
+            else: # draw as cylinder
+                # turn the coordinate system so we don't have to deal with
+                # figuring out where to draw the texture relative to drum
+                glRotatef(self.parameters.angle,0.0,1.0,0.0)
+
+                if self.parameters.num_sides != self.cached_display_list_num_sides:
+                    self.rebuild_display_list()
+                glCallList(self.cached_display_list)
+
+    def rebuild_display_list(self):
+        r = self.parameters.dist_from_o # in OpenGL (arbitrary) units
+        circum = 2.0*pi*r
+        h = circum/float(self.texture.width)*float(self.texture.height)/2.0
+
+        num_sides = self.parameters.num_sides
+        self.cached_display_list_num_sides = num_sides
+        
+        deltaTheta = 2.0*pi / num_sides
+        glNewList(self.cached_display_list,GL_COMPILE)
+        glBegin(GL_QUADS)
+        for i in range(num_sides):
+            # angle of sides
+            theta1 = i*deltaTheta
+            theta2 = (i+1)*deltaTheta
+            # fraction of texture
+            frac1 = (self.texture.buf_l + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
+            frac2 = (self.texture.buf_l + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
+            # location of sides
+            x1 = r*math.cos(theta1)
+            z1 = r*math.sin(theta1)
+            x2 = r*math.cos(theta2)
+            z2 = r*math.sin(theta2)
+
+            #Bottom left of quad
+            glTexCoord2f(frac1, self.texture.buf_bf)
+            glVertex4f( x1, -h, z1, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+            
+            #Bottom right of quad
+            glTexCoord2f(frac2, self.texture.buf_bf)
+            glVertex4f( x2, -h, z2, 1.0 )
+            #Top right of quad
+            glTexCoord2f(frac2, self.texture.buf_tf); 
+            glVertex4f( x2,  h, z2, 1.0 )
+            #Top left of quad
+            glTexCoord2f(frac1, self.texture.buf_tf)
+            glVertex4f( x1,  h, z1, 1.0 )
+        glEnd()
+        glEndList()
+
+    def init_gl(self):
+        # Build the display list
+        #
+        # A "display list" is a series of OpenGL commands that is
+        # cached in a list for rapid re-drawing of the same object.
+        #
+        # This draws a display list for an approximation of a cylinder.
+        # The cylinder has "num_sides" sides. The following code
+        # generates a list of vertices and the texture coordinates
+        # to be used by those vertices.
+        self.cached_display_list = glGenLists(1) # Allocate a new display list
+        self.rebuild_display_list()
