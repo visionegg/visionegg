@@ -57,7 +57,7 @@ cards to produce visual stimuli for vision research
 experiments."""
 
 # Normal distutils stuff
-setup(name="visionegg",
+setup(name="VisionEgg",
       version = "0.8.3a0",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
