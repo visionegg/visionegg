@@ -82,6 +82,15 @@ pygame.display.set_mode((width,height), flags, bpp )
 
 print
 
+### Get OpenGL info
+
+print "GL_VENDOR =",glGetString(GL_VENDOR)
+print "GL_RENDERER =",glGetString(GL_RENDERER)
+print "GL_VERSION = ",glGetString(GL_VERSION)
+print "GL_EXTENSIONS = ",glGetString(GL_EXTENSIONS)
+
+print
+
 ### Test OpenGL extensions
 
 print "Testing OpenGL extensions"
