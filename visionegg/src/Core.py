@@ -493,6 +493,25 @@ class Projection(VisionEgg.ClassWithParameters):
         if matrix_mode is not None:
             gl.glMatrixMode(matrix_mode)
 
+    def scale(self,x,y,z):
+        """Compose a rotation and set the OpenGL projection matrix."""
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glScalef(x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+
+    def stateless_scale(self,x,y,z):
+        """Compose a rotation without changing OpenGL state."""
+        matrix_mode = gl.glGetInteger(gl.GL_MATRIX_MODE)
+        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix()
+        gl.glLoadMatrixf(self.parameters.matrix)
+        gl.glScalef(x,y,z)
+        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        gl.glPopMatrix()
+        if matrix_mode is not None:
+            gl.glMatrixMode(matrix_mode)
+
     def get_matrix(self):
         return self.parameters.matrix
 
@@ -513,6 +532,7 @@ class Projection(VisionEgg.ClassWithParameters):
         side = cross(forward,up)
         side = normalize(side)
         new_up = cross(side,forward) # recompute up
+        # XXX I might have to transpose this matrix
         m = Numeric.array([[side[0], new_up[0], -forward[0], 0.0],
                            [side[1], new_up[1], -forward[1], 0.0],
                            [side[2], new_up[2], -forward[2], 0.0],
@@ -533,13 +553,13 @@ class OrthographicProjection(Projection):
         coordinates in the range [0,1] and y eye coordinates [0,480]
         -> [0,1].  Therefore, if the viewport is 640 x 480, eye
         coordinates correspond 1:1 with window (pixel) coordinates."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadIdentity() # Clear the projection matrix
-        gl.glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
-        matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
-        if matrix is None:
-            # OpenGL wasn't started
-            raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
+
+        # This is from the OpenGL spec:
+        matrix = Numeric.array([[ 2./(right-left), 0.,              0.,                           -(right+left)/(right-left)],
+                                [ 0.,              2./(top-bottom), 0.,                           -(top+bottom)/(top-bottom)],
+                                [ 0.,              0.,              -2./(z_clip_far-z_clip_near), -(z_clip_far+z_clip_near)/(z_clip_far-z_clip_near)],
+                                [ 0.,              0.,              0.,                           1.0]])
+        matrix = Numeric.transpose(matrix) # convert to OpenGL format
         apply(Projection.__init__,(self,),{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
@@ -563,8 +583,8 @@ class SimplePerspectiveProjection(Projection):
         matrix[0][0] = cotangent/aspect_ratio
         matrix[1][1] = cotangent
         matrix[2][2] = -(z_clip_far + z_clip_near) / delta_z
-        matrix[2][3] = -1.0
-        matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z
+        matrix[2][3] = -1.0 # XXX this
+        matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z # and this might cause the matrix to need to be transposed
         matrix[3][3] = 0.0
         apply(Projection.__init__,(self,),{'matrix':matrix})
 
@@ -681,10 +701,14 @@ class Viewport(VisionEgg.ClassWithParameters):
     def draw(self):
         """Called by Presentation. Set the viewport and draw stimuli."""
         self.parameters.screen.make_current()
-        gl.glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
+
+        gl.glViewport(self.parameters.lowerleft[0],
+                      self.parameters.lowerleft[1],
+                      self.parameters.size[0],
+                      self.parameters.size[1])
 
         self.parameters.projection.set_gl_projection()
-        
+
         for stimulus in self.parameters.stimuli:
             stimulus.draw()
 
@@ -1140,11 +1164,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             
             # If wanted, save time this frame was drawn for
             if p.collect_timing_info:
-                #print this_frame_draw_time_sec*1000.0
                 index = int(math.ceil(this_frame_draw_time_sec*1000.0/float(time_msec_bins[1]-time_msec_bins[0])))-1
                 if index > (len(timing_histogram)-1):
                     index = -1
-                #print "index=",index
                 try:
                     timing_histogram[index] += 1
                 except OverflowError:
