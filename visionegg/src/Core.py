@@ -244,8 +244,8 @@ class Screen(VisionEgg.ClassWithParameters):
                         break
         if not found_mode:
             message.add(
-                """Could find video mode using preferred bit depth.
-                Trying with bpp=0...""",
+                """Could not find video mode using preferred bit
+                depth.  Trying with bpp=0.""",
                 level=Message.WARNING)
             try_bpp = 0 # At least try something!
 
