@@ -25,6 +25,8 @@ from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contras
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
+from math import *
+
 ############ Import texture compression stuff and use it, if possible ##############
 # This may mess up image statistics! Check the output before using in an experiment!
 
@@ -120,7 +122,7 @@ class TextureBuffer:
     Width and height of Image should be power of 2."""
     def __init__(self,sizeTuple,mode="RGB",color=(127,127,127)):
         self.im = Image.new(mode,sizeTuple,color)
-    def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR):
+    def load(self,minFilter=GL_LINEAR,magFilter=GL_LINEAR,wrap_s=GL_REPEAT,wrap_t=GL_REPEAT):
         """This loads the texture into OpenGL's texture memory."""
         # THIS CODE HAS A BUG (OR A FEATURE, DEPENDING ON YOUR POV) ---
         # OpenGL has the y-values of pixels start at 0 at the LOWER
@@ -132,6 +134,8 @@ class TextureBuffer:
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFilter)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,minFilter)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,wrap_s)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,wrap_t)
         if self.im.mode == "RGB":
             image_data = self.im.tostring("raw","RGB")
 
@@ -236,15 +240,16 @@ class TextureBuffer:
 
 class SpinningDrum(VisionEgg.Core.Stimulus):
     def __init__(self,
-                 texture=Texture(size=(256,16)),
-                 num_sides=30):
+                 texture=Texture(size=(256,16))):
         self.texture = texture
-        self.num_sides = num_sides
-
+        
         self.parameters = VisionEgg.Core.Parameters()
+        self.parameters.num_sides = 30
         self.parameters.angle = 0.0
         self.parameters.contrast = 1.0
         self.parameters.on = 1
+        self.parameters.flat = 0 # toggles flat vs. cylinder
+        self.parameters.dist_from_o = 1.0 # z or radius if flat or cylinder
 
         self.texture_object = self.texture.load()
 
@@ -263,10 +268,87 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
 
             glLoadIdentity() # clear modelview matrix
 
-            glRotatef(self.parameters.angle,0.0,1.0,0.0)
             glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
             glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
-            glCallList(self.display_list)
+
+            if self.parameters.flat: # draw as flat texture on a rectange
+                z = -self.parameters.dist_from_o # in OpenGL (arbitrary) units
+                h = float(self.texture.height)/2.0
+                # calculate texture coordinates based on current angle
+                tex_phase = self.parameters.angle/360.0
+
+                # For this to work, the texture must be repeat mode
+
+                # XXX Because the textures are flipped, the texture
+                # coordinates are vertically flipped below
+
+                glBegin(GL_QUADS)
+                #Bottom left of quad
+                glTexCoord2f(tex_phase,self.texture.buf_bf)
+                glVertex4f( 0.0, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+
+                #Bottom right of quad
+                glTexCoord2f(tex_phase+1.0,self.texture.buf_bf)
+                glVertex4f( float(self.texture.width), -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                #Top right of quad
+                glTexCoord2f(tex_phase+1.0,self.texture.buf_tf)
+                glVertex4f( float(self.texture.width), h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                #Top left of quad
+                glTexCoord2f(tex_phase,self.texture.buf_tf)
+                glVertex4f( 0.0, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                
+                glEnd()
+        
+            else: # draw as cylinder
+                # turn the coordinate system so we don't have to deal with
+                # figuring out where to draw the texture relative to drum
+                glRotatef(self.parameters.angle,0.0,1.0,0.0)
+
+                if self.parameters.num_sides != self.__display_list_num_sides:
+                    self.rebuild_display_list()
+                glCallList(self.__display_list)
+
+    def rebuild_display_list(self):
+        r = self.parameters.dist_from_o # in OpenGL (arbitrary) units
+        circum = 2.0*pi*r
+        h = circum/float(self.texture.width)*float(self.texture.height)/2.0
+
+        num_sides = self.parameters.num_sides
+        self.__display_list_num_sides = num_sides
+        
+        deltaTheta = 2.0*pi / num_sides
+        glNewList(self.__display_list,GL_COMPILE)
+        glBegin(GL_QUADS)
+        for i in range(num_sides):
+            # angle of sides
+            theta1 = i*deltaTheta + 180.0
+            theta2 = (i+1)*deltaTheta + 180.0
+            # fraction of texture
+            frac1 = (self.texture.buf_l + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
+            frac2 = (self.texture.buf_l + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
+            # location of sides
+            x1 = r*math.cos(theta1)
+            z1 = r*math.sin(theta1)
+            x2 = r*math.cos(theta2)
+            z2 = r*math.sin(theta2)
+
+            #Bottom left of quad
+            glTexCoord2f(frac1, self.texture.buf_bf)
+            glVertex4f( x1, -h, z1, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+            
+            #Bottom right of quad
+            glTexCoord2f(frac2, self.texture.buf_bf)
+            glVertex4f( x2, -h, z2, 1.0 )
+            #Top right of quad
+            glTexCoord2f(frac2, self.texture.buf_tf); 
+            glVertex4f( x2,  h, z2, 1.0 )
+            #Top left of quad
+            glTexCoord2f(frac1, self.texture.buf_tf)
+            glVertex4f( x1,  h, z1, 1.0 )
+        glEnd()
+        glEndList()
 
     def init_gl(self):
         if glInitTextureEnvCombineARB():
@@ -299,10 +381,6 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
 
             glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_MODULATE) # just multiply texture alpha with fragment alpha
 
-        r = 1.0 # in OpenGL (arbitrary) units
-        circum = 2.0*math.pi
-        h = circum/float(self.texture.width)*float(self.texture.height)
-        
         # Build the display list
         #
         # A "display list" is a series of OpenGL commands that is
@@ -312,35 +390,5 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         # The cylinder has "num_sides" sides. The following code
         # generates a list of vertices and the texture coordinates
         # to be used by those vertices.
-        self.display_list = glGenLists(1) # Allocate a new display list
-        deltaTheta = 2.0*math.pi / self.num_sides
-        glNewList(self.display_list,GL_COMPILE)
-        glBegin(GL_QUADS)
-        for i in range(self.num_sides):
-            # angle of sides
-            theta1 = i*deltaTheta
-            theta2 = (i+1)*deltaTheta
-            # fraction of texture
-            frac1 = (self.texture.buf_l + (float(i)/self.num_sides*self.texture.width))/float(self.texture.width)
-            frac2 = (self.texture.buf_l + (float(i+1)/self.num_sides*self.texture.width))/float(self.texture.width)
-            # location of sides
-            x1 = r*math.cos(theta1)
-            z1 = r*math.sin(theta1)
-            x2 = r*math.cos(theta2)
-            z2 = r*math.sin(theta2)
-
-            #Bottom left of quad
-            glTexCoord2f(frac1, self.texture.buf_bf)
-            glVertex4f( x1, -h, z1, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
-            
-            #Bottom right of quad
-            glTexCoord2f(frac2, self.texture.buf_bf)
-            glVertex4f( x2, -h, z2, 1.0 )
-            #Top right of quad
-            glTexCoord2f(frac2, self.texture.buf_tf); 
-            glVertex4f( x2,  h, z2, 1.0 )
-            #Top left of quad
-            glTexCoord2f(frac1, self.texture.buf_tf)
-            glVertex4f( x1,  h, z1, 1.0 )
-        glEnd()
-        glEndList()
+        self.__display_list = glGenLists(1) # Allocate a new display list
+        self.rebuild_display_list()
