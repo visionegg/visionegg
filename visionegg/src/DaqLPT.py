@@ -25,7 +25,8 @@ import VisionEgg
 import VisionEgg.Core
 import VisionEgg.FlowControl
 import VisionEgg.Daq
-import sys, types, string
+import VisionEgg.ParameterTypes as ve_types
+import sys
 
 # See the raw LPT module for your platform for direct LPT access
 # without VisionEgg DAQ overhead.  In particular, the inp and out
@@ -44,8 +45,8 @@ else:
     raise RuntimeError("VisionEgg.DaqLPT not supported on this platform")
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
             
 class LPTInput(VisionEgg.Daq.Input):
@@ -124,7 +125,7 @@ class LPTTriggerOutController(VisionEgg.FlowControl.Controller):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
         VisionEgg.FlowControl.Controller.__init__(self,
-                                           return_type=types.NoneType,
+                                           return_type=ve_types.NoneType,
                                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         # Initialize DAQ stuff:
         self.trigger_out_channel = LPTChannel(signal_type = VisionEgg.Daq.Digital(),
@@ -153,7 +154,7 @@ class LPTTriggerInController(VisionEgg.FlowControl.Controller):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT input not supported on this platform.")
         VisionEgg.FlowControl.Controller.__init__(self,
-                                           return_type=types.IntType,
+                                           return_type=ve_types.Integer,
                                            eval_frequency=VisionEgg.FlowControl.Controller.EVERY_FRAME)
         # Initialize DAQ stuff:
         self.trigger_in_channel = LPTChannel(signal_type = VisionEgg.Daq.Digital(),
