@@ -54,7 +54,7 @@ stimulus = SinGrating2D(lowerleft   = ( grating_left , grating_bottom ),
 viewport = Viewport( screen=screen, stimuli=[stimulus] )
 
 # Create an instance of the Presentation class
-p = Presentation(duration=(60.0,'seconds'),viewports=[viewport])
+p = Presentation(duration=(60.0,'seconds'),viewports=[viewport],check_events=1)
 
 # Register the controller functions
 p.add_controller(stimulus,'phase', phase_controller)
