@@ -49,6 +49,10 @@ static char set_realtime__doc__[] =
 
 static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
 {
+  /* We will parse all the keywords on all platforms because they
+     should be legal, but we just won't care what there values are
+     when they are irrelevant. */
+
   static char *kwlist[] = {"darwin_period_denom",
 			   "darwin_computation_denom",
 			   "darwin_constraint_denom",
@@ -73,14 +77,14 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   PyObject * darwin_constraint_denom_py;
   PyObject * darwin_preemptible_py;
 
+#if defined(__APPLE__)
+  PyObject * info_string;
+
   int darwin_period_denom;
   int darwin_computation_denom;
   int darwin_constraint_denom;
   int darwin_preemptible;
 
-  PyObject * info_string;
-
-#if defined(__APPLE__)
   struct thread_time_constraint_policy ttcpolicy;
   int ret;
   int bus_speed, mib [2] = { CTL_HW, HW_BUS_FREQ };
@@ -117,6 +121,9 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 
   /* Now set the C types based on the values. */
+#if defined(__APPLE__)
+  /* darwin specific arguments */
+
   /* darwin_period_denom */
   if (darwin_period_denom_py != Py_None) {
     darwin_period_denom = PyInt_AS_LONG(darwin_period_denom_py);
@@ -185,6 +192,8 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
       return NULL;
     }      
   }
+#endif /* closes if defined(__APPLE__) */
+
   /* Destroy Python variables we don't need */
   Py_DECREF(configInstance);  configInstance = NULL;
 
@@ -250,7 +259,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   ttcpolicy.constraint=bus_speed / darwin_constraint_denom;
   ttcpolicy.preemptible= darwin_preemptible ;
 
-  info_string = PyString_FromFormat("Setting maximum priority on darwin platform.\n"
+  info_string = PyString_FromFormat("Setting maximum priority for darwin platform.\n"
 				    "( period_denom=%d,\n"
 				    "computation_denom=%d,\n"
 				    "constraint_denom=%d,\n"
@@ -289,7 +298,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   }
 
 #elif defined(_WIN32)
-  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority on win32 platform.", core_Message_INFO );
+  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority for win32 platform.", core_Message_INFO );
   if (temp_result == NULL) {
     Py_DECREF(core_Message_INFO);
     Py_DECREF(coreModule);
@@ -302,7 +311,7 @@ static PyObject *set_realtime(PyObject *self, PyObject *args, PyObject *kw)
   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 #else
 
-  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority on POSIX platform.", core_Message_INFO );
+  temp_result = PyObject_CallMethod(core_message, "add", "sO", "Setting maximum priority for POSIX platform.", core_Message_INFO );
   if (temp_result == NULL) {
     Py_DECREF(core_Message_INFO);
     Py_DECREF(coreModule);
