@@ -1042,7 +1042,12 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                      self.format,                    # format of image data
                      self.gl_type,                   # type of image data
                      texel_data)                     # texel data
-        if (gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_WIDTH) == 0) or (gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_HEIGHT) == 0):
+        if (gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D, # Need PyOpenGL >= 2.0
+                                        0,
+                                        gl.GL_TEXTURE_WIDTH) == 0) or (
+            gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,
+                                        0,
+                                        gl.GL_TEXTURE_HEIGHT) == 0):
             raise VisionEgg.Gratings.NumSamplesTooLargeError("SphereWindow num_s_samples or num_t_samples is too large for your video system!")     
 
         gl.glTexImage2D(gl.GL_TEXTURE_2D,      # target

@@ -272,7 +272,7 @@ try:
     if OpenGL.__version__ >= '2.0': 
         print "(OK)"
     else:
-        print "(Untested)"
+        print "(WILL FAIL)"
 except:
     print 'PyOpenGL (package "OpenGL") failed'
 
