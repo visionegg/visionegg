@@ -1,6 +1,6 @@
 """Texture (images mapped onto polygons) stimuli."""
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
 ####################################################################
@@ -12,7 +12,7 @@
 import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
-import math,types
+import math, types, os
 import OpenGL.GL as gl
 import Numeric
 
@@ -54,6 +54,7 @@ def __no_clamp_to_edge_callback():
     # case GL_CLAMP_TO_EDGE is not defined by default.
     
     try:
+        1/0 # raise exception -- ignore the code below for now
         import OpenGL.GL.SGIS.texture_edge_clamp
         if OpenGL.GL.SGIS.texture_edge_clamp.glInitTextureEdgeClampSGIS():
             gl.GL_CLAMP_TO_EDGE = OpenGL.GL.SGIS.texture_edge_clamp.GL_CLAMP_TO_EDGE_SGIS
@@ -85,7 +86,7 @@ if "GL_CLAMP_TO_EDGE" not in dir(gl):
 ####################################################################
 
 class Texture:
-    """A 2D dimensional texture.
+    """A 2 dimensional texture.
 
     The pixel data can come from an image file, an image file stream,
     an instance of Image from the Python Imaging Library, a Numeric
@@ -110,8 +111,13 @@ class Texture:
         if type(pixels) == types.FileType:
             pixels = Image.open(pixels) # Attempt to open as an image file
         elif type(pixels) == types.StringType:
+            # is this string a filename or raw image data?
+            if os.path.isfile(pixels):
+                # cache filename and file stream for later use (if possible)
+                self._filename = pixels
+                self._file_stream = open(pixels,"rb")
             pixels = Image.open(pixels) # Attempt to open as an image stream
-
+            
         if isinstance(pixels, Image.Image): # PIL Image
             self.size = pixels.size
         elif type(pixels) == Numeric.ArrayType: # Numeric Python array
@@ -140,11 +146,30 @@ class Texture:
         else:
             raise RuntimeError("Texture too large, but auto-rescaling of Numeric arrays not supported.")
 
+    def unload(self):
+        """Unload texture data from video texture memory.
+
+        This only removes data from the video texture memory if there
+        are no other references to the TextureObject instance.  To
+        ensure this, all references to the texture_object argument
+        passed to the load() method should be deleted."""
+        
+        self.texture_object = None
+
     def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0):
         """Load texture data to video texture memory.
 
         This will cause the texture data to become resident in OpenGL
-        video texture memory, enabling fast drawing."""
+        video texture memory, enabling fast drawing.
+
+        The texture_object argument is used to specify an instance of
+        the TextureObject class, which is a wrapper for the OpenGL
+        texture object holding the resident texture.
+
+        To remove a texture from OpenGL's resident textures: 1) make
+        sure no references are maintained to the instance of
+        TextureObject passed as the texture_object argument and 2)
+        call the unload() method"""
 
         assert( isinstance( texture_object, TextureObject ))
         assert( texture_object.dimensions == 2 )
@@ -239,14 +264,9 @@ class Texture:
 
 class TextureFromFile( Texture ):
     def __init__(self, filename ):
-        try:
-            pixels = Image.open(filename)
-        except IOError,x:
-            if str(x) == "cannot identify image file":
-                raise IOError("cannot identify image file '%s'"%filename)
-            else:
-                raise
-        Texture.__init__(self,pixels)
+        VisionEgg.Core.message.add("class TextureFromFile outdated, use class Texture instead.",
+                                   VisionEgg.Core.Message.DEPRECATION)
+        Texture.__init__(self, filename)
 
 class TextureObject:
     """Texture data in OpenGL. Potentially resident in video texture memory.
@@ -716,18 +736,23 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     """Parameters common to all stimuli that use textures.
 
     Don't instantiate this class directly."""
-    parameters_and_defaults = {'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
+    parameters_and_defaults = {'texture':(None,Texture), # instance of Texture class
+                               'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
                                'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,types.IntType),
                                'texture_wrap_s':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
                                'texture_wrap_t':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
                                }
-    
-    constant_parameters_and_defaults = {'mipmaps_enabled':(1,types.IntType),
+                               
+    constant_parameters_and_defaults = {'mipmaps_enabled':(1,types.IntType), # boolean
+                                        'shrink_texture_ok':(0,types.IntType), # boolean
                                         }
+                                        
     _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
+                     
     def __init__(self,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
@@ -740,49 +765,50 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if self.parameters.texture_wrap_t is None:
             self.parameters.texture_wrap_t = gl.GL_CLAMP_TO_EDGE
 
-class TextureStimulus(TextureStimulusBaseClass):
-    """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
-    parameters_and_defaults = {'on':(1,types.IntType),
-                               'lowerleft':((0.0,0.0),types.TupleType), # in eye coordinates
-                               'size':((640.0,480.0),types.TupleType)} # in eye coordinates
-    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
-        apply(TextureStimulusBaseClass.__init__,(self,),kw)
 
         # Create an OpenGL texture object this instance "owns"
         self.texture_object = TextureObject(dimensions=2)
 
-        # Get texture data that goes into texture object
-        if not isinstance(texture,Texture):
-            texture = Texture(texture)
-        self.texture = texture
+        self._reload_texture()
 
-        if not shrink_texture_ok:
+    def _reload_texture(self):
+        p = self.parameters
+        self._using_texture = p.texture
+
+        if not self.constant_parameters.shrink_texture_ok:
             # send texture to OpenGL
-            self.texture.load( self.texture_object,
-                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
+            p.texture.load( self.texture_object,
+                            build_mipmaps = self.constant_parameters.mipmaps_enabled )
         else:
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             resized = 0
-            while max(self.texture.size) > max_dim:
-                self.texture.make_half_size()
+            while max(p.texture.size) > max_dim:
+                p.texture.make_half_size()
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
                 try:
                     # send texture to OpenGL
-                    self.texture.load( self.texture_object,
+                    p.texture.load( self.texture_object,
                                        build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
                 except TextureTooLargeError:
-                    self.texture.make_half_size()
+                    p.texture.make_half_size()
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
                     "Resized texture in %s to %d x %d"%(
-                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
+                    str(self),p.texture.size[0],p.texture.size[1]),VisionEgg.Core.Message.WARNING)
 
+class TextureStimulus(TextureStimulusBaseClass):
+    """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
+    parameters_and_defaults = {'on':(1,types.IntType),
+                               'lowerleft':((0.0,0.0),types.TupleType), # in eye coordinates
+                               'size':((640.0,480.0),types.TupleType)} # in eye coordinates
     def draw(self):
         p = self.parameters
+        if p.texture != self._using_texture:
+            self.reload_texture()
         if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -807,7 +833,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             b = p.lowerleft[1]
             t = b + p.size[1]
 
-            tex = self.texture
+            tex = p.texture
             
             gl.glBegin(gl.GL_QUADS)
             gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
@@ -836,44 +862,11 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                              Numeric.ArrayType), # in eye coordinates
                                'depth_test':(1,types.IntType),
                                }
-    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
-        apply(TextureStimulusBaseClass.__init__,(self,),kw)
-
-        # Create an OpenGL texture object this instance "owns"
-        self.texture_object = TextureObject(dimensions=2)
-        
-        # Get texture data that goes into texture object
-        if not isinstance(texture,Texture):
-            texture = Texture(texture)
-        self.texture = texture
-
-        if not shrink_texture_ok:
-            # send texture to OpenGL
-            self.texture.load( self.texture_object,
-                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
-        else:
-            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
-            resized = 0
-            while max(self.texture.size) > max_dim:
-                self.texture.make_half_size()
-                resized = 1
-            loaded_ok = 0
-            while not loaded_ok:
-                try:
-                    # send texture to OpenGL
-                    self.texture.load( self.texture_object,
-                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
-                    loaded_ok = 1
-                except TextureTooLargeError:
-                    self.texture.make_half_size()
-                    resized = 1
-            if resized:
-                VisionEgg.Core.message.add(
-                    "Resized texture in %s to %d x %d"%(
-                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
                                                                                 
     def draw(self):
         p = self.parameters
+        if p.texture != self._using_texture:
+            self.reload_texture()
         if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -898,7 +891,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                                                                                     
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
-            tex = self.texture
+            tex = self.parameters.texture
             
             gl.glBegin(gl.GL_QUADS)
             gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
@@ -926,52 +919,23 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'contrast':(1.0,types.FloatType),
                                'on':(1,types.IntType),
                                'flat':(0,types.IntType), # toggles flat vs. cylinder
-                               'dist_from_o':(1.0,types.FloatType) # z if flat, radius if cylinder
+                               'flip_image':(0,types.IntType), # toggles normal vs. horizonally flipped image
+                               'radius':(1.0,types.FloatType), # radius if cylinder, z distance if flat
+                               'position':( (0.0,0.0,0.0), types.TupleType) # 3D position
                                }
     
-    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
+    def __init__(self,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
-
-        # Create an OpenGL texture object this instance "owns"
-        self.texture_object = TextureObject(dimensions=2)
-        
-        # Get texture data that goes into texture object
-        if not isinstance(texture,Texture):
-            texture = Texture(texture)
-        self.texture = texture
-
-        if not shrink_texture_ok:
-            # send texture to OpenGL
-            self.texture.load( self.texture_object,
-                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
-        else:
-            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
-            resized = 0
-            while max(self.texture.size) > max_dim:
-                self.texture.make_half_size()
-                resized = 1
-            loaded_ok = 0
-            while not loaded_ok:
-                try:
-                    # send texture to OpenGL
-                    self.texture.load( self.texture_object,
-                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
-                    loaded_ok = 1
-                except TextureTooLargeError:
-                    self.texture.make_half_size()
-                    resized = 1
-            if resized:
-                VisionEgg.Core.message.add(
-                    "Resized texture in %s to %d x %d"%(
-                    str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
-            
-        self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
+        self.cached_display_list_normal = gl.glGenLists(1) # Allocate a new display list
+        self.cached_display_list_mirror = gl.glGenLists(1) # Allocate a new display list
         self.rebuild_display_list()
 
     def draw(self):
     	"""Redraw the scene on every frame.
         """
         p = self.parameters
+        if p.texture != self._using_texture:
+            self.reload_texture()
         if p.on:
             # Set OpenGL state variables
             gl.glEnable( gl.GL_DEPTH_TEST )
@@ -1001,6 +965,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
+            gl.glTranslate(p.position[0],p.position[1],p.position[2])
 
             gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
@@ -1013,32 +978,35 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
-                w,h = self.texture.size
+                if p.flip_image:
+                    raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
+                w,h = p.texture.size
 
                 # calculate texture coordinates based on current angle
                 tex_phase = p.angular_position/-360.0 + 0.5 # offset to match non-flat
                 tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
                 
                 TINY = 1.0e-10
+                tex = p.texture
                 if tex_phase < TINY: # it's effectively zero
 
                     gl.glBegin(gl.GL_QUADS)
-                    gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
                     gl.glVertex2f(0.0,0.0)
 
-                    gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
                     gl.glVertex2f(w,0.0)
 
-                    gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
                     gl.glVertex2f(w,h)
 
-                    gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
                     gl.glVertex2f(0.0,h)
                     gl.glEnd() # GL_QUADS
 
                 else:
                     # Convert tex_phase into texture buffer fraction
-                    buf_break_f = ( (self.texture.buf_rf - self.texture.buf_lf) * (1.0-tex_phase) ) + self.texture.buf_lf
+                    buf_break_f = ( (tex.buf_rf - tex.buf_lf) * (1.0-tex_phase) ) + tex.buf_lf
 
                     # Convert tex_phase into object coords value
                     quad_x_break = w * tex_phase
@@ -1047,30 +1015,30 @@ class SpinningDrum(TextureStimulusBaseClass):
 
                     # First quad
 
-                    gl.glTexCoord2f(buf_break_f,self.texture.buf_bf)
+                    gl.glTexCoord2f(buf_break_f,tex.buf_bf)
                     gl.glVertex2f(0.0,0.0)
 
-                    gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_bf)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
                     gl.glVertex2f(quad_x_break,0.0)
 
-                    gl.glTexCoord2f(self.texture.buf_rf,self.texture.buf_tf)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
                     gl.glVertex2f(quad_x_break,h)
 
-                    gl.glTexCoord2f(buf_break_f,self.texture.buf_tf)
+                    gl.glTexCoord2f(buf_break_f,tex.buf_tf)
                     gl.glVertex2f(0.0,h)
 
                     # Second quad
 
-                    gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
                     gl.glVertex2f(quad_x_break,0.0)
 
-                    gl.glTexCoord2f(buf_break_f,self.texture.buf_bf)
+                    gl.glTexCoord2f(buf_break_f,tex.buf_bf)
                     gl.glVertex2f(w,0.0)
 
-                    gl.glTexCoord2f(buf_break_f,self.texture.buf_tf)
+                    gl.glTexCoord2f(buf_break_f,tex.buf_tf)
                     gl.glVertex2f(w,h)
 
-                    gl.glTexCoord2f(self.texture.buf_lf,self.texture.buf_tf)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
                     gl.glVertex2f(quad_x_break,h)
                     gl.glEnd() # GL_QUADS
 
@@ -1081,7 +1049,10 @@ class SpinningDrum(TextureStimulusBaseClass):
 
                 if p.num_sides != self.cached_display_list_num_sides:
                     self.rebuild_display_list()
-                gl.glCallList(self.cached_display_list)
+                if not p.flip_image:
+                    gl.glCallList(self.cached_display_list_normal)
+                else:
+                    gl.glCallList(self.cached_display_list_mirror)
 
     def rebuild_display_list(self):
         # (Re)build the display list
@@ -1093,44 +1064,54 @@ class SpinningDrum(TextureStimulusBaseClass):
         # The cylinder has "num_sides" sides. The following code
         # generates a list of vertices and the texture coordinates
         # to be used by those vertices.
-        r = self.parameters.dist_from_o # in OpenGL (arbitrary) units
+        r = self.parameters.radius # in OpenGL (arbitrary) units
         circum = 2.0*math.pi*r
-        h = circum/float(self.texture.size[0])*float(self.texture.size[1])/2.0
+        tex = self.parameters.texture
+        h = circum/float(tex.size[0])*float(tex.size[1])/2.0
 
         num_sides = self.parameters.num_sides
         self.cached_display_list_num_sides = num_sides
         
         deltaTheta = 2.0*math.pi / num_sides
-        gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
-        gl.glBegin(gl.GL_QUADS)
-        for i in range(num_sides):
-            # angle of sides
-            theta1 = i*deltaTheta
-            theta2 = (i+1)*deltaTheta
-            # fraction of texture
-            frac1 = (self.texture.buf_lf + (float(i)/num_sides*self.texture.size[0]))/float(self.texture.size[0])
-            frac2 = (self.texture.buf_lf + (float(i+1)/num_sides*self.texture.size[0]))/float(self.texture.size[0])
-            # location of sides
-            x1 = r*math.cos(theta1)
-            z1 = r*math.sin(theta1)
-            x2 = r*math.cos(theta2)
-            z2 = r*math.sin(theta2)
-
-            #Bottom left of quad
-            gl.glTexCoord2f(frac1, self.texture.buf_bf)
-            gl.glVertex4f( x1, -h, z1, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
-            
-            #Bottom right of quad
-            gl.glTexCoord2f(frac2, self.texture.buf_bf)
-            gl.glVertex4f( x2, -h, z2, 1.0 )
-            #Top right of quad
-            gl.glTexCoord2f(frac2, self.texture.buf_tf); 
-            gl.glVertex4f( x2,  h, z2, 1.0 )
-            #Top left of quad
-            gl.glTexCoord2f(frac1, self.texture.buf_tf)
-            gl.glVertex4f( x1,  h, z1, 1.0 )
-        gl.glEnd()
-        gl.glEndList()
+        for direction in ['normal','mirror']:
+            if direction == 'normal':
+                gl.glNewList(self.cached_display_list_normal,gl.GL_COMPILE)
+            else:
+                gl.glNewList(self.cached_display_list_mirror,gl.GL_COMPILE)
+            gl.glBegin(gl.GL_QUADS)
+            for i in range(num_sides):
+                # angle of sides
+                theta1 = i*deltaTheta
+                theta2 = (i+1)*deltaTheta
+                # fraction of texture
+                if direction == 'normal':
+                    frac1 = (tex.buf_lf + (float(i)/num_sides*tex.size[0]))/float(tex.size[0])
+                    frac2 = (tex.buf_lf + (float(i+1)/num_sides*tex.size[0]))/float(tex.size[0])
+                else:
+                    j = num_sides-i-1
+                    frac1 = (tex.buf_lf + (float(j+1)/num_sides*tex.size[0]))/float(tex.size[0])
+                    frac2 = (tex.buf_lf + (float(j)/num_sides*tex.size[0]))/float(tex.size[0])
+                # location of sides
+                x1 = r*math.cos(theta1)
+                z1 = r*math.sin(theta1)
+                x2 = r*math.cos(theta2)
+                z2 = r*math.sin(theta2)
+    
+                #Bottom left of quad
+                gl.glTexCoord2f(frac1, tex.buf_bf)
+                gl.glVertex4f( x1, -h, z1, 1.0 )
+                
+                #Bottom right of quad
+                gl.glTexCoord2f(frac2, tex.buf_bf)
+                gl.glVertex4f( x2, -h, z2, 1.0 )
+                #Top right of quad
+                gl.glTexCoord2f(frac2, tex.buf_tf); 
+                gl.glVertex4f( x2,  h, z2, 1.0 )
+                #Top left of quad
+                gl.glTexCoord2f(frac1, tex.buf_tf)
+                gl.glVertex4f( x1,  h, z1, 1.0 )
+            gl.glEnd()
+            gl.glEndList()
 
 class TextureTooLargeError(VisionEgg.Core.EggError):
     pass
