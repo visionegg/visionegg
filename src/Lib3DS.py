@@ -23,9 +23,9 @@ import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 import VisionEgg.Textures
 import VisionEgg._lib3ds # helper functions in C
-import OpenGL.GL
 import Numeric
-gl = OpenGL.GL
+
+gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -56,9 +56,9 @@ class Model3DS(VisionEgg.Core.Stimulus):
                                                               ve_types.Integer),
                                         'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,
                                                               ve_types.Integer),
-                                        'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,
-                                                          ve_types.Integer),
-                                        'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,
+                                        'texture_wrap_s':(None, # set to gl.GL_CLAMP_TO_EDGE below
+                                                          ve_types.Integer), 
+                                        'texture_wrap_t':(None, # set to gl.GL_CLAMP_TO_EDGE below
                                                           ve_types.Integer),
                                         'mipmaps_enabled':(True,
                                                            ve_types.Boolean),
@@ -68,7 +68,16 @@ class Model3DS(VisionEgg.Core.Stimulus):
     def __init__(self,**kw):
         # Initialize base class
         VisionEgg.Core.Stimulus.__init__(self,**kw)
-
+        
+        # We have to set these parameters here because we may have
+        # re-assigned gl.GL_CLAMP_TO_EDGE.  This allows us to use
+        # symbol gl.GL_CLAMP_TO_EDGE even if our version of OpenGL
+        # doesn't support it.
+        if self.constant_parameters.texture_wrap_s is None:
+            self.constant_parameters.texture_wrap_s = gl.GL_CLAMP_TO_EDGE
+        if self.constant_parameters.texture_wrap_t is None:
+            self.constant_parameters.texture_wrap_t = gl.GL_CLAMP_TO_EDGE
+            
         max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
         if max_dim is None:
             raise RuntimeError("A screen must be open before you create an instance of Model3DS.");
