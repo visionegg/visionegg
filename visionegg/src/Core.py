@@ -1280,7 +1280,7 @@ class FrameTimer:
     def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0):
         self.bins = Numeric.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
         self.bin_width_msec = float(bin_width_msec)
-        self.timing_histogram = Numeric.zeros( self.bins.shape, typecode=Numeric.Float ) # make float to avoid (early) overflow errors
+        self.timing_histogram = Numeric.zeros( self.bins.shape, Numeric.Float ) # make float to avoid (early) overflow errors
         self._true_time_last_frame = None # no frames yet
         self.longest_frame_draw_time_sec = None
         self.first_tick_sec = None
@@ -1535,9 +1535,9 @@ def post_gl_init():
     """Called by Screen instance. Requires OpenGL context to be created."""
     global gl_vendor, gl_renderer, gl_version # set above
 
-    if gl_version < '1.3':
-        init_gl_extension('ARB','multitexture')
-        init_gl_extension('ARB','texture_env_combine')
+    # OpenGL 1.3 has this extension built-in, but doing this allows
+    # use of ARB names
+    init_gl_extension('ARB','multitexture') 
         
     if gl_version < '1.2':
         if init_gl_extension('EXT','bgra'):
