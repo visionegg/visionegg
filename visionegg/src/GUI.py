@@ -58,12 +58,23 @@ class OpenScreenDialog(Tkinter.Frame):
                             variable=self.tex_compress,
                             relief=Tkinter.FLAT).pack()
 
-        # resolution
-        Tkinter.Label(self,text="Window size (pixels):").pack()
-        self.resolution = Tkinter.StringVar()
-        default_res_string = "%dx%d"%(VisionEgg.config.VISIONEGG_SCREEN_W,VisionEgg.config.VISIONEGG_SCREEN_H)
-        self.resolution.set(default_res_string)
-        Tkinter.OptionMenu(self,self.resolution,default_res_string,"640x480","800x600","1024x768").pack()
+        # frame rate
+        Tkinter.Label(self,text="Monitor refresh (Hz):").pack()
+        self.frame_rate = Tkinter.StringVar()
+        self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
+        Tkinter.Entry(self,textvariable=self.frame_rate).pack()
+
+        # width
+        Tkinter.Label(self,text="Window width (pixels):").pack()
+        self.width = Tkinter.StringVar()
+        self.width.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_W))
+        Tkinter.Entry(self,textvariable=self.width).pack()
+
+        # height
+        Tkinter.Label(self,text="Window height (pixels):").pack()
+        self.height = Tkinter.StringVar()
+        self.height.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_H))
+        Tkinter.Entry(self,textvariable=self.height).pack()
 
         # color depth
         Tkinter.Label(self,text="Color depth (bits per pixel):").pack()
@@ -77,9 +88,11 @@ class OpenScreenDialog(Tkinter.Frame):
         
     def start(self):
         
+        VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
         VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
-        VisionEgg.config.VISIONEGG_SCREEN_W, VisionEgg.config.VISIONEGG_SCREEN_H = map(int,string.split(self.resolution.get(),'x'))
+        VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
+        VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
         VisionEgg.config.VISIONEGG_PREFERRED_BPP = int(string.split(self.color_depth.get(),' ')[0])
 
         screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
