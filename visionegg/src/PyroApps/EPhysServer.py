@@ -144,7 +144,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
             traceback.print_exc()
             raise
 
-def start_server( server_modules ):
+def start_server( server_modules, server_class=EPhysServer ):
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     # get Vision Egg stimulus ready to go
@@ -163,9 +163,10 @@ def start_server( server_modules ):
     overlay2D_viewport = VisionEgg.Core.Viewport(screen=screen)
     p = VisionEgg.Core.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
 
-    wait_text = VisionEgg.Text.BitmapText(
+    wait_text = VisionEgg.Text.Text(
         text = "Waiting for connection",
-        lowerleft = (5,10),
+        position = (screen.size[0]/2.0,5),
+        anchor='bottom',
         color = (1.0,0.0,0.0,0.0))
 
     overlay2D_viewport.parameters.stimuli = [wait_text]
@@ -175,7 +176,7 @@ def start_server( server_modules ):
     projection_controller = ScreenPositionMetaController(p,projection)
     pyro_server.connect(projection_controller,"projection_controller")
 
-    ephys_server = EPhysServer(p, server_modules)
+    ephys_server = server_class(p, server_modules)
     pyro_server.connect(ephys_server,"ephys_server")
     hostname,port = pyro_server.get_hostname_and_port()
     
