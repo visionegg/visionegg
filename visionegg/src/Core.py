@@ -706,7 +706,10 @@ class Presentation(VisionEgg.ClassWithParameters):
                          doing_transition=None):
         for (parameters_instance, parameter_name, controller) in self.controllers:
             if doing_transition:
-                if controller.eval_frequency == Controller.TRANSITIONS: # or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
+                if controller.eval_frequency == Controller.TRANSITIONS or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS: # or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
+                    if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
+                        # We evaluated it once, switch to TRANSITIONS mode
+                        controller.eval_frequency == Controller.TRANSITIONS
                     if go_started:
                         result = controller.during_go_eval()
                         if parameter_name is not None:
@@ -715,7 +718,9 @@ class Presentation(VisionEgg.ClassWithParameters):
                         result = controller.between_go_eval()
                         if parameter_name is not None:
                             setattr(parameters_instance, parameter_name, result)
-            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
+            elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
+                if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
+                    controller.eval_frequency = Controller.TRANSITIONS
                 if controller.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
                     controller.temporal_variable = time_sec_since_go
                 elif controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
@@ -1118,7 +1123,8 @@ class Controller:
     # Possible eval frequency:
     EVERY_FRAME = 1
     TRANSITIONS = 2
-    DEPRECATED_TRANSITIONAL = 3 # only for deprecated behavior, don't use!
+    NOW_THEN_TRANSITIONS = 3 # evaluate as soon as possible, then switch to TRANSITIONS
+    DEPRECATED_TRANSITIONAL = 4 # only for deprecated behavior, don't use!
     
     def __init__(self,
                  return_type = None,
