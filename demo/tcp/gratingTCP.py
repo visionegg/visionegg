@@ -78,7 +78,7 @@ stimulus = SinGrating2D(center=(screen.size[0]/2.0,screen.size[1]/2.0))
 viewport = Viewport( screen=screen, stimuli=[stimulus] )
 
 # Create an instance of the Presentation class
-p = Presentation(duration=(60.0,'seconds'),viewports=[viewport],check_events=1)
+p = Presentation(duration=('forever',),viewports=[viewport],check_events=1)
 
 # Register the controller functions, connecting them with the parameters they control
 p.add_controller(None,None, tcp_listener) # Actually listens to the TCP socket
