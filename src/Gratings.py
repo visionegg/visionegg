@@ -158,8 +158,10 @@ class SinGrating2D(LuminanceGratingCommon):
                     ve_types.Real),
         'pedestal':(0.5,
                     ve_types.Real),
-        'center':((320.0,240.0), # in eye coordinates
-                  ve_types.Sequence2(ve_types.Real)),
+        'position':((320.0,240.0), # in eye coordinates
+                    ve_types.Sequence2(ve_types.Real)),
+        'anchor':('center',
+                  ve_types.String),
         'depth':(None, # if not None, turns on depth testing and allows for occlusion
                  ve_types.Real),
         'size':((640.0,480.0), # in eye coordinates
@@ -184,6 +186,10 @@ class SinGrating2D(LuminanceGratingCommon):
         'color2':(None, # alpha is ignored (if given) -- use max_alpha parameter
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                  ve_types.Sequence4(ve_types.Real))),
+        'recalculate_phase_tolerance':(None, # only recalculate texture when phase is changed by more than this amount, None for always recalculate. (Saves time.)
+                                       ve_types.Real), 
+        'center':(None,  # DEPRECATED -- don't use
+                  ve_types.Sequence2(ve_types.Real)),
         }
     
     def __init__(self,**kw):
@@ -206,6 +212,7 @@ class SinGrating2D(LuminanceGratingCommon):
         w = p.size[0]
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
+        self._last_phase = phase
         floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
         floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
@@ -245,7 +252,17 @@ class SinGrating2D(LuminanceGratingCommon):
 
     def draw(self):
         p = self.parameters # shorthand
+        if p.center is not None:
+            if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
+                VisionEgg.Core.message.add("Specifying grating by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
+                                           level=VisionEgg.Core.Message.DEPRECATION)
+                VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
+            p.anchor = 'center'
+            p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
         if p.on:
+            # calculate center
+            center = VisionEgg._get_center(p.position,p.anchor,p.size)
+            
             if p.mask:
                 gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
             gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
@@ -259,8 +276,8 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
             # Rotate about the center of the texture
-            gl.glTranslate(p.center[0],
-                           p.center[1],
+            gl.glTranslate(center[0],
+                           center[1],
                            0.0)
             gl.glRotate(p.orientation,0.0,0.0,1.0)
 
@@ -287,17 +304,19 @@ class SinGrating2D(LuminanceGratingCommon):
             w = p.size[0]
             inc = w/float(p.num_samples)
             phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
-            floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-            texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
-        
-            gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
-                               0,                # level
-                               0,                # x offset
-                               p.num_samples,    # width
-                               self.format,      # format of new texel data
-                               self.gl_type,     # type of new texel data
-                               texel_data)       # new texel data
+            if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
+                self._last_phase = phase # we're re-drawing the phase at this angle
+                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+                floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+
+                gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
+                                   0,                # level
+                                   0,                # x offset
+                                   p.num_samples,    # width
+                                   self.format,      # format of new texel data
+                                   self.gl_type,     # type of new texel data
+                                   texel_data)       # new texel data
             
             h_w = p.size[0]/2.0
             h_h = p.size[1]/2.0
