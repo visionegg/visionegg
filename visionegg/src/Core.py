@@ -205,64 +205,70 @@ class Projection:
 
     def set_GL_projection_matrix(self):
         """Set the OpenGL projection matrix, return to original matrix mode."""
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
     def translate(self,x,y,z):
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
         glTranslatef(x,y,z)
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
     def rotate(self,angle_degrees,x,y,z):
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadMatrixf(self.parameters.matrix)
         glRotatef(angle_degrees,x,y,z)
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class OrthographicProjection(Projection):
     """An orthographic projection"""
     def __init__(self,left=-1.0,right=1.0,bottom=-1.0,top=1.0,z_clip_near=0.1,z_clip_far=100.0):
         self.parameters = Parameters()
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
         self.parameters = Parameters()
         fov_y = fov_x / aspect_ratio
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class PerspectiveProjection(Projection):
     """A perspective projection"""
     def __init__(self,left,right,bottom,top,near,far):
         self.parameters = Parameters()
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
+        matrix_mode = glGetInteger(GL_MATRIX_MODE) # Save the GL of the matrix state
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glFrustrum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
         self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
         if matrix_mode != GL_PROJECTION:
-            glMatrixMode(matrix_mode) # Set the matrix mode back
+            if matrix_mode is not None: # Sometimes happens (when OpenGL isn't initialized?)
+                glMatrixMode(matrix_mode) # Set the matrix mode back
 
 ####################################################################
 #
