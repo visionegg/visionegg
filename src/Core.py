@@ -343,6 +343,8 @@ class FixationSpot(Stimulus):
 
     def draw(self):
         if self.parameters.on:
+            glBlendFunc(GL_ONE,GL_ZERO) # If blending enabled, draw over everything            
+            
             # save current matrix mode
             matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
 
@@ -548,7 +550,7 @@ class Presentation:
             current_duration_value = current_frame
         else:
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-        while (current_duration_value <= duration_value):
+        while (current_duration_value < duration_value):
             # Update all the realtime parameters
             for parameters,name,controller in self.realtime_time_controllers:
                 setattr(parameters,name,controller(current_time))
@@ -576,7 +578,7 @@ class Presentation:
                 current_duration_value = current_frame
             else:
                 raise RuntimeError("Unknown duration unit '%s'"%duration_units)
-            
+
         self.between_presentations() # Call at end of stimulus to reset values
 
         # Check to see if frame by frame control was desired
