@@ -49,6 +49,8 @@ defaults= {
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
     'VISIONEGG_FULLSCREEN':           0,
+    'VISIONEGG_HIDE_MOUSE':           1,
+    'VISIONEGG_FRAMELESS_WINDOW':     0,
     'VISIONEGG_PREFERRED_BPP':        32,
     'VISIONEGG_MONITOR_REFRESH_HZ':   60.0,
     'VISIONEGG_SYNC_SWAP':            1,
