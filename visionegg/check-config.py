@@ -279,7 +279,7 @@ except:
 try:
     import pygame.version
     print "pygame version %s"%(pygame.version.ver,),
-    if pygame.version.ver >= '1.5.5':
+    if pygame.version.ver >= '1.5.3':
         print "(OK)"
     else:
         print "(Unsupported, probably won't work)"
