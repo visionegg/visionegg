@@ -27,8 +27,12 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def set_icon( name ):
     if sys.platform == 'darwin':
-        import darwin_app_stuff
-        darwin_app_stuff.set_icon( name )
+        try:
+            import darwin_app_stuff
+            darwin_app_stuff.set_icon( name )
+        except Exception, x:
+            VisionEgg.Core.message.add( "Could not set icon: %s: %s"%(x.__class__,str(x)),
+                                        level=VisionEgg.Core.Message.WARNING)
     else:
         raise NotImplmentedError("set_icon not currently supported on this platform.")
 
