@@ -1,7 +1,7 @@
 #include "Python.h"
 
 /*
- * This is the C source code for synchronizing frame buffer buffer
+ * This is the Objective C source code for synchronizing frame buffer
  * swapping with vertical retrace pulse on the darwin platform.
  *
  * Copyright (c) 2002 Andrew Straw.  Distributed under the terms of
@@ -15,7 +15,6 @@
 
 #include <Cocoa/Cocoa.h>
 #include <OpenGL/OpenGL.h>
-#include <Carbon/Carbon.h>
 
 #define TRY(E)     if(! (E)) return NULL
 
@@ -25,14 +24,13 @@ static char sync_swap__doc__[] =
 static PyObject *sync_swap(PyObject * self, PyObject * args)
 {
   CGLContextObj context;
+  long params[] = { 1 ? 1 : 0};
 
   context = CGLGetCurrentContext();
-
-  //CGLSetParameter(context,  kCGLCPSwapInterval, 1);
-  //PyErr_SetString(PyExc_NotImplementedError,"_darwin_sync_swap.swap() not yet working. (And exception tracebacks not, either!)");
+  CGLSetParameter(context,  kCGLCPSwapInterval, params);
 
   Py_INCREF(Py_None);
-  return Py_None;  /* It worked OK. */
+  return Py_None;
 }
 
 static PyMethodDef
