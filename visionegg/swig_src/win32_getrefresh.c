@@ -1,11 +1,11 @@
 #include <WINDOWS.H>
 
-int getrefresh() {
+double getrefresh() {
   DEVMODE DevMode;
 
   DevMode.dmDriverExtra = 0;
   if (EnumDisplaySettings(NULL,ENUM_CURRENT_SETTINGS,&DevMode)) {
-    return DevMode.dmDisplayFrequency;
+    return (double)DevMode.dmDisplayFrequency;
   } else {
     return 0;
   }
