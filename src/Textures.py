@@ -13,13 +13,14 @@ import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
 import math, types, os
-import Numeric
+import Numeric, MLab
 import OpenGL.GL as gl
-
 import OpenGL.GL.ARB.multitexture
+
 OpenGL.GL.ARB.multitexture.glInitMultitextureARB()
 for attr in dir(OpenGL.GL.ARB.multitexture):
-    # put attributes from multitexture module in "gl" module dictionary - similar to OpenGL apps in C
+    # put attributes from multitexture module in "gl" module dictionary
+    # (Namespace overlap as you'd get OpenGL apps written in C)
     if attr[0:2] != "__":
         setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
 
@@ -43,7 +44,6 @@ def __no_clamp_to_edge_callback():
     # case GL_CLAMP_TO_EDGE is not defined by default.
     
     try:
-        1/0 # raise exception -- ignore the code below for now
         import OpenGL.GL.SGIS.texture_edge_clamp
         if OpenGL.GL.SGIS.texture_edge_clamp.glInitTextureEdgeClampSGIS():
             gl.GL_CLAMP_TO_EDGE = OpenGL.GL.SGIS.texture_edge_clamp.GL_CLAMP_TO_EDGE_SGIS
@@ -555,23 +555,18 @@ class TextureObject:
                 else:
                     target = gl.GL_PROXY_CUBE_MAP
                 if type(data) == Numeric.ArrayType:
-                    gl.glTexImage2Dub(target,
-                                      mipmap_level,
-                                      internal_format,
-                                      border,
-                                      data_format,
-                                      data)
+                    raw_data = data.tostring()
                 else:
                     raw_data = data.tostring('raw',data.mode,0,-1)
-                    gl.glTexImage2D(target,
-                                    mipmap_level,
-                                    internal_format,
-                                    width,
-                                    height,
-                                    border,
-                                    data_format,
-                                    data_type,
-                                    raw_data)
+                gl.glTexImage2D(target,
+                                mipmap_level,
+                                internal_format,
+                                width,
+                                height,
+                                border,
+                                data_format,
+                                data_type,
+                                raw_data)
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_WIDTH) == 0:
                     raise TextureTooLargeError("image_data is too wide for your video system.")
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
@@ -609,23 +604,18 @@ class TextureObject:
                 target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
                 target = getattr(gl,target_name)
             if type(data) == Numeric.ArrayType:
-                gl.glTexImage2Dub(target,
-                                  mipmap_level,
-                                  internal_format,
-                                  border,
-                                  data_format,
-                                  data)
+                raw_data = data.tostring()
             else:
                 raw_data = data.tostring('raw',data.mode,0,-1)
-                gl.glTexImage2D(target,
-                                mipmap_level,
-                                internal_format,
-                                width,
-                                height,
-                                border,
-                                data_format,
-                                data_type,
-                                raw_data)
+            gl.glTexImage2D(target,
+                            mipmap_level,
+                            internal_format,
+                            width,
+                            height,
+                            border,
+                            data_format,
+                            data_type,
+                            raw_data)
         elif self.dimensions == 3:
             gl.glTexImage3Dub(gl.GL_TEXTURE_3D,
                               mipmap_level,
@@ -806,6 +796,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         self.texture_object = TextureObject(dimensions=2)
 
         self._reload_texture()
+        gl.glEnable(gl.GL_TEXTURE_2D)
 
     def _reload_texture(self):
         """(Re)load texture to OpenGL"""
@@ -838,13 +829,129 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                     "Resized texture in %s to %d x %d"%(
                     str(self),p.texture.size[0],p.texture.size[1]),VisionEgg.Core.Message.WARNING)
 
+class Mask2D(VisionEgg.ClassWithParameters):
+    """A mask for windowing a portion of a texture.
+
+    Thanks to the author, Jon Peirce, of the AlphaStim class from the
+    PsychoPy package on which this class is based."""
+
+    # All of these parameters are constant -- if you need a new mask, create a new instance
+    constant_parameters_and_defaults = {'function':('gaussian',types.StringType), # can be 'gaussian' or 'circle'
+                                        'radius_parameter':(25.0,types.FloatType), # radius for circle, sigma for gaussian, same units as num_samples
+                                        'num_samples':((256,256),types.TupleType), # size of mask data in pixels
+                                        }
+    def __init__(self,*args,**kw):
+        def next_power_of_2(f):
+            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
+        
+        apply(VisionEgg.ClassWithParameters.__init__,(self,)+args,kw)
+
+        cp = self.constant_parameters # shorthand
+        width,height = cp.num_samples
+        if width != next_power_of_2(width):
+            raise RuntimeError("Mask must have width num_samples power of 2")
+        if height != next_power_of_2(height):
+            raise RuntimeError("Mask must have height num_samples power of 2")
+        
+        if not hasattr(VisionEgg.config,"_glInitMultitextureARB_done"):
+            if not gl.glInitMultitextureARB():
+                raise RuntimeError("Need GL_ARB_multitexture OpenGL extension.")
+            else:
+                VisionEgg.config._glInitMultitextureARB_done = 1
+        self.texture_object = TextureObject(dimensions=2,
+                                            multitexture_unit_num=1)
+        
+        if cp.function == "gaussian":
+            xx = Numeric.outerproduct(Numeric.ones((1.0,cp.num_samples[1])),
+                                      Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2)
+            yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2,
+                                      Numeric.ones((1.0,cp.num_samples[0])))
+            dist_from_center = Numeric.sqrt(xx**2 + yy**2)
+            sigma = cp.radius_parameter
+            data = Numeric.exp( -dist_from_center**2.0 / (2.0*sigma**2.0) )
+        elif cp.function == "circle":
+            data = Numeric.zeros(cp.num_samples,Numeric.Float)
+            # perform anti-aliasing in circle computation by computing
+            # at several slightly different locations and averaging
+            oversamples = 4
+            x_offsets = Numeric.arange(0.0,1.0,1.0/oversamples)
+            x_offsets = x_offsets - MLab.mean(x_offsets)
+            y_offsets = x_offsets
+            for x_offset in x_offsets:
+                for y_offset in y_offsets:
+                    xx = Numeric.outerproduct(Numeric.ones((1.0,cp.num_samples[1])),
+                                              Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2+0.5)+x_offset
+                    yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2+0.5,
+                                              Numeric.ones((1.0,cp.num_samples[0])))+y_offset
+                    dist_from_center = Numeric.sqrt(xx**2 + yy**2)
+                    data += dist_from_center <= cp.radius_parameter
+            data = data / float( len(x_offsets)*len(y_offsets) )
+        else:
+            raise RuntimeError("Don't know about window function %s"%self.constant_parameters.function)
+
+        self.texture_object.put_new_image(data,
+                                          data_format=gl.GL_ALPHA,
+                                          internal_format=gl.GL_ALPHA)
+        self.texture_object.set_min_filter(gl.GL_LINEAR) # turn off mipmaps for mask
+        self.texture_object.set_wrap_mode_s(gl.GL_CLAMP_TO_EDGE)
+        self.texture_object.set_wrap_mode_t(gl.GL_CLAMP_TO_EDGE)
+        gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
+
+        # reset active texture unit to 0
+        gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # bind 2nd texture unit to mask texture
+        
+    def draw_masked_quad(self,lt,rt,bt,tt,le,re,be,te,depth):
+
+        # The *t parameters are the texture coordinates. The *e
+        # parameters are the eye coordinates for the vertices of the
+        # quad.
+        
+        # By the time this method is called, GL_TEXTURE0_ARB should be
+        # loaded as the texture object to be masked.
+
+        gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB) # bind 2nd texture unit to mask texture
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_object.gl_id)
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        
+        # The normal TEXTURE2D object is the 1st (TEXTURE0) texture unit
+        gl.glBegin(gl.GL_QUADS)
+
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,bt)
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,0.0)
+        gl.glVertex3f(le,be,depth)
+        
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,bt)
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,0.0)
+        gl.glVertex3f(re,be,depth)
+        
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,tt)
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,1.0)
+        gl.glVertex3f(re,te,depth)
+        
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,tt)
+        gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,1.0)
+        gl.glVertex3f(le,te,depth)
+        
+        gl.glEnd() # GL_QUADS
+
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
     parameters_and_defaults = {'on':(1,types.IntType),
+                               'mask':(None, Mask2D), # masks texture before application
                                'lowerleft':((0.0,0.0),types.TupleType), # in eye coordinates
-                               'size':((640.0,480.0),types.TupleType)} # in eye coordinates
+                               'size':((640.0,480.0),types.TupleType), # in eye coordinates
+                               'max_alpha':(1.0,types.FloatType), # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
+                               }
+    
+    def __init__(self,*args,**kw):
+        if 'mask' in kw.keys():
+            gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
+        apply(TextureStimulusBaseClass.__init__,(self,)+args,kw)
+            
     def draw(self):
         p = self.parameters
+        if p.mask:
+            gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
             self._reload_texture()
         if p.on:
@@ -853,8 +960,9 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glLoadIdentity()
             
             gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_BLEND)
-            gl.glEnable(gl.GL_TEXTURE_2D)
+            # allow max_alpha value to control blending
+            gl.glEnable( gl.GL_BLEND )
+            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -863,8 +971,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             self.texture_object.set_mag_filter( p.texture_mag_filter )
             self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
-            
-            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
             l = p.lowerleft[0]
             r = l + p.size[0]
@@ -873,19 +980,25 @@ class TextureStimulus(TextureStimulusBaseClass):
 
             tex = p.texture
             
-            gl.glBegin(gl.GL_QUADS)
-            gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-            gl.glVertex2f(l,b)
+            gl.glColor(1.0,1.0,1.0,p.max_alpha)
 
-            gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-            gl.glVertex2f(r,b)
+            if p.mask:
+                p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
+                                        l,r,b,t) # l,r,b,t in eye coordinates
+            else:
+                gl.glBegin(gl.GL_QUADS)
+                gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                gl.glVertex2f(l,b)
 
-            gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-            gl.glVertex2f(r,t)
+                gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                gl.glVertex2f(r,b)
 
-            gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-            gl.glVertex2f(l,t)
-            gl.glEnd() # GL_QUADS
+                gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                gl.glVertex2f(r,t)
+
+                gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                gl.glVertex2f(l,t)
+                gl.glEnd() # GL_QUADS
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space."""
