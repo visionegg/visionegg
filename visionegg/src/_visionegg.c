@@ -20,7 +20,7 @@
 #include <sched.h>
 #include <errno.h>
 
-#define XXX_LPT_DOUT // Very non-portable i386 linux hack
+#undef XXX_LPT_DOUT // Very non-portable i386 linux hack
 
 #ifdef XXX_LPT_DOUT
 #include <stdio.h> // for ioperm
