@@ -97,7 +97,7 @@ class StimulusControlFrame(Tkinter.Frame):
         for param_name in dir(self.meta_params):
             if param_name[:2] != '__' and param_name[-2:] != '__':
                 value = getattr(self.meta_params,param_name)
-                value_string = str(value)
+                value_string = repr(value)
                 result.append((param_name,value_string))
         return result
 
