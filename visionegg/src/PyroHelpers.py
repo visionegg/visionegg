@@ -15,9 +15,9 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-# Work around Pyro configuration glitch in Mac OS X
-if 'PYRO_STORAGE' not in os.environ.keys():
-    os.environ['PYRO_STORAGE'] = VisionEgg.config.VISIONEGG_STORAGE
+### Work around Pyro configuration glitch in Mac OS X
+##if 'PYRO_STORAGE' not in os.environ.keys():
+##    os.environ['PYRO_STORAGE'] = VisionEgg.config.VISIONEGG_STORAGE
 
 try:
     import Pyro.core
