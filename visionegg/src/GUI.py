@@ -25,6 +25,7 @@ def showexception(exc_type, exc_value, traceback_str):
     class ShowExceptionFrame(Tkinter.Frame):
         """A window that shows a string and has a quit button."""
         def __init__(self,master,exc_type, exc_value, traceback_str):
+            VisionEgg.config._Tkinter_used = True            
             Tkinter.Frame.__init__(self,master,borderwidth=20)
             title="Vision Egg: exception caught"
             first_str = "An unhandled exception was caught."
@@ -65,6 +66,7 @@ def showexception(exc_type, exc_value, traceback_str):
 class AppWindow(Tkinter.Frame):
     """A GUI Window that can be subclassed for a main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
+        VisionEgg.config._Tkinter_used = True
         Tkinter.Frame.__init__(*(self,master),**cnf)
         self.winfo_toplevel().title('Vision Egg')
 
@@ -157,6 +159,7 @@ class ProgressBar(Tkinter.Frame):
 class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
+        VisionEgg.config._Tkinter_used = True        
         Tkinter.Frame.__init__(*(self,master),**cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
@@ -667,6 +670,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
 class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
+        VisionEgg.config._Tkinter_used = True
         Tkinter.Frame.__init__(*(self,master),**cnf)
 
         Tkinter.Label(self,text="Vision Egg information:").pack()
@@ -691,6 +695,7 @@ class InfoFrame(Tkinter.Frame):
 class ToplevelDialog(Tkinter.Toplevel):
     """Base class for a dialog that runs on the top level."""
     def __init__(self,**kw):
+        VisionEgg.config._Tkinter_used = True        
         Tkinter.Toplevel.__init__(*(self,),**kw)
         self.transient(self)
 
