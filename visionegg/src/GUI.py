@@ -84,7 +84,7 @@ class OpenScreenDialog(Tkinter.Frame):
 
         if sys.platform == 'darwin':
             Tkinter.Label(self,
-                          text="On Mac OS X, an error dialog will appear\nafter you run a Vision Egg application which says\n\"The application Python has quit unexpectedly.\"\nThis is a known bug and will be addressed in future releases.",
+                          text="On Mac OS X, an error dialog will appear after you run\na Vision Egg application in non fullscreen mode which says\n\"The application Python has quit unexpectedly.\"\nThis is a known bug and will be addressed in future releases.",
                           ).grid(row=row,columnspan=2)
             row += 1
 
