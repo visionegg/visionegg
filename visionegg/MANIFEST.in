@@ -8,9 +8,9 @@ include src/*.c
 include src/*.m
 include src/*.h
 include lib3ds/*
-include doc/reference/*.html
-include doc/reference/make.sh
-include doc/reference/pydoc.py
+include doc/reference/html/*
+include doc/reference/epydoc
+include doc/reference/make_epy.sh
 include doc/visionegg/*
 include doc/visionegg.tex
 include doc/visionegg.pdf

@@ -26,6 +26,8 @@ source code and the demo packages.
 
 See the README-DEMOS.txt file in those packages.
 
+The documentation start page is doc/index.html
+
 LICENSE
 
 The Vision Egg is copyright (c) Andrew D. Straw, 2001-2003.  It is
