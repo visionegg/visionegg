@@ -13,11 +13,11 @@ print 'Name Server found at',ns.URI.address,'('+(Pyro.protocol.getHostname(ns.UR
 # resolve the Pyro object
 print 'binding to object'
 try:
-    URI=ns.resolve('go_object')
+    URI=ns.resolve('pyro_go_object')
     print 'URI:',URI
 except Pyro.core.PyroError,x:
     print 'Couldn\'t bind object, nameserver says:',x
     raise SystemExit
 
-go_object = Pyro.core.getProxyForURI(URI)
-go_object.go()
+pyro_go_object = Pyro.core.getProxyForURI(URI)
+pyro_go_object.go()
