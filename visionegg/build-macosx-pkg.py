@@ -12,7 +12,7 @@ Author: Andrew Straw <astraw@users.sourceforge.net>
 
 """
 
-import os, string, shutil, copy, tempfile,sys
+import os, string, shutil, copy, tempfile,sys, commands
 import setup # from local directory
 
 if len(sys.argv) > 1:
@@ -29,6 +29,10 @@ elif sys.version.startswith("2.3"):
 else:
     raise RuntimeError("Build this with Python 2.2 or 2.3")
 
+status, output = commands.getstatusoutput("sw_vers")
+output_lines = output.split('\n')
+mac_os_x_version = output_lines[1].split()[1]
+
 import VisionEgg # get release no
 
 # pkg_name must be short to deal with Stuffit Expander braindead-ness.
@@ -43,7 +47,8 @@ default_location = "%s/Versions/%s"%(framework_dir,py_version_short)
 if os.path.islink( current_link ):
     if os.path.realpath( current_link ) != default_location:
         raise RuntimeError("I think your current version of Python is not specied by %s"%(current_link,))
-bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-%s.tar.gz"%(setup.version,power_mac)
+darwin_version = os.uname()[2]
+bdist_dumb_results = "./dist/visionegg-%s.darwin-%s-%s.tar.gz"%(setup.version,darwin_version,power_mac)
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
 # Initial screen
@@ -61,14 +66,17 @@ This release exposes a few known bugs with Mac OS X versions of software that th
 
 This package has the following dependencies:
 
-Mac OS X 10.2 "Jaguar"
+Mac OS X (built with %s, probably works with earlier versions)
 Python %s Mac OS X framework build with Tkinter modules
 PyOpenGL (Python module)
 pygame (Python module)
 Python Imaging Library (Python module)
 Numeric (Python module)
 Pyro (Python module) (optional)
-"""%(default_location,py_version_short,py_version_short,py_version_short)
+"""%(default_location,py_version_short,
+     py_version_short,
+     mac_os_x_version,
+     py_version_short)
 readme_txt = string.strip(readme_txt)
 
 install_sh = """#!/bin/sh
