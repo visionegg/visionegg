@@ -907,7 +907,10 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'flat':(0,types.IntType), # toggles flat vs. cylinder
                                'flip_image':(0,types.IntType), # toggles normal vs. horizonally flipped image
                                'radius':(1.0,types.FloatType), # radius if cylinder, z distance if flat
-                               'position':( (0.0,0.0,0.0), types.TupleType) # 3D position of drum center
+                               'position':( (0.0,0.0,0.0), types.TupleType), # 3D position of drum center
+                               'drum_center_azimuth':(0.0,types.FloatType), # changes orientation of drum in space
+                               'drum_center_elevation':(0.0,types.FloatType), # changes orientation of drum in space
+                               'orientation':(0.0,types.FloatType) # 0=right, 90=down
                                }
     
     def __init__(self,**kw):
@@ -965,6 +968,10 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
+
+                # do the orientation
+                gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+                
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
                 w,h = p.texture.size
@@ -1031,6 +1038,13 @@ class SpinningDrum(TextureStimulusBaseClass):
 
             else: # draw as cylinder
                 gl.glTranslatef(p.position[0],p.position[1],p.position[2])
+
+                # center the drum on new coordinates
+                gl.glRotatef(p.drum_center_azimuth,0.0,-1.0,0.0)
+                gl.glRotatef(p.drum_center_elevation,1.0,0.0,0.0)
+
+                # do the orientation
+                gl.glRotatef(p.orientation,0.0,0.0,-1.0)
                 
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
