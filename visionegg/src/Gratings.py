@@ -18,23 +18,13 @@ import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 import Numeric
-import math, types, string
-import OpenGL.GL as gl
+import math, types, string, warnings
 
-try:
-    import OpenGL.GL.ARB.multitexture # Not necessary for most Vision Egg functions
-except ImportError:
-    pass
-else:
-    for attr in dir(OpenGL.GL.ARB.multitexture):
-        # put attributes from multitexture module in "gl" module dictionary
-        # (Namespace overlap as you'd get OpenGL apps written in C)
-        if attr[0:2] != "__":
-            setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
-        
+gl = VisionEgg.Core.gl # get (modified) OpenGL module from Core
+
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -43,6 +33,24 @@ try:
 except NameError:
     True = 1==1
     False = 1==0
+
+def _get_type_info( bitdepth ):
+    """Private helper function to calculate type info based on bit depth"""
+    if bitdepth == 8:
+        gl_type = gl.GL_UNSIGNED_BYTE
+        numeric_type = Numeric.UnsignedInt8
+        max_int_val = float((2**8)-1)
+    elif bitdepth == 12:
+        gl_type = gl.GL_SHORT
+        numeric_type = Numeric.Int16
+        max_int_val = float((2**15)-1)
+    elif bitdepth == 16:
+        gl_type = gl.GL_INT
+        numeric_type = Numeric.Int32
+        max_int_val = float((2.**31.)-1) # do as float to avoid overflow
+    else:
+        raise ValueError("supported bitdepths are 8, 12, and 16.")
+    return gl_type, numeric_type, max_int_val
 
 class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing luminance gratings."""
@@ -54,47 +62,23 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
     
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
-        bit_depth_warning = 0
-        current_bit_depth = None # unknown
-        if gl.glGetIntegerv( gl.GL_RED_BITS ) < self.parameters.bit_depth:
-            bit_depth_warning = 1
-            current_bit_depth = gl.glGetIntegerv( gl.GL_RED_BITS )
-        elif gl.glGetIntegerv( gl.GL_GREEN_BITS ) < self.parameters.bit_depth:
-            bit_depth_warning = 1
-            current_bit_depth = gl.glGetIntegerv( gl.GL_GREEN_BITS )
-        elif gl.glGetIntegerv( gl.GL_BLUE_BITS ) < self.parameters.bit_depth:
-            bit_depth_warning = 1
-            current_bit_depth = gl.glGetIntegerv( gl.GL_BLUE_BITS )
-        if bit_depth_warning:
-            VisionEgg.Core.message.add(
+        bit_depth_warning = False
+        p = self.parameters # shorthand
+        
+        red_bits = gl.glGetIntegerv( gl.GL_RED_BITS )
+        green_bits = gl.glGetIntegerv( gl.GL_GREEN_BITS )
+        blue_bits = gl.glGetIntegerv( gl.GL_BLUE_BITS )
+        min_bits = min( (red_bits,green_bits,blue_bits) )
+        if min_bits < p.bit_depth:
+            warnings.warn(
                 """Requested bit depth of %d, which is greater than
                 your current OpenGL context supports (%d)."""%
-                (self.parameters.bit_depth,current_bit_depth),
-                level=VisionEgg.Core.Message.WARNING)
-        if self.parameters.bit_depth == 8:
-            self.gl_internal_format = gl.GL_LUMINANCE
-            self.format = gl.GL_LUMINANCE
-            self.gl_type = gl.GL_UNSIGNED_BYTE
-            self.numeric_type = Numeric.UnsignedInt8
-            self.max_int_val = float((2**8)-1)
-        elif self.parameters.bit_depth == 12:
-            self.gl_internal_format = gl.GL_LUMINANCE
-            self.format = gl.GL_LUMINANCE
-            self.gl_type = gl.GL_SHORT
-            self.numeric_type = Numeric.Int16
-            self.max_int_val = float((2**15)-1)
-        elif self.parameters.bit_depth == 16:
-            self.gl_internal_format = gl.GL_LUMINANCE
-            self.format = gl.GL_LUMINANCE
-            self.gl_type = gl.GL_INT
-            self.numeric_type = Numeric.Int32
-            try:
-                self.max_int_val = float((2**31)-1)
-            except OverflowError:
-                self.max_int_val = float((2.**31.)-1)
-        else:
-            raise ValueError("supported bitdepths are 8, 12, and 16.")
-        self.cached_bit_depth = self.parameters.bit_depth
+                (p.bit_depth,min_bits),
+                UserWarning,stacklevel=2)
+        self.gl_internal_format = gl.GL_LUMINANCE
+        self.format = gl.GL_LUMINANCE
+        self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
+        self.cached_bit_depth = p.bit_depth
         
 class AlphaGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing gratings in alpha.
@@ -108,37 +92,18 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
     
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
+        p = self.parameters # shorthand
         alpha_bit_depth = gl.glGetIntegerv( gl.GL_ALPHA_BITS )
-        if alpha_bit_depth < self.parameters.bit_depth:
-            VisionEgg.Core.message.add(
+        if alpha_bit_depth < p.bit_depth:
+            warnings.warn(
                 """Requested bit depth of %d, which is greater than
                 your current OpenGL context supports (%d)."""%
-                (self.parameters.bit_depth,alpha_bit_depth),
-                level=VisionEgg.Core.Message.WARNING)
-        if self.parameters.bit_depth == 8:
-            self.gl_internal_format = gl.GL_ALPHA
-            self.format = gl.GL_ALPHA
-            self.gl_type = gl.GL_UNSIGNED_BYTE
-            self.numeric_type = Numeric.UnsignedInt8
-            self.max_int_val = float((2**8)-1)
-        elif self.parameters.bit_depth == 12:
-            self.gl_internal_format = gl.GL_ALPHA
-            self.format = gl.GL_ALPHA
-            self.gl_type = gl.GL_SHORT
-            self.numeric_type = Numeric.Int16
-            self.max_int_val = float((2**15)-1)
-        elif self.parameters.bit_depth == 16:
-            self.gl_internal_format = gl.GL_ALPHA
-            self.format = gl.GL_ALPHA
-            self.gl_type = gl.GL_INT
-            self.numeric_type = Numeric.Int32
-            try:
-                self.max_int_val = float((2**31)-1)
-            except OverflowError:
-                self.max_int_val = float((2.**31.)-1)
-        else:
-            raise ValueError("supported bitdepths are 8, 12, and 16.")
-        self.cached_bit_depth = self.parameters.bit_depth
+                (p.bit_depth,min_bits),
+                UserWarning,stacklevel=2)
+        self.gl_internal_format = gl.GL_ALPHA
+        self.format = gl.GL_ALPHA
+        self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
+        self.cached_bit_depth = p.bit_depth
        
 class SinGrating2D(LuminanceGratingCommon):
     """Sine wave grating stimulus
@@ -215,7 +180,7 @@ class SinGrating2D(LuminanceGratingCommon):
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
         self._last_phase = phase
-        floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+        floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
         floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
@@ -224,7 +189,7 @@ class SinGrating2D(LuminanceGratingCommon):
         # "proxy textures".
         gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,            # target
                         0,                                 # level
-                        self.gl_internal_format,           # video RAM internal format: RGB
+                        self.gl_internal_format,           # video RAM internal format
                         p.num_samples,                     # width
                         0,                                 # border
                         self.format,                       # format of texel data
@@ -236,7 +201,7 @@ class SinGrating2D(LuminanceGratingCommon):
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,                  # target
                         0,                                 # level
-                        self.gl_internal_format,           # video RAM internal format: RGB
+                        self.gl_internal_format,           # video RAM internal format
                         p.num_samples,                     # width
                         0,                                 # border
                         self.format,                       # format of texel data
@@ -249,22 +214,27 @@ class SinGrating2D(LuminanceGratingCommon):
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
 
+        if p.color2 is not None:
+            if VisionEgg.Core.gl_renderer == 'ATi Rage 128 Pro OpenGL Engine' and VisionEgg.Core.gl_version == '1.1 ATI-1.2.22':
+                warnings.warn("Your video card and driver have known "+\
+                              "bugs which prevent them from rendering "+\
+                              "color gratings properly.",
+                              UserWarning,stacklevel=2)
+
     def __del__(self):
         gl.glDeleteTextures( [self._texture_object_id] )
 
     def draw(self):
         p = self.parameters # shorthand
         if p.center is not None:
-            if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
-                VisionEgg.Core.message.add("Specifying grating by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
-                VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
+            warnings.warn("center parameter of SinGrating2D class will stop being supported. "+\
+                          "Use 'position' instead with anchor set to 'center'.",
+                          DeprecationWarning,stacklevel=2)
             p.anchor = 'center'
             p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
         if p.on:
             # calculate center
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
-            
             if p.mask:
                 gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
             gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
@@ -280,8 +250,8 @@ class SinGrating2D(LuminanceGratingCommon):
             # Rotate about the center of the texture
             gl.glTranslate(center[0],
                            center[1],
-                           0.0)
-            gl.glRotate(p.orientation,0.0,0.0,1.0)
+                           0)
+            gl.glRotate(p.orientation,0,0,1)
 
             if p.depth is None:
                 gl.glDisable(gl.GL_DEPTH_TEST)
@@ -295,8 +265,33 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 
             if p.color2:
-                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
-                gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
+##                if VisionEgg.Core.gl_renderer == 'ATi Rage 128 Pro OpenGL Engine' and VisionEgg.Core.gl_version == '1.1 ATI-1.2.22':
+##                    # this operate the same as GL_BLEND, but causes less problems on ATI Rage 128 (but still isn't right... sigh...)
+##                    c2 = Numeric.array((p.color2[0], p.color2[1], p.color2[2], 0.0),typecode=Numeric.Float32)
+##                    gl.glTexEnvfv( gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, c2 ) # argument 0
+
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_COMBINE_RGB_ARB, gl.GL_INTERPOLATE_ARB)
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_COMBINE_ALPHA_ARB, gl.GL_INTERPOLATE_ARB)
+                    
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE0_RGB_ARB, gl.GL_CONSTANT_ARB ) #Cc
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND0_RGB_ARB, gl.GL_SRC_COLOR )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE0_ALPHA_ARB, gl.GL_CONSTANT_ARB )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND0_ALPHA_ARB, gl.GL_SRC_ALPHA )
+
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE1_RGB_ARB, gl.GL_PRIMARY_COLOR_ARB ) # Cf
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND1_RGB_ARB, gl.GL_SRC_COLOR )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE1_ALPHA_ARB, gl.GL_PRIMARY_COLOR_ARB )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND1_ALPHA_ARB, gl.GL_SRC_ALPHA )
+
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE2_RGB_ARB, gl.GL_TEXTURE ) # Cs
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND2_RGB_ARB, gl.GL_SRC_COLOR )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_SOURCE2_ALPHA_ARB, gl.GL_TEXTURE )
+##                    gl.glTexEnvi( gl.GL_TEXTURE_ENV, gl.GL_OPERAND2_ALPHA_ARB, gl.GL_SRC_ALPHA )
+##                else:
+                    ## this breaks on ATI Rage128 on Powerbook G4:
+                    gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
+                    gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
+                    ## alpha should be ignored because the texture base internal format is luminance
             else:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
             
@@ -312,7 +307,7 @@ class SinGrating2D(LuminanceGratingCommon):
                 phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
             if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
                 self._last_phase = phase # we're re-drawing the phase at this angle
-                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
                 floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
                 texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
@@ -332,7 +327,13 @@ class SinGrating2D(LuminanceGratingCommon):
             b = -h_h
             t = h_h
 
-            gl.glColor(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
+            # in the case of only color1,
+            # the texel data multiplies color1 to produce a color
+
+            # with color2,
+            # the texel data linearly interpolates between color1 and color2
+            
+            gl.glColorf(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
             
             if p.mask:
                 p.mask.draw_masked_quad(0.0,1.0,0.0,1.0, # l,r,b,t for texture coordinates
@@ -357,6 +358,5 @@ class SinGrating2D(LuminanceGratingCommon):
             
             gl.glDisable(gl.GL_TEXTURE_1D)
 
-class NumSamplesTooLargeError( VisionEgg.Core.EggError ):
-    """Overrides VisionEgg.Core.EggError"""
+class NumSamplesTooLargeError( RuntimeError ):
     pass
