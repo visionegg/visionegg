@@ -26,7 +26,7 @@ projection1 = SimplePerspectiveProjection(fov_x=90.0,
 projection2 = SimplePerspectiveProjection() # Parameters set in realtime, so no need to specify here
 
 # Get a texture
-filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data","panorama.jpg")
 texture = Texture(filename)
 
 stimulus = SpinningDrum(texture=texture,shrink_texture_ok=1)
