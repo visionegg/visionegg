@@ -254,7 +254,20 @@ class StringMC(type):
 class String(ParameterTypeDef):
     __metaclass__ = StringMC
     def verify(is_string):
-        if type(is_string) == type(''):
+        if type(is_string) == str:
+            return True
+        else:
+            return False
+    verify = staticmethod(verify)
+    
+class UnicodeMC(type):
+    def __str__(self):
+        return 'Unicode'
+    
+class Unicode(ParameterTypeDef):
+    __metaclass__ = UnicodeMC
+    def verify(is_unicode):
+        if type(is_unicode) == unicode:
             return True
         else:
             return False

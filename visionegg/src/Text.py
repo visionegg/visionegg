@@ -86,7 +86,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
     size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
                              Inherited from VisionEgg.Textures.TextureStimulus
                              Default: (determined at runtime)
-    text                  -- (String)
+    text                  -- (AnyOf(String or Unicode))
                              Default: the string to display
     texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
@@ -106,7 +106,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
 
     Constant Parameters
     ===================
-    font_name         -- (String)
+    font_name         -- (AnyOf(String or Unicode))
                          Default: (determined at runtime)
     font_size         -- (UnsignedInteger)
                          Default: 30
@@ -123,7 +123,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
 
     parameters_and_defaults = {
         'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
-                  ve_types.String),
+                  ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
         'ignore_size_parameter':(True, # when true, draws text at 100% size
                                  ve_types.Boolean),
         }
@@ -132,7 +132,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
         'font_size':(30,
                      ve_types.UnsignedInteger),
         'font_name':(None, # None = use default font
-                     ve_types.String),
+                     ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
         }
     
     __slots__ = (
