@@ -178,18 +178,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                       ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
         topframe_row += 1
 
-        if sys.platform == 'darwin':
-            Tkinter.Label(topframe,
-                          text=self.format_string(\
-                "On Mac OS X, the pygame package has some quirky "+\
-                "behavior.  This may result in error messages such as "+\
-                "\"This application has quit unexpectedly\""),
-                          ).grid(row=topframe_row,
-                                 column=1,
-                                 columnspan=2,
-                                 sticky=Tkinter.W)
-            topframe_row += 1
-
         try:
             import _imaging, _imagingtk
             import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin
