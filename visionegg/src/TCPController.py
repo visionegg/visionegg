@@ -42,7 +42,7 @@ class TCPServer:
         self.server_socket.bind(server_address)
         self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
         self.dialog_ok = dialog_ok
-        if "Tkinter" not in globals():
+        if not hasattr(globals(),"Tkinter"):
             self.dialog_ok = 0
         
     def create_listener_once_connected(self):
