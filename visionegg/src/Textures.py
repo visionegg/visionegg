@@ -364,7 +364,7 @@ class TextureBuffer:
                                gl.GL_UNSIGNED_BYTE,               # type of image data
                                texel_data)                        # image data
         else:
-            raise VisionEgg.Core.EggError("Only luminance arrays supported.")
+            raise VisionEgg.Core.EggError("Only luminance arrays currently supported.")
 
     def free(self):
         gl.glDeleteTextures(self.gl_id)
