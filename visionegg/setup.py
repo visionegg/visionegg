@@ -26,10 +26,24 @@ package_dir={'VisionEgg' : 'src'}
 packages=[ 'VisionEgg' ]
 ext_package='VisionEgg'
 ext_modules = []
-long_description = """
-The Vision Egg is a programming library (with demo applications) that
+long_description = """The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
-stimuli for vision research experiments."""
+stimuli for vision research experiments.
+
+For more information, visit the website at www.visionegg.org
+
+This is release %s. Although it is already suitable for experiments,
+this is still beta software.  Any feedback, questions, or comments,
+should go to the mailing list at visionegg@freelists.org
+
+The Vision Egg is copyright (c) Andrew D. Straw, 2001-2002 and is
+distributed under the GNU Lesser General Public License (LGPL).  This
+software comes with absolutely no warranties, either expressed or
+implied.
+
+Thanks, and enjoy!
+Andrew
+"""%(version,)
 
 # Fill out ext_modules
 if not skip_c_compilation:
@@ -78,6 +92,7 @@ def organize_script_dirs(scripts):
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
 data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
+data_files.append( ('VisionEgg/data',['data/visionegg.bmp']) )
 data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
 data_files.append( ('VisionEgg/demo/calibrate',['demo/calibrate/README.txt']) )
 data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
