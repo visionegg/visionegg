@@ -8,7 +8,7 @@ from VisionEgg.AppHelper import *
 max_speed = 1000.0 # degrees per second
 
 def angle_as_function_of_time(t):
-    return max_speed*math.cos(t) # rotate at 90 degrees per second
+    return max_speed*math.cos(t)
 
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)

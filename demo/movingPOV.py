@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """A demonstration of 2 viewports.
 
-Depth testing is turned off, so the viewport on the right looks a
-little bit strange."""
+The viewport on the right looks a little bit strange, I think
+due to clipping of the projection."""
 import math
 
 import VisionEgg
@@ -24,12 +24,8 @@ def projection_matrix_f(t):
     glPushMatrix()
     glLoadIdentity()
     gluLookAt(0.0,t*0.1,0.0,
-#    gluLookAt(math.sin(t),t*0.1,math.cos(t),
-#    gluLookAt(1.0,0.5,0.0,
               0.0,0.0,1.0,
               0.0,1.0,0.0)
-#    gluPerspective(60.0,400.0/600.0,0.001,100.0)
-#    glTranslatef(0.0,t*0.2,0.0)
     results = glGetFloatv(GL_PROJECTION_MATRIX)
     glPopMatrix()
     if matrix_mode != GL_PROJECTION:
