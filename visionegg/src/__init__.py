@@ -296,7 +296,8 @@ class ClassWithParameters:
                     if type(value) != types.NoneType:
                         # Check anything other than None
                         if not isinstance(value,tipe):
-                            raise TypeError("Constant parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
+                            if not (type(value) == int and tipe == types.FloatType): # allow ints to pass as floats
+                                raise TypeError("Constant parameter '%s' value %s is not of type %s"%(parameter_name,value,tipe))
                     setattr(self.constant_parameters,parameter_name,value)
                 done_constant_parameters_and_defaults.append(klass.constant_parameters_and_defaults)
 
