@@ -13,7 +13,7 @@ graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
 """
-# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
 VISIONEGG_VERSION = '0.8.0'

@@ -42,7 +42,7 @@ defaults= {
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
     'VISIONEGG_FULLSCREEN':           0,
-    'VISIONEGG_PREFERRED_BPP':        24,
+    'VISIONEGG_PREFERRED_BPP':        32,
     'VISIONEGG_SCREEN_BGCOLOR':       (0.5,0.5,0.5,0.0),
     'VISIONEGG_TEXTURE_COMPRESSION':  0,
     'VISIONEGG_NUM_CACHED_TEXTURES':  10,
@@ -132,13 +132,10 @@ class ConfigReader:
     def treatSpecial(self, value):
         # treat special escape strings
         if type(value)==type(""):
-            if value=='%c':
-                return os.curdir
-            elif value=='%u':
-                try:
-                    return os.environ['HOME']
-                else:
-                    return os.curdir
-            elif len(value)>=9 and value[:9]=='$STORAGE/':
-                return os.path.join(self.items['VISIONEGG_STORAGE'], value[9:])
+            value = re.sub('%c',os.curdir,value)
+            try:
+                value = re.sub('%u',os.environ['HOME'],value)
+            except: 
+                value = re.sub('%u',os.curdir,value)
+            value = re.sub('^\$STORAGE\/',self.items['VISIONEGG_STORAGE'],value)
         return value
