@@ -565,8 +565,8 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                        Default: 0.0
     ignore_time                     -- (Boolean)
                                        Default: False
-    lowpass_cutoff_cycles_per_texel -- (Real)
-                                       Default: 0.15
+    lowpass_cutoff_cycles_per_texel -- helps prevent spatial aliasing (Real)
+                                       Default: 0.5
     min_filter                      -- OpenGL filter enum (Integer)
                                        Default: GL_LINEAR
     num_samples                     -- (UnsignedInteger)
@@ -614,8 +614,9 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                     ve_types.Real),
         'check_texture_size':(True, # slows down drawing but catches errors
                               ve_types.Boolean),
-        'lowpass_cutoff_cycles_per_texel':(0.15,
-                                           ve_types.Real),
+        'lowpass_cutoff_cycles_per_texel':(0.5,
+                                           ve_types.Real,
+                                           'helps prevent spatial aliasing'),
         'min_filter':(gl.GL_LINEAR,
                       ve_types.Integer,
                       "OpenGL filter enum",
