@@ -223,7 +223,12 @@ print "Version checklist:"
 
 print
 
-print "Python version %s"%(sys.version,)
+print "Python version %s"%(string.split(sys.version)[0],),
+if sys.version >= '2.1':
+    print "(OK)"
+else:
+    print "(Untested)"
+print "extra Python info:",string.join(string.split(sys.version)[1:])
 
 try:
     import Numeric
