@@ -16,6 +16,9 @@ ECP or EPP."""
 #
 ####################################################################
 
+debug_output = 0
+try_for_real = 1
+
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Daq
@@ -26,9 +29,10 @@ if sys.platform == 'win32':
 elif sys.platform == 'linux2':
     import VisionEgg._raw_lpt_linux
     raw_lpt_module = VisionEgg._raw_lpt_linux
-elif sys.platform[:4] == 'irix':
-    import VisionEgg._raw_plp_irix
-    raw_lpt_module = VisionEgg._raw_plp_irix
+### IRIX implementation not done, but possible
+##elif sys.platform[:4] == 'irix':
+##    import VisionEgg._raw_plp_irix
+##    raw_lpt_module = VisionEgg._raw_plp_irix
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -51,21 +55,29 @@ class LPTInput(VisionEgg.Daq.Input):
         bit4 = value & 0x10
         bit5 = value & 0x20
         """
-        return raw_lpt_module.inp(self.channel.device.base_address+1)
+        if try_for_real:
+            return raw_lpt_module.inp(self.channel.device.base_address+1)
+        else:
+            return sys.maxint & ~0xFF # return impossible value
 
 class LPTOutput(VisionEgg.Daq.Output):
     def put_data(self,data):
         """Set output bits 0-7 (pins 2-9) on the LPT port."""
-        raw_lpt_module.out(self.channel.device.base_address,data)
+        if debug_output:
+            print "out(0x%04X,0x%02X)"%(self.channel.device.base_address,data)
+        if try_for_real:
+            raw_lpt_module.out(self.channel.device.base_address,data)
     def __del__(self):
         """Set output bits low when closing."""
-        raw_lpt_module.out(self.channel.device.base_address,0)
+        if try_for_real:
+            raw_lpt_module.out(self.channel.device.base_address,0)
 
 class LPTChannel(VisionEgg.Daq.Channel):
     """A data acquisition channel using the parallel port."""
     def __init__(self,**kw):
-        if not 'raw_lpt_module' in globals().keys():
-            raise RuntimeError("LPT output not supported on this platform.")
+        if try_for_real:
+            if not 'raw_lpt_module' in globals().keys():
+                raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
         signal_type = self.constant_parameters.signal_type
         if not isinstance(signal_type,VisionEgg.Daq.Digital):
@@ -85,8 +97,9 @@ class LPTDevice(VisionEgg.Daq.Device):
     address of 0x0278."""
     
     def __init__(self,base_address=0x378,**kw):
-        if not 'raw_lpt_module' in globals().keys():
-            raise RuntimeError("LPT output not supported on this platform.")
+        if try_for_real:
+            if not 'raw_lpt_module' in globals().keys():
+                raise RuntimeError("LPT output not supported on this platform.")
         apply(VisionEgg.Daq.Device.__init__,(self,),kw)
         for channel in self.channels:
             if not isinstance(channel,LPTChannel):
@@ -108,8 +121,9 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
     frames."""
     
     def __init__(self,lpt_device=None):
-        if not 'raw_lpt_module' in globals().keys():
-            raise RuntimeError("LPT output not supported on this platform.")
+        if try_for_real:
+            if not 'raw_lpt_module' in globals().keys():
+                raise RuntimeError("LPT output not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.NoneType,
                                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
@@ -137,8 +151,9 @@ class LPTTriggerOutController(VisionEgg.Core.Controller):
 
 class LPTTriggerInController(VisionEgg.Core.Controller):
     def __init__(self,lpt_device=None,pin=13):
-        if not 'raw_lpt_module' in globals().keys():
-            raise RuntimeError("LPT input not supported on this platform.")
+        if try_for_real:
+            if not 'raw_lpt_module' in globals().keys():
+                raise RuntimeError("LPT input not supported on this platform.")
         VisionEgg.Core.Controller.__init__(self,
                                            return_type=types.IntType,
                                            eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
