@@ -9,16 +9,13 @@ import Pyro.naming
 import Pyro.core
 from Pyro.errors import PyroError,NamingError
 
+import GoObject
+
+class PyroGoObject(Pyro.core.ObjBase, GoObject.GoObject):
+    pass
+
 def angle_as_function_of_time(t):
     return 90.0*t # rotate at 90 degrees per second
-
-class GoObject(Pyro.core.ObjBase):
-    def __init__(self,go_func=lambda: None):
-        self.go_func = go_func
-        apply(Pyro.core.ObjBase.__init__,(self,))
-
-    def go(self):
-        self.go_func()
 
 def main():
 
@@ -41,18 +38,24 @@ def main():
     viewport.add_stimulus(stimulus)
     p = Presentation(duration_sec=5.0,viewports=[viewport])
     p.add_realtime_controller(stimulus.parameters,'yrot', angle_as_function_of_time)
+    p.between_presentations() # init stuff..
 
     # connect a new object implementation (first unregister previous one)
     try:
-        ns.unregister('go_object')
+        ns.unregister('pyro_go_object')
     except NamingError:
         pass
+
+    g = PyroGoObject()
+    g.set_go_func(p.go)
+    
     # connect new object implementation
-    PyroDaemon.connect(GoObject( p.go ),'go_object')
+    PyroDaemon.connect(g,'pyro_go_object')
     # enter the server loop
-    print 'Server object "go_object" ready.'
+    print 'Server object "pyro_go_object" ready.'
     while 1:
         PyroDaemon.handleRequests(3.0)
+
         sys.stdout.write('.')
         sys.stdout.flush()
 
