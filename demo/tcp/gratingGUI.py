@@ -671,7 +671,7 @@ def parse_tcp_string(tcp_string):
     if not match:
         raise RuntimeError("Unknown value")
     arg_string = match.group(1)
-    args = eval("("+arg_string+",)",_parse_args_globals,_parse_args_locals)
+    args = eval("tuple(("+arg_string+"))",_parse_args_globals,_parse_args_locals)
     num_args = len(args)
     if num_args == 0:
         result = (klass,None,None,None,None,None)
