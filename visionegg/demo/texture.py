@@ -16,11 +16,7 @@ stimulus = TextureStimulus(texture = texture,
                            size    = texture.orig.size,
                            shrink_texture_ok=1)
 
-left_x = max(screen.size[0]/2 - texture.orig.size[0]/2,0)
-lower_y = max(screen.size[1]/2 - texture.orig.size[1]/2,0)
 viewport = Viewport(screen=screen,
-                    lowerleft=(left_x,lower_y),
-                    size=screen.size,
                     stimuli=[stimulus])
 
 p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
