@@ -180,6 +180,10 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 	    # Only display checkbutton if we have the module
             if sys.platform=='darwin':
                 # Only used on darwin platform
+                self.darwin_conventional = Tkinter.IntVar()
+                self.darwin_conventional.set(VisionEgg.config.VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME)
+                self.darwin_priority = Tkinter.StringVar()
+                self.darwin_priority.set(str(VisionEgg.config.VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY))
                 self.darwin_realtime_period_denom = Tkinter.StringVar()
                 self.darwin_realtime_period_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM))
                 self.darwin_realtime_computation_denom = Tkinter.StringVar()
@@ -314,28 +318,39 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                     """This information is used by the Vision Egg when
                     in "maximum priority" mode.  These values fine
                     tune this behavior on the Mac OS X ("darwin")
-                    platform.  The numerical values represent a
-                    fraction of the total cycles available on the
-                    computer. For more information, please refer to
+                    platform. For conventional priority, the valid
+                    values range from -20 (highest priority) to 20
+                    (worst priority).  In the realtime settings, the
+                    numerical values represent a fraction of the total
+                    cycles available on the computer. For more
+                    information, please refer to
                     http://developer.apple.com/ techpubs/ macosx/
                     Darwin/ General/ KernelProgramming/ scheduler/
                     Using_Mach__pplications.html"""
                     
-                    )).grid(row=row,columnspan=2,column=0)
+                    )).grid(row=row,columnspan=4,column=0)
+                row = 1
+                Tkinter.Checkbutton(f,text="Use conventional priority",variable=parent.darwin_conventional).grid(row=row,column=0,columnspan=4)
+                row = 2
+                Tkinter.Label(f,text="Conventional priority settings").grid(row=row,column=0,columnspan=2)
                 row += 1
-                Tkinter.Label(f,text="Realtime period denominator").grid(row=row,column=0,sticky=Tkinter.E)
-                Tkinter.Entry(f,textvariable=parent.darwin_realtime_period_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                Tkinter.Label(f,text="Priority").grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_priority).grid(row=row,column=1,sticky=Tkinter.W)
+                row = 2
+                Tkinter.Label(f,text="Realtime settings").grid(row=row,column=2,columnspan=2)
                 row += 1
-                Tkinter.Label(f,text="Realtime computation denominator").grid(row=row,column=0,sticky=Tkinter.E)
-                Tkinter.Entry(f,textvariable=parent.darwin_realtime_computation_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                Tkinter.Label(f,text="Realtime period denominator").grid(row=row,column=2,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_period_denom).grid(row=row,column=3,sticky=Tkinter.W)
                 row += 1
-                Tkinter.Label(f,text="Realtime constraint denominator").grid(row=row,column=0,sticky=Tkinter.E)
-                Tkinter.Entry(f,textvariable=parent.darwin_realtime_constraint_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                Tkinter.Label(f,text="Realtime computation denominator").grid(row=row,column=2,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_computation_denom).grid(row=row,column=3,sticky=Tkinter.W)
                 row += 1
-                Tkinter.Checkbutton(f,text="Do not preempt",variable=parent.darwin_realtime_preemptible).grid(row=row,column=0,columnspan=2)
+                Tkinter.Label(f,text="Realtime constraint denominator").grid(row=row,column=2,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_constraint_denom).grid(row=row,column=3,sticky=Tkinter.W)
                 row += 1
-                Tkinter.Button(f, text="ok",command=self.ok).grid(row=row,column=0,columnspan=2)
+                Tkinter.Checkbutton(f,text="Do not preempt",variable=parent.darwin_realtime_preemptible).grid(row=row,column=2,columnspan=2)
                 row += 1
+                Tkinter.Button(f, text="ok",command=self.ok).grid(row=row,column=0,columnspan=4)
                 self.wait_window(self)
                 
             def ok(self):
@@ -361,6 +376,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         if self.show_maxpriority_option and sys.platform=='darwin':
             # Only used on darwin platform
+            VisionEgg.config.VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME = self.darwin_conventional.get()
+            VisionEgg.config.VISIONEGG_DARWIN_CONVENTIONAL_PRIORITY = int(self.darwin_priority.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM = int(self.darwin_realtime_period_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
