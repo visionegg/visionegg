@@ -14,7 +14,12 @@ screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
 
-drum = BlurredDrum(max_speed=default_max_speed)
+try:
+    texture = TextureFromFile("orig.bmp")
+except:
+    texture = Texture(size=(256,32))
+
+drum = BlurredDrum(max_speed=default_max_speed,texture=texture)
 drum.init_gl()
 fixation_spot = FixationSpot()
 fixation_spot.init_gl()
