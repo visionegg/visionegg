@@ -166,3 +166,71 @@ class Config:
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
         else:
             self.VISIONEGG_CONFIG_FILE = None
+
+def save_settings():
+    """Save the current values to the config file, overwriting what is there."""
+
+    dont_save = ['VISIONEGG_CONFIG_FILE',
+                 'VISIONEGG_SYSTEM_DIR',
+                 'VISIONEGG_USER_DIR',
+                 'VISIONEGG_TEXTURE_COMPRESSION', # Not a supported variable at the moment
+                 ]
+    
+    if not VisionEgg.config.VISIONEGG_CONFIG_FILE:
+        raise RuntimeError("No config file in use.")
+#    re_section_finder = re.compile(r"^\s?\[(\w+)\]\s?$")
+    re_setting_finder = re.compile(r"^\s?(VISIONEGG_[A-Z_]*)\s?=\s?(\S*)\s?$",re.IGNORECASE)
+
+    used_stderr = 0
+    def stderr_header():
+        sys.stderr.write("VisionEgg.Configuration.save_settings() messages:\n")
+    
+    orig_file = open(VisionEgg.config.VISIONEGG_CONFIG_FILE,"r")
+    orig_lines = orig_file.readlines()
+
+    line_ending = orig_lines[0][-2:]
+    if line_ending[0] not in ['\r','\n','\l']:
+        line_ending = line_ending[1]
+
+    out_file_lines = []
+    
+    saved_config_vars = []
+#    current_section = None
+
+    for line in orig_lines:
+#        match = re_section_finder.match(out_line)
+#        if match:
+#            current_section = match.group(1)
+##        if string.lower(current_section) == sys.platform or string.lower(current_section) = 'general':
+##            pass
+
+        out_line = line # The output is the same as the input unless there's a match
+        match = re_setting_finder.match(line)
+        if match:
+            name = string.upper(match.group(1))
+            if name in VisionEgg.config.__dict__.keys():
+                if name not in dont_save:
+                    # Change the output line
+                    out_line = ("%s = %s"%(name,getattr(VisionEgg.config,name,))) + line_ending
+                    saved_config_vars.append(name)
+            else:
+                if not used_stderr:
+                    stderr_header()
+                    used_sterr = 1
+                sys.stderr.write("  warning: %s found in config file, but don't know anything about this variable.\n"%(name,))
+        out_file_lines.append(out_line)
+
+    for test_name in VisionEgg.config.__dict__.keys():
+        if test_name not in saved_config_vars:
+            if test_name not in dont_save:
+                if not used_stderr:
+                    stderr_header()
+                    used_stderr = 1
+                sys.stderr.write("  info: Not writing variable %s because it is not in original configuration file.\n"%(test_name,))
+
+    # Close and reopen orig_file in write mode
+    orig_file.close()
+    orig_file = open(VisionEgg.config.VISIONEGG_CONFIG_FILE,"w")
+    for line in out_file_lines:
+        orig_file.write(line)
+
