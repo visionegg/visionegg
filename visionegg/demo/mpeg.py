@@ -21,11 +21,40 @@ import OpenGL.GL as gl
 if len(sys.argv) > 1:
     filename = sys.argv[1]
 else:
-    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","water.mpg")
-    
-movie = pygame.movie.Movie(filename)
+    filename = None
 
 screen = get_default_screen()
+
+def quit(dummy_arg=None):
+    p.parameters.go_duration = (0,'frames')
+    
+def keydown(event):
+    if event.key == pygame.locals.K_ESCAPE:
+        quit()
+
+if not filename:
+    text = Text( text = "Error: Use MPEG file as command line argument - Press Esc to quit",
+                 position = (screen.size[0]/2,screen.size[1]),
+                 anchor = 'top',
+                 font_size=24,
+                 color = (1.0,0.0,0.0))
+    text2 = Text( text = "(If you have a free MPEG to contribute, it could go here.)",
+                  position = (screen.size[0]/2,screen.size[1]/2),
+                  anchor = 'center',
+                  font_size=20,
+                  color = (1.0,1.0,1.0))
+    viewport = Viewport(screen=screen,
+                        stimuli=[text,text2])
+    
+    p = Presentation(go_duration=('forever',),
+                     viewports=[viewport],
+                     handle_event_callbacks=[(pygame.locals.QUIT, quit),
+                                             (pygame.locals.KEYDOWN, keydown)],
+                     )
+    p.go()
+    sys.exit(1)
+
+movie = pygame.movie.Movie(filename)
 
 width, height = movie.get_size()
 scale_x = screen.size[0]/float(width)
@@ -64,17 +93,12 @@ def update_movie():
 viewport = Viewport(screen=screen,
                     stimuli=[stimulus,text])
 
-p = Presentation(go_duration=('forever',),viewports=[viewport])
+p = Presentation(go_duration=('forever',),
+                 viewports=[viewport],
+                 handle_event_callbacks=[(pygame.locals.QUIT, quit),
+                                         (pygame.locals.KEYDOWN, keydown)],
+                 )
 
-def quit(dummy_arg=None):
-    p.parameters.go_duration = (0,'frames')
-    
-def keydown(event):
-    if event.key == pygame.locals.K_ESCAPE:
-        quit()
-        
-p.parameters.handle_event_callbacks=[(pygame.locals.QUIT, quit),
-                                     (pygame.locals.KEYDOWN, keydown)]
 p.add_controller(None,None,FunctionController(during_go_func=update_movie,
                                               temporal_variables=Controller.TIME_INDEPENDENT))
 
