@@ -19,6 +19,19 @@ parameters, so now they can be changed in realtime.
 
 Added automatic detection of all extensions in tests/opengl_info.py.
 
+Removed data acquisition stuff from distribution until I get time to
+get it working again.
+
+Re-incorporated linux (and other unix?) kernel scheduler minimum
+priority stuff.
+
+Re-incorporated collection and printing of frame-timing
+statistics. Turn on by setting "collect_timing_info" argument of
+Presentation.go() to non-zero value.
+
+Contrast control in SpinningDrum now acheived with standard OpenGL
+texture environment functions, not OpenGL extension.
+
 Changes for 0.8.1:
 ------------------
 
