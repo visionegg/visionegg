@@ -1,3 +1,4 @@
 include LICENSE
 include CHANGELOG
+exclude src/DAQ.py
 exclude demo/gabor.py
