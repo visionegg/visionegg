@@ -282,8 +282,15 @@ class Screen(VisionEgg.ClassWithParameters):
         if renderer == "GDI Generic" and vendor == "Microsoft Corporation":
             message.add("Using default Microsoft Windows OpenGL drivers. "
                         "Please (re-)install the latest video drivers from "
-                        "your video card manufacturer.",Message.WARNING)
-            
+                        "your video card manufacturer to get hardware"
+                        "accelerated performance.",Message.WARNING)
+
+        if renderer == "Mesa GLX Indirect" and vendor == "VA Linux Systems, Inc.":
+            message.add("Using default Mesa GLX drivers. "
+                        "Please (re-)install the latest video drivers from "
+                        "your video card manufacturer or DRI project to"
+                        "get hardware accelarated performance.",Message.WARNING)
+
         self.red_bits = None
         self.green_bits = None
         self.blue_bits = None
