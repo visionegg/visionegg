@@ -921,7 +921,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                                'flat':(0,types.IntType), # toggles flat vs. cylinder
                                'flip_image':(0,types.IntType), # toggles normal vs. horizonally flipped image
                                'radius':(1.0,types.FloatType), # radius if cylinder, z distance if flat
-                               'position':( (0.0,0.0,0.0), types.TupleType) # 3D position
+                               'position':( (0.0,0.0,0.0), types.TupleType) # 3D position of drum center
                                }
     
     def __init__(self,**kw):
