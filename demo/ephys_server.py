@@ -4,7 +4,7 @@ import sys
 import tkMessageBox
 import Pyro
 
-from VisionEgg.PyroApps.UberServer import server_modules, start_server
+from VisionEgg.PyroApps.EPhysServer import server_modules, start_server
 
 # You can add your own server modules to the server_modules list
 

@@ -17,7 +17,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 class StimulusControlFrame(Tkinter.Frame):
     def __init__(self,
                  master=None,
-                 suppress_uber_buttons=0,
+                 suppress_go_buttons=0,
                  title="Stimulus Control",
                  meta_params_class=None,
                  **kw):
@@ -33,7 +33,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       text=title,
                       font=("Helvetica",12,"bold")).grid(row=row,column=0,columnspan=2)
         
-        if not suppress_uber_buttons:
+        if not suppress_go_buttons:
             row += 1
 
             # let columns expand
@@ -73,7 +73,7 @@ class StimulusControlFrame(Tkinter.Frame):
         self.param_frame = Tkinter.Frame(self)
         self.param_frame.grid(row=row,column=0,sticky=Tkinter.N)
         
-        if not suppress_uber_buttons:
+        if not suppress_go_buttons:
             row += 1
             Tkinter.Button(self,text="Begin Trial",command=self.go).grid(row=row,column=0,columnspan=2)
 
@@ -214,13 +214,13 @@ class StimulusControlFrame(Tkinter.Frame):
         self.meta_params = self.meta_controller.get_parameters()
 
         self.connected = 1
-        if hasattr(self,'connected_text'): # uber client suppresses this
+        if hasattr(self,'connected_text'): # EPhysGUI client suppresses this
             self.connected_text.set("Server status: Connected")
 
     def quit_server(self,dummy=None):
         self.meta_controller.quit_server()
         self.connected = 0
-        if hasattr(self,'connected_text'): # uber client suppresses this label
+        if hasattr(self,'connected_text'): # EPhysGUI client suppresses this label
             self.connected_text.set("Server status: Not connected")
 
 if __name__=='__main__':

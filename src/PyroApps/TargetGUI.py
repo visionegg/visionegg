@@ -12,7 +12,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import Tkinter
-import VisionEgg.PyroApps.UberClientUtils as client_utils
+import VisionEgg.PyroApps.EPhysGUIUtils as client_utils
 
 def get_control_list():
     return [("target_server",TargetControlFrame,TargetControlFrame.title)]
@@ -40,10 +40,10 @@ class TargetMetaParameters:
         
 class TargetControlFrame(client_utils.StimulusControlFrame):
     title = "Moving Target Experiment"
-    def __init__(self, master=None, suppress_uber_buttons=0,**kw):
+    def __init__(self, master=None, suppress_go_buttons=0,**kw):
         apply(client_utils.StimulusControlFrame.__init__,(self,
                                                           master,
-                                                          suppress_uber_buttons,
+                                                          suppress_go_buttons,
                                                           TargetControlFrame.title,
                                                           TargetMetaParameters),kw)
 

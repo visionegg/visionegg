@@ -504,11 +504,11 @@ def get_server():
             apply( Tkinter.Frame.__init__, (self,master), kw)
             current_row = 0
             Tkinter.Message(self,\
-                            text='Welcome to the "uber GUI" of the Vision Egg!\n\n'+\
+                            text='Welcome to the "EPhys GUI" of the Vision Egg!\n\n'+\
                             'Please enter the hostname '+\
                             'and port number '+\
                             'of the computer on which you have the '+\
-                            '"uber server" running.').grid(row=current_row,column=0,columnspan=2)
+                            '"EPhys server" running.').grid(row=current_row,column=0,columnspan=2)
             hostname = socket.getfqdn(hostname)
 
             self.hostname_tk = Tkinter.StringVar()
@@ -559,8 +559,8 @@ class AppWindow(Tkinter.Frame):
         self.server_port = server_port
         
         self.pyro_client = VisionEgg.PyroClient.PyroClient(self.server_hostname,self.server_port)
-        self.uber_server = self.pyro_client.get("uber_server")
-        self.uber_server.first_connection()
+        self.ephys_server = self.pyro_client.get("ephys_server")
+        self.ephys_server.first_connection()
 
         self.autosave_dir = Tkinter.StringVar()
         self.autosave_dir.set( os.path.abspath(os.curdir) )
@@ -578,7 +578,7 @@ class AppWindow(Tkinter.Frame):
         self.bar.file.menu.add_command(label='Load configuration file...', command=self.load_config)
         self.bar.file.menu.add_command(label='Quit', command=self.quit)
 
-        stimkey = self.uber_server.get_stimkey()
+        stimkey = self.ephys_server.get_stimkey()
         self.stimulus_tk_var = Tkinter.StringVar()
         self.stimulus_tk_var.set( stimkey )
         self.bar.stimuli = BarButton(self.bar, text='Stimuli')
@@ -710,7 +710,7 @@ class AppWindow(Tkinter.Frame):
             self.stim_frame.destroy()
             del self.stim_frame
 
-        self.stim_frame = control_frame_klass(self,suppress_uber_buttons=1)
+        self.stim_frame = control_frame_klass(self,suppress_go_buttons=1)
         self.stim_frame.connect(self.server_hostname,self.server_port)
         apply( self.stim_frame.grid, [], self.stim_frame_cnf )
         
@@ -756,12 +756,12 @@ class AppWindow(Tkinter.Frame):
             self.progress.labelText = "Changing stimulus..."
             self.progress.updateProgress(0)
             
-            self.uber_server.set_next_stimkey( new_stimkey )
+            self.ephys_server.set_next_stimkey( new_stimkey )
 
             # new stimulus type
             self.stim_frame.quit_server() # disconnect
 
-            self.uber_server.get_stimkey() # wait for server to load
+            self.ephys_server.get_stimkey() # wait for server to load
 
             self.switch_to_stimkey( new_stimkey)
 
@@ -948,13 +948,13 @@ class AppWindow(Tkinter.Frame):
             self.after(20, self.during_go_loop)
 
     def quit(self):
-        self.uber_server.set_quit_status(1)
+        self.ephys_server.set_quit_status(1)
         # call parent class
         apply(Tkinter.Frame.quit, (self,))
 
     def destroy(self):
         try:
-            self.uber_server.set_quit_status(1)
+            self.ephys_server.set_quit_status(1)
         except:
             pass
         apply(Tkinter.Frame.destroy, (self,))
