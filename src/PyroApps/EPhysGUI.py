@@ -1016,22 +1016,23 @@ class AppWindow(Tkinter.Frame):
             old_cursor = root["cursor"]
             root["cursor"] = "watch"
             root.update()
+            try:
 
-            self.progress.labelText = "Changing stimulus..."
-            self.progress.updateProgress(0)
-            
-            self.ephys_server.set_next_stimkey( new_stimkey )
+                self.progress.labelText = "Changing stimulus..."
+                self.progress.updateProgress(0)
 
-            # new stimulus type
-            self.stim_frame.quit_server() # disconnect
+                self.ephys_server.set_next_stimkey( new_stimkey )
 
-            self.ephys_server.get_stimkey() # wait for server to load
+                # new stimulus type
+                self.stim_frame.quit_server() # disconnect
 
-            self.switch_to_stimkey( new_stimkey)
-            
-            #restore cursor
-            root["cursor"] = old_cursor
-            root.update()
+                self.ephys_server.get_stimkey() # wait for server to load
+
+                self.switch_to_stimkey( new_stimkey)
+            finally:
+                #restore cursor
+                root["cursor"] = old_cursor
+                root.update()
             
     def save_image_sequence(self):
         ImageSequenceLauncher(self,ephys_server=self.ephys_server)
@@ -1313,31 +1314,33 @@ class AppWindow(Tkinter.Frame):
         self.old_cursor = root["cursor"]
         root["cursor"] = "watch"
         root.update()
+        try:
 
-        self.progress.labelText = "Doing trial..."
-        self.progress.updateProgress(0)
-        
-        duration_sec = self.stim_frame.get_duration_sec()
-        
-        if self.override_t_abs_on.get():
-            new_t_abs_str = self.override_t_abs_sec.get()
-            self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
+            self.progress.labelText = "Doing trial..."
+            self.progress.updateProgress(0)
 
-        self.stim_frame.go() # start server going, but this return control immediately
-        self.sleep_with_progress(duration_sec)
-        while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
-            time.sleep(0.1) # wait 100 msec for end of go loop and try again
-        if self.notify_on_dropped_frames.get():
-            if self.ephys_server.were_frames_dropped_in_last_go_loop():
-                tkMessageBox.showwarning("Dropped frame(s)",
-                                         "During the last trial, at least 1 frame was dropped.",
-                                         parent=self)
-        root["cursor"] = self.old_cursor
-        root.update()
+            duration_sec = self.stim_frame.get_duration_sec()
 
-        # restore status bar
-        self.progress.labelText = "Ready"
-        self.progress.updateProgress(0)
+            if self.override_t_abs_on.get():
+                new_t_abs_str = self.override_t_abs_sec.get()
+                self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
+
+            self.stim_frame.go() # start server going, but this return control immediately
+            self.sleep_with_progress(duration_sec)
+            while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
+                time.sleep(0.1) # wait 100 msec for end of go loop and try again
+            if self.notify_on_dropped_frames.get():
+                if self.ephys_server.were_frames_dropped_in_last_go_loop():
+                    tkMessageBox.showwarning("Dropped frame(s)",
+                                             "During the last trial, at least 1 frame was dropped.",
+                                             parent=self)
+        finally:
+            root["cursor"] = self.old_cursor
+            root.update()
+
+            # restore status bar
+            self.progress.labelText = "Ready"
+            self.progress.updateProgress(0)
 
     def do_single_trial_post(self, file_stream):
         # if file_stream is None, open default file
