@@ -84,37 +84,40 @@ print
 
 ### Get OpenGL info
 
-print "GL_VENDOR =",glGetString(GL_VENDOR)
-print "GL_RENDERER =",glGetString(GL_RENDERER)
-print "GL_VERSION = ",glGetString(GL_VERSION)
-print "GL_EXTENSIONS = ",glGetString(GL_EXTENSIONS)
+print "OpenGL information returned from OpenGL drivers:"
+
+print " GL_VENDOR =",glGetString(GL_VENDOR)
+print " GL_RENDERER =",glGetString(GL_RENDERER)
+print " GL_VERSION = ",glGetString(GL_VERSION)
+print " GL_EXTENSIONS ="
+for extension in string.split(glGetString(GL_EXTENSIONS)):
+    print "                ",extension
 
 print
 
 ### Buffer information
 
 print "Buffer information"
-#print "glGetIntegerv( GL_DRAW_BUFFER ) =",glGetIntegerv( GL_DRAW_BUFFER )
-print "glGetIntegerv( GL_AUX_BUFFERS ) =",glGetIntegerv( GL_AUX_BUFFERS )
-print "glGetBooleanv( GL_RGBA_MODE ) =",glGetBooleanv( GL_RGBA_MODE )
-print "glGetBooleanv( GL_DOUBLEBUFFER ) = ",glGetBooleanv( GL_DOUBLEBUFFER )
-print "glGetBooleanv( GL_STEREO ) = ",glGetBooleanv( GL_STEREO )
+print " GL_AUX_BUFFERS =",glGetIntegerv( GL_AUX_BUFFERS )
+print " GL_RGBA_MODE =",glGetBooleanv( GL_RGBA_MODE )
+print " GL_DOUBLEBUFFER = ",glGetBooleanv( GL_DOUBLEBUFFER )
+print " GL_STEREO = ",glGetBooleanv( GL_STEREO )
 
-print "glGetIntegerv( GL_RED_BITS ) =",glGetIntegerv( GL_RED_BITS )
-print "glGetIntegerv( GL_GREEN_BITS ) =",glGetIntegerv( GL_GREEN_BITS )
-print "glGetIntegerv( GL_BLUE_BITS ) =",glGetIntegerv( GL_BLUE_BITS )
-print "glGetIntegerv( GL_ALPHA_BITS ) =",glGetIntegerv( GL_ALPHA_BITS )
+print " GL_RED_BITS =",glGetIntegerv( GL_RED_BITS )
+print " GL_GREEN_BITS =",glGetIntegerv( GL_GREEN_BITS )
+print " GL_BLUE_BITS =",glGetIntegerv( GL_BLUE_BITS )
+print " GL_ALPHA_BITS =",glGetIntegerv( GL_ALPHA_BITS )
 
-print "glGetIntegerv( GL_ACCUM_RED_BITS ) =",glGetIntegerv( GL_ACCUM_RED_BITS )
-print "glGetIntegerv( GL_ACCUM_GREEN_BITS ) =",glGetIntegerv( GL_ACCUM_GREEN_BITS )
-print "glGetIntegerv( GL_ACCUM_BLUE_BITS ) =",glGetIntegerv( GL_ACCUM_BLUE_BITS )
-print "glGetIntegerv( GL_ACCUM_ALPHA_BITS ) =",glGetIntegerv( GL_ACCUM_ALPHA_BITS )
+print " GL_ACCUM_RED_BITS =",glGetIntegerv( GL_ACCUM_RED_BITS )
+print " GL_ACCUM_GREEN_BITS =",glGetIntegerv( GL_ACCUM_GREEN_BITS )
+print " GL_ACCUM_BLUE_BITS =",glGetIntegerv( GL_ACCUM_BLUE_BITS )
+print " GL_ACCUM_ALPHA_BITS =",glGetIntegerv( GL_ACCUM_ALPHA_BITS )
 
 print
 
 ### Test OpenGL extensions
 
-print "Testing OpenGL extensions"
+print "Testing PyOpenGL extension support"
 
 for ext in ARB_exts:
     print " GL_ARB_%s:"%ext,
