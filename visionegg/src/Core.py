@@ -68,8 +68,11 @@ class Screen:
         found_mode = 0
         for bpp in try_bpps:
             modeList = pygame.display.list_modes( bpp, flags )
-            if modeList == -1: # equal to -1 if any resolution will work - confirmed TiBook OSX
-                found_mode = 1
+            if modeList == -1: # equal to -1 if any resolution will work
+                # confirmed this works on TiBook OSX
+                # this indicates error on x86 linux, against pygame docs
+                if not sys.platform=='linux2':
+                    found_mode = 1
             else:
                 if len(modeList) == 0: # any resolution is OK
                     found_mode = 1
