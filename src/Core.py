@@ -132,8 +132,7 @@ class Viewport:
         self.size = size
 
         if projection is None:
-            projection = OrthographicProjection(self,
-                                                left=lower_left[0],
+            projection = OrthographicProjection(left=lower_left[0],
                                                 right=lower_left[0]+size[0],
                                                 bottom=lower_left[1],
                                                 top=lower_left[1]+size[1],
