@@ -1,6 +1,7 @@
-Changes for 0.9.5:
+Changes for 0.9.9:
 ------------------
-Screen.put_pixels() method for (pseudo)blitting of raw pixel data
+
+Screen.put_pixels() method for "blitting" of raw pixel data
 Support for QuickTime movies (currently Mac OS X only)
 Redesign of type check system for accuracy and clarity
 TrueType font rendering with SDL_ttf2
@@ -12,7 +13,7 @@ Renamed timing_func() to time_func()
 EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
 Allow use of pygame Surfaces as source of texture data
 Mipmaps of sphere-mapped sinusoidal grating to prevent spatial aliasing
-De-emphasis on Presentation and Controller classes
+De-emphasis on Presentation and Controller classes (moved to FlowControl module)
 Changed orientations such that 0 degrees is right and 90 degrees is up.
 Bugfix in SphereMap module -- gaussian formula produced windows too wide by 2/sqrt(2)
 Allow conversion of 3D vertices into 2D screen coordinates
@@ -21,6 +22,7 @@ Allow arbitrary orientation of textures and text with angle parameter
 FrameTimer class now available for use in your own main loops
 Use Python 2.3 logging module (copy included for use with Python 2.2)
 No installation of demos or documentation (get source or demo package)
+Improved docstrings by using automatic docstring generation
 Many small enhancements and bugfixes
 
 New tests:
