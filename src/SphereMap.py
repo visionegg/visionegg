@@ -796,7 +796,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             t = Numeric.arange(0.0,p.num_t_samples,1.0,'f')/p.num_t_samples
             sigma_normalized = p.window_shape_radius_parameter / 90.0 * 0.5
             
-            check_s = -((s-0.5)**2/sigma_normalized**2)
+            check_s = -((s-0.5)**2/(2.0*sigma_normalized**2))
             try:
                 # some platforms raise OverflowError when doing this on small numbers
                 val_s = Numeric.exp( check_s )
@@ -804,7 +804,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                 check_s = Numeric.clip(check_s,MIN_EXP,MAX_EXP)
                 val_s = Numeric.exp( check_s )
 
-            check_t = -((t-0.5)**2/sigma_normalized**2)
+            check_t = -((t-0.5)**2/(2.0*sigma_normalized**2))
             try:
                 val_t = Numeric.exp( check_t )
             except OverflowError:
