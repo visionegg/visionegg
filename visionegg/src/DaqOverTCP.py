@@ -247,7 +247,6 @@ class DaqConnection:
 
         ######### Return here #######
 
-
         ##################################################
         
         if self.remote_state != DaqConnection.READY:
@@ -257,7 +256,7 @@ class DaqConnection:
 
         ##################################################
 
-        self.parse_data()
+##        self.parse_data()
 
     def parse_data(self):
         if self.remote_state != DaqConnection.ARMED:

@@ -5,6 +5,8 @@ import Numeric, MLab
 import Tkinter, tkMessageBox, tkSimpleDialog
 import VisionEgg.Daq, VisionEgg.DaqOverTCP
 
+from mblur.experiment_gui import StimulusControlFrame
+
 class AppWindow(Tkinter.Frame):
     def __init__(self,master=None,
                  hostname="localhost",
@@ -54,6 +56,9 @@ class AppWindow(Tkinter.Frame):
 
         self.data_canvas = DataCanvas(self,bg='white',width=400,height=300)
         self.data_canvas.grid(row=row,column=0,sticky="nwes")
+
+        self.stim_frame = StimulusControlFrame(self)
+        self.stim_frame.grid(row=row,column=1,rowspan=2,sticky="nwes")
 
         row += 1
 
@@ -159,8 +164,7 @@ class AppWindow(Tkinter.Frame):
 
             if len(self.channels):
                 for channel in self.channels:
-                    channel.set_my_device(self)
-                    self.add_channel(channel)
+                    self.tcp_daq_device.add_channel(channel)
             self.tcp_daq_device.connection.set_gain(self.gain)
             
         except Exception,x:
