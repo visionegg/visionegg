@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-DEBUG = 1
+DEBUG = 0
 
 import unittest
 import VisionEgg
@@ -9,7 +9,6 @@ import OpenGL.GL as gl
 
 if DEBUG:
     import VisionEgg.GLTrace
-    VisionEgg.gl = VisionEgg.GLTrace
     VisionEgg.Core.gl = VisionEgg.GLTrace
 
 # Use Python's bool constants if available, make aliases if not
@@ -26,10 +25,15 @@ class VETestCase(unittest.TestCase):
                                              preferred_bpp = 32,
                                              maxpriority   = False,
                                              hide_mouse    = False,
-                                             frameless     = False)
+                                             frameless     = False,
+                                             bgcolor       = (0,0,1), # Blue (RGB)
+                                             )
+        self.screen.clear()
+        VisionEgg.Core.swap_buffers()
         self.ortho_viewport = VisionEgg.Core.Viewport( screen = self.screen )
         
     def tearDown(self):
+        VisionEgg.Core.swap_buffers()
         del self.screen
 
     def test_core_screen_query_refresh_rate(self):
@@ -89,11 +93,10 @@ class VETestCase(unittest.TestCase):
             anchor = 'lowerleft',
             texture_min_filter = gl.GL_NEAREST,
             texture_mag_filter = gl.GL_NEAREST,
-            texture_wrap_s = gl.GL_REPEAT,
-            texture_wrap_t = gl.GL_REPEAT,
             )
 
         self.ortho_viewport.parameters.stimuli = [ texture_stimulus ]
+        # XXX should add self.screen.clear() ??
         self.ortho_viewport.draw()
         result = self.screen.get_framebuffer_as_image()
         self.failUnless(result.tostring()==orig.tostring(),'exact texture stimulus reproduction with PIL textures failed')
@@ -120,13 +123,10 @@ class VETestCase(unittest.TestCase):
             position = (0,0),
             anchor = 'lowerleft',
             mipmaps_enabled = False, # not (yet?) supported for Numeric arrays
-            texture_min_filter = gl.GL_NEAREST,
-            texture_mag_filter = gl.GL_NEAREST,
-            texture_wrap_s = gl.GL_REPEAT,
-            texture_wrap_t = gl.GL_REPEAT,
             )
 
         self.ortho_viewport.parameters.stimuli = [ texture_stimulus ]
+        # XXX should add self.screen.clear() ??
         self.ortho_viewport.draw()
         result = self.screen.get_framebuffer_as_array()
         if DEBUG:
