@@ -64,8 +64,8 @@ class EPhysServer(  Pyro.core.ObjBase ):
         Pyro.core.ObjBase.__init__(self)
         self.stimdict = {}
         self.stimkey = server_modules[0].get_meta_controller_stimkey() # first stimulus will be this
-        self.quit_status = 0
-        self.exec_demoscript_flag = 0
+        self.quit_status = False
+        self.exec_demoscript_flag = False
         self.presentation = presentation
         # target for stimulus onset calibration
         self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
@@ -105,7 +105,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
 
     def first_connection(self):
         # break out of initial run_forever loop
-        self.presentation.parameters.quit = 1
+        self.presentation.parameters.quit = True
 
     def set_stim_onset_cal(self, on):
         if on:
@@ -186,14 +186,14 @@ class EPhysServer(  Pyro.core.ObjBase ):
         exec code_module in locals()
         self.script_dropped_frames = p.were_frames_dropped_in_last_go_loop()
         self.presentation.last_go_loop_start_time_absolute_sec = p.last_go_loop_start_time_absolute_sec # evil hack...
-        self.exec_demoscript_flag = 0
+        self.exec_demoscript_flag = False
 
     def run_demoscript(self):
-        self.exec_demoscript_flag = 1
+        self.exec_demoscript_flag = True
 
 def start_server( server_modules, server_class=EPhysServer ):
 
-    super_flag = 0
+    loadNewExpr = True
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     # get Vision Egg stimulus ready to go
@@ -240,8 +240,10 @@ def start_server( server_modules, server_class=EPhysServer ):
     wait_text.parameters.text = "Loading new experiment, please wait."
 
     while not ephys_server.get_quit_status():
-
-        if super_flag == 0:
+        # this flow control configuration SEEMS to be stable for
+        # contiguously loaded scripts more rigorous testing would be
+        # appreciated
+        if loadNewExpr:
             wait_text.parameters.text = "Loading new experiment, please wait."
             perspective_viewport.parameters.stimuli = []
             overlay2D_viewport.parameters.stimuli = [wait_text]
@@ -250,23 +252,38 @@ def start_server( server_modules, server_class=EPhysServer ):
             stimulus_meta_controller = meta_controller_class(screen, p, stimulus_list) # instantiate meta_controller
             pyro_server.connect(stimulus_meta_controller, pyro_name)
 
-        super_flag = 0
-
         if ephys_server.get_stimkey() == "dropin_server":
-            #while ephys_server.exec_demoscript_flag == 0:
-            #locked loop doesn't work for some reason!
-            dropin_meta_params = stimulus_meta_controller.get_parameters()
-            wait_text.parameters.text = "Demo script mode"
+            wait_text.parameters.text = "Vision Egg script mode"
             
-            p.parameters.enter_go_loop = 0
-            p.parameters.quit = 0
+            p.parameters.enter_go_loop = False
+            p.parameters.quit = False
             p.run_forever()
+            
+            # At this point quit signal was sent by client to either:
+            
+            # 1) Execute the script (ie. "exec_demoscript_flag" has
+            # been set)
+            
+            # 2) Load a DIFFERENT script ("loadNewExpr" should be set
+            # to False in this event)
+            
+            # 3) Load a BUILT IN experiment ("loadNewExpr" should be
+            # set to True in this event)
 
-            if ephys_server.exec_demoscript_flag == 1:
+            if ephys_server.exec_demoscript_flag:
                 dropin_meta_params = stimulus_meta_controller.get_parameters()
                 ephys_server.exec_AST(screen, dropin_meta_params)
-                super_flag = 1
 
+            if ephys_server.get_stimkey() == "dropin_server":
+                # Either:
+                # 1) Same script (just finished executing)
+                # 2) Loading a new script
+                loadNewExpr = False
+            else:
+                # 3) load a BUILT IN experiment
+                pyro_server.disconnect(stimulus_meta_controller)
+                del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
+                loadNewExpr = True
         else:
             overlay2D_viewport.parameters.stimuli = [] # clear wait_text
             for stim in stimulus_list:
@@ -282,12 +299,20 @@ def start_server( server_modules, server_class=EPhysServer ):
                     raise RuntimeError("Unknown viewport id %s"%stim[0])
 
             # enter loop
-            p.parameters.enter_go_loop = 0
-            p.parameters.quit = 0
+            p.parameters.enter_go_loop = False
+            p.parameters.quit = False
             p.run_forever()
+            
+            # At this point quit signal was sent by client to either:
+            
+            # 1) Load a script ("loadNewExpr" should be set to 1 in
+            # this event)
+            
+            # 2) Load a BUILT IN experiment ("loadNewExpr" should be
+            # set to 1 in this event)
 
             pyro_server.disconnect(stimulus_meta_controller)
             del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
-
+            
 if __name__ == '__main__':
     start_server( server_modules )
