@@ -2263,7 +2263,7 @@ def check_gl_assumptions():
         if string.upper(gl_variable) == "GL_VENDOR":
             value = string.split(string.lower(gl.glGetString(gl.GL_VENDOR)))[0]
             if value != required_value:
-                raise EggError(gl_variable + " not equal " + required_value + ": " + failure_string)
+                failure_callback()
         elif string.upper(gl_variable) == "GL_VERSION":
             value_str = string.split(gl.glGetString(gl.GL_VERSION))[0]
             value_ints = map(int,string.split(value_str,'.'))
