@@ -141,6 +141,25 @@ class Texture:
         
         self.texture_object = None
 
+    def get_pixels_as_image(self):
+        """Return pixel data as PIL image"""
+        if type(self.pixels) == Numeric.ArrayType:
+            if len(self.pixels.shape) == 2:
+                a = self.pixels
+                if a.typecode() == Numeric.UnsignedInt8:
+                    mode = "L"
+                elif a.typecode() == Numeric.Float32:
+                    mode = "F"
+                else:
+                    raise ValueError("unsupported image mode")
+                return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
+            else:
+                raise NotImplementedError("Currently only luminance data can be converted to images")
+        elif isinstance(pixels, Image.Image):
+            return self.pixels
+        else:
+            raise NotImplementedError("Don't know how to convert pixel data to PIL image")
+
     def load(self, texture_object, build_mipmaps = 1, rescale_original_to_fill_texture_object = 0):
         """Load texture data to video texture memory.
 
@@ -955,7 +974,6 @@ class SpinningDrum(TextureStimulusBaseClass):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
-            gl.glTranslate(p.position[0],p.position[1],p.position[2])
 
             gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
@@ -968,9 +986,9 @@ class SpinningDrum(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
             if p.flat: # draw as flat texture on a rectange
-
                 # do the orientation
                 gl.glRotatef(p.orientation,0.0,0.0,-1.0)
+                gl.glTranslate(p.position[0],p.position[1],p.position[2])
                 
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
