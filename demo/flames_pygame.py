@@ -69,7 +69,7 @@ def main():
         blitdouble(screen, flame, doubleflame)
         pygame.display.flip()
         frame_timer.tick()
-    frame_timer.print_histogram()
+    frame_timer.log_histogram()
 
 
 
