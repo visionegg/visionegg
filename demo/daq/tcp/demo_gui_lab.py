@@ -5,7 +5,8 @@ import Numeric, MLab
 import Tkinter, tkMessageBox, tkSimpleDialog
 import VisionEgg.Daq, VisionEgg.DaqOverTCP
 
-from mblur.experiment_gui import StimulusControlFrame
+sys.path.append("../../Pyro") # make sure metaPyroGUI module is on search path
+from metaPyroGUI import StimulusControlFrame
 
 class AppWindow(Tkinter.Frame):
     def __init__(self,master=None,
@@ -46,7 +47,7 @@ class AppWindow(Tkinter.Frame):
         
         self.bar.channel_settings.menu.add_command(label='Set number of channels',command=self.set_num_channels)
         
-        self.bar.channel_settings.menu.add_command(label='Set duration',command=self.set_duration)
+#        self.bar.channel_settings.menu.add_command(label='Set duration',command=self.set_duration)
         self.bar.channel_settings.menu.add_command(label='Set sample rate',command=self.set_sample_rate)
 
         self.bar.channel_settings.menu.add_command(label='Set trigger mode',command=self.set_trigger_mode)
@@ -57,7 +58,7 @@ class AppWindow(Tkinter.Frame):
         self.data_canvas = DataCanvas(self,bg='white',width=400,height=300)
         self.data_canvas.grid(row=row,column=0,sticky="nwes")
 
-        self.stim_frame = StimulusControlFrame(self)
+        self.stim_frame = StimulusControlFrame(self,suppress_begin_button=1)
         self.stim_frame.grid(row=row,column=1,rowspan=2,sticky="nwes")
 
         row += 1
@@ -105,9 +106,17 @@ class AppWindow(Tkinter.Frame):
             raise RuntimeError("Not connected to DAQ server!")
         if len(self.channels) < 1:
             raise RuntimeError("Must have 1 or more channels.")
-        self.channels[0].arm_trigger()
 
         self.data_canvas.clear()
+        self.duration_sec = self.stim_frame.get_duration_sec()
+        self.sync_channel_list()
+        self.tcp_daq_device.arm()
+#        self.channels[0].arm_trigger()
+        self.stim_frame.go()
+        time.sleep(self.duration_sec)
+
+        self.tcp_daq_device.connection.parse_data()
+        
         for channel in self.channels:
             data = channel.constant_parameters.functionality.get_data()
             self.data_canvas.add_channel(channel)
@@ -290,7 +299,10 @@ class DataCanvas(Tkinter.Canvas):
             self.ymin = min(self.ymin,old_ymin)
             self.ymax = max(self.ymax,old_ymax)
 
-        scale = (x2-x1)/float(tmax), (y2-y1)/float(self.ymax-self.ymin)
+        yrange = float(self.ymax-self.ymin)
+        if yrange == 0.0:
+            yrange = 1e-10
+        scale = (x2-x1)/float(tmax), (y2-y1)/yrange
         offset = float(x1), -self.ymax*scale[1]+float(y2)
 
         #print "scale",scale
