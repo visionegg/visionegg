@@ -23,6 +23,9 @@ if sys.platform not in ['cygwin','darwin','mac','win32'] or is_source_distributi
 if sys.platform == 'linux2' or is_source_distribution:
     extensions.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
+if sys.platform[:4] == 'irix' or is_source_distribution:
+    extensions.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
+
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
         if filename[-3:] == '.py':
