@@ -23,17 +23,25 @@ Configuration -- Load config values
 Daq -- Definition of data acquisition and triggering interfaces
 DaqLPT -- Data acquisition and triggering over the parallel port
 DaqOverTCP -- Implements data acquisition over TCP
+Dots -- Random dot stimuli
+GLTrace -- Trace calls to OpenGL
 GUI -- Graphical user interface classes and functions
 Gratings -- Grating stimuli
 Lib3DS -- Load .3DS files
 MoreStimuli -- Assorted stimuli
+ParameterTypes -- Type checking for the Vision Egg
 PlatformDependent -- Set priority and other functions
+PyroClient -- Python Remote Objects support - Client side
 PyroHelpers -- Python Remote Objects support
 SphereMap -- Stimuli drawn as texture maps on inside of sphere
 TCPController -- Allows control of parameter values over the network
-Textures -- Texture (images mapped onto polygons) stimuli
 Text -- Text stimuli
+Textures -- Texture (images mapped onto polygons) stimuli
 __init__ -- Loaded with "import VisionEgg" (This module)
+darwin_app_stuff -- (Platform dependent) wrappers for low-level C code
+darwin_maxpriority -- (Platform dependent) wrappers for low-level C code
+posix_maxpriority -- (Platform dependent) wrappers for low-level C code
+win32_maxpriority -- (Platform dependent) wrappers for low-level C code
 
 Subpackages:
 
@@ -47,7 +55,7 @@ ClassWithParameters -- Base class for any class that uses parameters
 Functions:
 
 recursive_base_class_finder() -- A function to find all base classes
-timing_func() -- Most accurate timing function available on a platform
+time_func() -- Most accurate timing function available on a platform
 get_type() -- Get the type or class of argument
 assert_type() -- Verify the type of an instance
 
@@ -214,10 +222,6 @@ class Parameters:
     All parameters (such as contrast, position, etc.) which should be
     modifiable in runtime should be attributes of an instance of this
     class, which serves as a nameholder for just this purpose."""
-    pass
-
-class CallableType:
-    """Fake class to represent the type of any callable object"""
     pass
 
 class ClassWithParameters:
