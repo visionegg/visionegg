@@ -2,7 +2,7 @@ Changes for 0.9.5:
 ------------------
 Redesign of type check system for accuracy and clarity
 Allow use of pygame Surfaces as source of texture data
-TrueType font rendering
+TrueType font rendering with SDL_ttf2
 Positioning of viewports and 2D stimuli can use relative positioning anchors
 Renamed timing_func() to time_func()
 EPhysGUI saves absolute time a trial was started (to recontruct all stimuli)
@@ -12,6 +12,9 @@ Mipmaps of sphere-mapped sinusoidal grating to prevent spatial aliasing
 Documentation de-emphasis on Presentation class
 Now requires Python 2.2 and pygame 1.5
 Changed orientations such that 0 degrees is right and 90 degrees is up.
+Allow conversion of 3D vertices into 2D screen coordinates
+Added wireframe az/el grid with text labels
+Allow arbitrary orientation of textures and text with angle parameter
 Many small enhancements and bugfixes
 
 New demos:
