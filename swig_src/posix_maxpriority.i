@@ -14,7 +14,8 @@
   errno = 0;
   $action
   if (errno) {
-    return PyErr_SetFromErrno(PyExc_OSError);
+    PyErr_SetFromErrno(PyExc_OSError);
+    goto fail;
   }
 }
 
