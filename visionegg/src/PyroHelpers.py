@@ -61,19 +61,31 @@ class PyroServer:
         return URI
 
     def disconnect(self,object):
-        # Should do this:
-        # self.daemon.disconnect(object)
-        # But there's a bug in Pyro 3.0 and 3.1 (at least)
-        #
-        # Anyhow, here's what daemon.disconnect should do:
-        del self.daemon.implementations[object.GUID()]
-        object.setDaemon(None)
-        
+##        # Should do this:
+##        # self.daemon.disconnect(object)
+##        # But there's a bug in Pyro 3.0 and 3.1 (at least)
+##        #
+##        # Anyhow, here's what daemon.disconnect should do:
+##        del self.daemon.implementations[object.GUID()]
+##        object.setDaemon(None)
+        if Pyro.core.constants.VERSION >= '3.2':
+            self.daemon.disconnect(object)
+        else:
+            # workaround bug in Pyro pre-3.2
+            del self.daemon.implementations[object.GUID()]
+            object.setDaemon(None)
+            
     def create_listener_controller(self):
         if hasattr(self,'listen_controller'):
             raise RuntimeError("Only one pyro listen controller allowed per server!")
         self.listen_controller = PyroListenController(self)
         return self.listen_controller
+
+    def handleRequests(self, timeout=0):
+        """Only use this if you don't use the PyroListenerController.
+
+        A timeout of 0 specifies return immediately."""
+        self.daemon.handleRequests(timeout)
 
 class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
     def __init__(self, **kw):
