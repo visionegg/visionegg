@@ -22,8 +22,10 @@ url = 'http://www.visionegg.org/'
 author = "Andrew Straw"
 author_email = "astraw@users.sourceforge.net"
 license = "LGPL"
-package_dir={'VisionEgg' : 'src'}
-packages=[ 'VisionEgg' ]
+package_dir={'VisionEgg'          : 'src',
+             'VisionEgg.PyroApps' : 'src/PyroApps'}
+packages=[ 'VisionEgg',
+           'VisionEgg.PyroApps' ]
 ext_package='VisionEgg'
 ext_modules = []
 long_description = \
@@ -67,13 +69,16 @@ if not skip_c_compilation:
     lib3ds_sources.append('src/_lib3ds.c')
     if sys.platform == 'darwin':
         extra_link_args = ['-framework','OpenGL']
-    elif sys.platform == 'win32':
-        extra_link_args = ['-lopengl32']
     else:
         extra_link_args = []
+    if sys.platform == 'win32':
+        libraries = ['opengl32']
+    else:
+        libraries = []
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
+                                 libraries=libraries,
                                  extra_link_args=extra_link_args
                                  ))
     if sys.platform == "darwin":
