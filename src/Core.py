@@ -53,7 +53,7 @@ class Screen:
         self.size = size
         self.fullscreen = fullscreen 
 
-        PlatformDependent.sync_swap_with_vbl(failure_ok = 0)
+        sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
         pygame.display.init()
         if hasattr(pygame.display,"gl_set_attribute"):
@@ -121,10 +121,17 @@ class Screen:
         print "Video system reports %d bpp"%self.bpp
         if self.bpp < try_bpp:
             print "************ VISION EGG WARNING ***************"
-            print "Video system reports %d bits per pixel, while your"%try_bpp
-            print "program requested %d.  (Try setting your video"%self.bpp
-            print "drivers to 32 bpp, sometimes called TrueColor.)"
+            print "Video system reports %d bits per pixel, while your"%self.bpp
+            print "program requested %d. Can you adjust your video drivers?"%try_bpp
+            
         self.cursor_visible_func = pygame.mouse.set_visible
+
+        if not sync_success:
+            if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
+                print '************ VISION EGG WARNING ***************'
+                print 'Unable to synchronize buffer swapping with vertical'
+                print 'retrace. May be possible by manually adjusting video'
+                print 'drivers. (Try "Enable Vertical Sync" or similar.)'
 
         # Check previously made OpenGL assumptions
         check_gl_assumptions()

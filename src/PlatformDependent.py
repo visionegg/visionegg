@@ -22,28 +22,34 @@ except:
         """
         pass
 
-def sync_swap_with_vbl(failure_ok = 0):
+def sync_swap_with_vbl_pre_gl_init():
     """Synchronize buffer swapping and vertical retrace, if possible."""
     success = 0
     if sys.platform == "linux2":
         # Unfotunately, cannot check do glGetString(GL_VENDOR) to
-        # check if drivers are nVidia because we have to do this
-        # before the drivers are started...
+        # check if drivers are nVidia because we have to do that requires
+        # OpenGL context started, but this variable must be set
+        # before OpenGL context started!
         
         # Assume drivers are nVidia
         VisionEgg.Core.add_gl_assumption("GL_VENDOR","nvidia","Failed assumption made in PlatformDependent.py function sync_swap_with_vbl()")
-#        print "Assuming nVidia OpenGL drivers in PlatformDependent.py"
+        # Set nVidia linux environmental variable
         os.environ["__GL_SYNC_TO_VBLANK"] = "1"
         success = 1
         
-    elif sys.platform == "win32":
-##        import OpenGL.WGL.EXT.swap_control
-##        OpenGL.WGL.EXT.swap_control.wglInitSwapControlARB()
-##        OpenGL.WGL.EXT.swap_control.wglSwapIntervalEXT(1)
-        success = 1
+    return success
 
-    if not success:
-        if failure_ok:
-            print "Failed to synchronize buffer swapping and vertical retrace"
-        else:
-            raise VisionEgg.Core.EggError("Failed to synchronize buffer swapping and vertical retrace")
+def sync_swap_with_vbl_post_gl_init():
+    """Synchronize buffer swapping and vertical retrace, if possible."""
+    success = 0
+    try:
+        if sys.platform == "win32":
+            import OpenGL.WGL.EXT.swap_control
+            if OpenGL.WGL.EXT.swap_control.wglInitSwapControlARB(): # Returns 1 if it's working
+                OpenGL.WGL.EXT.swap_control.wglSwapIntervalEXT(1) # Swap only at frame syncs
+                if OpenGL.WGL.EXT.swap_control.wglGetSwapIntervalEXT() == 1:
+                    success = 1
+    except:
+        pass
+    
+    return success
