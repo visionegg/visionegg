@@ -135,7 +135,8 @@ class Screen(VisionEgg.ClassWithParameters):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
         # Attempt to synchronize buffer swapping with vertical sync
-        sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
+        if VisionEgg.config.VISIONEGG_SYNC_SWAP:
+            sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
         # Initialize pygame stuff
         if sys.platform == "darwin": # bug in Mac OS X version of pygame
@@ -254,19 +255,24 @@ class Screen(VisionEgg.ClassWithParameters):
         self.cursor_visible_func = pygame.mouse.set_visible
 
         # Attempt to synchronize buffer swapping with vertical sync again
-        if not sync_success:
-            if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
-                message.add(
-                    """Unable to detect or automatically synchronize
-                    buffer swapping with vertical retrace. May be
-                    possible by manually adjusting video
-                    drivers. (Look for "Enable Vertical Sync" or
-                    similar.)  If buffer swapping is not synchronized,
-                    frame by frame control will not be possible.
-                    Because of this, you will probably get a warning
-                    about calculated frames per second different than
-                    specified.""",
-                    level=Message.INFO)
+        if VisionEgg.config.VISIONEGG_SYNC_SWAP:
+            if not sync_success:
+                if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
+                    message.add(
+                        
+                        """Although the configuration variable
+                        VISIONEGG_SYNC_SWAP is set, unable to detect
+                        or automatically synchronize buffer swapping
+                        with vertical retrace. May be possible by
+                        manually adjusting video drivers. (Look for
+                        "Enable Vertical Sync" or similar.)  If buffer
+                        swapping is not synchronized, frame by frame
+                        control will not be possible.  Because of
+                        this, you will probably get a warning about
+                        calculated frames per second different than
+                        specified.""",
+                        
+                        level=Message.WARNING)
 
         # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
@@ -950,7 +956,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             if isinstance(controller,EncapsulatedController):
                 controller.contained_controller.eval_frequency = controller.contained_controller.eval_frequency & ~Controller.ONCE
         
-    def go(self,collect_timing_info=0):
+    def go(self):
         """Main control loop during stimulus presentation.
 
         This is the heart of realtime control in the Vision Egg, and
@@ -965,10 +971,8 @@ class Presentation(VisionEgg.ClassWithParameters):
         painting the front buffer on the display), and the buffers are
         swapped.
 
-        Optional arguments:
-
-        collect_timing_info -- Int (boolean) to control whether frame draw times recorded and statistics displayed
         """
+        collect_timing_info = VisionEgg.config.VISIONEGG_RECORD_TIMES
         # Create shorthand notation, which speeds the main loop
         # slightly by not performing name lookup each time.
         p = self.parameters
@@ -1294,12 +1298,11 @@ class Presentation(VisionEgg.ClassWithParameters):
             frame_draw_times = Numeric.array(self.frame_draw_times)
             self.frame_draw_times = [] # clear the list
             frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
-            timing_string = str((len(frame_draw_times)+1))+" frames drawn.\n"
+            timing_string = "During the last \"go\" loop, "+str((len(frame_draw_times)+1))+" frames were drawn.\n"
             mean_sec = MLab.mean(frame_draw_times)
-            timing_string = timing_string + "mean frame to frame time: %.1f (usec) == mean fps: %.2f, max: %.1f\n"%(mean_sec*1.0e6,1.0/mean_sec,max(frame_draw_times)*1.0e6)
-            bins = Numeric.arange(0.0,15.0,1.0) # msec
+            timing_string = timing_string + "mean frame to frame time: %.3f msec (== %.2f fps), max time: %.3f msec\n"%(mean_sec*1.0e3,1.0/mean_sec,max(frame_draw_times)*1.0e3)
+            bins = Numeric.arange(0.0,19.0,1.0) # msec
             bins = bins*1.0e-3 # sec
-            timing_string = timing_string + "Inter-frame interval\n"
             timing_string = self.__print_hist(frame_draw_times,bins,timing_string)
             timing_string = timing_string + "\n"
             message.add(timing_string,level=Message.INFO,preserve_formatting=1)
@@ -1323,21 +1326,25 @@ class Presentation(VisionEgg.ClassWithParameters):
         timing_string = timing_string + "histogram:\n"
         for line in range(lines):
             val = float(lines)-1.0-float(line)
-            timing_string = timing_string + "%6d "%(round(maxhist*val/10.0),)
+            timing_string = timing_string + "%6d   "%(round(maxhist*val/10.0),)
             q = Numeric.greater(hist,val)
             for qi in q:
                 s = ' '
                 if qi:
                     s = '*'
-                timing_string = timing_string + "%3s "%(s,)
+                timing_string = timing_string + "%4s "%(s,)
             timing_string = timing_string + "\n"
         timing_string = timing_string + " Time: "
         for bin in bins:
-            timing_string = timing_string + "%3d "%(int(bin*1.0e3),)
+            timing_string = timing_string + "%4d "%(int(bin*1.0e3),)
         timing_string = timing_string + "+(msec)\n"
-        timing_string = timing_string + "Total: "
+        timing_string = timing_string + "Total:    "
         for hi in h:
-            timing_string = timing_string + "%3d "%(hi,)
+            if hi <= 999:
+                num_str = string.center(str(hi),5)
+            else:
+                num_str = " +++ "
+            timing_string = timing_string + num_str
         timing_string = timing_string+"\n"
         return timing_string
         
