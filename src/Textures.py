@@ -241,25 +241,32 @@ class TextureBuffer:
 #
 ####################################################################
 
-class TextureStimulus(VisionEgg.Core.Stimulus):
-    def __init__(self,
-                 texture=Texture(size=(256,16)),
-                 projection = None):
-        self.texture = texture
-        
-        self.parameters = VisionEgg.Core.Parameters()
-        if projection is None:
-            # Make a default projection
-            self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
-        else:
-            self.parameters.projection = projection
-        self.parameters.on = 1
-        self.parameters.texture_scale_linear_interp = 1
-        self.parameters.texture_repeat = 0 # if 0 clamp to edge
+class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
+    """Parameters common to all stimuli that use textures.
 
-        # object coordinates of the rendered texture
-        self.parameters.lower_left = (0.0,0.0)
-        self.parameters.upper_right = (1.0,1.0)
+    Don't instantiate this class directly."""
+    parameters_and_defaults = {'texture_scale_linear_interp':1,
+                               'texture_repeat':0}    # if 0 clamp to edge
+
+class TextureStimulus(TextureStimulusBaseClass):
+    parameters_and_defaults = {'projection':None, # set in __init__
+                               'on':1,
+                               'left':0.0, # In eye coords (window coords depend on projection)
+                               'right':1.0,
+                               'bottom':0.0,
+                               'top':1.0}
+    def __init__(self,texture=Texture(size=(256,16)),projection = None,**kw):
+        apply(TextureStimulusBaseClass.__init__,(self,),kw)
+        self.texture = texture
+        # Make sure the projection is set
+        if projection is not None:
+            # Use the user-supplied projection
+            self.parameters.projection = projection
+        else:
+            # No user-supplied projection, use the default. (Which is probably None.)
+            if self.parameters.projection is None:
+                # Since the default projection is None, set it to something useful.
+                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
 
         self.texture_object = self.texture.load()
 
@@ -288,10 +295,10 @@ class TextureStimulus(VisionEgg.Core.Stimulus):
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
             p = self.parameters
-            l = p.lower_left[0]
-            r = p.upper_right[0]
-            b = p.lower_left[1]
-            t = p.upper_right[1]
+            l = p.left
+            r = p.right
+            b = p.bottom
+            t = p.top
             
             glBegin(GL_QUADS)
             glTexCoord2f(self.texture.buf_lf,self.texture.buf_bf)
@@ -315,20 +322,19 @@ class TextureStimulus(VisionEgg.Core.Stimulus):
 #
 ####################################################################
 
-class SpinningDrum(VisionEgg.Core.Stimulus):
-    def __init__(self,
-                 texture=Texture(size=(256,16))):
+class SpinningDrum(TextureStimulusBaseClass):
+    parameters_and_defaults = {'num_sides':50,
+                               'angle':0.0,
+                               'contrast':1.0,
+                               'on':1,
+                               'flat':0, # toggles flat vs. cylinder
+                               'dist_from_o':1.0 # z if flat, radius if cylinder
+                               }
+    
+    def __init__(self,texture=Texture(size=(256,16)),**kw):
+        apply(TextureStimulusBaseClass.__init__,(self,),kw)
         self.texture = texture
         
-        self.parameters = VisionEgg.Core.Parameters()
-        self.parameters.num_sides = 50
-        self.parameters.angle = 0.0
-        self.parameters.contrast = 1.0
-        self.parameters.on = 1
-        self.parameters.flat = 0 # toggles flat vs. cylinder
-        self.parameters.dist_from_o = 1.0 # z or radius if flat or cylinder
-        self.parameters.texture_scale_linear_interp = 1 # if 0 it's nearest-neighbor
-        self.parameters.texture_repeat = 0 # if 0 clamp to edge        
         self.texture_object = self.texture.load()
 
     def draw(self):
