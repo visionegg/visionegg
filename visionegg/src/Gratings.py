@@ -26,17 +26,24 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
 
     parameters_and_defaults = {'bit_depth':(8,types.IntType)}
     
-    def __init__(self,**kw):
-        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
-        self.red_bits = gl.glGetIntegerv( gl.GL_RED_BITS )
-        
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
-        if self.red_bits < self.parameters.bit_depth:
+        bit_depth_warning = 0
+        current_bit_depth = None # unknown
+        if gl.glGetIntegerv( gl.GL_RED_BITS ) < self.parameters.bit_depth:
+            bit_depth_warning = 1
+            current_bit_depth = gl.glGetIntegerv( gl.GL_RED_BITS )
+        elif gl.glGetIntegerv( gl.GL_GREEN_BITS ) < self.parameters.bit_depth:
+            bit_depth_warning = 1
+            current_bit_depth = gl.glGetIntegerv( gl.GL_GREEN_BITS )
+        elif gl.glGetIntegerv( gl.GL_BLUE_BITS ) < self.parameters.bit_depth:
+            bit_depth_warning = 1
+            current_bit_depth = gl.glGetIntegerv( gl.GL_BLUE_BITS )
+        if bit_depth_warning:
             VisionEgg.Core.message.add(
                 """Requesting a bit depth of %d, which is greater than
                 your current OpenGL context supports (%d)."""%
-                (self.parameters.bit_depth,self.red_bits),
+                (self.parameters.bit_depth,current_bit_depth),
                 level=VisionEgg.Core.Message.WARNING)
         if self.parameters.bit_depth == 8:
             self.gl_internal_format = gl.GL_LUMINANCE
@@ -63,6 +70,47 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
             raise ValueError("supported bitdepths are 8, 12, and 16.")
         self.cached_bit_depth = self.parameters.bit_depth
         
+class AlphaGratingCommon(VisionEgg.Core.Stimulus):
+    """Base class with common code to all ways of drawing gratings in alpha.
+
+    This allows for generation of plaids and color gratings."""
+
+    parameters_and_defaults = {'bit_depth':(8,types.IntType)}
+    
+    def calculate_bit_depth_dependencies(self):
+        """Calculate a number of parameters dependent on bit depth."""
+        alpha_bit_depth = gl.glGetIntegerv( gl.GL_ALPHA_BITS )
+        if alpha_bit_depth < self.parameters.bit_depth:
+            VisionEgg.Core.message.add(
+                """Requesting a bit depth of %d, which is greater than
+                your current OpenGL context supports (%d)."""%
+                (self.parameters.bit_depth,alpha_bit_depth),
+                level=VisionEgg.Core.Message.WARNING)
+        if self.parameters.bit_depth == 8:
+            self.gl_internal_format = gl.GL_ALPHA
+            self.format = gl.GL_ALPHA
+            self.gl_type = gl.GL_UNSIGNED_BYTE
+            self.numeric_type = Numeric.UnsignedInt8
+            self.max_int_val = float((2**8)-1)
+        elif self.parameters.bit_depth == 12:
+            self.gl_internal_format = gl.GL_ALPHA
+            self.format = gl.GL_ALPHA
+            self.gl_type = gl.GL_SHORT
+            self.numeric_type = Numeric.Int16
+            self.max_int_val = float((2**15)-1)
+        elif self.parameters.bit_depth == 16:
+            self.gl_internal_format = gl.GL_ALPHA
+            self.format = gl.GL_ALPHA
+            self.gl_type = gl.GL_INT
+            self.numeric_type = Numeric.Int32
+            try:
+                self.max_int_val = float((2**31)-1)
+            except OverflowError:
+                self.max_int_val = float((2.**31.)-1)
+        else:
+            raise ValueError("supported bitdepths are 8, 12, and 16.")
+        self.cached_bit_depth = self.parameters.bit_depth
+        
 class SinGrating2D(LuminanceGratingCommon):
     """Sine wave grating stimulus
 
@@ -71,7 +119,7 @@ class SinGrating2D(LuminanceGratingCommon):
     a textured quad.  To draw a grating with sides that always remain
     horizontal and vertical, draw a large grating in a small viewport.
     The viewport will clip anything beyond its edges. Alternatively,
-    try one of the "SquareSides" gratings in this module."""
+    try one of the slower "SquareSides" gratings in this module."""
 
     parameters_and_defaults = {'on':(1,types.IntType),
                                'contrast':(1.0,types.FloatType),
@@ -184,6 +232,163 @@ class SinGrating2D(LuminanceGratingCommon):
             r = self.parameters.center[0]+h_w
             b = self.parameters.center[1]-h_h
             t = self.parameters.center[1]+h_h
+
+            gl.glBegin(gl.GL_QUADS)
+            gl.glTexCoord2f(0.0,0.0)
+            gl.glVertex2f(l,b)
+
+            gl.glTexCoord2f(1.0,0.0)
+            gl.glVertex2f(r,b)
+
+            gl.glTexCoord2f(1.0,1.0)
+            gl.glVertex2f(r,t)
+
+            gl.glTexCoord2f(0.0,1.0)
+            gl.glVertex2f(l,t)
+            gl.glEnd() # GL_QUADS
+            
+            gl.glDisable(gl.GL_TEXTURE_1D)
+
+class SinGrating2DColor(AlphaGratingCommon):
+    """Color sine wave grating stimulus
+    
+    This is a general-purpose, realtime color sine-wave luminace
+    grating generator. To acheive an arbitrary orientation, this class
+    rotates a textured quad.  To draw a grating with sides that always
+    remain horizontal and vertical, draw a large grating in a small
+    viewport.  The viewport will clip anything beyond its edges."""
+
+    parameters_and_defaults = {'color1':( (0.0, 0.0, 1.0, 1.0), types.TupleType), # alpha is ignored
+                               'color2':( (1.0, 0.0, 0.0, 1.0), types.TupleType), # alpha is ignored
+                               'on':(1,types.IntType),
+                               'contrast':(1.0,types.FloatType),
+                               'center':((320.0,240.0),types.TupleType),
+                               'size':((640.0,480.0),types.TupleType), # in eye coordinates
+                               'spatial_freq':(1.0/128.0,types.FloatType), # cycles/eye coord units
+                               'temporal_freq_hz':(5.0,types.FloatType), # hz
+                               't0_time_sec_absolute':(None,types.FloatType),
+                               'phase_at_t0':(0.0,types.FloatType), # degrees [0.0-360.0]
+                               'orientation':(0.0,types.FloatType), # 0=right, 90=down
+                               'num_samples':(512, types.IntType) # number of spatial samples, should be a power of 2
+                               }
+    
+    def __init__(self,**kw):
+        apply(AlphaGratingCommon.__init__,(self,),kw)
+
+        self.texture_object = gl.glGenTextures(1)
+        gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
+        
+        # Do error-checking on texture to make sure it will load
+        max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
+        if self.parameters.num_samples > max_dim:
+            raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+
+        if self.parameters.t0_time_sec_absolute is None:
+            self.parameters.t0_time_sec_absolute = VisionEgg.timing_func()
+
+        self.calculate_bit_depth_dependencies()
+        
+        w = self.parameters.size[0]
+        inc = w/float(self.parameters.num_samples)
+        phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
+        floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+        texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+
+        # Because the MAX_TEXTURE_SIZE method is insensitive to the current
+        # state of the video system, another check must be done using
+        # "proxy textures".
+        gl.glTexImage1D(gl.GL_PROXY_TEXTURE_1D,            # target
+                     0,                              # level
+                     self.gl_internal_format,                   # video RAM internal format: RGB
+                     self.parameters.num_samples,    # width
+                     0,                              # border
+                     self.format,                   # format of image data
+                     self.gl_type,               # type of image data
+                     texel_data)                     # texel data
+        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D,0,gl.GL_TEXTURE_WIDTH) == 0:
+            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
+        
+        # If we got here, it worked and we can load the texture for real.
+        gl.glTexImage1D(gl.GL_TEXTURE_1D,            # target
+                     0,                              # level
+                     self.gl_internal_format,                   # video RAM internal format: RGB
+                     self.parameters.num_samples,    # width
+                     0,                              # border
+                     self.format,                   # format of image data
+                     self.gl_type,               # type of image data
+                     texel_data)                     # texel data
+        # Set some texture object defaults
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
+
+    def draw(self):
+        p = self.parameters
+        if p.on:
+            if p.bit_depth != self.cached_bit_depth:
+                self.calculate_bit_depth_dependencies()
+
+            # calculate heigth, width, left, right, bottom, top of screen area
+            h_w = p.size[0]/2.0
+            h_h = p.size[1]/2.0
+            l = p.center[0]-h_w
+            r = p.center[0]+h_w
+            b = p.center[1]-h_h
+            t = p.center[1]+h_h
+
+            # Clear the modeview matrix
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glLoadIdentity()
+            # Rotate about the center of the texture
+            gl.glTranslate(p.center[0],
+                           p.center[1],
+                           0.0)
+            gl.glRotate(p.orientation,0.0,0.0,-1.0)
+            # Restore origin
+            gl.glTranslate(-p.center[0],
+                           -p.center[1],
+                           0.0)
+            
+            gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glEnable(gl.GL_BLEND)
+            # Specify how to use the alpha value
+            gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
+
+            gl.glDisable(gl.GL_TEXTURE_2D)
+            gl.glDisable(gl.GL_TEXTURE_1D)
+            # Draw quad with one color
+            gl.glColor(p.color1[0],p.color1[1],p.color1[2],1.0) # force alpha=1.0
+
+            gl.glBegin(gl.GL_QUADS)
+            gl.glVertex2f(l,b)
+            gl.glVertex2f(r,b)
+            gl.glVertex2f(r,t)
+            gl.glVertex2f(l,t)
+            gl.glEnd() # GL_QUADS
+
+            # Draw foreground quad with grating as alpha values
+            gl.glEnable(gl.GL_TEXTURE_1D)
+            gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object)
+            gl.glColor(p.color2[0],p.color2[1],p.color2[2],1.0) # force alpha=1.0
+
+            w = p.size[0]
+            inc = w/float(p.num_samples)
+            phase = (VisionEgg.timing_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+            floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+0.5
+            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+            texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+        
+            gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
+                            0, # level
+                            0, # x offset
+                            p.num_samples, # width
+                            self.format, # data format
+                            self.gl_type, # data type
+                            texel_data)
+            
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             gl.glBegin(gl.GL_QUADS)
             gl.glTexCoord2f(0.0,0.0)
