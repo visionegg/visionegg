@@ -9,9 +9,11 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import sys, socket, re, time, string, types, os, pickle, random, math, threading
+import sys, socket, re, time, string, types, os
+import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import Pyro
+import Numeric
 
 import VisionEgg
 import VisionEgg.PyroClient
@@ -478,11 +480,11 @@ def get_server():
             apply( Tkinter.Frame.__init__, (self,master), kw)
             current_row = 0
             Tkinter.Message(self,\
-                            text='Welcome to the "EPhys GUI" of the Vision Egg!\n\n'+\
-                            'Please enter the hostname '+\
-                            'and port number '+\
-                            'of the computer on which you have the '+\
-                            '"EPhys server" running.').grid(row=current_row,column=0,columnspan=2)
+                          text='Welcome to the "EPhys GUI" of the Vision Egg!\n\n'+\
+                          'Please enter the hostname '+\
+                          'and port number '+\
+                          'of the computer on which you have the '+\
+                          '"EPhys server" running.').grid(row=current_row,column=0,columnspan=2)
             hostname = socket.getfqdn(hostname)
 
             self.hostname_tk = Tkinter.StringVar()
@@ -516,7 +518,65 @@ def get_server():
     connect_win.pack()
     connect_win.mainloop()
     return connect_win.result
+
+class GammaFrame(Tkinter.Frame):
+    def __init__(self,
+                 master=None,
+                 ephys_server=None,**kw):
+        apply(Tkinter.Frame.__init__,(self,master),kw)
+        self.ephys_server = ephys_server
         
+        self.columnconfigure(0,weight=1)
+        
+        Tkinter.Label(self,
+                      font=("Helvetica",12,"bold"),
+                      text="Load Gamma Table").grid()
+        
+        Tkinter.Label(self, text="Please choose a gamma file "+\
+                        "(.ve_gamma) containing information on how "+\
+                        "to set your gamma tables.").grid(sticky="nwes")
+
+        Tkinter.Button(self,
+                       text="Open gamma file...",
+                       command=self.set_from_file).grid()
+
+        self.success_label = Tkinter.Label(self)
+        self.success_label.grid()
+
+    def set_from_file(self):
+        filename = tkFileDialog.askopenfilename(
+            parent=self,
+            defaultextension=".ve_gamma",
+            filetypes=[('Configuration file','*.ve_gamma')],
+            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
+        if not filename:
+            return
+        fd = open(filename,"r")
+        gamma_values = []
+        for line in fd.readlines():
+            line = line.strip() # remove leading/trailing whitespace
+            if line.startswith("#"): # comment, ignore
+                continue
+            gamma_values.append( map(int, line.split() ) )
+            if len(gamma_values[-1]) != 3:
+                raise RuntimeError("expected 3 values per gamma entry")
+        if len(gamma_values) != 256:
+            raise RuntimeError("expected 256 gamma entries")
+        red, green, blue = apply(zip,gamma_values)
+        if self.ephys_server.set_gamma_ramp(red,green,blue):
+            self.success_label.configure(text="Success")
+        else:
+            self.success_label.configure(text="Failed")
+        
+    def set(self):
+        r = (Numeric.arange(256)*256*.9).astype('i')
+        g = r
+        b = r
+        if self.ephys_server.set_gamma_ramp(r,g,b):
+            self.success_label.configure(text="Success")
+        else:
+            self.success_label.configure(text="Failed")
+
 class AppWindow(Tkinter.Frame):
     def __init__(self,
                  master=None,
@@ -564,6 +624,8 @@ class AppWindow(Tkinter.Frame):
 
         self.bar.calibration = BarButton(self.bar, text='Calibrate')
         self.bar.calibration.menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
+        self.bar.calibration.menu.add_command(label='Stimulus onset timing...', command=self.launch_stim_onset_cal)
+        self.bar.calibration.menu.add_command(label='Load gamma table...', command=self.launch_gamma_panel)
 
         row += 1
 
@@ -728,7 +790,13 @@ class AppWindow(Tkinter.Frame):
             root.update()
             
     def save_config(self):
-        filename = tkFileDialog.asksaveasfilename(defaultextension=".vecfg",filetypes=[('Configuration file','*.vecfg')])
+        filename = tkFileDialog.asksaveasfilename(
+            parent=self,
+            defaultextension=".ve_cfg",
+            filetypes=[('Configuration file','*.ve_cfg')],
+            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
+        if not filename:
+            return
         fd = open(filename,"w")
         save_dict = {'stim_type':self.stim_frame.get_shortname(),
                      'loop_list':self.loop_frame.list,
@@ -739,7 +807,11 @@ class AppWindow(Tkinter.Frame):
         pickle.dump( save_dict, fd )
 
     def load_config(self):
-        filename = tkFileDialog.askopenfilename(defaultextension=".vecfg",filetypes=[('Configuration file','*.vecfg')])
+        filename = tkFileDialog.askopenfilename(
+            parent=self,
+            defaultextension=".ve_cfg",
+            filetypes=[('Configuration file','*.ve_cfg')],
+            initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
         if not filename:
             return
         fd = open(filename,"r")
@@ -756,12 +828,28 @@ class AppWindow(Tkinter.Frame):
         
         self.stim_frame.update_tk_vars()
 
-    def launch_screen_pos(self, dummy_ary=None):
+    def launch_screen_pos(self, dummy_arg=None):
         dialog = Tkinter.Toplevel(self)
         frame = VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame(dialog,
                                                                                 auto_connect=1,
                                                                                 server_hostname=self.server_hostname,
                                                                                 server_port=self.server_port)
+        frame.pack(expand=1,fill=Tkinter.BOTH)
+
+    def launch_stim_onset_cal(self, dummy_arg=None):
+        dialog = Tkinter.Toplevel(self)
+        frame = Tkinter.Frame(dialog)
+        Tkinter.Label(frame,
+                      font=("Helvetica",12,"bold"),
+                      text="Stimulus onset timing").grid()
+        Tkinter.Label(frame,
+                      text="Not yet implemented").grid()
+        frame.pack(expand=1,fill=Tkinter.BOTH)
+
+    def launch_gamma_panel(self, dummy_arg=None):
+        dialog = Tkinter.Toplevel(self)
+        frame = GammaFrame(dialog,
+                           self.ephys_server)
         frame.pack(expand=1,fill=Tkinter.BOTH)
 
     def set_autosave_dir(self):
@@ -791,6 +879,7 @@ class AppWindow(Tkinter.Frame):
                     self.cancel_asap = 0
                     Tkinter.Button(self,
                         text="Cancel",command=self.cancel).grid(row=2,column=0)
+                    self.grab_set()
                 def cancel(self, dummy_arg=None):
                     self.cancel_asap = 1
         
