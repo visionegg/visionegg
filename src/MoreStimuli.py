@@ -42,10 +42,14 @@ class Target2D(VisionEgg.Core.Stimulus):
                          ve_types.Boolean),
         'orientation':(0.0, # 0.0 degrees = right, 90.0 degrees = up
                        ve_types.Real),
-        'center':((320.0,240.0),
-                  ve_types.Sequence2(ve_types.Real)),
-        'size':((64.0,16.0),
+        'position' : ( ( 320.0, 240.0 ), # in eye coordinates
+                       ve_types.Sequence2(ve_types.Real) ),
+        'anchor' : ('center',
+                    ve_types.String),
+        'size':((64.0,16.0), # in eye coordinates
                 ve_types.Sequence2(ve_types.Real)),
+        'center' : (None,  # DEPRECATED -- don't use
+                    ve_types.Sequence2(ve_types.Real)),  
         }
     
     def __init__(self,**kw):
@@ -53,20 +57,30 @@ class Target2D(VisionEgg.Core.Stimulus):
         self._gave_alpha_warning = 0
 
     def draw(self):
-        if self.parameters.on:
+        p = self.parameters # shorthand
+        if p.center is not None:
+            if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
+                VisionEgg.Core.message.add("Specifying Target2D by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
+                                           level=VisionEgg.Core.Message.DEPRECATION)
+                VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
+            p.anchor = 'center'
+            p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
+        if p.on:
+            # calculate center
+            center = VisionEgg._get_center(p.position,p.anchor,p.size)
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
-            gl.glTranslate(self.parameters.center[0],self.parameters.center[1],0.0)
-            gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
+            gl.glTranslate(center[0],center[1],0.0)
+            gl.glRotate(p.orientation,0.0,0.0,1.0)
 
-            c = self.parameters.color
+            c = p.color
             gl.glColor(c[0],c[1],c[2],c[3])
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
-            w = self.parameters.size[0]/2.0
-            h = self.parameters.size[1]/2.0
+            w = p.size[0]/2.0
+            h = p.size[1]/2.0
             
             gl.glBegin(gl.GL_QUADS)
             gl.glVertex3f(-w,-h, 0.0);
@@ -75,7 +89,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glVertex3f(-w, h, 0.0);
             gl.glEnd() # GL_QUADS
             
-            if self.parameters.anti_aliasing:
+            if p.anti_aliasing:
                 if not self._gave_alpha_warning:
                     if c[3] != 1.0:
                         VisionEgg.Core.message.add(
@@ -134,11 +148,11 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
 
     def draw(self):
-        if self.parameters.on:
+        p = self.parameters # shorthand
+        if p.on:
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            p = self.parameters
             c = p.color
             gl.glColor(c[0],c[1],c[2],c[3])
             gl.glDisable(gl.GL_TEXTURE_2D)
