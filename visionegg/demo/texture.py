@@ -24,10 +24,12 @@ stimulus = TextureStimulus(texture=texture,projection=projection)
 
 # Set the stimulus to have 1:1 scaling (requires projection as set above)
 # This may result in clipping if texture is bigger than screen
-stimulus.parameters.upper_right = ( texture.orig.size[0], texture.orig.size[1] )
+stimulus.parameters.right = texture.orig.size[0]
+stimulus.parameters.top = texture.orig.size[1]
 stimulus.init_gl()
 
-# Because the stimulus has a projection, we don't care what default is that the viewport uses.
+# Because the stimulus has a projection, we don't care what the
+# default is that the viewport uses.
 lower_y = screen.size[1]/2 - texture.orig.size[1]/2
 viewport = Viewport(screen,(0,lower_y),screen.size)
 
