@@ -84,24 +84,34 @@ if not skip_c_compilation:
     lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
     lib3ds_sources.append(os.path.join('src','_lib3ds.c'))
     if sys.platform == 'darwin':
-        extra_link_args = ['-framework','OpenGL']
+        gl_extra_link_args = ['-framework','OpenGL']
     else:
-        extra_link_args = []
+        gl_extra_link_args = []
     if sys.platform == 'win32':
-        libraries = ['opengl32']
+        gl_libraries = ['opengl32']
     else:
-        libraries = []
+        gl_libraries = []
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
-                                 libraries=libraries,
-                                 extra_link_args=extra_link_args
+                                 libraries=gl_libraries,
+                                 extra_link_args=gl_extra_link_args
                                  ))
+
+    # C extensions for drawing GL stuff
+    include_prefix = os.path.join( sys.prefix, 'include', 'python%s'%sys.version[:3] )
+    Numeric_include_dir = os.path.join( include_prefix, 'Numeric' )
+    ext_modules.append(Extension(name='_draw_in_c',
+                                 sources=['src/_draw_in_c.c'],
+                                 include_dirs=[Numeric_include_dir],
+                                 libraries=gl_libraries,
+                                 extra_link_args=gl_extra_link_args
+                                 ))
+    
     if sys.platform == "darwin":
         # VBL synchronization stuff
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
-                                     extra_compile_args=['-framework','OpenGL'],
                                      extra_link_args=['-framework','OpenGL']))
         # Cocoa application stuff
         ext_modules.append(Extension(name='_darwin_app_stuff',
@@ -118,7 +128,7 @@ if not skip_c_compilation:
 # Find the demo scripts
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
-        if filename[-3:] == '.py':
+        if filename[-3:] == '.py' or filename[-4:] == '.pyw':
             if filename != '__init__.py':
                 scripts.append(os.path.join(dirname,filename))
 
