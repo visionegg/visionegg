@@ -5,6 +5,7 @@ include VisionEgg.cfg
 include src/*.c
 include src/*.m
 include src/*.h
+include lib3ds/*
 include doc/*.pdf
 include doc/*.html
 include doc/reference/pydoc.py
