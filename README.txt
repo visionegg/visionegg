@@ -85,8 +85,8 @@ The output of the Vision Egg is logged.  The default log is a file
 named "VisionEgg.log".  If unspecified, or if there are problems
 opening the log file, the log will be printed to the system's standard
 error console.  I recommend examining the log after running Vision Egg
-demo scripts.  Most of the demos do not open GUI windows, and so any
-normal ouput they produce is sent to the log.
+scripts.  Most of the demos do not open GUI windows, and so any normal
+ouput they produce is sent to the log.
 
 Exceptions occur when something goes wrong.  These exceptions are
 normally logged to the same log file as the rest of the Vision Egg.
