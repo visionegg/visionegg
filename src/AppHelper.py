@@ -1,5 +1,6 @@
-# This is the python source code for the AppHelper module of the Vision Egg package.
-#
+"""Application Helper functions for the Vision Egg library
+"""
+
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).  
 
