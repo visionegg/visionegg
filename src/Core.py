@@ -1143,11 +1143,17 @@ class Presentation(VisionEgg.ClassWithParameters):
         VisionEgg.timing_func = real_timing_func
 
     def run_forever(self):
+        p = self.parameters
         while 1:
             self.between_presentations()
             if self.parameters.enter_go_loop:
                 self.parameters.enter_go_loop = 0
                 self.go()
+            if p.check_events:
+                for event in pygame.event.get():
+                    for event_type, event_callback in p.handle_event_callbacks:
+                        if event.type is event_type:
+                            event_callback(event)
 
     def between_presentations(self):
         """Maintain display while between stimulus presentations.
