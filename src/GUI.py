@@ -454,36 +454,36 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         self.gamma_source = Tkinter.StringVar()
         self.gamma_source.set(string.lower(VisionEgg.config.VISIONEGG_GAMMA_SOURCE)) # can be 'none', 'invert', or 'file'
         Tkinter.Label(gamma_frame,
-                      text="Gamma set method:").grid(row=0,column=0)
+                      text="Gamma:").grid(row=0,column=0)
         Tkinter.Radiobutton(gamma_frame,
-                            text="None",
+                            text="Native",
                             value="none",
-                            variable = self.gamma_source).grid(row=0,column=1)
+                            variable = self.gamma_source).grid(row=0,column=1,padx=1)
         Tkinter.Radiobutton(gamma_frame,
-                            text="Linearize native",
+                            text="Quick",
                             value="invert",
                             variable = self.gamma_source).grid(row=0,column=2)
         Tkinter.Label(gamma_frame,
-                      text="Red:").grid(row=0,column=3)
+                      text="R:").grid(row=0,column=3)
         self.gamma_invert_red = Tkinter.DoubleVar()
         self.gamma_invert_red.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED )
         Tkinter.Entry(gamma_frame,
                       textvariable=self.gamma_invert_red,
-                      width=5).grid(row=0,column=4)
+                      width=3).grid(row=0,column=4)
         Tkinter.Label(gamma_frame,
-                      text="Green:").grid(row=0,column=5)
+                      text="G:").grid(row=0,column=5)
         self.gamma_invert_green = Tkinter.DoubleVar()
         self.gamma_invert_green.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN )
         Tkinter.Entry(gamma_frame,
                       textvariable=self.gamma_invert_green,
-                      width=5).grid(row=0,column=6)
+                      width=3).grid(row=0,column=6)
         Tkinter.Label(gamma_frame,
-                      text="Blue:").grid(row=0,column=7)
+                      text="B:").grid(row=0,column=7)
         self.gamma_invert_blue = Tkinter.DoubleVar()
         self.gamma_invert_blue.set( VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE )
         Tkinter.Entry(gamma_frame,
                       textvariable=self.gamma_invert_blue,
-                      width=5).grid(row=0,column=8)
+                      width=3).grid(row=0,column=8)
         Tkinter.Radiobutton(gamma_frame,
                             text="Custom:",
                             value="file",
