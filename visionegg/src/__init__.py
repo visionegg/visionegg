@@ -68,11 +68,16 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.5a3'
+release_name = '0.9.5b1'
+
+__version__ = release_name
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import VisionEgg.Configuration
 import VisionEgg.ParameterTypes as ve_types
-import string, os, sys, time, types # standard python modules
+import os, sys, time, types # standard python modules
 import Numeric
 import warnings
 import traceback
@@ -80,11 +85,6 @@ try:
     import cStringIO as StringIO
 except:
     import StringIO
-
-__version__ = release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -336,7 +336,7 @@ class ClassWithParameters:
         for kw_parameter_name in kw.keys():
             if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
-
+            
     def is_constant_parameter(self,parameter_name):
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
@@ -363,7 +363,25 @@ class ClassWithParameters:
             require_type = self.get_specified_type(parameter_name)
             this_type = ve_types.get_type(getattr(self.parameters,parameter_name))
             ve_types.assert_type(this_type,require_type)
-            
+
+    def set(self,**kw):
+        """Set a parameter with type-checked value
+
+        This is the slow but safe way to set parameters.  It is recommended to
+        use this method in all but speed-critical portions of code.
+        """
+        # Note that we don't overload __setattr__ because that would always slow
+        # down assignment, not just when it was convenient.
+        #
+        # (We could make a checked_parameters attribute though.)
+        for parameter_name in kw.keys():
+            setattr(self,parameter_name,kw[parameter_name])
+            require_type = self.get_specified_type(parameter_name)
+            value = kw[parameter_name]
+            this_type = ve_types.get_type(value)
+            ve_types.assert_type(this_type,require_type)
+            setattr(self.parameters,parameter_name,value)
+
 def get_type(value):
     warnings.warn("VisionEgg.get_type() has been moved to "+\
                   "VisionEgg.ParameterTypes.get_type()",
