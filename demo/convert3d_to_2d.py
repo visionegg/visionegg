@@ -22,7 +22,7 @@ vertices = [(l,b,z),
             (r,t,z)]
 
 # Get a texture
-filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","visionegg.png")
+filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","visionegg.bmp")
 texture = Texture(filename)
 
 rect = TextureStimulus3D(texture=texture,
