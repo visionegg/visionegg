@@ -50,6 +50,12 @@ class ScreenPositionControlFrame(Tkinter.Frame):
                       text="3D Perspective Calibration",
                       font=("Helvetica",12,"bold")).grid(row=row,column=0,columnspan=2)
 
+        row += 1
+        Tkinter.Label(self,
+                      text="This dialog allows you to enter acheive "+\
+                      "the proper perspective distortion for 3D scenes."
+                      ).grid(row=row,column=0,columnspan=2)
+
         if not auto_connect:
             row += 1
             # let columns expand
