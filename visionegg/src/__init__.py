@@ -280,9 +280,12 @@ class ClassWithParameters( object ):
     def __getstate__(self):
         """support for being pickled"""
         result = {}
-        for attr in self.__slots__:
-            if hasattr(self,attr):
-                result[attr] = getattr(self,attr)
+        classes = recursive_base_class_finder(self.__class__)
+        for klass in classes:
+            if hasattr(klass,'__slots__'):
+                for attr in klass.__slots__:
+                    if hasattr(self,attr):
+                        result[attr] = getattr(self,attr)
         return result
 
     def __setstate__(self,dict):
