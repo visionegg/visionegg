@@ -7,7 +7,7 @@
 import sys, os
 import Tkinter
 
-import VisionEgg.PyroHelpers
+import VisionEgg.PyroClient
 
 class CallbackEntry(Tkinter.Entry):
     def __init__(self,master=None,callback=None,**kw):
@@ -144,7 +144,7 @@ class StimulusControlFrame(Tkinter.Frame):
             self.orient_controller.evaluate_now()
             
     def connect(self,dummy=None):
-        client = VisionEgg.PyroHelpers.PyroClient()
+        client = VisionEgg.PyroClient.PyroClient()
 
         self.tf_controller = client.get('tf_controller')
         self.sf_controller = client.get('sf_controller')
