@@ -45,7 +45,8 @@ defaults= {
     'VISIONEGG_SCREEN_BGCOLOR':       (0.5,0.5,0.5,0.0),
     'VISIONEGG_TEXTURE_COMPRESSION':  0,
     'VISIONEGG_NUM_CACHED_TEXTURES':  10,
-    'VISIONEGG_MONITOR_REFRESH_HZ':   60
+    'VISIONEGG_MONITOR_REFRESH_HZ':   60,
+    'VISIONEGG_MAXPRIORITY':          0
     }
 
 ####################################################################
