@@ -169,8 +169,6 @@ class TextureBuffer:
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFilter)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,minFilter)
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP) # Hopefully make artifacts more visible
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP)
         if self.im.mode == "RGB":
             image_data = self.im.tostring("raw","RGB")
 
@@ -618,23 +616,30 @@ class SpinningDrum(Stimulus):
         glNewList(self.drum_display_list,GL_COMPILE)
         glBegin(GL_QUADS)
         for i in range(numSides):
+            # angle of sides
             theta1 = i*deltaTheta
             theta2 = (i+1)*deltaTheta
+            # fraction of texture
             frac1 = (self.drum_texture.buf_l + (float(i)/numSides*self.drum_texture.width))/float(self.drum_texture.width)
             frac2 = (self.drum_texture.buf_l + (float(i+1)/numSides*self.drum_texture.width))/float(self.drum_texture.width)
-            
+            # location of sides
+            x1 = r*math.cos(theta1)
+            z1 = r*math.sin(theta1)
+            x2 = r*math.cos(theta2)
+            z2 = r*math.sin(theta2)
+
             #Bottom left of quad
             glTexCoord2f(frac1, self.drum_texture.buf_bf)
-            glVertex3f( r*math.cos(theta1), -h, r*math.sin(theta1) )
+            glVertex3f( x1, -h, z1 )
             #Bottom right of quad
             glTexCoord2f(frac2, self.drum_texture.buf_bf)
-            glVertex3f( r*math.cos(theta2), -h, r*math.sin(theta2) )
+            glVertex3f( x2, -h, z2 )
             #Top right of quad
             glTexCoord2f(frac2, self.drum_texture.buf_tf); 
-            glVertex3f( r*math.cos(theta2),  h, r*math.sin(theta2) )
+            glVertex3f( x2,  h, z2 )
             #Top left of quad
             glTexCoord2f(frac1, self.drum_texture.buf_tf)
-            glVertex3f( r*math.cos(theta1),  h, r*math.sin(theta1) )
+            glVertex3f( x1,  h, z1 )
         glEnd()
         glEndList()
 
