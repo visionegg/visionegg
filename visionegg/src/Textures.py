@@ -1,6 +1,5 @@
-# This is the python source code for the texture module of the Vision Egg package.
-#
-#
+"""texture module of the Vision Egg package"""
+
 # Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
@@ -26,22 +25,18 @@ from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contras
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-
 ############ Import texture compression stuff and use it, if possible ##############
 # This may mess up image statistics! Check the output before using in an experiment!
 
-if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
-    try:
-        from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
-        
-        # This following function call doesn't seem to return any
-        # useful info, at least on my PowerBook G4.  So it's commented
-        # out for now.
-        ## if not glInitTextureCompressionARB(): 
-            ## VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
-    except:
-        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
+try:
+    from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
+    # This following function call doesn't seem to return any
+    # useful info, at least on my PowerBook G4.  So it's commented
+    # out for now.
+    ## if not glInitTextureCompressionARB(): 
+        ## VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
+except:
+    VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = 0
 
 ####################################################################
 #
@@ -249,27 +244,29 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         self.parameters = VisionEgg.Core.Parameters()
         self.parameters.angle = 0.0
         self.parameters.contrast = 1.0
+        self.parameters.on = 1
 
         self.texture_object = self.texture.load()
 
     def draw(self):
     	"""Redraw the scene on every frame.
         """
-        glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
+        if self.parameters.on:
+            glEnable( GL_TEXTURE_2D )  # Make sure textures are drawn
 
-        # Make sure texture colors are combined with the fragment
-        # with the appropriate function
-        if self.contrast_control_enabled:
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
-        else:
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+            # Make sure texture colors are combined with the fragment
+            # with the appropriate function
+            if self.contrast_control_enabled:
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB) # use ARB extension
+            else:
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
 
-        glLoadIdentity() # clear modelview matrix
+            glLoadIdentity() # clear modelview matrix
 
-        glRotatef(self.parameters.angle,0.0,1.0,0.0)
-        glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
-        glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
-        glCallList(self.display_list)
+            glRotatef(self.parameters.angle,0.0,1.0,0.0)
+            glColor(0.5,0.5,0.5,self.parameters.contrast) # Set the polygons' fragment color (implements contrast)
+            glBindTexture(GL_TEXTURE_2D, self.texture_object) # make sure to texture polygon
+            glCallList(self.display_list)
 
     def init_gl(self):
         if glInitTextureEnvCombineARB():
