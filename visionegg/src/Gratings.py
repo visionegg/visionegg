@@ -172,6 +172,8 @@ class SinGrating2D(LuminanceGratingCommon):
                             ve_types.Real),
         't0_time_sec_absolute':(None, # Will be assigned during first call to draw()
                                 ve_types.Real),
+        'ignore_time':(False, # ignore temporal frequency variable - allow control purely with phase_at_t0
+                       ve_types.Boolean),
         'phase_at_t0':(0.0, # degrees [0.0-360.0]
                        ve_types.Real),
         'orientation':(0.0, # 0=right, 90=up
@@ -298,12 +300,16 @@ class SinGrating2D(LuminanceGratingCommon):
             else:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
             
-            if p.t0_time_sec_absolute is None:
+            if p.t0_time_sec_absolute is None and not p.ignore_time:
                 p.t0_time_sec_absolute = VisionEgg.time_func()
 
             w = p.size[0]
             inc = w/float(p.num_samples)
-            phase = (VisionEgg.time_func() - p.t0_time_sec_absolute)*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+            if p.ignore_time:
+                phase = p.phase_at_t0
+            else:
+                t_var = VisionEgg.time_func() - p.t0_time_sec_absolute
+                phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
             if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
                 self._last_phase = phase # we're re-drawing the phase at this angle
                 floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
