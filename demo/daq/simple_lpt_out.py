@@ -1,3 +1,5 @@
+"""very simple example of using the parallel port"""
+
 from VisionEgg.DaqLPT import raw_lpt_module
 import time
 

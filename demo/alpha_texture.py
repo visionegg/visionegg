@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+Textures with alpha (transparency).
+
+"""
 
 from VisionEgg import *
 start_default_logging(); watch_exceptions()
