@@ -454,7 +454,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         longest_frame_draw_time_sec = frame_timer.get_longest_frame_duration_sec()
         if longest_frame_draw_time_sec is not None:
             if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
-                self.frames_dropped_in_last_go_loop = False
+                self.frames_dropped_in_last_go_loop = True
                 VisionEgg.Core.message.add(
 
                     """One or more frames took %.1f msec, which is
