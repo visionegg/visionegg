@@ -729,7 +729,7 @@ class AppWindow(Tkinter.Frame):
         self.pyro_client = VisionEgg.PyroClient.PyroClient(self.server_hostname,self.server_port)
         self.ephys_server = self.pyro_client.get("ephys_server")
         self.ephys_server.first_connection()
-        
+
         self.stim_onset_cal_tk_var = Tkinter.BooleanVar()
         self.stim_onset_cal_tk_var.set(0)
 
@@ -738,33 +738,43 @@ class AppWindow(Tkinter.Frame):
         
         self.autosave_basename = Tkinter.StringVar()
 
-        # create a menu bar
-        row = 0
-        self.bar = Tkinter.Frame(self, name='bar',
-                                 relief=Tkinter.RAISED, borderwidth=2)
-        self.bar.grid(row=row,column=0,columnspan=2,sticky="nwes")
+        # create menu bar
+        self.bar = Tkinter.Menu(tearoff=0)
+        top = self.winfo_toplevel()
+        top.configure(menu=self.bar)
+        
+        self.bar.file_menu = Tkinter.Menu(self.bar, name="file_menu")
+        self.bar.add_cascade(label="File",menu=self.bar.file_menu)
 
-        self.bar.file = BarButton(self.bar, text='File')
-        self.bar.file.menu.add_command(label='Save configuration file...', command=self.save_config)
-        self.bar.file.menu.add_command(label='Load configuration file...', command=self.load_config)
-        self.bar.file.menu.add_command(label='Quit', command=self.quit)
-
+        self.bar.file_menu.add_command(label='Save configuration file...', command=self.save_config)
+        self.bar.file_menu.add_command(label='Load configuration file...', command=self.load_config)
+        self.bar.file_menu.add_command(label='Quit', command=self.quit)
+        
         stimkey = self.ephys_server.get_stimkey()
         self.stimulus_tk_var = Tkinter.StringVar()
         self.stimulus_tk_var.set( stimkey )
-        self.bar.stimuli = BarButton(self.bar, text='Stimuli')
+
+        self.bar.stimuli_menu = Tkinter.Menu(self.bar, name="stimuli_menu")
+        self.bar.add_cascade(label="Stimuli",menu=self.bar.stimuli_menu)
         for maybe_stimkey, maybe_control_frame, maybe_title in self.client_list:
-            self.bar.stimuli.menu.add_radiobutton(label=maybe_title,
+            self.bar.stimuli_menu.add_radiobutton(label=maybe_title,
                                                   command=self.change_stimulus,
                                                   variable=self.stimulus_tk_var,
                                                   value=maybe_stimkey)
 
-        self.bar.calibration = BarButton(self.bar, text='Calibrate')
-        self.bar.calibration.menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
-        self.bar.calibration.menu.add_command(label='Stimulus onset timing...', command=self.launch_stim_onset_cal)
-        self.bar.calibration.menu.add_command(label='Load gamma table...', command=self.launch_gamma_panel)
+        self.bar.calibration_menu = Tkinter.Menu(self.bar, name="calibration_menu")
+        self.bar.add_cascade(label="Configure/Calibrate",
+                             menu=self.bar.calibration_menu)
+        
+        self.bar.calibration_menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
+        self.bar.calibration_menu.add_command(label='Stimulus onset timing...', command=self.launch_stim_onset_cal)
+        self.bar.calibration_menu.add_command(label='Load gamma table...', command=self.launch_gamma_panel)
+        self.notify_on_dropped_frames = Tkinter.BooleanVar()
+        self.notify_on_dropped_frames.set(1)
+        self.bar.calibration_menu.add_checkbutton(label='Warn on frame skip',
+                                                  variable=self.notify_on_dropped_frames)
 
-        row += 1
+        row = 0
 
         # options for self.stim_frame in grid layout manager
         self.stim_frame_cnf = {'row':row,
@@ -980,33 +990,41 @@ class AppWindow(Tkinter.Frame):
         frame.winfo_toplevel().title("Timing Calibration - Vision Egg")
         Tkinter.Label(frame,
                       font=("Helvetica",12,"bold"),
-                      text="Stimulus onset timing").grid(row=0,columnspan=2)
+                      text="Stimulus onset timing").grid(row=0,column=0)
+        Tkinter.Label(frame,
+                      text="Use a light detector to verify the onset of a trial."
+                      ).grid(row=1,column=0)
         Tkinter.Checkbutton( frame,
                              text="Black box (always) with white box (during trial)",
                              variable=self.stim_onset_cal_tk_var,
-                             command=self.update_stim_onset_cal).grid(row=1,columnspan=2)
-        self.update_stim_onset_cal_corner_tk = Tkinter.StringVar()
-        self.update_stim_onset_cal_corner_tk.set("lower left")
-        Tkinter.Radiobutton( frame,
-                             text="Upper left",
-                             value="upper left",
-                             variable = self.update_stim_onset_cal_corner_tk,
-                             command = self.set_stim_onset_cal_corner ).grid(row=2,column=0)
-        Tkinter.Radiobutton( frame,
-                             text="Upper right",
-                             value="upper right",
-                             variable = self.update_stim_onset_cal_corner_tk,
-                             command = self.set_stim_onset_cal_corner ).grid(row=2,column=1)
-        Tkinter.Radiobutton( frame,
-                             text="Lower left",
-                             value="lower left",
-                             variable = self.update_stim_onset_cal_corner_tk,
-                             command = self.set_stim_onset_cal_corner ).grid(row=3,column=0)
-        Tkinter.Radiobutton( frame,
-                             text="Lower right",
-                             value="lower right",
-                             variable = self.update_stim_onset_cal_corner_tk,
-                             command = self.set_stim_onset_cal_corner ).grid(row=3,column=1)
+                             command=self.update_stim_onset_cal).grid(row=2,column=0)
+
+        x,y,width,height = self.ephys_server.get_stim_onset_cal_location()
+
+        location_frame = Tkinter.Frame(frame)
+        location_frame.grid(row=3,column=0)
+        self.stim_onset_x = Tkinter.DoubleVar()
+        self.stim_onset_x.set(x)
+        self.stim_onset_y = Tkinter.DoubleVar()
+        self.stim_onset_y.set(y)
+        self.stim_onset_width = Tkinter.DoubleVar()
+        self.stim_onset_width.set(width)
+        self.stim_onset_height = Tkinter.DoubleVar()
+        self.stim_onset_height.set(height)
+        
+        Tkinter.Label( location_frame, text="Center X:").grid(row=0,column=0)
+        Tkinter.Entry( location_frame, textvariable=self.stim_onset_x,width=5).grid(row=0,column=1)
+        Tkinter.Label( location_frame, text="Center Y:").grid(row=0,column=2)
+        Tkinter.Entry( location_frame, textvariable=self.stim_onset_y,width=5).grid(row=0,column=3)
+        Tkinter.Label( location_frame, text="Width:").grid(row=1,column=0)
+        Tkinter.Entry( location_frame, textvariable=self.stim_onset_width,width=5).grid(row=1,column=1)
+        Tkinter.Label( location_frame, text="Height:").grid(row=1,column=2)
+        Tkinter.Entry( location_frame, textvariable=self.stim_onset_height,width=5).grid(row=1,column=3)
+
+        Tkinter.Button( frame,
+                        text="update position and size",
+                        command=self.set_stim_onset_cal_position).grid(row=4,column=0)
+        self.set_stim_onset_cal_position() # call it once to send server our initial values
         frame.pack(expand=1,fill=Tkinter.BOTH)
 
     def launch_gamma_panel(self, dummy_arg=None):
@@ -1025,10 +1043,12 @@ class AppWindow(Tkinter.Frame):
         on = self.stim_onset_cal_tk_var.get()
         self.ephys_server.set_stim_onset_cal(on)
 
-    def set_stim_onset_cal_corner(self, dummy_arg=None):
-        pos_string = self.update_stim_onset_cal_corner_tk.get()
-        vert, horiz = string.split(pos_string)
-        self.ephys_server.set_stim_onset_cal_location(horiz=horiz,vert=vert)
+    def set_stim_onset_cal_position(self, dummy_arg=None):
+        x = self.stim_onset_x.get()
+        y = self.stim_onset_y.get()
+        width = self.stim_onset_width.get()
+        height = self.stim_onset_height.get()
+        self.ephys_server.set_stim_onset_cal_location(center=(x,y),size=(width,height))
         
     def do_loops(self):
         loop_list = self.loop_frame.get_list_uncontained()
@@ -1134,6 +1154,13 @@ class AppWindow(Tkinter.Frame):
         duration_sec = self.stim_frame.get_duration_sec()
         self.stim_frame.go() # start server going, but this return control immediately
         self.sleep_with_progress(duration_sec)
+        while self.ephys_server.is_in_go_loop(): # make sure go loop is really done
+            time.sleep(0.1) # wait 100 msec for end of go loop and try again
+        if self.notify_on_dropped_frames.get():
+            if self.ephys_server.were_frames_dropped_in_last_go_loop():
+                tkMessageBox.showwarning("Dropped frame(s)",
+                                         "During the last trial, at least 1 frame was dropped.",
+                                         parent=self)
         root["cursor"] = self.old_cursor
         root.update()
 
