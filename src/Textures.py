@@ -345,8 +345,8 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     Don't instantiate this class directly."""
     parameters_and_defaults = {'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
                                'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,types.IntType),
-                               'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,types.IntType),
-                               'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,types.IntType),
+                               'texture_wrap_s':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
+                               'texture_wrap_t':(None,types.IntType), # set to gl.GL_CLAMP_TO_EDGE below
                                }
     
     constant_parameters_and_defaults = {'mipmaps_enabled':(1,types.IntType),
@@ -358,6 +358,14 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
+        # We have to set these parameters here because we may hav
+        # re-assigned gl.GL_CLAMP_TO_EDGE.  This allows us to use
+        # symbol gl.GL_CLAMP_TO_EDGE even if our version of OpenG
+        # doesn't support it.
+        if self.parameters.texture_wrap_s is None:
+            self.parameters.texture_wrap_s = gl.GL_CLAMP_TO_EDGE
+        if self.parameters.texture_wrap_t is None:
+            self.parameters.texture_wrap_t = gl.GL_CLAMP_TO_EDGE
 
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
