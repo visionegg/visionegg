@@ -9,8 +9,6 @@
 # functionality.
 skip_c_compilation = 0
 
-compile_syncmaster = 0
-
 from distutils.core import setup, Extension
 import sys
 import os.path
@@ -65,26 +63,6 @@ if not skip_c_compilation:
                                  extra_link_args=extra_link_args
                                  ))
         
-    if compile_syncmaster:
-        # SyncMaster
-        sources=['src/SyncMaster.c'],
-        include_dir='src/syncmaster'
-        library_dir='src/syncmaster'
-        if sys.platform == 'darwin':
-            libraries=None
-            extra_link_args = ['-framework','SyncMaster']
-        else:
-            libraries=["syncmaster"]
-            extra_link_args = None
-
-        ext_modules.append(Extension(name='SyncMaster',
-                                     sources=['src/SyncMaster.c'],
-                                     include_dirs=[include_dir],
-                                     libraries=libraries,
-                                     library_dirs=[library_dir],
-                                     extra_link_args=extra_link_args
-                                     ))
-
     if sys.platform == "darwin":
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
