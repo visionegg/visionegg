@@ -41,34 +41,39 @@ def set_dout(dummy_argument):
     your system."""
     pass
 
+#if sys.platform != 'win32':
+#    del win32_dout_state_global
+    
 if sys.platform == 'linux':
     try:
         # Try to override definition of dout functions:
         from _dout import *
     except:
         pass
-    
 elif sys.platform == 'win32':
     try:
         import winioport
-
-        win32_platform_dependent_global_lpt_state = 0
+        win32_dout_state_global = 0
+        
         def toggle_dout():
             """Toggle DOUT.
             
             Win32 specific implementation: Toggles the lowest output
             bit of LPT0 (0x378)."""
+
+            global win32_dout_state_global
             
-            win32_platform_dependent_global_lpt_state = not win32_platform_dependent_global_lpt_state
-            winioport.out(0x378,win32_platform_dependent_global_lpt_state)
+            win32_dout_state_global = not win32_dout_state_global
+            winioport.out(0x378,win32_dout_state_global)
         def set_dout(value):
             """Set DOUT.
             
             Win32 specific implementation: Sets the lowest output bit
             of LPT0 (0x378)."""
             
-            win32_platform_dependent_global_lpt_state = value
-            winioport.out(0x378,win32_platform_dependent_global_lpt_state)
+            win32_dout_state_global = value
+            winioport.out(0x378,win32_dout_state_global)
+        set_dout(win32_dout_state_global) # Initialize dout state
     except Exception, x:
 #        print x
         pass
