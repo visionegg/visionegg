@@ -636,6 +636,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     def __init__(self,**kw):
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
+        if self.parameters.handle_event_callbacks is None:
+            self.parameters.handle_event_callbacks = []
+
         self.controllers = []
         self.num_frame_controllers = 0 # reference counter for controllers that are called on frame by frame basis
 
