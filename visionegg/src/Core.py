@@ -1881,7 +1881,11 @@ class Message:
             sys.stderr = self.output_stream
 
     def __del__(self):
-        sys.stderr = self.orig_stderr
+        try:
+            #Sometimes this makes a noise!
+            sys.stderr = self.orig_stderr
+        except:
+            pass
         
     def add(self,text,level=INFO):
         self.message_queue.append((level,text))
@@ -1889,7 +1893,7 @@ class Message:
         
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
-        min_line_length = 60
+        min_line_length = 90
         in_list = string.split(in_str)
         out_str = ""
         cur_line = ""
