@@ -2225,8 +2225,10 @@ class Message:
                 log_file_stream = open(VisionEgg.config.VISIONEGG_LOG_FILE,"a")
                 output_streams.append(log_file_stream)
             except:
-                self.add("Could not open log file %s, writing only to stderr."%(VisionEgg.config.VISIONEGG_LOG_FILE,),
-                         level=Message.WARNING)
+                print "VISIONEGG WARNING: Could not open log file '%s'"\
+                      %(VisionEgg.config.VISIONEGG_LOG_FILE,)
+                print " Writing only to stderr."
+
         if VisionEgg.config.VISIONEGG_LOG_TO_STDERR:
             if sys.executable != sys.argv[0]: # Not binary executable
                 output_streams.append(sys.stderr)
