@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Handle sinusoidal gratings (server-side)"""
+"""Handle small targets gratings (server-side)"""
 
 # Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
