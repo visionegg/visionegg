@@ -1,6 +1,8 @@
 # The Vision Egg: Textures
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -566,7 +568,7 @@ class TextureObject(object):
                     data_format = gl.GL_LUMINANCE
                 elif texel_data.mode == 'RGB':
                     data_format = gl.GL_RGB
-                elif texel_data.mode in ['RGBA','RGBX']:
+                elif texel_data.mode in ('RGBA','RGBX'):
                     data_format = gl.GL_RGBA
                 elif texel_data.mode == 'P':
                     raise NotImplementedError("Paletted images are not supported.")
@@ -1067,7 +1069,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         }
                                
     constant_parameters_and_defaults = {
-        'internal_format':(gl.GL_RGB,
+        'internal_format':(None,
                            ve_types.Integer,
                            "format with which OpenGL uses texture data (OpenGL data type enum)",
                            VisionEgg.ParameterDefinition.OPENGL_ENUM),
@@ -1093,6 +1095,17 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if self.parameters.texture is None:
             # generate default texture
             self.parameters.texture = Texture()
+
+        if self.constant_parameters.internal_format is None:
+            texels = self.parameters.texture.texels
+            if (  (type(texels) == Numeric.ArrayType and
+                   len(texels.shape) == 3 and
+                   texels.shape[2] == 4) or 
+                  (isinstance(texels, Image.Image) and
+                   texels.mode in ('RGBA','RGBX'))):
+                self.constant_parameters.internal_format = gl.GL_RGBA
+        else:
+            self.constant_parameters.internal_format = gl.GL_RGB
 
         if self.parameters.texture_min_filter is None:
             # generate default texture minimization filter
@@ -1424,7 +1437,7 @@ class TextureStimulus(TextureStimulusBaseClass):
 
             if p.mask:
                 p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
-                                        l,r,b,t) # l,r,b,t in eye coordinates
+                                        l,r,b,t,0.0) # l,r,b,t in eye coordinates
             else:
                 gl.glBegin(gl.GL_QUADS)
                 gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
