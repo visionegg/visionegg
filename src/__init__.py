@@ -83,10 +83,10 @@ if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
     import traceback, StringIO
     import GUI
     def _vision_egg_exception_hook(exc_type, exc_value, exc_traceback):
+        traceback.print_exception(exc_type,exc_value,exc_traceback)
         traceback_stream = StringIO.StringIO()
         traceback.print_tb(exc_traceback,None,traceback_stream)
         GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
-        traceback.print_exception(exc_type,exc_value,exc_traceback)
     class _ExceptionHookKeeper:
         def __init__(self):
             self.orig_hook = sys.excepthook
