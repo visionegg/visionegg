@@ -137,7 +137,7 @@ fixation_spot = FixationSpot()
 fixation_spot.init_gl()
 
 viewport.add_stimulus(drum)
-viewport.add_overlay(fixation_spot)
+viewport.add_stimulus(fixation_spot)
 
 p = Presentation(viewports=[viewport])
 gui_window = BlurDrumGui(idle_func=p.between_presentations)
