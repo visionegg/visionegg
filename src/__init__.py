@@ -91,11 +91,6 @@ config = Configuration.Config()
 
 ############# Default exception handler #############
 
-# Mac OS X weirdness test:
-if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
-    # When run directly from commandline, no GUIs!
-    config.VISIONEGG_TKINTER_OK = 0
-
 if not sys.argv[0]: # Interactive mode
     config.VISIONEGG_GUI_ON_ERROR = 0
 
@@ -115,7 +110,7 @@ class _ExceptionHookKeeper:
 
         if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
             # Should really check if any GUI windows are open and only do this then
-            
+
             # close any open screens
             if hasattr(config,'_open_screens'):
                 for screen in config._open_screens:
