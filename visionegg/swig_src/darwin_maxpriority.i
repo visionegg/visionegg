@@ -9,12 +9,12 @@
 %}
 
 /* From /usr/include/sys/resource.h */
-#define     PRIO_PROCESS    0
+%constant int PRIO_PROCESS = PRIO_PROCESS;
 
 /* From /usr/include/pthread_impl.h */
-#define SCHED_OTHER                1
-#define SCHED_RR                   2
-#define SCHED_FIFO                 4
+%constant int SCHED_OTHER = SCHED_OTHER;
+%constant int SCHED_RR    = SCHED_RR;
+%constant int SCHED_FIFO  = SCHED_FIFO;
 
 /* in darwin_maxpriority.c */
 extern int get_bus_speed( void );
@@ -24,8 +24,19 @@ extern int set_self_thread_time_constraint_policy( unsigned int period,
 						   unsigned int preemptible );
 extern int set_self_pthread_priority( int policy, int priority );
 
-/* in system libraries */
-extern int errno;
+/* system libraries functions */
+
+/* define exception handler to deal with errno */
+%exception {
+  errno = 0;
+  $action
+  if (errno) {
+    return PyErr_SetFromErrno(PyExc_OSError);
+  }
+}
+
 extern int getpriority( int, int );
-extern int setpriority( int, int, int );
 extern int sched_get_priority_max( int );
+extern int setpriority( int, int, int );
+
+%exception;   /* Deletes previously defined handler */
