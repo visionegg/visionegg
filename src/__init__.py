@@ -16,8 +16,6 @@ greatly eased by routines within the Vision Egg.
 # Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
 # GNU General Public License (GPL).
 
-VISIONEGG_VERSION = '0.8.0'
-
 import string
 __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
