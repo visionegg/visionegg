@@ -18,12 +18,14 @@ Allow conversion of 3D vertices into 2D screen coordinates
 Added wireframe azimuth/elevation grid with text labels
 Allow arbitrary orientation of textures and text with angle parameter
 FrameTimer class now available for use in your own main loops
-Automated testing for, among other things, pixel accuracy of textures
-Added high-voltage regulation test for displays (Brainard et al., 2002)
-Added incomplete DC restoration test for displays (Brainard et al., 2002)
+Use Python 2.3 logging module (copy included for use with Python 2.2)
 No installation of demos or documentation (get source or demo package)
-
 Many small enhancements and bugfixes
+
+New tests:
+high-voltage regulation test for displays (Brainard et al., 2002)
+incomplete DC restoration test for displays (Brainard et al., 2002)
+unit-test suite: among many other things, pixel accuracy of textures
 
 New demos:
 convert3d_to_2d.py converts 3D positions to 2D positions
