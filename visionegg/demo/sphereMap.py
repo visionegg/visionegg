@@ -19,7 +19,7 @@ def projection_matrix_f(t):
 
 screen = get_default_screen()
 
-filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data","az_el.png")
 texture = Texture(filename)
 
 projection = SimplePerspectiveProjection(fov_x=90.0)
