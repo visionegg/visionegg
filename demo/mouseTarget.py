@@ -97,6 +97,10 @@ class TargetOrientationController( Controller ):
             self.last_orientation = atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
 
+def get_target_size(dummy):
+    global target_w, target_h
+    return (target_w, target_h)
+
 #############################################
 #  Create event handler callback functions  #
 #############################################
@@ -104,9 +108,23 @@ class TargetOrientationController( Controller ):
 def quit(event):
     raise SystemExit
 
+target_w = 50.0
+target_h = 10.0
+
 def keydown(event):
-    if event.key is pygame.locals.K_ESCAPE:
+    global target_w, target_h
+    if event.key == pygame.locals.K_ESCAPE:
         quit(event)
+    elif event.key == pygame.locals.K_UP:
+        target_w = (target_w * 1.1)
+    elif event.key == pygame.locals.K_DOWN:
+        target_w = (target_w * 0.9)
+    elif event.key == pygame.locals.K_RIGHT:
+        target_h = (target_h * 1.1)
+    elif event.key == pygame.locals.K_LEFT:
+        target_h = (target_h * 0.9)
+    target_w = max(target_w,0.0)
+    target_h = max(target_h,0.0)
 
 handle_event_callbacks = [(pygame.locals.QUIT, quit),(pygame.locals.KEYDOWN, keydown)]
 
@@ -123,6 +141,7 @@ p = Presentation(go_duration=('forever',),
 
 p.add_controller(None, None, MousePositionController() )
 p.add_controller(target,'center', TargetPositionController() )
+p.add_controller(target,'size', FunctionController(during_go_func=get_target_size) )
 p.add_controller(target,'orientation', TargetOrientationController() )
 
 #######################
