@@ -97,7 +97,10 @@ if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
         # print exception to dialog
         traceback_stream = StringIO.StringIO()
         traceback.print_tb(exc_traceback,None,traceback_stream)
-        GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
+        try:
+            GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
+        except:
+            pass
     class _ExceptionHookKeeper:
         def __init__(self):
             self.orig_hook = sys.excepthook
