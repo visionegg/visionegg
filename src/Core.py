@@ -1,11 +1,8 @@
 """VisionEgg Core Library
 """
 
-# This is the python source code for the Core module of the Vision Egg package.
-#
-#
-# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
+# Copyright (c) 2001, 2002 Andrew Straw.  Distributed under the terms
+# of the GNU General Public License (GPL).
 
 ####################################################################
 #
@@ -25,7 +22,6 @@ import pygame.locals
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GLU import *                        #   utility routines
-from OpenGL.GLUT import *			#   only used for glutSolidTeapot
 
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
@@ -128,13 +124,21 @@ class Screen:
 ####################################################################
 
 class Viewport:
-    """A portion of a screen which shows stimuli and overlays."""
-    def __init__(self,screen,lower_left,size,projection):
+    """A portion of a screen which shows stimuli."""
+    def __init__(self,screen,lower_left,size,projection=None):
         self.screen = screen
         self.stimuli = []
-        self.overlays = []
         self.lower_left = lower_left
         self.size = size
+
+        if projection is None:
+            projection = OrthographicProjection(self,
+                                                left=lower_left[0],
+                                                right=lower_left[0]+size[0],
+                                                bottom=lower_left[1],
+                                                top=lower_left[1]+size[1],
+                                                z_clip_near=0.1,
+                                                z_clip_far=100.0)            
         
         self.parameters = Parameters()
         self.parameters.projection = projection
@@ -143,12 +147,8 @@ class Viewport:
         """Add a stimulus to the list of those drawn in the viewport"""
         self.stimuli.append(stimulus)
 
-    def add_overlay(self,overlay):
-        """Add an overlay to the list of those drawn in the viewport"""
-        self.overlays.append(overlay)
-
     def draw(self):
-        """Set the viewport, draw stimuli and draw overlays."""
+        """Set the viewport and draw stimuli."""
         self.screen.make_current()
         glViewport(self.lower_left[0],self.lower_left[1],self.size[0],self.size[1])
 
@@ -156,8 +156,6 @@ class Viewport:
         
         for stimulus in self.stimuli:
             stimulus.draw()
-        for overlay in self.overlays:
-            overlay.draw()
 
 ####################################################################
 #
@@ -166,9 +164,10 @@ class Viewport:
 ####################################################################
 
 class Projection:
-    """Abstract base class that defines how to set the OpenGL projection matrix"""
+    """Abstract base class to define interface for OpenGL projection matrices"""
     def __init__(self):
-        raise RuntimeError("Must use a subclass of Projection")
+        raise RuntimeError("Trying to instantiate an abstract base class.")
+
     def set_GL_projection_matrix(self):
         """Set the OpenGL projection matrix, return to original matrix mode."""
         matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
@@ -198,7 +197,7 @@ class OrthographicProjection(Projection):
             glMatrixMode(matrix_mode) # Set the matrix mode back
 
 class SimplePerspectiveProjection(Projection):
-    """A perspective projection"""
+    """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
         self.parameters = Parameters()
         fov_y = fov_x / aspect_ratio
@@ -246,34 +245,26 @@ class Parameters:
 
 ####################################################################
 #
-#        Stimulus - Base class (Teapot, just to show something)
+#        Stimulus - Base class
 #
 ####################################################################
 
 class Stimulus:
     """Base class for a stimulus.
 
-    Use this class if your projection is associated with the viewport, which
-    you normally want to do with 3D stimuli."""
+    Use this class if your projection is associated with the viewport,
+    which you normally want to do with 3D stimuli.  If your stimulus
+    defines its own projection, use StimulusWithProjection instead.
+    """
     def __init__(self):
         self.parameters = Parameters()
-        self.parameters.yrot = 0.0
-        self.parameters.on = 1
         
     def draw(self):
     	"""Draw the stimulus.  This method is called every frame.
     
-        Since this is just a base class and must be overridden by a
-        method in a derived class that actually draws the stimulus you
-        want, here it does something simple. Drawing a teapot seems a
-        good idea, since it looks relatively pretty and takes one line
-        of code.
-        """
-        if self.parameters.on:
-            glLoadIdentity() # clear (hopefully the) modelview matrix
-            glTranslatef(0.0, 0.0, -6.0)
-            glRotatef(self.parameters.yrot,0.0,1.0,0.0)
-            glutSolidTeapot(0.5)
+        This method actually performs the OpenGL calls to draw the
+        stimulus. In this base class, however, it does nothing."""
+        pass
         
     def init_gl(self):
         """Get OpenGL ready to do everything in the draw() method.
@@ -284,34 +275,11 @@ class Stimulus:
 
 ####################################################################
 #
-#        Overlay
-#
-####################################################################
-
-class Overlay:
-    """Simlar to Stimulus class, but has own projection.
-
-    Use this class for 2D stimuli and things like fixation points.
-
-    Because an overlay sets its own projection, which is dependent
-    on viewport geometry, you probably don't want to share overlays
-    between viewports."""
-    def __init__(self):
-        self.parameters = Parameters()
-
-    def draw(self):
-        pass
-
-    def init_gl(self):
-        pass
-    
-####################################################################
-#
 #        FixationSpot
 #
 ####################################################################
 
-class FixationSpot(Overlay):
+class FixationSpot(Stimulus):
     def __init__(self):
         self.parameters = Parameters()
         self.parameters.on = 1
@@ -391,12 +359,15 @@ class Presentation:
     and updates the parameters.  A controller can be either realtime,
     which means it will be called once every frame, or transitional,
     which will be called before and after any stimulus presentations.
+    A transitional controller is also called as frequently as possible
+    between stimuli.
 
-    There is no controller class.  Instead, any function which takes a
-    single argument (the time elapsed since the start of a stimulus
-    presentation) can be used as a controller.  (However, for a
-    controller which can be controlled from a remote computer, see the
-    PyroController class of the PyroHelpers module.)
+    There is no class named Controller that must be subclassed.
+    Instead, any function which takes a single argument (the time
+    elapsed since the start of a stimulus presentation) can be used as
+    a controller.  (However, for a controller which can be used from a
+    remote computer, see the PyroController class of the PyroHelpers
+    module.)
 
     Please note that the term realtime here is a bit hopeful at this
     stage, because no OpenGL environment I know of can guarantee that
@@ -406,7 +377,7 @@ class Presentation:
     on a fast computer with a fast graphics card running even a
     pre-emptive multi-tasking operating system (insert name of your
     favorite operating system here), a new frame is drawn before every
-    single vertical retrace sync pulse.
+    vertical retrace sync pulse.
     """
     def __init__(self,viewports=[],duration_sec=5.0):
         self.parameters = Parameters()
@@ -537,7 +508,7 @@ class Presentation:
         swap_buffers()
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
-        """Call this method rather than go() save a movie
+        """Call this method rather than go() to save a movie of your experiment.
         """
         import Image # Would be nice to import this above, but it breaks stuff!
         
