@@ -29,4 +29,4 @@ def get_default_screen():
     elif VisionEgg.config.VISIONEGG_DEFAULT_INIT == 'GUI':
         return VisionEgg.GUI.get_screen_via_GUI()
     else:
-        raise ValueError
+        raise ValueError("VISIONEGG_DEFAULT_INIT must be 'config' or 'GUI'.  (Was given '%s')."%VisionEgg.config.VISIONEGG_DEFAULT_INIT)
