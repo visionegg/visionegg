@@ -2,11 +2,17 @@ This directory contains several demonstration scripts for the Vision
 Egg library.  Most of these demos are merely a feature overview of the
 Vision Egg, are not meant to be used for experiments.
 
-The closest example of a script that could be used for experiments is
-the gratingTCP script in the tcp directory.  This can be controlled by
-gratingGUI or your own program.  See trigger_out in the daq directory
-to see how you could combine it with triggering for easy integration
-into your current data acquisition system.
+The metaPyroServer.py and metaPyroGUI.py scripts are the easiest place
+to get started creating a complete experiment generation application
+using a pure Python approach.  These demos are advanced and attempt to
+"put it all together".
+
+Another example of a script that could be used for experiments is the
+gratingTCP script in the tcp directory.  This can be controlled by
+gratingGUI, the LabView VIs contributed by Jamie Theobald, or your own
+program.  See trigger_out in the daq directory to see how you could
+combine it with triggering for easy integration into your current data
+acquisition system.
 
 Contents:
 ---------
