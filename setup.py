@@ -68,6 +68,8 @@ if not skip_c_compilation:
         extra_link_args = ['-framework','OpenGL']
     elif sys.platform == 'win32':
         extra_link_args = ['-lopengl32']
+    else:
+        extra_link_args = []
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
