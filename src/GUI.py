@@ -76,6 +76,82 @@ class AppWindow(Tkinter.Frame):
         self.idle_func()
         self.after(1,self.idle) # (re)register idle function with Tkinter
 
+class ProgressBar(Tkinter.Frame):
+    def __init__(self, master=None, orientation="horizontal",
+                 min=0, max=100, width=100, height=18,
+                 doLabel=1, fillColor="LightSteelBlue1", background="gray",
+                 labelColor="black", labelFont="Helvetica",
+                 labelText="", labelFormat="%d%%",
+                 value=50, **cnf):
+        apply( Tkinter.Frame.__init__, (self,master) )
+        # preserve various values
+        self.master=master
+        self.orientation=orientation
+        self.min=min
+        self.max=max
+        self.width=width
+        self.height=height
+        self.doLabel=doLabel
+        self.fillColor=fillColor
+        self.labelFont= labelFont
+        self.labelColor=labelColor
+        self.background=background
+        self.labelText=labelText
+        self.labelFormat=labelFormat
+        self.value=value
+        self.canvas=Tkinter.Canvas(self, height=height, width=width, bd=0,
+                                    highlightthickness=0, background=background)
+        self.scale=self.canvas.create_rectangle(0, 0, width, height,
+                                                fill=fillColor)
+        self.label=self.canvas.create_text(self.canvas.winfo_reqwidth() / 2,
+                                           height / 2, text=labelText,
+                                           anchor="c", fill=labelColor,
+                                           font=self.labelFont)
+        self.update()
+        self.canvas.pack(side='top', fill='x', expand='no')
+
+    def updateProgress(self, newValue, newMax=None):
+        if newMax:
+            self.max = newMax
+        self.value = newValue
+        self.update()
+
+    def update(self):
+        # Trim the values to be between min and max
+        value=self.value
+        if value > self.max:
+            value = self.max
+        if value < self.min:
+            value = self.min
+        # Adjust the rectangle
+        if self.orientation == "horizontal":
+            self.canvas.coords(self.scale, 0, 0,
+              float(value) / self.max * self.width, self.height)
+        else:
+            self.canvas.coords(self.scale, 0,
+                               self.height - (float(value) / 
+                                              self.max*self.height),
+                               self.width, self.height)
+        # Now update the colors
+        self.canvas.itemconfig(self.scale, fill=self.fillColor)
+        self.canvas.itemconfig(self.label, fill=self.labelColor)
+        # And update the label
+        if self.doLabel:
+            if value:
+                if value >= 0:
+                    pvalue = int((float(value) / float(self.max)) * 
+                                   100.0)
+                else:
+                    pvalue = 0
+                self.canvas.itemconfig(self.label, text=self.labelFormat
+                                         % pvalue)
+            else:
+                self.canvas.itemconfig(self.label, text='')
+        else:
+            self.canvas.itemconfig(self.label, text=self.labelFormat %
+                                   self.labelText)
+        self.canvas.update_idletasks()
+
 class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
@@ -109,8 +185,14 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         if sys.platform == 'darwin':
             Tkinter.Label(topframe,
-                          text=self.format_string("On Mac OS X, an error dialog may appear after you run a Vision Egg application in non fullscreen mode which erroneously says \"The application Python has quit unexpectedly.\" This is a known bug and will be addressed in future releases."),
-                          ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
+                          text=self.format_string(\
+                "On Mac OS X, the pygame package has some quirky "+\
+                "behavior.  This may result in error messages such as "+\
+                "\"This application has quit unexpectedly\""),
+                          ).grid(row=topframe_row,
+                                 column=1,
+                                 columnspan=2,
+                                 sticky=Tkinter.W)
             topframe_row += 1
 
         try:
@@ -242,7 +324,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             self.darwin_realtime_computation_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM))
             self.darwin_realtime_constraint_denom = Tkinter.StringVar()
             self.darwin_realtime_constraint_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM))
-            self.darwin_realtime_preemptible = Tkinter.IntVar()
+            self.darwin_realtime_preemptible = Tkinter.BooleanVar()
             self.darwin_realtime_preemptible.set(not VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
             Tkinter.Button(cf,text="Maximum priority options...",
                            command=self.darwin_maxpriority_tune).grid(row=cf_row,column=0)
@@ -497,7 +579,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM = int(self.darwin_realtime_period_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
-            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = not self.darwin_realtime_preemptible.get()
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = int(not self.darwin_realtime_preemptible.get())
 
         if self.show_synclync_option:
             VisionEgg.config.SYNCLYNC_PRESENT = self.synclync_present.get()
