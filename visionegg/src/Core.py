@@ -383,7 +383,7 @@ class Screen(VisionEgg.ClassWithParameters):
             pil_mode = 'RGB'
         elif format == gl.GL_RGBA:
             pil_mode = 'RGBA'
-        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring(),'raw','RGB',0,-1)
+        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
         return fb_image
 
     def get_framebuffer_as_array(self,

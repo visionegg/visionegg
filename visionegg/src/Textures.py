@@ -1069,7 +1069,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         }
                                
     constant_parameters_and_defaults = {
-        'internal_format':(None,
+        'internal_format':(gl.GL_RGB,#None,
                            ve_types.Integer,
                            "format with which OpenGL uses texture data (OpenGL data type enum)",
                            VisionEgg.ParameterDefinition.OPENGL_ENUM),
@@ -1095,17 +1095,6 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
         if self.parameters.texture is None:
             # generate default texture
             self.parameters.texture = Texture()
-
-        if self.constant_parameters.internal_format is None:
-            texels = self.parameters.texture.texels
-            if (  (type(texels) == Numeric.ArrayType and
-                   len(texels.shape) == 3 and
-                   texels.shape[2] == 4) or 
-                  (isinstance(texels, Image.Image) and
-                   texels.mode in ('RGBA','RGBX'))):
-                self.constant_parameters.internal_format = gl.GL_RGBA
-        else:
-            self.constant_parameters.internal_format = gl.GL_RGB
 
         if self.parameters.texture_min_filter is None:
             # generate default texture minimization filter
