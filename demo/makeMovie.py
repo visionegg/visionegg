@@ -29,6 +29,7 @@ screen.parameters.bgcolor = (1.0,1.0,1.0,1.0)
 
 # Create an instance of the Target2D class with appropriate parameters.
 target = Target2D(size  = (25.0,10.0),
+                  anchor = 'center',
                   color      = (0.0,0.0,0.0,1.0), # Set the target color (RGBA) black
                   orientation = -45.0)
 
@@ -61,7 +62,7 @@ target_position_controller = FunctionController(during_go_func=get_target_positi
 #  Connect the controllers with the variables they control  #
 #############################################################
 
-p.add_controller(target,'center', target_position_controller )
+p.add_controller(target,'position', target_position_controller )
 
 #######################
 #  Run the stimulus!  #

@@ -51,7 +51,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
 
     def __del__(self):
         self.p.remove_controller(self.stim,'on')
-        self.p.remove_controller(self.stim,'center')
+        self.p.remove_controller(self.stim,'position')
         Pyro.core.ObjBase.__del__(self) # call base class
 
     def on_function_during_go(self,t):
@@ -111,7 +111,7 @@ def get_meta_controller_class():
     return TargetExperimentMetaController
 
 def make_stimuli():
-    stimulus = VisionEgg.MoreStimuli.Target2D()
+    stimulus = VisionEgg.MoreStimuli.Target2D(anchor='center')
     return [('2d_overlay',stimulus)]
 
 def get_meta_controller_stimkey():

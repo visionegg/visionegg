@@ -34,12 +34,14 @@ texture = Texture(filename)
 
 stimulus = SpinningDrum(texture=texture,shrink_texture_ok=1)
 viewport1 = Viewport(screen=screen,
-                     lowerleft=(0,0),
+                     position=(0,0),
+                     anchor='lowerleft',
                      size=(mid_x,screen.size[1]),
                      projection=projection1,
                      stimuli=[stimulus])
 viewport2 = Viewport(screen=screen,
-                     lowerleft=(mid_x,0),
+                     position=(mid_x,0),
+                     anchor='lowerleft',
                      size=(mid_x,screen.size[1]),
                      projection=projection2,
                      stimuli=[stimulus])

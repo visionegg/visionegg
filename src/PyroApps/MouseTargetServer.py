@@ -82,7 +82,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         self.p = presentation
         self.stim = target
 
-        self.p.add_controller(target,'center', TargetPositionController())
+        self.p.add_controller(target,'position', TargetPositionController())
         self.p.add_controller(target,'size', VisionEgg.FlowControl.FunctionController(during_go_func=get_target_size,
                                                                 between_go_func=get_target_size) )
         self.p.add_controller(target,'orientation', TargetOrientationController() )
@@ -96,7 +96,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
     def __del__(self):
         self.p.parameters.handle_event_callbacks = self.orig_event_handlers
         self.p.remove_controller(None,None,self.mouse_position_controller)
-        self.p.remove_controller(self.stim,'center')
+        self.p.remove_controller(self.stim,'position')
         self.p.remove_controller(self.stim,'size')
         self.p.remove_controller(self.stim,'orientation')
     
@@ -129,7 +129,7 @@ def get_meta_controller_class():
     return MouseTargetExperimentMetaController
 
 def make_stimuli():
-    stimulus = VisionEgg.MoreStimuli.Target2D()
+    stimulus = VisionEgg.MoreStimuli.Target2D(anchor='center')
     return [('2d_overlay',stimulus)]
 
 def get_meta_controller_stimkey():

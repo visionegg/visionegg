@@ -23,7 +23,8 @@ screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # make black (RGBA)
 #  Create random dot stimulus        #
 ######################################
 
-stimulus = DotArea2D( center                  = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+stimulus = DotArea2D( position                = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+                      anchor                  = 'center',
                       size                    = ( 300.0 , 300.0 ),
                       signal_fraction         = 0.1,
                       signal_direction_deg    = 180.0,

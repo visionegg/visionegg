@@ -51,11 +51,13 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.presentation = presentation
         # target for stimulus onset calibration
         self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
-                                                           center=(30.0,30.0),
+                                                           position=(30.0,30.0),
+                                                           anchor='center',
                                                            size=(50.0,50.0))
         self.onset_cal_fg = VisionEgg.MoreStimuli.Target2D(on=0,
                                                            color=(1.0,1.0,1.0,1.0),
-                                                           center=(30.0,30.0),
+                                                           position=(30.0,30.0),
+                                                           anchor='center',
                                                            size=(50.0,50.0))
         self.presentation.add_controller(self.onset_cal_fg,'on',VisionEgg.FlowControl.ConstantController(during_go_value=1,
                                                                                                   between_go_value=0))
@@ -96,13 +98,13 @@ class EPhysServer(  Pyro.core.ObjBase ):
                 self.presentation.parameters.viewports.remove(self.onset_cal_viewport)
 
     def set_stim_onset_cal_location(self, center, size):
-        self.onset_cal_bg.parameters.center = center
-        self.onset_cal_fg.parameters.center = center
+        self.onset_cal_bg.parameters.position = center
+        self.onset_cal_fg.parameters.position = center
         self.onset_cal_bg.parameters.size = size
         self.onset_cal_fg.parameters.size = size[0]-2,size[1]-2
         
     def get_stim_onset_cal_location(self):
-        x,y = self.onset_cal_bg.parameters.center
+        x,y = self.onset_cal_bg.parameters.position
         width,height = self.onset_cal_bg.parameters.size
         return x,y,width,height
 
