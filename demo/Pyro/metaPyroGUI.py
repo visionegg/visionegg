@@ -45,11 +45,19 @@ class StimulusControlFrame(Tkinter.Frame):
         connected_frame.columnconfigure(0,weight=1)
         connected_frame.columnconfigure(1,weight=1)
         connected_frame.columnconfigure(2,weight=1)
+        
+        Tkinter.Label(connected_frame,text="Server hostname:").grid(row=0,column=0,sticky=Tkinter.E)
+        self.server_hostname = Tkinter.StringVar()
+        self.server_hostname.set( '' )
+        Tkinter.Entry(connected_frame,textvariable=self.server_hostname).grid(row=0,
+                                                                              column=1,
+                                                                              columnspan=2,
+                                                                              sticky=Tkinter.W+Tkinter.E)
 
         self.connected_label = Tkinter.Label(connected_frame,text="Server status: Not connected")
-        self.connected_label.grid(row=0,column=0)
-        Tkinter.Button(connected_frame,text="Connect",command=self.connect).grid(row=0,column=1)
-        Tkinter.Button(connected_frame,text="Quit server",command=self.quit_server).grid(row=0,column=2)
+        self.connected_label.grid(row=1,column=0)
+        Tkinter.Button(connected_frame,text="Connect",command=self.connect).grid(row=1,column=1)
+        Tkinter.Button(connected_frame,text="Quit server",command=self.quit_server).grid(row=1,column=2)
 
         row += 1
         param_frame = Tkinter.Frame(self)
@@ -201,7 +209,8 @@ class StimulusControlFrame(Tkinter.Frame):
 ##            self.meta_controller.go()
 
     def connect(self):
-        self.pyro_client = VisionEgg.PyroClient.PyroClient()
+        self.pyro_client = VisionEgg.PyroClient.PyroClient(server_hostname=self.server_hostname.get(),
+                                                           server_port=7766)
 
         self.meta_controller = self.pyro_client.get("meta_controller")
         self.meta_params = self.meta_controller.get_parameters()
