@@ -1718,7 +1718,7 @@ class ConstantController(Controller):
 
     def set_during_go_value(self,during_go_value):
         if type(during_go_value) is not self.return_type:
-            raise TypeError("during_go_value must be of type %s"%return_type)
+            raise TypeError("during_go_value must be %s"%self.return_type)
         else:
             self.during_go_value = during_go_value
 
@@ -1727,7 +1727,7 @@ class ConstantController(Controller):
         
     def set_between_go_value(self,between_go_value):
         if type(between_go_value) is not self.return_type:
-            raise TypeError("between_go_value must be of type %s"%return_type)
+            raise TypeError("between_go_value must be %s"%self.return_type)
         else:
             self.between_go_value = between_go_value
 
