@@ -33,8 +33,7 @@ from MLab import *                              # Matlab function imitation from
 ####################################################################
 
 class ParamHolder: # dummy class to hold copy of params, basically plays role of C struct
-        def __init__(self):
-            pass
+    pass
 
 class BlurTextureFamily:
     # Should make this a little smoother -
@@ -117,7 +116,9 @@ class BlurTextureFamily:
         if use_cache:
             print "Found cache file '%s', loading images."%cache_filename
         else:
-            print "Valid cache file '%s' not found, blurring images."%cache_filename
+            print "Cache file '%s' not valid, blurring images."%cache_filename
+
+        print "Motion blur for display at %f frames per second"%p.target_fps
 
         # compute (or load) the blurred images, load into OpenGL
         if use_cache:
