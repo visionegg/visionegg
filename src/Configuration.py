@@ -41,6 +41,8 @@ defaults= {
     'VISIONEGG_FULLSCREEN':           0,
     'VISIONEGG_PREFERRED_BPP':        32,
     'VISIONEGG_MONITOR_REFRESH_HZ':   60.0,
+    'VISIONEGG_SYNC_SWAP':            1,
+    'VISIONEGG_RECORD_TIMES':         0,
     'VISIONEGG_MAXPRIORITY':          0,
     'VISIONEGG_REQUEST_RED_BITS':     8,
     'VISIONEGG_REQUEST_GREEN_BITS':   8,
@@ -71,12 +73,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 class Config:
     def __init__(self):
         
-        # ConfigParser deals with lower case option names
-        lower_case_defaults = {}
-        for option in defaults.keys():
-            lower_case_defaults[string.lower(option)] = defaults[option]
-        
-        cfg = ConfigParser.ConfigParser(lower_case_defaults)
+        cfg = ConfigParser.ConfigParser()
         
         if sys.executable == sys.argv[0]: # Windows binary
             self.VISIONEGG_SYSTEM_DIR = os.curdir
@@ -99,15 +96,21 @@ class Config:
 
         cfg.read(configFile)
 
+        # Set the default values
+        for name in defaults.keys():
+            setattr(self,name,defaults[name])
+
+        # Get the values from the configFile
         for option in cfg.options('VisionEgg'):
             name = string.upper(option)
-            if name in defaults.keys():
-                if type(defaults[name]) == type(42): # int
-                    setattr(self,name,int(cfg.get('VisionEgg',option)))
-                elif type(defaults[name]) == type(42.0): # float
-                    setattr(self,name,float(cfg.get('VisionEgg',option)))
-                else:
-                    setattr(self,string.upper(option),cfg.get('VisionEgg',option))
+            if name not in defaults.keys():
+                raise KeyError("No Vision Egg configuration variable \"%s\""%option)
+            if type(defaults[name]) == type(42): # int
+                setattr(self,name,int(cfg.get('VisionEgg',option)))
+            elif type(defaults[name]) == type(42.0): # float
+                setattr(self,name,float(cfg.get('VisionEgg',option)))
+            else:
+                setattr(self,name,cfg.get('VisionEgg',option))
         
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
