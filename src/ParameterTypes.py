@@ -33,7 +33,10 @@ def get_all_classes_list(klass):
             
 def is_parameter_type_def(item_type):
     if type(item_type) == types.ClassType:
-        return ParameterTypeDef in get_all_classes_list(item_type)
+        if Sequence in get_all_classes_list(item_type):
+            raise TypeError("Sequence definition must be an instance (with a contained type).")
+        else:
+            return ParameterTypeDef in get_all_classes_list(item_type)
     elif isinstance(item_type,ParameterTypeDef):
         return True
     elif item_type == types.NoneType:
