@@ -75,15 +75,7 @@ def swap_buffers():
 ####################################################################
 
 class Screen(VisionEgg.ClassWithParameters):
-    """An OpenGL window, possibly displayed on 2 monitors.
-
-    An easy way to make an instance of screen is to use a special
-    static method of Screen as an alternative construtor.  This gets
-    all parameters from the VISIONEGG parameters specified in the
-    config file and as environment variables.
-
-    >>> import VisionEgg.Core
-    >>> VisionEgg.Core.Screen.create_default()
+    """An OpenGL window, possibly displayed across multiple displays.
 
     A Screen instance is an OpenGL window for the Vision Egg to draw
     in.  For an instance of Screen to do anything useful, it must
@@ -93,15 +85,14 @@ class Screen(VisionEgg.ClassWithParameters):
     Currently, only one OpenGL window is supported by the library with
     which the Vision Egg initializes graphics (pygame/SDL).  However,
     this need not limit display to a single physical display device.
-    NVidia's video drivers, for example, allow applications to treat
-    two separate monitors as one large array of contiguous pixels.  By
+    Many video drivers, for example, allow applications to treat two
+    separate monitors as one large array of contiguous pixels.  By
     sizing a window such that it occupies both monitors and creating
     separate viewports for the portion of the window on each monitor,
     a multiple screen effect can be created.
 
     Public variables
     ================
-
     size -- Tuple of 2 integers specifying width and height
     red_bits -- Integer (or None if not supported) specifying framebuffer depth
     green_bits -- Integer (or None if not supported) specifying framebuffer depth
@@ -447,7 +438,12 @@ class Screen(VisionEgg.ClassWithParameters):
 
         Pixel values become texture data using the VisionEgg.Textures
         module.  Any source of texture data accepted by that module is
-        accepted here."""
+        accepted here.
+
+        This function could be sped up by allocating a fixed OpenGL texture object.
+        
+        """
+        
         import VisionEgg.Textures # import here to avoid import loop
         make_new_texture_object = 0
         if not hasattr(self, "_put_pixels_texture_stimulus"): 
@@ -1115,10 +1111,6 @@ class Viewport(VisionEgg.ClassWithParameters):
     For details of the projection and clipping process, see the
     section 'Coordinate Transformations' in the book/online document
     'The OpenGL Graphics System: A Specification'
-
-    User methods:
-
-    make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
 
     Parameters
     ==========
