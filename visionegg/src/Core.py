@@ -45,7 +45,7 @@ message -- Instance of Message class
 
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
 ####################################################################
@@ -1145,7 +1145,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # Create timing histogram if necessary
         if p.collect_timing_info:
-            time_msec_bins = range(2,40,2)
+            time_msec_bins = range(2,28,2)
             timing_histogram = [0]*len(time_msec_bins)
             
         while (not p.trigger_armed) or (not p.trigger_go_if_armed):
@@ -1264,7 +1264,10 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        calculated_fps = self.frames_since_go / self.time_sec_since_go
+        if self.time_sec_since_go != 0.0:
+            calculated_fps = self.frames_since_go / self.time_sec_since_go
+        else:
+            calculated_fps = 0.0
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
@@ -1507,7 +1510,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.frames_absolute = self.frames_absolute+1
         
     def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
-        timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
+        timing_string = "In the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
         if synclync_connection:
             data_packet = synclync_connection.get_latest_data_packet()
@@ -1522,7 +1525,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     def __print_hist(self,hist, timing_string,time_msec_bins):
         """Print a pretty histogram"""
         maxhist = float(max(hist))
-	lines = min(10,int(math.ceil(maxhist)))
+        if maxhist == 0:
+            return "No frames were drawn in the last go loop."
+        lines = min(10,int(math.ceil(maxhist)))
         h = hist
         hist = Numeric.array(hist,'f')/maxhist*float(lines) # normalize to number of lines
         timing_string += "histogram:\n"
@@ -1537,7 +1542,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 timing_string = timing_string + "%4s "%(s,)
             timing_string = timing_string + "\n"
         timing_string = timing_string + " Time: "
-        
+
         timing_string = timing_string + "%4d "%(0,)
         for bin in time_msec_bins[:-1]:
             timing_string = timing_string + "%4d "%(bin,)
@@ -2260,7 +2265,7 @@ class Message:
         
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
-        min_line_length = 90
+        min_line_length = 70
         in_list = string.split(in_str)
         out_str = ""
         cur_line = ""
