@@ -4,8 +4,10 @@ Applications should not import this module directly.  Instead, "import
 VisionEgg" will result in an attribute "VisionEgg.config", which has
 the configuration options as attributes.
 
-This module searches for configuration options in the following order:
-environment variables, configuration file, generic defaults.
+This module searches for configuration options from the following
+places: environment variables, configuration file, generic defaults.
+Environment variables take precedence over the configuration file,
+which takes precedence over the generic defaults.
 
 This module also determines the location of the Vision Egg
 directories.  The VISIONEGG_SYSTEM_DIR directory is by default a
