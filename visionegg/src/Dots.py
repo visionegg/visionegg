@@ -33,6 +33,7 @@ import OpenGL.GL as gl
 ##        for i in xrange(len(xs)):
 ##            gl.glVertex3f(xs[i],ys[i],zs[i])
 ##        gl.glEnd()
+
 def draw_dots(xs,ys,zs):
     """Python method for drawing dots.  May be replaced by a faster C version."""
     if not (len(xs) == len(ys) == len(zs)):
@@ -64,9 +65,11 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     parameters_and_defaults = {
         'on' : ( True,
                  ve_types.Boolean ),
-        'center' : ( ( 320.0, 240.0 ),
-                     ve_types.Sequence2(ve_types.Real) ),
-        'size' :   ( ( 300.0, 300.0 ),
+        'position' : ( ( 320.0, 240.0 ), # in eye coordinates
+                       ve_types.Sequence2(ve_types.Real) ),
+        'anchor' : ('center',
+                    ve_types.String),
+        'size' :   ( ( 300.0, 300.0 ), # in eye coordinates
                      ve_types.Sequence2(ve_types.Real) ),
         'signal_fraction' : ( 0.5,
                               ve_types.Real ),
@@ -84,6 +87,8 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                             ve_types.Boolean ),
         'depth' : ( None, # set for depth testing
                     ve_types.Real ),
+        'center' : (None,  # DEPRECATED -- don't use
+                    ve_types.Sequence2(ve_types.Real)),        
         }
     constant_parameters_and_defaults = {
         'num_dots' : ( 100,
@@ -106,7 +111,17 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         # get the job done.
         
         p = self.parameters # shorthand
+        if p.center is not None:
+            if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
+                VisionEgg.Core.message.add("Specifying DotArea2D by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
+                                           level=VisionEgg.Core.Message.DEPRECATION)
+                VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
+            p.anchor = 'center'
+            p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
         if p.on:
+            # calculate center
+            center = VisionEgg._get_center(p.position,p.anchor,p.size)
+            
             if p.anti_aliasing:
                 if not self._gave_alpha_warning:
                     if p.color[3] != 1.0:
@@ -168,8 +183,8 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             self.x_positions = Numeric.fmod( self.x_positions+1, 1.0 ) # wrap again for values < 1
             self.y_positions = Numeric.fmod( self.y_positions+1, 1.0 )
 
-            xs = (self.x_positions - 0.5) * p.size[0] + p.center[0]
-            ys = (self.y_positions - 0.5) * p.size[1] + p.center[1]
+            xs = (self.x_positions - 0.5) * p.size[0] + center[0]
+            ys = (self.y_positions - 0.5) * p.size[1] + center[1]
 
             gl.glColor( p.color[0], p.color[1], p.color[2], p.color[3] )
             gl.glPointSize(p.dot_size)
