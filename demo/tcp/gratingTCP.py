@@ -19,12 +19,30 @@ if len(sys.argv) == 2:
 elif len(sys.argv) == 3:
     hostname = sys.argv[1]
     port = int(sys.argv[2])
-    
-tcp_server = TCPServer(hostname=hostname,port=port,single_socket_but_reconnect_ok=1)
+
+# See if user wants to adjust default parameters
+if VisionEgg.config.VISIONEGG_GUI_INIT:
+    import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+    window = VisionEgg.GUI.GraphicsConfigurationWindow()
+    window.mainloop() # All this does is adjust VisionEgg.config
+    if not window.clicked_ok:
+            sys.exit() # User wants to quit
+
+# Should do dialog here to ask for hostname and port
+tcp_server = TCPServer(hostname=hostname,port=port,single_socket_but_reconnect_ok=1,confirm_address_with_gui=1)
+if tcp_server.server_socket is None: # User wants to quit
+    sys.exit()
 tcp_listener = tcp_server.create_listener_once_connected()
 
 # Initialize OpenGL graphics screen.
-screen = get_default_screen()
+# We don't want to use VisionEgg.get_default_screen() here because we've already
+# shown the graphics configuration window.
+screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                      VisionEgg.config.VISIONEGG_SCREEN_H),
+                fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                bgcolor=(0.5,0.5,0.5,0.0),
+                maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
 
 tcp_listener.send_raw_text("Screen size = %s\n"%(screen.size,))
 
