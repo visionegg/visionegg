@@ -670,7 +670,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     User methods:
 
-    make_new_pixel_coord_projection -- Create a projection with pixel coordinates
+    make_new_pixel_coord_projection() -- Create a projection with pixel coordinates
 
     Parameters:
 
@@ -929,15 +929,6 @@ class Presentation(VisionEgg.ClassWithParameters):
     result in speed gains, but without skipping frames at 200 Hz, why
     bother?
 
-    As I update this in June 2002, I have never seen a skipped frame
-    in Windows 2000 Pro (dual Athlon 1200 MHz, nVidia GeForce 2 Pro)
-    or SGI IRIX 6.5 (on a SGI FUEL/V10 workstation). Linux 2.4.12 with
-    low latency kernel patches skips the occasional frame, even when
-    using maximum priority on the same dual Athlon machine. Mac OS X
-    10.1.5 preempts the Vision Egg quite frequently under normal
-    operation, but performs quite well when run under maximum
-    priority.
-
     Parameters:
 
     viewports -- List of Viewport instances to draw. Order is important.
@@ -954,11 +945,12 @@ class Presentation(VisionEgg.ClassWithParameters):
     
     Methods:
 
-    add_controller -- Add a controller
-    remove_controller -- Remove controller from internal list
-    go -- Main control loop during stimulus presentation
-    export_movie_go -- Emulates method 'go' but saves a movie
-    between_presentations -- Maintain display while between stimulus presentations
+    go() -- Main control loop during stimulus presentation
+    run_forever() -- Main control loop between go loops
+    add_controller() -- Add a controller
+    remove_controller() -- Remove controller from internal list
+    export_movie_go() -- Emulates method 'go' but saves a movie
+    between_presentations() -- Maintain display between stimulus presentations
     
     """
     parameters_and_defaults = {'viewports' : (None,
@@ -1435,6 +1427,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         VisionEgg.timing_func = real_timing_func
 
     def run_forever(self):
+        """Main control loop between go loops."""
         p = self.parameters
         # enter with transitional contoller call
         self.__call_controllers(
@@ -1454,8 +1447,9 @@ class Presentation(VisionEgg.ClassWithParameters):
     def between_presentations(self):
         """Maintain display while between stimulus presentations.
 
-        This function gets called as often as possible when not
-        in the 'go' loop.
+        This function gets called as often as possible when in the
+        'run_forever' loop except when execution has shifted to the
+        'go' loop.
 
         Other than the difference in the time variable passed to the
         controllers, this routine is very similar to the inside of the
@@ -1545,26 +1539,47 @@ class Presentation(VisionEgg.ClassWithParameters):
 class Controller:
     """Control parameters.
 
-    This abstract base class defines interface to any controller.
+    This abstract base class defines the interface to any controller.
 
+    Methods:
+    
+    returns_type() -- Get the type of the value returned by the eval functions
+    during_go_eval() -- Evaluate controller during the main 'go' loop.
+    between_go_eval() -- Evaluate controller between runs of the main 'go' loop.
+
+    The during_go_eval() and between_go_eval() methods are called to
+    update a particular parameter such as the position of a stimulus
+    on the screen.  These methods must return a value specified by the
+    returns_type() method.  These methods are called at particular
+    intervals as specified by eval_frequency and with temporal
+    parameters specified by temporal_variables (see below for more
+    details).  Also, see the documentation for the Presentation class.
+    
+    Attributes:
+
+    return_type -- type of the value returned by the eval functions
+    eval_frequency -- when eval functions called (see above)
+    temporal_variables -- what time variables used (see above)
+    
     A Controller instance's attribute "eval_frequency" controls when a
     controller is evaluated. This variable is a bitwise "or" of the
     following flags:
 
-    Controller.NEVER          -- never
     Controller.EVERY_FRAME    -- every frame
     Controller.TRANSITIONS    -- on enter and exit from go loop
     Controller.ONCE           -- as above and at the next chance possible
     Controller.NOT_DURING_GO  -- as above, but never during go loop
     Controller.NOT_BETWEEN_GO -- as above, but never between go loops
 
-    The Controller.ONCE flag is automatically unset after evaluation,
-    hence its name.
+    If none of these flags is set, the value is:
 
-    As an example, if eval_frequency is set to Controller.ONCE |
-    Controller.TRANSITIONS (the bitwise "or"), it will be evaluated
-    before drawing the next frame and then only before and after the
-    go loop.
+    Controller.NEVER          -- this controller is never called
+
+    The Controller.ONCE flag is automatically unset after evaluation,
+    hence its name. As an example, if eval_frequency is set to
+    Controller.ONCE | Controller.TRANSITIONS (the bitwise "or"), it
+    will be evaluated before drawing the next frame and then only
+    before and after the go loop.
 
     A Controller instance's attribute "temporal_variables" controls
     what time variables are set for use. This variable is a bitwise
@@ -1579,18 +1594,26 @@ class Controller:
 
     Controller.TIME_INDEPENDENT -- No temporal variables.
 
-    Attributes:
+    When the eval methods (during_go_eval and between_go_eval) are
+    called, attributes are set depending on the temporal variables
+    used:
 
-    return_type -- type of the value returned by the eval functions
-    eval_frequency -- when eval functions called (see above)
-    temporal_variables -- what time variables used (see above)
-    
-    Methods:
-    
-    returns_type -- Get the type of the value returned by the eval functions
-    during_go_eval -- Evaluate controller during the main 'go' loop.
-    between_go_eval -- Evaluate controller between runs of the main 'go' loop.
-    
+    temporal_variable   attribute set
+    -----------------   -------------
+    TIME_SEC_ABSOLUTE   self.time_sec_absolute
+    TIME_SEC_SINCE_GO   self.time_sec_since_go
+    FRAMES_ABSOLUTE     self.frames_absolute
+    FRAMES_SINCE_GO     self.frames_since_go
+
+    Other information:
+
+    Instances of Controller are called by instances of the
+    Presentation class.  during_go_eval() is called during a go()
+    loop, and between_go_eval() is called by between_presentations()
+    (during run_forever(), for example).  Before calling these
+    methods, attributes of the controller are set accoring to
+    \attribute{temporal_variables}.
+
     """
     # temporal_variables flags:
     TIME_INDEPENDENT  = 0x00
@@ -1657,13 +1680,13 @@ class Controller:
     def during_go_eval(self):
         """Called by Presentation. Evaluate during the main 'go' loop.
 
-        Override this method in base classes."""
+        Override this method in subclasses."""
         raise NotImplementedError("%s: Definition of during_go_eval() in abstract base class Contoller must be overriden."%(str(self),))
 
     def between_go_eval(self):
         """Called by Presentation. Evaluate between runs of the main 'go' loop.
         
-        Override this method in base classes.""" 
+        Override this method in subclasses.""" 
         raise NotImplementedError("%s: Definition of between_go_eval() in abstract base class Controller must be overriden."%(str(self),))
 
     def _test_self(self,go_started):
@@ -1743,6 +1766,9 @@ class ConstantController(Controller):
 
 class EvalStringController(Controller):
     """Set parameters using dynamically interpreted Python string.
+
+    The string, when evaluated as Python code, becomes the value used.
+    For example, the string "1.0" would set parameter values to 1.0.
     
     To increase speed, the string is compiled to Python's bytecode
     format.
@@ -1853,7 +1879,12 @@ class ExecStringController(Controller):
     """Set parameters using potentially complex Python string.
 
     You can execute arbitrarily complex Python code with this
-    controller.  To increase speed, the string is compiled to Python's
+    controller.  The return value must be contained within the
+    variable "x".  In other words, this string must assign the
+    variable x, so setting the string to "x=1.0" would set the
+    parameter under control to 1.0.
+
+    To increase speed, the string is compiled to Python's
     bytecode format.
 
     The string can make use of temporal variables, which are made
@@ -1862,7 +1893,7 @@ class ExecStringController(Controller):
     available when the go loop is not running.
 
     flag(s) present    variable  description
-    
+    -----------------  --------  ----------------------------------
     TIME_SEC_ABSOLUTE  t_abs     seconds, continuously increasing
     TIME_SEC_SINCE_GO  t         seconds, reset to 0.0 each go loop
     FRAMES_ABSOLUTE    f_abs     frames, continuously increasing
@@ -1987,6 +2018,22 @@ class FunctionController(Controller):
     very intuitive and requires a minimum of code to set up.  Many of
     the Vision Egg demo programs create instances of
     FunctionController.
+
+    A number of parameters are passed to the function depending on the
+    value of temporal_variables:
+
+    The function can make use of temporal variables, which are made
+    available by passingkeyword argument(s) depending on the
+    controller's temporal_variables attribute. Note that only the
+    absolute temporal variables are available when the go loop is not
+    running.
+
+    flag(s) present    argument  description
+    -----------------  --------  ----------------------------------
+    TIME_SEC_ABSOLUTE  t_abs     seconds, continuously increasing
+    TIME_SEC_SINCE_GO  t         seconds, reset to 0.0 each go loop
+    FRAMES_ABSOLUTE    f_abs     frames, continuously increasing
+    FRAMES_SINCE_GO    f         frames, reset to 0 each go loop
 
     """
     def __init__(self,
@@ -2177,7 +2224,7 @@ class Message:
         script_name = sys.argv[0]
         if not script_name:
             script_name = "(interactive shell)"
-        self.add("Vision Egg script "+script_name+" started with process id %d."%(self.pid,),level=Message.INFO)
+        self.add("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,self.pid),level=Message.INFO)
 
     def __del__(self):
         self.output_stream.write("\n",_no_sys_stderr=1)
