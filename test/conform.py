@@ -34,9 +34,20 @@ class VETestCase(unittest.TestCase):
 
     def test_core_screen_query_refresh_rate(self):
         fps = self.screen.query_refresh_rate()
+        if DEBUG:
+            print fps,"= self.screen.query_refresh_rate()"
 
     def test_core_screen_measure_refresh_rate(self):
         fps = self.screen.measure_refresh_rate()
+        if DEBUG:
+            print fps,"= self.screen.measure_refresh_rate()"
+
+    def test_core_refresh_rates_match(self):
+        fps1 = self.screen.query_refresh_rate()
+        # measure frame rate over a longish period for accuracy
+        fps2 = self.screen.measure_refresh_rate(average_over_seconds=1.0)
+        percent_diff = abs(fps1-fps2)/max(fps1,fps2)*100.0
+        self.failUnless(percent_diff < 5.0,'measured and queried frame rates different (swap buffers may not be synced to vsync)')
 
     def test_texture_pil(self):
         if DEBUG:
@@ -137,6 +148,7 @@ def suite():
     ve_test_suite = unittest.TestSuite()
     ve_test_suite.addTest( VETestCase("test_core_screen_query_refresh_rate") )
     ve_test_suite.addTest( VETestCase("test_core_screen_measure_refresh_rate") )
+    ve_test_suite.addTest( VETestCase("test_core_refresh_rates_match") )
     ve_test_suite.addTest( VETestCase("test_texture_pil") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_pil") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_numpy") )
