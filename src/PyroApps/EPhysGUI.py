@@ -2,7 +2,10 @@
 #
 # The Vision Egg: EPhysGUI
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw.
+# Copyright (C) 2004 Imran S. Ali, Lachlan Dowd
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -46,7 +49,7 @@ import VisionEgg.PyroApps.SphereGratingGUI
 import VisionEgg.PyroApps.SpinningDrumGUI
 import VisionEgg.PyroApps.GridGUI
 import VisionEgg.PyroApps.ColorCalGUI
-# Added:
+
 import VisionEgg.PyroApps.DropinGUI
 import VisionEgg.PyroApps.AST_ext as AST_ext
 import VisionEgg.PyroApps.VarTypes as VarTypes
@@ -59,7 +62,6 @@ client_list.extend( VisionEgg.PyroApps.SphereGratingGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.SpinningDrumGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.GridGUI.get_control_list() )
 client_list.extend( VisionEgg.PyroApps.ColorCalGUI.get_control_list() )
-# Added:
 client_list.extend( VisionEgg.PyroApps.DropinGUI.get_control_list() )
 
 class ContainedObjectBase:
@@ -100,9 +102,6 @@ class ScrollListFrame(Tkinter.Frame):
             relief=Tkinter.FLAT,
             font=('courier',10,'bold'),
             height=1,
-#            selectbackground='#eed5b7',
-#            selectborderwidth=0,
-#            selectmode=None,
             exportselection=0)
         self.frame.title.insert(Tkinter.END, self.container_class.header)
         self.frame.list = Tkinter.Listbox(
@@ -993,6 +992,8 @@ class AppWindow(Tkinter.Frame):
         self.switch_to_stimkey( stimkey )
 
         self.config_dir = None
+        self.demoscript_filename = None
+        self.vars_list = None
 
     def __del__( self ):
         if hasattr(self,'_orig_report_callback_exception'):
@@ -1014,10 +1015,8 @@ class AppWindow(Tkinter.Frame):
             del self.stim_frame
 
         self.stim_frame = control_frame_klass(self,suppress_go_buttons=1)
-        ######## ADDED:
         if stimkey == "dropin_server":
             self.stim_frame.gen_var_widgets(self.demoscript_filename, self.vars_list)
-        ########
         self.stim_frame.connect(self.server_hostname,self.server_port)
         self.stim_frame.grid( **self.stim_frame_cnf )
 
@@ -1054,9 +1053,7 @@ class AppWindow(Tkinter.Frame):
         if not found:
             raise RuntimeError("Don't know about stimkey %s"%new_stimkey)
 
-        ##################### MODIFIED CONDITION:
         if new_control_frame_klass != self.stim_frame.__class__ or new_stimkey == "dropin_server":
-        #####################
             # make wait cursor
             root = self.winfo_toplevel()
             old_cursor = root["cursor"]
@@ -1185,8 +1182,6 @@ class AppWindow(Tkinter.Frame):
         self.stim_frame.update_tk_vars()
         return load_dict # return unused variables
 
-
-############################################################################ NEW:
     def load_demoscript(self):
         self.demoscript_filename = tkFileDialog.askopenfilename(
             parent=self,
@@ -1194,7 +1189,6 @@ class AppWindow(Tkinter.Frame):
             filetypes=[('Vision Egg Demo Script','*.py')])
 
         if not self.demoscript_filename:
-            #self.success_label.configure(text="No file given")
             return
         else:
             # make wait cursor
@@ -1202,76 +1196,73 @@ class AppWindow(Tkinter.Frame):
             old_cursor = root["cursor"]
             root["cursor"] = "watch"
             root.update()
-
-
-            fd1 = open(self.demoscript_filename, 'r')
-            demoscript = ""
-
-            # List of all variables.
-            # Each variable is a tuple of the form [x, y, z] where:
-            # x: variable type ID,
-            # y: variable name,
-            # z: variable value.
-            self.vars_list = []
-
-            myString = fd1.readline()
-
-            while myString != "":
-                if string.find(myString, "get_default_screen()") != -1:
-                    append_flag = 0
-                elif string.find(myString, "watch_exceptions()") != -1:
-                    append_flag = 0
-                elif string.find(myString, "start_default_logging()") != -1:
-                    append_flag = 0
-                elif string.find(myString, "#%f") == 0:
-                    self.vars_list.append([VarTypes.getID("float"), myString.replace("#%f", "").split()[0]])
-                    append_flag = 0
-                elif string.find(myString, "#%i") == 0:
-                    self.vars_list.append([VarTypes.getID("integer"), myString.replace("#%i", "").split()[0]])
-                    append_flag = 0
-                elif string.find(myString, "#%s") == 0:
-                    self.vars_list.append([VarTypes.getID("string"), myString.replace("#%s", "").split()[0]])
-                    append_flag = 0
-                else:
-                    append_flag = 1
-
-                if append_flag == 1:
-                    demoscript = demoscript + myString
-                myString = fd1.readline()
-
-            fd1.close()
-
-            # Client side AST. Only used to extract default values of elected variables:
             try:
-                AST = parser.suite(demoscript)
+                fd1 = open(self.demoscript_filename, 'r')
+                demoscript = ""
 
-                for var in self.vars_list:
-                    var_val = AST_ext.extract_from_AST(AST, var[1])
-                    if var[0] == VarTypes.getID("string"):
-                        var_val = var_val[1:len(var_val) - 1]
-                    var.append(var_val)
+                # List of all variables.
+                # Each variable is a tuple of the form [x, y, z] where:
+                # x: variable type ID,
+                # y: variable name,
+                # z: variable value.
+                self.vars_list = []
 
-                del AST # save memory
+                lines = fd1.read().splitlines()
+                keep_lines = []
+                while len(lines):
+                    myString = lines.pop(0)
+                    if myString.find("get_default_screen()") != -1:
+                        append_flag = 0
+                    elif myString.find("watch_exceptions()") != -1:
+                        append_flag = 0
+                    elif myString.find("start_default_logging()") != -1:
+                        append_flag = 0
+                    elif myString.find("#%f") == 0:
+                        self.vars_list.append([VarTypes.getID("float"), myString.replace("#%f", "").split()[0]])
+                        append_flag = 0
+                    elif myString.find("#%i") == 0:
+                        self.vars_list.append([VarTypes.getID("integer"), myString.replace("#%i", "").split()[0]])
+                        append_flag = 0
+                    elif myString.find("#%s") == 0:
+                        self.vars_list.append([VarTypes.getID("string"), myString.replace("#%s", "").split()[0]])
+                        append_flag = 0
+                    else:
+                        append_flag = 1
 
-                # unfortunately, sending an AST object over a Pyro connection has its complications... so we don't do it
-                self.ephys_server.build_AST(demoscript)
+                    if append_flag == 1:
+                        keep_lines.append( myString )
 
-                self.change_stimulus(new_stimkey="dropin_server")
+                fd1.close()
+                demoscript = '\n'.join(keep_lines)
+                
+                # Client side AST. Only used to extract default values
+                # of elected variables:
+                try:
+                    AST = parser.suite(demoscript)
 
-            except parser.ParserError:
-                tkMessageBox.showerror("Error", "Invalid demo script!")
+                    for var in self.vars_list:
+                        var_val = AST_ext.extract_from_AST(AST, var[1])
+                        if var[0] == VarTypes.getID("string"):
+                            var_val = var_val[1:len(var_val) - 1]
+                        var.append(var_val)
 
-            #restore cursor
-            root["cursor"] = old_cursor
-            root.update()
+                    del AST # save memory
 
-############################################################################ END NEW
+                    # unfortunately, sending an AST object over a Pyro
+                    # connection has its complications... so we don't
+                    # do it
+                    self.ephys_server.build_AST(demoscript)
 
+                    self.change_stimulus(new_stimkey="dropin_server")
 
-
-
-
-
+                except (parser.ParserError, SyntaxError):
+                    tkMessageBox.showerror("Error", "Invalid demo script!")
+                    err_fd = file('/home/astraw/tmp/err.py',mode='w')
+                    err_fd.write(demoscript)
+            finally:
+                #restore cursor
+                root["cursor"] = old_cursor
+                root.update()
 
     def launch_screen_pos(self, dummy_arg=None):
         dialog = Tkinter.Toplevel(self)
@@ -1405,39 +1396,34 @@ class AppWindow(Tkinter.Frame):
         process_loops(0) # start recursion on top level
 
     def do_single_trial(self):
-        ###########################  ADDED THIS:
-        if self.ephys_server.get_stimkey() == "dropin_server":
-            self.do_single_trial_work()
-        ###########################
+        # Get filename to save parameters
+        if not self.autosave.get():
+            file_stream = None # not saving file
         else:
-            # Get filename to save parameters
-            if not self.autosave.get():
-                file_stream = None # not saving file
+            duration_sec = self.stim_frame.get_duration_sec()
+            (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
+            trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
+            if self.param_file_type_tk_var.get() == "Python format":
+                # Figure out filename to save parameters in
+                filename = self.autosave_basename.get() + trial_time_str + "_params.py"
+                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                file_stream = open(fullpath_filename,"w")
+            elif self.param_file_type_tk_var.get() == "Matlab format":
+                # Figure out filename to save results in
+                filename = self.autosave_basename.get() + trial_time_str + "_params.m"
+                fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+                file_stream = open(fullpath_filename,"w")
             else:
-                duration_sec = self.stim_frame.get_duration_sec()
-                (year,month,day,hour24,min,sec) = time.localtime(time.time()+duration_sec)[:6]
-                trial_time_str = "%04d%02d%02d_%02d%02d%02d"%(year,month,day,hour24,min,sec)
-                if self.param_file_type_tk_var.get() == "Python format":
-                    # Figure out filename to save parameters in
-                    filename = self.autosave_basename.get() + trial_time_str + "_params.py"
-                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                    file_stream = open(fullpath_filename,"w")
-                elif self.param_file_type_tk_var.get() == "Matlab format":
-                    # Figure out filename to save results in
-                    filename = self.autosave_basename.get() + trial_time_str + "_params.m"
-                    fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
-                    file_stream = open(fullpath_filename,"w")
-                else:
-                    raise ValueError('Unknown file format: "%s"'%(self.param_file_type_tk_var.get(),))
+                raise ValueError('Unknown file format: "%s"'%(self.param_file_type_tk_var.get(),))
 
-            # this class is broken into parts so it can be subclassed more easily
-            self.do_single_trial_pre(file_stream)
-            self.do_single_trial_work()
-            self.do_single_trial_post(file_stream)
+        # this class is broken into parts so it can be subclassed more easily
+        self.do_single_trial_pre(file_stream)
+        self.do_single_trial_work()
+        self.do_single_trial_post(file_stream)
 
-            # Close parameter save file
-            if self.autosave.get():
-                file_stream.close()
+        # Close parameter save file
+        if self.autosave.get():
+            file_stream.close()
 
     def do_single_trial_pre(self, file_stream):
         # Ensure that we have the most up-to-date values
@@ -1474,9 +1460,7 @@ class AppWindow(Tkinter.Frame):
             self.progress.updateProgress(0)
 
             duration_sec = self.stim_frame.get_duration_sec()
-            ##### MODIFIED CONDITION:
             if duration_sec > 0:
-            #####
                 if self.override_t_abs_on.get():
                     new_t_abs_str = self.override_t_abs_sec.get()
                     self.ephys_server.set_override_t_abs_sec( new_t_abs_str )
@@ -1491,20 +1475,10 @@ class AppWindow(Tkinter.Frame):
                         tkMessageBox.showwarning("Dropped frame(s)",
                                                  "During the last trial, at least 1 frame was dropped.",
                                                   parent=self)
-            ##### MODIFIED (needs work):
             else:
-                # Vision Egg script:
                 if self.stim_frame.send_values():
                     self.ephys_server.run_demoscript()
                     self.stim_frame.quit_server()
-                #if self.notify_on_dropped_frames.get():
-                    #if self.ephys_server.script_dropped_frames != -1:
-                        #tkMessageBox.showwarning("Dropped frame(s)",
-                                                 #"During the last trial, at least 1 frame was dropped.",
-                                                  #parent=self)
-
-
-            #####
         finally:
             root["cursor"] = self.old_cursor
             root.update()

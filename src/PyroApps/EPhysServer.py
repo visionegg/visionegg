@@ -2,7 +2,10 @@
 #
 # The Vision Egg: EPhysServer
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw,
+# Copyright (C) 2004 Imran S. Ali, Lachlan Dowd
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -63,7 +66,6 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.stimkey = server_modules[0].get_meta_controller_stimkey() # first stimulus will be this
         self.quit_status = 0
         self.exec_demoscript_flag = 0
-        #self.loaded_demoscript_flag = 0
         self.presentation = presentation
         # target for stimulus onset calibration
         self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
@@ -176,25 +178,14 @@ class EPhysServer(  Pyro.core.ObjBase ):
 
     def exec_AST(self, screen, dropin_meta_params):
 
-        for var in dropin_meta_params.vars_list:
-            self.AST = AST_ext.modify_AST(self.AST, var[0], var[1])
+        if dropin_meta_params.vars_list is not None:
+            for var in dropin_meta_params.vars_list:
+                self.AST = AST_ext.modify_AST(self.AST, var[0], var[1])
 
         code_module = self.AST.compile()
-        #eval(code_module)
-        #This fixes prbolem with pygame demo but other demos
-        # come up with screen not defined error
-        #print dir(globals())
-        #dir(code_module.globals())
-
-
-
-        #exec code_module in globals(), {'screen':screen}
         exec code_module in locals()
-        #exec code_module in globals()
-        try:
-            self.script_dropped_frames = code_module.p.were_frames_dropped_in_last_go_loop()
-        except NameError:
-            self.script_dropped_frames = -1
+        self.script_dropped_frames = p.were_frames_dropped_in_last_go_loop()
+        self.presentation.last_go_loop_start_time_absolute_sec = p.last_go_loop_start_time_absolute_sec # evil hack...
         self.exec_demoscript_flag = 0
 
     def run_demoscript(self):
@@ -220,6 +211,7 @@ def start_server( server_modules, server_class=EPhysServer ):
                                                       projection=projection)
     overlay2D_viewport = VisionEgg.Core.Viewport(screen=screen)
     p = VisionEgg.FlowControl.Presentation(viewports=[perspective_viewport, overlay2D_viewport]) # 2D overlay on top
+    print 'main Presentation',p
 
     wait_text = VisionEgg.Text.Text(
         text = "Starting up...",
@@ -263,8 +255,9 @@ def start_server( server_modules, server_class=EPhysServer ):
         if ephys_server.get_stimkey() == "dropin_server":
             #while ephys_server.exec_demoscript_flag == 0:
             #locked loop doesn't work for some reason!
-            wait_text.parameters.text = "Demo script has been loaded."
-
+            dropin_meta_params = stimulus_meta_controller.get_parameters()
+            wait_text.parameters.text = "Demo script mode"
+            
             p.parameters.enter_go_loop = 0
             p.parameters.quit = 0
             p.run_forever()
