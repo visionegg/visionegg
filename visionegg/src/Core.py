@@ -76,7 +76,7 @@ if sys.platform == "darwin":
     # override pygame's default icon
     PlatformDependent.set_icon(os.path.abspath(
         os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                     'data/visionegg.tif')))
+                     'data','visionegg.tif')))
 
 ####################################################################
 #
@@ -266,7 +266,7 @@ class Screen(VisionEgg.ClassWithParameters):
             if sys.platform != 'darwin':
                 pygame.display.set_icon(pygame.transform.scale(pygame.image.load(
                     os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                                 'data/visionegg.bmp')).convert(),(32,32)))
+                                 'data','visionegg.bmp')).convert(),(32,32)))
         except Exception,x:
             message.add("Error while trying to set_icon: %s: %s"%
                         (str(x.__class__),str(x)),
