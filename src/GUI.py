@@ -23,8 +23,11 @@ class showexception(Tkinter.Frame):
     """A window that shows a string and has a quit button."""
     def __init__(self,exc_type, exc_value, traceback_str):
         title="Vision Egg: exception caught"
-        self.winfo_toplevel().title(title)
-        self.winfo_toplevel().protocol("WM_DELETE_WINDOW",self.close_window)
+        try:
+            self.winfo_toplevel().title(title)
+            self.winfo_toplevel().protocol("WM_DELETE_WINDOW",self.close_window)
+        except:
+            VisionEgg.Core.message.add("Tkinter problems when trying to display exception. Continuing attempt to open dialog.",level=VisionEgg.Core.Message.INFO)
         first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
         
         type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
@@ -78,6 +81,15 @@ class OpenScreenDialog(Tkinter.Frame):
         else:
             Tkinter.Label(self,
                           text="Config file location: (None)").pack()
+
+        # Log file location
+        
+        if VisionEgg.config.VISIONEGG_LOG_FILE:
+            Tkinter.Label(self,
+                          text="Log file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).pack()
+        else:
+            Tkinter.Label(self,
+                          text="Log file location: (stderr console)").pack()
 
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
@@ -139,15 +151,6 @@ class OpenScreenDialog(Tkinter.Frame):
         self.alpha_depth = Tkinter.StringVar()
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
         Tkinter.Entry(self,textvariable=self.alpha_depth).pack()
-
-        # Log file location
-        
-        if VisionEgg.config.VISIONEGG_LOG_FILE:
-            Tkinter.Label(self,
-                          text="Log file location: %s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).pack()
-        else:
-            Tkinter.Label(self,
-                          text="Log file location: (stderr console)").pack()
 
         # Start button
         b = Tkinter.Button(self,text="start",command=self.start)
