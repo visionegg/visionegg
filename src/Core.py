@@ -1184,7 +1184,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         'check_events' : (True, # May cause slight performance hit, but probably negligible
                           ve_types.Boolean),
         'handle_event_callbacks' : (None,
-                                    ve_types.Sequence(ve_types.Callable)),
+                                    ve_types.Sequence(ve_types.Sequence2(ve_types.AnyOf(ve_types.Integer,ve_types.Callable)))),
         'trigger_armed':(True, 
                          ve_types.Boolean),
         'trigger_go_if_armed':(True,
