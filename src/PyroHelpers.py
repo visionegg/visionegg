@@ -13,6 +13,8 @@ import Pyro.naming
 import Pyro.core
 from Pyro.errors import PyroError,NamingError
 
+from math import *
+
 Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
 
 class PyroGoClass(Pyro.core.ObjBase):
@@ -62,7 +64,7 @@ class EvalStringPyroController(PyroController):
             t = 1.0
             test = eval(eval_string)
         except Exception,x:
-            raise ValueError('"%s" raised exception when evaluated: '+str(x))
+            raise ValueError('"%s" raised exception when evaluated: %s'%(eval_string,str(x)))
         self.eval_string = eval_string
     def eval(self,t):
         return eval(self.eval_string)
@@ -86,11 +88,12 @@ class PyroServer:
         except NamingError:
             pass
         self.daemon.connect(object,name)
-    def mainloop(self):
+    def mainloop(self, idle_func=lambda: None, time_out=3.0):
         """Handle requests for objects."""
         print "VisionEgg.PyroHelpers.PyroServer handling requests..."
         while 1:
-            self.daemon.handleRequests() 
+            self.daemon.handleRequests(time_out)
+            idle_func()
 
 class PyroClient:
     """A client for calling a Pyro server."""
