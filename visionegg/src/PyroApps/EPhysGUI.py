@@ -9,7 +9,7 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-import sys, socket, re, time, string, types, os, pickle, random, math
+import sys, socket, re, time, string, types, os, pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import Pyro
 
@@ -565,10 +565,6 @@ class AppWindow(Tkinter.Frame):
         self.bar.calibration = BarButton(self.bar, text='Calibrate')
         self.bar.calibration.menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
 
-##        row += 1
-##        Tkinter.Label(self,
-##                      text="Single Trial Parameters",
-##                      font=("Helvetica",12,"bold")).grid(row=row,columnspan=2)
         row += 1
 
         # options for self.stim_frame in grid layout manager
@@ -636,8 +632,7 @@ class AppWindow(Tkinter.Frame):
                        text="Reset",command=self.reset_autosave_basename).grid(row=asf.grid_row,column=2)
         
         row += 1
-        self.do_single_trial_button = Tkinter.Button(self, text='Do single trial', command=self.do_single_trial)
-        self.do_single_trial_button.grid(row=row,column=0)
+        Tkinter.Button(self, text='Do single trial', command=self.do_single_trial).grid(row=row,column=0)
         Tkinter.Button(self, text='Do sequence', command=self.do_loops).grid(row=row,column=1)
 
         row += 1
@@ -650,17 +645,6 @@ class AppWindow(Tkinter.Frame):
         self.progress.updateProgress(0)
         self.progress.grid(row=row,column=0,columnspan=2)#,sticky='we')
 
-##        status_bar = Tkinter.Frame(self, relief=Tkinter.SUNKEN, borderwidth=2)
-##        status_bar.grid(row=row,column=0,columnspan=2,sticky='we')
-##        Tkinter.Label(status_bar,text="Status:").grid(row=0,column=0)
-##        self.status_tk_var = Tkinter.StringVar()
-##        self.status_tk_var.set("Starting...")
-##        Tkinter.Label(status_bar,textvariable=self.status_tk_var).grid(row=0,column=1)
-
-##        status_bar.columnconfigure(0,weight=0)
-##        status_bar.columnconfigure(1,weight=2)
-##        status_bar.columnconfigure(2,weight=0)
-            
         # Allow rows and columns to expand
         for i in range(2):
             self.columnconfigure(i,weight=1)
@@ -827,8 +811,9 @@ class AppWindow(Tkinter.Frame):
                     process_loops(depth+1)
                 elif depth == max_depth: # deepest level -- do the trial
                     if need_rest_period:
-                        time.sleep(loop.parameters.rest_duration_sec)
-                    self.do_single_trial_button.invoke()
+                        self.progress.labelText = "Resting"
+                        self.sleep_with_progress(loop.parameters.rest_duration_sec)
+                    self.do_single_trial()
                     need_rest_period = 1
                 else:
                     raise RuntimeError("Called with max_depth==-1:")
@@ -840,6 +825,7 @@ class AppWindow(Tkinter.Frame):
         process_loops(0) # start recursion on top level
         
     def do_single_trial(self):
+        # this class is broken into parts so it can be subclassed more easily
         self.do_single_trial_pre()
         self.do_single_trial_work()
 
@@ -885,41 +871,23 @@ class AppWindow(Tkinter.Frame):
         self.progress.updateProgress(0)
         
         duration_sec = self.stim_frame.get_duration_sec()
-        
         self.stim_frame.go() # start server going, but this return control immediately
-        time.sleep(duration_sec)
-##        self.start_time = time.time()
-##        self.end_time = self.start_time + duration_sec
-##        self.after(20, self.during_go_loop)
-        
+        self.sleep_with_progress(duration_sec)
         root["cursor"] = self.old_cursor
         root.update()
 
         # restore status bar
         self.progress.labelText = "Ready"
         self.progress.updateProgress(0)
-        
-    def during_go_loop(self):
-        time_elapsed = time.time() - self.start_time
-        percent = time_elapsed / (self.end_time - self.start_time) * 100.0
-        self.progress.updateProgress(int(percent))
-        if percent >= 100: # done
-            # restore cursor
-            root = self.winfo_toplevel()
-            root["cursor"] = self.old_cursor
-            root.update()
 
-            # restore status bar
-            self.progress.labelText = "Ready"
-            self.progress.updateProgress(0)
-
-            # delete variables unused elsewhere
-            del self.old_cursor
-            del self.start_time
-            del self.end_time
-        else:
-            # repeat this function again in 20 msec
-            self.after(20, self.during_go_loop)
+    def sleep_with_progress(self, duration_sec):
+        start_time = time.time()
+        stop_time = start_time + duration_sec
+        percent_done = 0
+        while percent_done < 100:
+            self.progress.updateProgress(percent_done)
+            time.sleep(0.01) # wait 10 msec
+            percent_done = (time.time() - start_time)/duration_sec*100
 
     def quit(self):
         self.ephys_server.set_quit_status(1)
