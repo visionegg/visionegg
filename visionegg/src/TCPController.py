@@ -302,22 +302,21 @@ class SocketListenController(VisionEgg.Core.Controller):
                         kw_args = {}
                         if match_groups[0] == '*':
                             kw_args['restricted_namespace'] = 0
-                            match_groups = match_groups[1:]
                         else:
                             kw_args['restricted_namespace'] = 1
-                        kw_args['during_go_exec_string'] = match_groups[0]
+                        kw_args['during_go_exec_string'] = match_groups[1]
                         if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
                             raise ValueError("x is not defined for during_go_exec_string")
-                        if match_groups[1] is not None:
-                            kw_args['between_go_exec_string'] = match_groups[1]
+                        if match_groups[2] is not None:
+                            kw_args['between_go_exec_string'] = match_groups[2]
                             if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
                                 raise ValueError("x is not defined for between_go_exec_string")
-                        if match_groups[2] is not None:
-                            kw_args['return_type'] = eval(match_groups[2])
                         if match_groups[3] is not None:
-                            kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[3])
+                            kw_args['return_type'] = eval(match_groups[3])
                         if match_groups[4] is not None:
-                            kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
+                            kw_args['temporal_variable_type'] = eval("VisionEgg.Core.Controller.%s"%match_groups[4])
+                        if match_groups[5] is not None:
+                            kw_args['eval_frequency'] = eval("VisionEgg.Core.Controller.%s"%match_groups[5])
                         new_contained_controller = apply(VisionEgg.Core.ExecStringController,[],kw_args)
                         new_type = new_contained_controller.returns_type()
                         if new_type != require_type:

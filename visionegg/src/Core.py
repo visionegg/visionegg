@@ -1353,6 +1353,7 @@ class ExecStringController(Controller):
                 exec during_go_exec_string in self.eval_globals,eval_locals
                 test_result = eval_locals['x']
             else:
+                exec temporal_variable_name + "=" + repr(initial_value)
                 exec during_go_exec_string
                 test_result = x
             kw['return_type'] = type(test_result)
@@ -1376,6 +1377,7 @@ class ExecStringController(Controller):
             exec self.during_go_exec_code in self.eval_globals,eval_locals        
             return eval_locals['x']
         else:
+            exec self.temporal_variable_name + "=" + repr(self.temporal_variable)
             exec self.during_go_exec_code
             return x
 
@@ -1385,6 +1387,7 @@ class ExecStringController(Controller):
             exec self.between_go_exec_code in self.eval_globals,eval_locals
             return eval_locals['x']
         else:
+            exec self.temporal_variable_name + "=" + repr(self.temporal_variable)
             exec self.between_go_exec_code
             return x
     
