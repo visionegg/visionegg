@@ -355,7 +355,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glLoadIdentity()
 
             # do the orientation
-            gl.glRotatef(p.orientation,0.0,0.0,1.0)
+            gl.glRotatef(p.orientation,0.0,0.0,-1.0)
 
             gl.glCallList(self.cached_display_list)
 
