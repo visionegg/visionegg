@@ -8,5 +8,7 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-from VisionEgg import * # Lets "import VisionEgg" do what would otherwise be "import VisionEgg.VisionEgg"
+
+# Let "import VisionEgg" do what would otherwise be "import VisionEgg.VisionEgg"
+from VisionEgg import * 
 
