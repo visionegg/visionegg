@@ -1,0 +1,182 @@
+"""gratings module of the Vision Egg package"""
+
+# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
+# GNU General Public License (GPL).
+
+####################################################################
+#
+#        Import all the necessary packages
+#
+####################################################################
+
+import string
+__version__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
+import VisionEgg
+import VisionEgg.Core
+import Image, ImageDraw                         # Python Imaging Library packages
+
+			                        # from PyOpenGL:
+from OpenGL.GL import *                         #   main package
+
+if "GL_CLAMP_TO_EDGE" not in dir(): # should have gotten from importing OpenGL.GL
+    import VisionEgg.Textures 
+    GL_CLAMP_TO_EDGE = VisionEgg.Textures.GL_CLAMP_TO_EDGE # use whatever hack is there...
+
+import Numeric
+from Numeric import * 				# Numeric Python package
+from MLab import *                              # Matlab function imitation from Numeric Python
+
+from math import *
+
+####################################################################
+#
+#        Stimulus - TextureStimulus
+#
+####################################################################
+
+class SinGrating(VisionEgg.Core.Stimulus):
+    parameters_and_defaults = {'projection':None, # set in __init__
+                               'on':1,
+                               'contrast':1.0,
+                               'left':0.0, # In eye coords (clip/window coords depend on projection)
+                               'bottom':0.0,
+                               'width':1.0,
+                               'height':1.0,
+                               'wavelength':0.2, # in eye coord units
+                               'phase':0.0, # degrees
+                               'orientation':0.0, # 0=right, 90=down
+                               'num_samples':256 # number of spatial samples, should be a power of 2
+                               }
+    def __init__(self,projection = None,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+
+        # Make sure the projection is set
+        if projection is not None:
+            # Use the user-supplied projection
+            self.parameters.projection = projection
+        else:
+            # No user-supplied projection, use the default. (Which is probably None.)
+            if self.parameters.projection is None:
+                # Since the default projection is None, set it to something useful.
+                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
+
+        self.texture_object = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_1D,self.texture_object)
+        
+        # Do error-checking on texture to make sure it will load
+        max_dim = glGetIntegerv(GL_MAX_TEXTURE_SIZE)
+        if self.parameters.num_samples > max_dim:
+            raise VisionEgg.Core.EggError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
+
+        l = self.parameters.left
+        r = self.parameters.left+self.parameters.width
+        inc = self.parameters.width/float(self.parameters.num_samples)
+        floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')+(self.parameters.phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        texel_data = (floating_point_sin*255.0).astype('b').tostring()
+
+        # Because the MAX_TEXTURE_SIZE method is insensitive to the current
+        # state of the video system, another check must be done using
+        # "proxy textures".
+        glTexImage1D(GL_PROXY_TEXTURE_1D,            # target
+                     0,                              # level
+                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     self.parameters.num_samples,    # width
+                     0,                              # border
+                     GL_LUMINANCE,                   # format of image data
+                     GL_UNSIGNED_BYTE,               # type of image data
+                     texel_data)                     # texel data
+        if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_1D,0,GL_TEXTURE_WIDTH) == 0:
+            raise VisionEgg.Core.EggError("Grating num_samples is too wide for your video system!")
+        
+        # If we got here, it worked and we can load the texture for real.
+        glTexImage1D(GL_TEXTURE_1D,            # target
+                     0,                              # level
+                     GL_LUMINANCE,                   # video RAM internal format: RGB
+                     self.parameters.num_samples,    # width
+                     0,                              # border
+                     GL_LUMINANCE,                   # format of image data
+                     GL_UNSIGNED_BYTE,               # type of image data
+                     texel_data)                     # texel data
+        # Set some texture object defaults
+        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_REPEAT)
+#        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_WRAP_T,GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+
+        if self.parameters.width != self.parameters.height:
+            self.give_size_warning()
+        else:
+            self.gave_size_warning = 0
+
+    def give_size_warning(self):
+        print "WARNING: SinGrating does not have equal width and height."
+        print "Gratings will have variable size based on orientation."
+        self.gave_size_warning = 1
+
+    def draw(self):
+        if self.parameters.on:
+            if self.parameters.width != self.parameters.height:
+                if not self.gave_size_warning:
+                    self.give_size_warning()
+                    
+            # Clear the modeview matrix
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+
+            # Save then set the projection matrix
+            self.parameters.projection.push_and_set_gl_projection()
+            
+            glDisable(GL_DEPTH_TEST)
+            glDisable(GL_BLEND)
+            glDisable(GL_TEXTURE_2D)
+            glEnable(GL_TEXTURE_1D)
+            glBindTexture(GL_TEXTURE_1D,self.texture_object)
+
+            l = self.parameters.left
+            r = self.parameters.left+self.parameters.width
+            inc = self.parameters.width/float(self.parameters.num_samples)
+            floating_point_sin = Numeric.sin(2.0*math.pi/self.parameters.wavelength*Numeric.arange(l,r,inc,'d')+self.parameters.phase)*0.5*self.parameters.contrast+0.5
+            texel_data = (floating_point_sin*255.0).astype('b').tostring()
+        
+            glTexSubImage1D(GL_TEXTURE_1D, # target
+                            0, # level
+                            0, # x offset
+                            self.parameters.num_samples, # width
+                            GL_LUMINANCE, # data format
+                            GL_UNSIGNED_BYTE, # data type
+                            texel_data)
+            
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+
+            b = self.parameters.bottom
+            t = b + self.parameters.height
+
+            # Get a matrix used to rotate the texture coordinates
+            glMatrixMode(GL_TEXTURE)
+            glLoadIdentity()
+            glRotate(self.parameters.orientation,0.0,0.0,-1.0)
+            glTranslate(-0.5,-0.5,0.0) # Rotate about the center of the texture
+            
+            glBegin(GL_QUADS)
+            glTexCoord2f(0.0,0.0)
+            glVertex2f(l,b)
+
+            glTexCoord2f(1.0,0.0)
+            glVertex2f(r,b)
+
+            glTexCoord2f(1.0,1.0)
+            glVertex2f(r,t)
+
+            glTexCoord2f(0.0,1.0)
+            glVertex2f(l,t)
+            glEnd() # GL_QUADS
+            
+            glLoadIdentity() # clear the texture matrix
+            
+            glMatrixMode(GL_PROJECTION)
+            glPopMatrix() # restore projection matrix
+            glDisable(GL_TEXTURE_1D)
