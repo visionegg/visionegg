@@ -23,7 +23,7 @@ from OpenGL.GLUT import *
 
 class Teapot(VisionEgg.Core.Stimulus):
     """A very simple stimulus because GLUT can draw a teapot"""
-    parameters_and_defaults = {'yrot':0.0,
+    parameters_and_defaults = {'angular_position':0.0,
                                'on':1}
 
     def __init__(self,**kw):
@@ -38,50 +38,34 @@ class Teapot(VisionEgg.Core.Stimulus):
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity() 
             glTranslatef(0.0, 0.0, -6.0)
-            glRotatef(self.parameters.yrot,0.0,1.0,0.0)
+            glRotatef(self.parameters.angular_position,0.0,1.0,0.0)
             glutSolidTeapot(0.5)
         
 class Target2D(VisionEgg.Core.Stimulus):
-    parameters_and_defaults = {'projection':None, # set in __init__
-                               'on':1,
+    parameters_and_defaults = {'on':1,
                                'color':(1.0,1.0,1.0,1.0),
                                'anti_aliasing':1,
                                'orientation':135.0,
-                               'width':0.1,
-                               'height':0.025,
-                               'x':0.5,
-                               'y':0.5}
+                               'center':(320.0,240.0),
+                               'size':(64.0,16.0)}
                         
     def __init__(self,projection=None,**kw):
         apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
-        # Make sure the projection is set
-        if projection is not None:
-            # Use the user-supplied projection
-            self.parameters.projection = projection
-        else:
-            # No user-supplied projection, use the default. (Which is probably None.)
-            if self.parameters.projection is None:
-                # Since the default projection is None, set it to something useful.
-                # Assume spot is in center of viewport.
-                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
 
     def draw(self):
         if self.parameters.on:
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
-            glTranslate(self.parameters.x,self.parameters.y,0.0)
+            glTranslate(self.parameters.center[0],self.parameters.center[1],0.0)
             glRotate(self.parameters.orientation,0.0,0.0,1.0)
-
-            # before we clear the projection matrix, save its state
-            self.parameters.projection.push_and_set_gl_projection()
 
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
             glDisable(GL_TEXTURE_2D)
             glDisable(GL_BLEND)
 
-            w = self.parameters.width/2.0
-            h = self.parameters.height/2.0
+            w = self.parameters.size[0]/2.0
+            h = self.parameters.size[1]/2.0
             glBegin(GL_QUADS)
             glVertex3f(-w,-h, 0.0);
             glVertex3f( w,-h, 0.0);
@@ -112,5 +96,3 @@ class Target2D(VisionEgg.Core.Stimulus):
 
                 # Set the polygon mode back to fill mode
                 glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
-
-            glPopMatrix() # restore projection matrix
