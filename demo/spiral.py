@@ -43,7 +43,7 @@ while not quit_now and spinning:
         elif event.type in (KEYDOWN,MOUSEBUTTONDOWN):
             spinning = False
     screen.clear()
-    stimulus.parameters.angle = VisionEgg.time_func()*-180.0 # rotate
+    stimulus.parameters.angle = (VisionEgg.time_func()*-180.0)%360.0 # rotate
     viewport.draw()
     swap_buffers()
     frame_timer.tick()
