@@ -15,6 +15,21 @@ import Numeric, RandomArray
 import math, types, string
 import OpenGL.GL as gl
 
+try:
+    import VisionEgg._draw_in_c
+    draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
+except ImportError, x:
+    VisionEgg.Core.message.add("Could not import VisionEgg._draw_in_c module, random dots will be drawn in Python (slow).",
+                               level=VisionEgg.Core.Message.WARNING)
+else:
+    def draw_dots(xs,ys,zs):
+        if not (len(xs) == len(ys) == len(zs)):
+            raise ValueError("All input arguments must be same length")
+        gl.glBegin(gl.GL_POINTS)
+        for i in xrange(len(xs)):
+            gl.glVertex3f(xs[i],ys[i],zs[i])
+        gl.glEnd()
+        
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
@@ -136,11 +151,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             else:
                 gl.glEnable(gl.GL_DEPTH_TEST)
                 depth = p.depth
-            gl.glBegin(gl.GL_POINTS)
-            for i in xrange(len(xs)):
-                x = xs[i]
-                y = ys[i]
-                gl.glVertex3f(x,y,depth)
-            gl.glEnd()
+            zs = (depth,)*len(xs) # make N tuple with repeat value of depth
+            draw_dots(xs,ys,zs)
             if p.anti_aliasing:
                 gl.glDisable( gl.GL_POINT_SMOOTH ) # turn off
