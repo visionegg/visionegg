@@ -21,15 +21,10 @@ from VisionEgg import *
 from imageConvolution import *
 
 import Image, ImageDraw                         # Python Imaging Library packages
-						                        # from PyOpenGL:
+				                # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
-#from OpenGL.GL.ARB.texture_env_combine import * #   this is needed to do contrast
-#from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in memory
-from OpenGL.GLUT import *						#   only if used if no SDL
-from Numeric import * 							# Numeric Python package
+from Numeric import * 		 	        # Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
-
-from _visionegg import * # internal C code
 
 ####################################################################
 #
@@ -42,11 +37,18 @@ class ParamHolder: # dummy class to hold copy of params, basically plays role of
             pass
 
 class BlurTextureFamily:
-    def __init__(self,unblurred_filename,target_fps=180.0,maxSpeed=2000.0,numCachedTextures=10,cacheFunction='linear',blurKernel='boxcar'):
+    # Should make this a little smoother -
+    # 1) Need to take advantage of the fact that unblurred_texture is of type Texture
+    # 2) Should make checksum of original image and check that with the cache
+    # 3) Could save images to system RAM, not openGL ram, and use SubTexture
+    #    to stick image into GL memory at draw time. (Rather than switching
+    #    between textures resident in OpenGL.)
+    def __init__(self,unblurred_texture,target_fps=180.0,maxSpeed=2000.0,numCachedTextures=10,cacheFunction='linear',blurKernel='boxcar'):
+        if not isinstance(unblurred_texture,Texture):
+            raise TypeError("unblurred_texture must be an instance of VisionEgg.Texture")
         self.p = ParamHolder()
         # Compute blur family parameters
-        self.p.orig_name = unblurred_filename
-        self.orig = Image.open(self.p.orig_name)
+        self.orig = unblurred_texture.orig
         self.p.im_width = self.orig.size[0]
         self.p.target_fps = target_fps
         self.p.sec_per_frame = 1.0/self.p.target_fps
@@ -121,7 +123,7 @@ class BlurTextureFamily:
         if use_cache:
             p = cached_p
         else:
-            p.filenames = [ p.orig_name ] # initialize list
+            p.filenames = [ 'original texture' ] # initialize list
             new_cache_valid = 1 # will set to 0 if something goes wrong, otherwise save the new cache params
 
         # Load original image first
@@ -168,18 +170,28 @@ class BlurTextureFamily:
                     
 class BlurredDrum(SpinningDrum):
 
-    def __init__(self,durationSec,unblurred_filename,position_function,contrast_function,numSides=30,radius=3.0,blur='gaussian',numCachedTextures=10,target_fps=180.0,maxSpeed=2000.0,projection=PerspectiveProjection()):
-        self.texs = BlurTextureFamily(unblurred_filename,numCachedTextures=numCachedTextures,maxSpeed=maxSpeed,target_fps=target_fps)
-        self.blurOn = 1
+    def __init__(self,
+                 numCachedTextures=10,
+                 target_fps=180.0,
+                 maxSpeed=2000.0,
+                 blurKernel='boxcar',
+                 **kwargs):
+        apply(SpinningDrum.__init__,(self,),kwargs)
+        self.texs = BlurTextureFamily(self.drum_texture,
+                                      numCachedTextures=numCachedTextures,
+                                      maxSpeed=maxSpeed,
+                                      blurKernel=blurKernel,
+                                      target_fps=target_fps)
+        self.motion_blur_on = 1
         self.last_time = 0.0
-        self.last_yrot = position_function(self.last_time)
-        SpinningDrum.__init__(self,durationSec,TextureFromPILImage(self.texs.orig),position_function,contrast_function,numSides,radius,projection) # XXX should change so it doesn't load base texture again
+        self.last_drum_rotation = self.drum_rotation_function(self.last_time)
 
-    def setBlurOn(self,on):
-        self.blurOn = on
+    def set_motion_blur_on(self,on):
+        self.motion_blur_on = on
         
-    def getTexId(self,delta_pos,delta_t):
-        if self.blurOn: # Find the appropriate texture
+    def get_texture_object(self,delta_pos,delta_t):
+        """Finds the appropriate texture object for the current velocity."""
+        if self.motion_blur_on: # Find the appropriate texture 
             if delta_t < 1.0e-6: # less than 1 microsecond (this should be less than a frame could possibly take to draw)
                 vel_dps = 0
                 speedIndex = 0
@@ -191,20 +203,19 @@ class BlurredDrum(SpinningDrum):
             speedIndex = 0
         return self.texs.texGLIdList[speedIndex]
 
-    def drawGLScene(self):
+    def draw_GL_scene(self):
 
         # I know that self.cur_time has been set for me.
         # Calculate my other variables from that.
         
-        #self.contrast = self.cFunc(self.curTime) # Let SpinningDrum do this
-        self.yrot = self.position_function(self.cur_time)
+        drum_rotation = self.drum_rotation_function(self.cur_time)
 
-        delta_yrot = self.yrot - self.last_yrot # change in position (units: degrees)
+        delta_drum_rotation = drum_rotation - self.last_drum_rotation # change in position (units: degrees)
         delta_t = self.cur_time - self.last_time
 
-        self.texId = self.getTexId(delta_yrot,delta_t) # sets the texture object that SpinningDrum uses
-        SpinningDrum.drawGLScene(self) # call my base class to do most of the work
+        self.drum_texture_object = self.get_texture_object(delta_drum_rotation,delta_t) # sets the texture object that SpinningDrum uses
+        SpinningDrum.draw_GL_scene(self) # call my base class to do most of the work
         
         # Set for next cycle
         self.last_time = self.cur_time
-        self.last_yrot = self.yrot
+        self.last_drum_rotation = drum_rotation
