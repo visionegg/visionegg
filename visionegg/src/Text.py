@@ -9,7 +9,12 @@
 #
 ####################################################################
 
-import string, types
+try:
+    import logging
+    import logging.handlers
+except ImportError:
+    import VisionEgg.py_logging as logging
+
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
@@ -22,8 +27,8 @@ glut = OpenGL.GLUT
 import pygame
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -115,10 +120,10 @@ class GlutTextBase(VisionEgg.Core.Stimulus):
     
     def __init__(self,**kw):
         if not hasattr(VisionEgg.config,"_GAVE_GLUT_TEXT_DEPRECATION"):
-            VisionEgg.Core.message.add(
-                """Using GlutTextBase class.  This will be removed in
-                a future release. Use VisionEgg.Text.Text instead.""",
-                level=VisionEgg.Core.Message.DEPRECATION)
+            logger = logging.getLogger('VisionEgg.Text')
+            logger.warning("Using GlutTextBase class.  This will be "
+                           "removed in a future release. Use "
+                           "VisionEgg.Text.Text instead.")
             VisionEgg.config._GAVE_GLUT_TEXT_DEPRECATION = 1
             VisionEgg.Core.Stimulus.__init__(self,**kw)
 

@@ -11,6 +11,12 @@ all = ['Rectangle3D', 'Target2D', ]
 #
 ####################################################################
 
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
+import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
@@ -18,11 +24,9 @@ import Numeric
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-import string
-
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
@@ -68,8 +72,12 @@ class Target2D(VisionEgg.Core.Stimulus):
         p = self.parameters # shorthand
         if p.center is not None:
             if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
-                VisionEgg.Core.message.add("Specifying Target2D by 'center' parameter deprecated.  Use 'position' parameter instead.  (Allows use of 'anchor' parameter to set to other values.)",
-                                           level=VisionEgg.Core.Message.DEPRECATION)
+                logger = logging.getLogger('VisionEgg.MoreStimuli')
+                logger.warning("Specifying Target2D by deprecated "
+                               "'center' parameter deprecated.  Use "
+                               "'position' parameter instead.  (Allows "
+                               "use of 'anchor' parameter to set to "
+                               "other values.)")
                 VisionEgg.config._GAVE_CENTER_DEPRECATION = 1
             p.anchor = 'center'
             p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
@@ -99,14 +107,15 @@ class Target2D(VisionEgg.Core.Stimulus):
             if p.anti_aliasing:
                 if not self._gave_alpha_warning:
                     if len(p.color) > 3 and p.color[3] != 1.0:
-                        VisionEgg.Core.message.add(
-                            """The parameter anti_aliasing is set to
-                            true in the Target2D stimulus class, but
-                            the color parameter specifies an alpha
-                            value other than 1.0.  To acheive
-                            anti-aliasing, ensure that the alpha value
-                            for the color parameter is 1.0.""",
-                            level=VisionEgg.Core.Message.WARNING)
+                        logger = logging.getLogger('VisionEgg.MoreStimuli')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the Target2D "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive anti-aliasing, ensure "
+                                       "that the alpha value for the "
+                                       "color parameter is 1.0.")
                         self._gave_alpha_warning = 1
 
                 # We've already drawn a filled polygon (aliased), now

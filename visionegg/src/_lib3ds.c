@@ -40,12 +40,14 @@
 #define MAX_WARN_STR 255
 #define _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL(X) if (m->X.name[0]) { snprintf(warn_str,MAX_WARN_STR,"Ignoring data in %s because .3ds file support is incomplete. (" #X " \"%s\" for material \"%s\" was not loaded)",filename,&m->X.name[0],&m->name[0]); if (!warn_python(warn_str)) {goto error;} }
 
-static PyObject *gCore_message_add;
-static PyObject *gCore_Message_WARNING;
+static PyObject *g_logger_warning = NULL;
 
 // forward declarations
 static PyObject*
 render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node);
+
+static PyObject* 
+get_logger_warning( void );
 
 int warn_python(char *text);
 
@@ -60,7 +62,6 @@ static PyObject *draw(PyObject *self, PyObject *args)
   Lib3dsFile *file=NULL;
 
   PyObject *tex_dict=NULL;
-  PyObject *tex_dict_value=NULL;
 
   float scale_x, scale_y, scale_z;
   float pos_x, pos_y, pos_z;
@@ -126,57 +127,50 @@ static PyObject *draw(PyObject *self, PyObject *args)
 
 //////////////////////////////////////////////
 
-static PyObject *getVisionEgg_log() {
-  PyObject *coreModule, *coreDict, *core_Message, *core_message, *core_Message_WARNING, *core_message_add;
+static PyObject *get_logger_warning( void ) {
+  PyObject *loggingModule = NULL;
+  PyObject *logging_getLogger = NULL;
+  PyObject *logger = NULL;
+  PyObject *logger_warning = NULL;
 
   // Now get VisionEgg.Core.message to pass message 
-  coreModule = PyImport_ImportModule("VisionEgg.Core"); // New ref
-  PY_CHECK(coreModule,__LINE__);
-
-  coreDict = PyModule_GetDict(coreModule); // borrowed ref
-  PY_CHECK(coreDict,__LINE__);
-
-  // Get VisionEgg.Core.Message (the class)
-  core_Message = PyDict_GetItemString(coreDict, "Message"); // borrowed ref
-  PY_CHECK(core_Message,__LINE__);
-
-  // Get VisionEgg.Core.message (the instance)
-  core_message = PyDict_GetItemString(coreDict, "message"); // borrowed ref
-  PY_CHECK(core_message,__LINE__);
-
-  // Get VisionEgg.Core.Message.INFO
-  core_Message_WARNING = PyObject_GetAttrString(core_Message, "WARNING" ); // new ref
-  PY_CHECK(core_Message_WARNING,__LINE__);
-
-  // Get VisionEgg.Core.message.add
-  core_message_add = PyObject_GetAttrString(core_message,"add"); // new ref
-  PY_CHECK(core_message_add,__LINE__);
-
-  if (!PyCallable_Check(core_message_add)) {
-    PyErr_SetString(PyExc_SystemError,"VisionEgg.Core.message.add not callable.");
-    goto error;
+  loggingModule = PyImport_ImportModule("logging"); // New ref
+  if (!loggingModule) {
+    loggingModule = PyImport_ImportModule("VisionEgg.py_logging");
   }
+  PY_CHECK(loggingModule,__LINE__);
 
-  gCore_message_add = core_message_add;
-  gCore_Message_WARNING = core_Message_WARNING;
+  logging_getLogger = PyObject_GetAttrString(loggingModule,"getLogger"); // new ref
+  PY_CHECK(logging_getLogger,__LINE__);
 
-  Py_XDECREF(coreModule);
-  return core_message_add;
+  logger = PyObject_CallObject(logging_getLogger,Py_BuildValue("(s)","VisionEgg._lib3ds")); // new ref
+  PY_CHECK(logger,__LINE__);
+
+  logger_warning = PyObject_GetAttrString(logger,"warning"); // new ref
+  PY_CHECK(logger_warning,__LINE__);
+
+  g_logger_warning = logger_warning;
+
+  Py_DECREF(logger);
+  Py_DECREF(logging_getLogger);
+  Py_DECREF(loggingModule);
+  return g_logger_warning;
+
  error:
-  Py_XDECREF(coreModule);
-  Py_XDECREF(core_Message_WARNING);
-  Py_XDECREF(core_message_add);
+  Py_XDECREF(logger);
+  Py_XDECREF(logging_getLogger);
+  Py_XDECREF(loggingModule);
   return NULL;
 }
 
 int warn_python(char *text) {
-  PyObject* temp;
+  PyObject* temp = NULL;
 
-  if (!gCore_message_add) { // make sure can write to the log
-    gCore_message_add = getVisionEgg_log();
-    PY_CHECK(gCore_message_add,__LINE__);
+  if (!g_logger_warning) { // make sure can write to the log
+    g_logger_warning = get_logger_warning();
+    PY_CHECK(g_logger_warning,__LINE__);
   }
-  temp = PyObject_CallObject(gCore_message_add,Py_BuildValue("(sO)",text,gCore_Message_WARNING)); // new ref
+  temp = PyObject_CallObject(g_logger_warning,Py_BuildValue("(s)",text)); // new ref
   PY_CHECK(temp,__LINE__);
   Py_XDECREF(temp);
   return 1;
@@ -252,12 +246,6 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
       PY_CHECK(!PyDict_SetItemString(tex_dict,&texmap.name[0],tex_dict_value),__LINE__);
       Py_DECREF(tex_dict_value);
 
-      /*
-      tex_dict_value = Py_BuildValue("si",&texmap.name[0],-1); // new ref
-      PY_CHECK(tex_dict_value,__LINE__);
-      PY_CHECK(!PyDict_SetItemString(tex_dict,&m->name[0],tex_dict_value),__LINE__);
-      Py_DECREF(tex_dict_value,__LINE__);
-      */
     }
     // we don't handle these yet, at least let the user know...
     _LIB3DS_WARN_IF_MATERIAL_TEX_IS_NOT_NULL( texture1_mask);

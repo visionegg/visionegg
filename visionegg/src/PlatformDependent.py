@@ -8,7 +8,7 @@ sync_swap_with_vbl_pre_gl_init() -- Try to synchronize buffer swapping and verti
 sync_swap_with_vbl_post_gl_init() -- Try to synchronize buffer swapping and vertical retrace after starting OpenGL
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
 ####################################################################
@@ -17,13 +17,18 @@ sync_swap_with_vbl_post_gl_init() -- Try to synchronize buffer swapping and vert
 #
 ####################################################################
 
-import sys, os, string
+try:
+    import logging
+except ImportError:
+    import VisionEgg.py_logging as logging
+
+import sys, os
 import VisionEgg
 import VisionEgg.Core
 
 __version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__cvs__ = '$Revision$'.split()[1]
+__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def set_priority(*args,**kw):
@@ -44,11 +49,13 @@ def set_priority(*args,**kw):
                 "darwin_conventional_priority",
                 "darwin_pthread_priority"]
 
+    logger = logging.getLogger('VisionEgg.PlatformDependent')
     params = {}
+
     # set variable in local namespace
     for word in parse_me:
         # set the value from VisionEgg.config
-        config_name = "VISIONEGG_"+string.upper(word)
+        config_name = "VISIONEGG_"+word.upper()
         if hasattr(VisionEgg.config,config_name):
             value = getattr(VisionEgg.config,config_name)
         else:
@@ -74,11 +81,9 @@ def set_priority(*args,**kw):
             process = darwin_maxpriority.PRIO_PROCESS
             policy = darwin_maxpriority.SCHED_RR
 
-            VisionEgg.Core.message.add(
-                """Setting max priority mode for darwin platform
-                using conventional priority %d."""%(
-                params['darwin_conventional_priority'],),
-                VisionEgg.Core.Message.INFO)
+            logger.info("Setting max priority mode for darwin platform "
+                        "using conventional priority %d."%(
+                        params['darwin_conventional_priority'],))
                 
             # set the priority of the current process
             darwin_maxpriority.setpriority(process,0,params['darwin_conventional_priority'])
@@ -96,18 +101,14 @@ def set_priority(*args,**kw):
 
         else:
             bus_speed = darwin_maxpriority.get_bus_speed()
-
-            VisionEgg.Core.message.add(
-                """Setting max priority mode for darwin platform
-                using realtime threads. ( period = %d / %d, 
-                computation = %d / %d, constraint = %d / %d, 
-                preemptible = %d )""" % ( bus_speed,
-                params['darwin_realtime_period_denom'],
-                bus_speed, params['darwin_realtime_computation_denom'],
-                bus_speed, params['darwin_realtime_constraint_denom'],
-                params['darwin_realtime_preemptible'] ),
-                VisionEgg.Core.Message.INFO)
-
+            logger.info("Setting max priority mode for darwin platform "
+                        "using realtime threads. ( period = %d / %d, "
+                        "computation = %d / %d, constraint = %d / %d, "
+                        "preemptible = %d )" % (
+                        bus_speed, params['darwin_realtime_period_denom'],
+                        bus_speed, params['darwin_realtime_computation_denom'],
+                        bus_speed, params['darwin_realtime_constraint_denom'],
+                        params['darwin_realtime_preemptible'] ))
             period = bus_speed / params['darwin_realtime_period_denom']
             computation = bus_speed / params['darwin_realtime_computation_denom']
             constraint = bus_speed / params['darwin_realtime_constraint_denom']
@@ -116,14 +117,10 @@ def set_priority(*args,**kw):
             darwin_maxpriority.set_self_thread_time_constraint_policy( period, computation, constraint, preemptible )
     elif sys.platform == 'win32':
         import win32_maxpriority
-
-        VisionEgg.Core.message.add(
-            """Setting priority for win32 platform to
-            HIGH_PRIORITY_CLASS, THREAD_PRIORITY_HIGHEST.  (This is
-            Microsoft's maximum recommended priority, but you could
-            still raise it higher.)""",
-            VisionEgg.Core.Message.INFO)
-                
+        logger.info("Setting priority for win32 platform to "
+                    "HIGH_PRIORITY_CLASS, THREAD_PRIORITY_HIGHEST. "
+                    "(This is Microsoft's maximum recommended priority, "
+                    "but you could still raise it higher.)")
         win32_maxpriority.set_self_process_priority_class(
             win32_maxpriority.HIGH_PRIORITY_CLASS )
         win32_maxpriority.set_self_thread_priority(
@@ -131,15 +128,11 @@ def set_priority(*args,**kw):
         
     elif sys.platform.startswith('irix') or sys.platform.startswith('linux') or sys.platform.startswith('posix'):
         import posix_maxpriority
-
         policy = posix_maxpriority.SCHED_FIFO
         max_priority = posix_maxpriority.sched_get_priority_max( policy )
-
-        VisionEgg.Core.message.add(
-            """Setting priority for POSIX-compatible platform to
-            policy SCHED_FIFO and priority to %d"""%max_priority,
-            VisionEgg.Core.Message.INFO)
-                
+        logger.info("Setting priority for POSIX-compatible platform to "
+                    "policy SCHED_FIFO and priority to "
+                    "%d"%max_priority)
         posix_maxpriority.set_self_policy_priority( policy, max_priority ) # Fails if you don't have permission (try running as root)
         posix_maxpriority.stop_memory_paging()
     else:
@@ -149,11 +142,11 @@ def linux_but_unknown_drivers():
     """Warn that platform is linux, but drivers not known."""
     # If you've added support for other drivers to sync with VBLANK under
     # linux, please let me know how!
-    VisionEgg.Core.message.add(
-        """Could not sync buffer swapping to vblank because you are
-        running linux but not known/supported drivers (only nVidia and
-        recent Mesa DRI Radeon currently supported)."""
-        , level=VisionEgg.Core.Message.WARNING)
+    logger = logging.getLogger('VisionEgg.PlatformDependent')
+    logger.warning("Could not sync buffer swapping to vblank because "
+                   "you are running linux but not known/supported "
+                   "drivers (only nVidia and recent Mesa DRI Radeon "
+                   "currently supported).")
     
 def sync_swap_with_vbl_pre_gl_init():
     """Try to synchronize buffer swapping and vertical retrace before starting OpenGL."""
@@ -172,15 +165,12 @@ def sync_swap_with_vbl_pre_gl_init():
         os.environ["LIBGL_SYNC_REFRESH"] = "1"
         success = 1
     elif sys.platform.startswith("irix"):
-        
         # I think this is set using the GLX swap_control SGI
         # extension.  A C extension could be to be written to change
         # this value. (It probably cannot be set through an OpenGL
         # extension or an SDL/pygame feature.)
-        
-        VisionEgg.Core.message.add("IRIX platform detected, assuming retrace sync.",
-                                   level=VisionEgg.Core.Message.TRIVIAL)
-        
+        logger = logging.getLogger('VisionEgg.PlatformDependent')
+        logger.info("IRIX platform detected, assuming retrace sync.")
     return success
 
 def sync_swap_with_vbl_post_gl_init():
@@ -196,11 +186,12 @@ def sync_swap_with_vbl_post_gl_init():
         elif sys.platform == "darwin":
             try:
                 import _darwin_sync_swap
-                
                 _darwin_sync_swap.sync_swap()
                 success = 1
             except Exception,x:
-                VisionEgg.Core.message.add("Failed trying to synchronize buffer swapping on darwin: %s: %s"%(str(x.__class__),str(x)))
+                logger = logging.getLogger('VisionEgg.PlatformDependent')
+                logger.warning("Failed trying to synchronize buffer "
+                               "swapping on darwin: %s: %s"%(str(x.__class__),str(x)))
     except:
         pass
     
