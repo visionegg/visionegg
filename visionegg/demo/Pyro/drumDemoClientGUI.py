@@ -18,6 +18,7 @@ contrast_controller = client.get('contrast_controller')
 projection_controller = client.get('projection_controller')
 drum_flat_controller = client.get('drum_flat_controller')
 interpolation_controller = client.get('interpolation_controller')
+texture_repeat_controller = client.get('texture_repeat_controller')
 go_object = client.get('go_object')
 
 class DrumGui(Tkinter.Frame):
@@ -88,6 +89,15 @@ class DrumGui(Tkinter.Frame):
                             variable=self.linear_interp,
                             command=self.push_values,
                             relief=Tkinter.FLAT).pack()
+
+        # Texture repeat mode
+        self.texture_repeat = Tkinter.BooleanVar()
+        self.texture_repeat.set(0)
+        Tkinter.Checkbutton(self,
+                            text='Texture repeat',
+                            variable=self.texture_repeat,
+                            command=self.push_values,
+                            relief=Tkinter.FLAT).pack()
         
         # Go button
         Tkinter.Button(self,text="go",command=self.go).pack()
@@ -123,6 +133,7 @@ class DrumGui(Tkinter.Frame):
         angle_controller.set_value(self.validated_pos_string)
         contrast_controller.set_value(self.validated_c_string)
         interpolation_controller.set_value(self.linear_interp.get())
+        texture_repeat_controller.set_value(self.texture_repeat.get())
         if gui_window.flat.get():
             # Use orthographic projection
             projection_controller.set_value('ortho_proj')
