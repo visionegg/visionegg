@@ -4,22 +4,20 @@
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
+description      = "Vision Egg"
+url              = "http://www.visionegg.org/"
+author           = "Andrew Straw"
+author_email     = "astraw@users.sourceforge.net"
+version          = "0.9.4a2"
+license          = "LGPL" # Lesser GNU Public License
 
-
-# Normal distutils stuff
-name="visionegg"
-version = "0.9.4a2"
-description = "Vision Egg"
-url = 'http://www.visionegg.org/'
-author = "Andrew Straw"
-author_email = "astraw@users.sourceforge.net"
-license = "LGPL"
-package_dir={'VisionEgg'          : 'src',
-             'VisionEgg.PyroApps' : 'src/PyroApps'}
-packages=[ 'VisionEgg',
-           'VisionEgg.PyroApps' ]
-ext_package='VisionEgg'
-ext_modules = []
+name             = "visionegg"
+package_dir      = {'VisionEgg'          : 'src',
+                    'VisionEgg.PyroApps' : 'src/PyroApps'}
+packages         = [ 'VisionEgg',
+                     'VisionEgg.PyroApps' ]
+ext_package      = 'VisionEgg'
+ext_modules      = []
 long_description = \
 """The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
