@@ -35,7 +35,6 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import Pyro.core
-import Pyro.naming
 import Pyro.errors
 
 Pyro.config.PYRO_MULTITHREADED = 0 # No multithreading!
@@ -50,44 +49,30 @@ class PyroServer:
         # Start Pyro
         Pyro.core.initServer()
         self.daemon = Pyro.core.Daemon()
-        # locate the Pyro name server
-        locator = Pyro.naming.NameServerLocator()
-        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        self.daemon.useNameServer(self.ns)
         self.ok_to_run = 1
+
+    def get_hostname_and_port(self):
+        return self.daemon.hostname, self.daemon.port
         
     def connect(self,object,name):
         """Serve an object under a name"""
-        try:
-            self.ns.unregister(name)
-        except Pyro.errors.NamingError:
-            pass
-        self.daemon.connect(object,name)
+        URI=self.daemon.connect(object,name)
+        return URI
+
+    def disconnect(self,object):
+        # Should do this:
+        # self.daemon.disconnect(object)
+        # But there's a bug in Pyro 3.0 and 3.1 (at least)
+        #
+        # Anyhow, here's what daemon.disconnect should do:
+        del self.daemon.implementations[object.GUID()]
+        object.setDaemon(None)
         
     def create_listener_controller(self):
         if hasattr(self,'listen_controller'):
             raise RuntimeError("Only one pyro listen controller allowed per server!")
         self.listen_controller = PyroListenController(self)
         return self.listen_controller
-
-    def unregister(self,name):
-        self.ns.unregister(name)
-
-class PyroClient:
-    """Simplifies getting PyroControllers from a remote computer."""
-    def __init__(self):
-        """Initialize client and find Pyro Name Server."""
-        Pyro.core.initClient()
-        # locate the NS
-        locator = Pyro.naming.NameServerLocator()
-        #print 'Searching Name Server...',
-        self.ns = locator.getNS(Pyro.config.PYRO_NS_HOSTNAME)
-        #print 'Name Server found at',self.ns.URI.address,'('+(Pyro.protocol.getHostname(self.ns.URI.address) or '??')+') port',self.ns.URI.port
-
-    def get(self,name):
-        """Return a remote Pyro object being served by a Pyro server."""
-        URI=self.ns.resolve(name)
-        return Pyro.core.getProxyForURI(URI)
 
 class PyroConstantController(VisionEgg.Core.ConstantController,Pyro.core.ObjBase):
     def __init__(self, **kw):
