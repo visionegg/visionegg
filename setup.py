@@ -90,7 +90,7 @@ if not skip_c_compilation:
     if sys.platform[:4] == 'irix':
         ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
 
-# Fill out data_files
+# Find the demo scripts
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
         if filename[-3:] == '.py':
@@ -141,8 +141,6 @@ def main():
           data_files = data_files,
           long_description = long_description 
           )
-    
-    
 
 if __name__ == "__main__":
     main()
