@@ -208,17 +208,10 @@ class String(ParameterTypeDef):
 def get_type(value):
     """Take a value and return best guess of ParameterTypeDef it is."""
     py_type = type(value)
-    
-    try:
-        bool # no 'bool' in Python 2.2
-    except NameError:
-        pass
-    else:
-        if py_type == bool:
-            return Boolean
-    
     if value is None:
         return NoneType
+    elif py_type == bool:
+        return Boolean
     elif py_type == int:
         if py_type >= 0:
             return UnsignedInteger

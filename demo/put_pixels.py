@@ -34,4 +34,4 @@ while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):
                       anchor="center")
     swap_buffers()
     frame_timer.tick()
-frame_timer.log_histogram()
+frame_timer.print_histogram()

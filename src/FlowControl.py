@@ -12,13 +12,6 @@ __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
-
 ####################################################################
 #
 #        Presentation
@@ -298,6 +291,8 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # Go!
 
+        longest_frame_draw_time_sec = 0.0
+
         self.time_sec_absolute=VisionEgg.time_func()
 
         if p.override_t_abs_sec is not None:
@@ -434,29 +429,27 @@ class Presentation(VisionEgg.ClassWithParameters):
         frame_skip_fraction = self.parameters.warn_longest_frame_threshold
         inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
 
-        longest_frame_draw_time_sec = frame_timer.get_longest_frame_duration_sec()
-        if longest_frame_draw_time_sec is not None:
-            if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
-                self.frames_dropped_in_last_go_loop = False
-                VisionEgg.Core.message.add(
+        if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
+            self.frames_dropped_in_last_go_loop = False
+            VisionEgg.Core.message.add(
 
-                    """One or more frames took %.1f msec, which is
-                    signficantly longer than the expected inter frame
-                    interval of %.1f msec for your frame rate (%.1f Hz)."""%(
+                """One or more frames took %.1f msec, which is
+                signficantly longer than the expected inter frame
+                interval of %.1f msec for your frame rate (%.1f Hz)."""%(
+         
+                longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
+                level=VisionEgg.Core.Message.WARNING)
+        else:
+            VisionEgg.Core.message.add(
 
-                    longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
-                    level=VisionEgg.Core.Message.WARNING)
-            else:
-                VisionEgg.Core.message.add(
+                """Longest frame update was %.1f msec.  Your expected
+                inter frame interval is %f msec."""%(
 
-                    """Longest frame update was %.1f msec.  Your expected
-                    inter frame interval is %f msec."""%(
-
-                    longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
-                    level=VisionEgg.Core.Message.TRIVIAL)
+                longest_frame_draw_time_sec*1000.0,inter_frame_inteval*1000.0),
+                level=VisionEgg.Core.Message.TRIVIAL)
 
         if p.collect_timing_info:
-            frame_timer.log_histogram()
+            frame_timer.print_histogram( fd = VisionEgg.Core.message.output_stream ) # print to Vision Egg log
         self.in_go_loop = 0
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):

@@ -58,4 +58,4 @@ while not pygame.event.peek((pygame.locals.QUIT,
     if movie.IsMovieDone():
         movie.GoToBeginningOfMovie()
         
-frame_timer.log_histogram()
+frame_timer.print_histogram()
