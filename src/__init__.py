@@ -36,28 +36,20 @@ import os, sys, time # standard python modules
 ############# Get config defaults #############
 config = Configuration.Config()
 
-############# Now set up a bunch of obscure stuff  #############
+############ A base class finder utility function ###########
 
-############# Import Vision Egg C routines, if they exist #############
-try:
-    from _maxpriority import *                  # gets set_realtime() function
-except ImportError:
-    def set_realtime():
-        """Fake function definition.  Your system doesn't support the real function.
-        """
-        pass
-
-try:
-    from _dout import *
-except ImportError:
-    def toggle_dout():
-        """Fake function definition.  Your system doesn't support the real function.
-        """
-        pass
-    def set_dout(dummy_argument):
-        """Fake function definition.  Your system doesn't support the real function.
-        """
-        pass
+def recursive_base_class_finder(klass):
+    """A function to find all base classes."""
+    result = [klass]
+    for base_class in klass.__bases__:
+        for base_base_class in recursive_base_class_finder(base_class):
+            result.append(base_base_class)
+    # Make only a single copy of each class found
+    result2 = []
+    for r in result:
+        if r not in result2:
+            result2.append(r)
+    return result2
     
 ############# What is the best timing function? #############
 if sys.platform == 'win32':
