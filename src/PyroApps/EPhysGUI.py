@@ -541,6 +541,9 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
 def get_server(hostname="",port=7766):
     class ConnectWindow(Tkinter.Frame):
         def __init__(self,master=None,hostname="",port=7766,**kw):
+            # Allow VisionEgg Tkinter exception window
+            VisionEgg.config._Tkinter_used = True
+            
             Tkinter.Frame.__init__(self,master, **kw)
             self.winfo_toplevel().title("EPhysGUI Connect - Vision Egg")
             current_row = 0
@@ -799,6 +802,9 @@ class AppWindow(Tkinter.Frame):
         self._tk = Tkinter.Tk
         # Use Vision Egg exception handler
         Tkinter.Tk.report_callback_exception = VisionEgg._exception_hook_keeper.handle_exception
+
+        # Allow VisionEgg Tkinter exception window
+        VisionEgg.config._Tkinter_used = True
         
         # create myself
         Tkinter.Frame.__init__(self,master, **cnf)
