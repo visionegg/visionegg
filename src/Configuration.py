@@ -24,7 +24,7 @@ VisionEgg.config.VISIONEGG_FULLSCREEN.
 # Based on Pyro/configuration.py, copyright (c) Irmen de Jong.
 #
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).  
+# GNU Lesser General Public License (LGPL).
 
 ####################################################################
 #
@@ -54,12 +54,15 @@ defaults= {
 #
 ####################################################################
 
+import VisionEgg
+import re, os, errno                     # standard python packages
 import string
-__version__ = string.split('$Revision$')[1]
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-import re, os, errno                     # standard python packages
+__credits__ = 'Thanks to Irmen de Jong. I took most of this code from his Pyro project.'
 
 class Config:
     def __init__(self):
