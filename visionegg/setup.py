@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Setup script for the Vision Egg distribution.
 """
+# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# GNU General Public License (GPL).
 
 from distutils.core import setup, Extension
 

@@ -2,6 +2,11 @@
 #include <SDL/SDL.h>
 
 /*
+ * This is the C source code for various bits of the Vision Egg library.
+ *
+ * Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+ * GNU General Public License (GPL).
+ *
  * $Revision$
  * $Date$
  * Author = Andrew Straw <astraw@users.sourceforge.net>

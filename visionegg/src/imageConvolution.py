@@ -1,6 +1,9 @@
 # This is the python source code for the imageConvolution module of the Vision Egg package.
 #
 #
+# Copyright (c) 2001 Andrew Straw.  Distributed under the terms of the
+# GNU General Public License (GPL).
+
 import string
 __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
