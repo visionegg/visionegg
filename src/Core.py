@@ -61,7 +61,10 @@ import PlatformDependent                        # platform dependent Vision Egg 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
 import pygame.display
-swap_buffers = pygame.display.flip              # make shortcut name
+#swap_buffers = pygame.display.flip              # make shortcut name
+def swap_buffers():
+    VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
+    return pygame.display.flip()
 
 import OpenGL.GL as gl                          # PyOpenGL (and shortcut name)
 
@@ -353,6 +356,9 @@ class Screen(VisionEgg.ClassWithParameters):
         else:
             VisionEgg.config._open_screens = [self]
 
+    def set_gamma_ramp(self, red, green, blue):
+        return pygame.display.set_gamma_ramp(red,green,blue)
+
     def clear(self):
         """Called by Presentation instance. Clear the screen."""
 
@@ -449,8 +455,66 @@ class Screen(VisionEgg.ClassWithParameters):
         if screen is None:
             raise RuntimeError("Screen open failed. Check your error log for a traceback.")
 
+        gamma_source = string.lower(VisionEgg.config.VISIONEGG_GAMMA_SOURCE)
+        if gamma_source != 'none':
+            if gamma_source == 'invert':
+                native_red = VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED
+                native_green = VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN
+                native_blue = VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE
+                red = screen._create_inverted_gamma_ramp( native_red )
+                green = screen._create_inverted_gamma_ramp( native_green )
+                blue = screen._create_inverted_gamma_ramp( native_blue )
+                gamma_set_string = "linearized gamma lookup tables to correct "+\
+                                   "monitor with native gammas (%f, %f, %f) RGB"%(
+                    native_red,
+                    native_green,
+                    native_blue)
+            elif gamma_source == 'file':
+                filename = VisionEgg.config.VISIONEGG_GAMMA_FILE
+                red, green, blue = screen._open_gamma_file(filename)
+                gamma_set_string = "set gamma lookup tables from data in file %s"%os.path.abspath(filename)
+            else:
+                raise ValueError("Unknown gamma source: '%s'"%gamma_source)
+            if not screen.set_gamma_ramp(red,green,blue):
+                message.add( "Setting gamma ramps failed.",
+                             level=Message.WARNING)
+            else:
+                message.add( "Gamma set sucessfully: %s"%gamma_set_string, Message.INFO )
         return screen
     create_default = VisionEgg.StaticClassMethod(create_default)
+
+    def _create_inverted_gamma_ramp(self, gamma):
+        # c is a constant scale factor.  It is always 1.0 when
+        # luminance is normalized to range [0.0,1.0] and input units
+        # in range [0.0,1.0], as is OpenGL standard.
+        c = 1.0
+        inc = 1.0/255
+        target_luminances = Numeric.arange(0.0,1.0+inc,inc)
+        output_ramp = Numeric.zeros(target_luminances.shape,Numeric.Int)
+        for i in range(len(target_luminances)):
+            L = target_luminances[i]
+            if L == 0.0:
+                v_88fp = 0
+            else:
+                v = math.exp( (math.log(L) - math.log(c)) /gamma)
+                v_88fp = int(round((v*255) * 256)) # convert to from [0.0,1.0] floating point to [0.0,255.0] 8.8 fixed point
+            output_ramp[i] = v_88fp # 8.8 fixed point format
+        return list(output_ramp) # convert to Python list
+        
+    def _open_gamma_file(self, filename):
+        fd = open(filename,"r")
+        gamma_values = []
+        for line in fd.readlines():
+            line = line.strip() # remove leading/trailing whitespace
+            if line.startswith("#"): # comment, ignore
+                continue
+            gamma_values.append( map(int, line.split() ) )
+            if len(gamma_values[-1]) != 3:
+                raise FileError("expected 3 values per gamma entry")
+        if len(gamma_values) != 256:
+            raise FileError("expected 256 gamma entries")
+        red, green, blue = apply(zip,gamma_values)
+        return red,green,blue
             
 def get_default_screen():
     """Make an instance of Screen using a GUI window or from config file."""
@@ -1018,7 +1082,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
-
+        
         self.time_sec_absolute=VisionEgg.timing_func()
         self.frames_absolute=0
 
@@ -1156,9 +1220,11 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Go!
 
         longest_frame_draw_time_sec = 0.0
-            
+
         self.time_sec_absolute=VisionEgg.timing_func()
         self.time_sec_since_go = 0.0
+        self._real_time_go_start = VisionEgg.real_timing_func()
+        self._real_time_last_frame = self._real_time_go_start
         self.frames_since_go = 0
 
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION # create shorthand
@@ -1219,10 +1285,12 @@ class Presentation(VisionEgg.ClassWithParameters):
             self.time_sec_absolute=VisionEgg.timing_func()
             last_time_sec_since_go = self.time_sec_since_go
             self.time_sec_since_go = self.time_sec_absolute - start_time_absolute
-            self.frames_absolute = self.frames_absolute+1
-            self.frames_since_go = self.frames_since_go+1
-            
-            this_frame_draw_time_sec = self.time_sec_since_go-last_time_sec_since_go
+            self.frames_absolute += 1
+            self.frames_since_go += 1
+
+            real_time_now = VisionEgg.real_timing_func()
+            this_frame_draw_time_sec = real_time_now - self._real_time_last_frame
+            self._real_time_last_frame = real_time_now
             
             # If wanted, save time this frame was drawn for
             if p.collect_timing_info:
@@ -1265,10 +1333,13 @@ class Presentation(VisionEgg.ClassWithParameters):
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
-        if self.time_sec_since_go != 0.0:
-            calculated_fps = self.frames_since_go / self.time_sec_since_go
+        real_time_since_go = real_time_now - self._real_time_go_start
+        if real_time_since_go != 0.0:
+            calculated_fps = self.frames_since_go / real_time_since_go
+            mean_frame_time_msec = 1000.0 / calculated_fps
         else:
             calculated_fps = 0.0
+            mean_frame_time_msec = 0.0
         if self.num_frame_controllers: # Frame by frame control desired
             impossibly_fast_frame_rate = 210.0
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
@@ -1284,8 +1355,6 @@ class Presentation(VisionEgg.ClassWithParameters):
                 
         # Warn if > warn_mean_fps_threshold error in frame rate
         if abs(calculated_fps-VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) > self.parameters.warn_mean_fps_threshold:
-            # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
-            # and only print this warning if that variable is true
             message.add(
                 """Calculated frames per second was %.3f, while
                 the VISIONEGG_MONITOR_REFRESH_HZ variable is %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
@@ -1314,7 +1383,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 level=Message.TRIVIAL)
                 
         if p.collect_timing_info:
-            self.__print_frame_timing_stats(timing_histogram,longest_frame_draw_time_sec*1000.0,time_msec_bins)
+            self.__print_frame_timing_stats(timing_histogram,mean_frame_time_msec,calculated_fps,longest_frame_draw_time_sec*1000.0,time_msec_bins)
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Emulates method 'go' but saves a movie."""
@@ -1402,8 +1471,8 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Set the time variables for the next frame
             self.time_sec_absolute= self.time_sec_absolute + 1.0/frames_per_sec
             self.time_sec_since_go = self.time_sec_since_go + 1.0/frames_per_sec
-            self.frames_absolute = self.frames_absolute+1
-            self.frames_since_go = self.frames_since_go+1
+            self.frames_absolute += 1
+            self.frames_since_go += 1
 
             # Make sure we use the right value to check if we're done
             if p.go_duration[0] == 'forever':
@@ -1508,9 +1577,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             synclync_connection.next_control_packet.action_flags += synclync.SL_NOTIFY_SWAPPED_BUFFERS
             synclync_connection.send_control_packet()
         swap_buffers()
-        self.frames_absolute = self.frames_absolute+1
+        self.frames_absolute += 1
         
-    def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
+    def __print_frame_timing_stats(self,timing_histogram,mean_frame_time_msec,calculated_fps,longest_frame_time_msec,time_msec_bins):
         timing_string = "In the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
         synclync_connection = VisionEgg.config._SYNCLYNC_CONNECTION #shorthand
         if synclync_connection:
@@ -1518,7 +1587,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             timing_string += "(SyncLync counted %d VSYNCs, %d buffer swaps, and %d skipped frames.)\n"%(data_packet.vsync_count,
                                                                                                         data_packet.notify_swapped_count,
                                                                                                         data_packet.frameskip_count)
-        timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
+        timing_string += "Mean frame was %.2f msec (%.2f fps), longest frame was %.2f msec.\n"%(mean_frame_time_msec,calculated_fps,longest_frame_time_msec,)
         timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
         timing_string += "\n"
         message.add(timing_string,level=Message.INFO,preserve_formatting=1)

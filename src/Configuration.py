@@ -50,6 +50,11 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 defaults= {
     'VISIONEGG_GUI_INIT':             1,
+    'VISIONEGG_GAMMA_SOURCE':         'none', #also 'invert' or 'file'
+    'VISIONEGG_GAMMA_INVERT_RED':     2.1, # only used in 'invert' mode
+    'VISIONEGG_GAMMA_INVERT_GREEN':   2.1, # only used in 'invert' mode
+    'VISIONEGG_GAMMA_INVERT_BLUE':    2.1, # only used in 'invert' mode
+    'VISIONEGG_GAMMA_FILE':           'custom.ve_gamma', # only used in 'file' mode
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
     'VISIONEGG_FULLSCREEN':           0,
@@ -57,6 +62,7 @@ defaults= {
     'VISIONEGG_FRAMELESS_WINDOW':     0,
     'VISIONEGG_PREFERRED_BPP':        32,
     'VISIONEGG_MONITOR_REFRESH_HZ':   60.0,
+    'VISIONEGG_LOCK_TIME_TO_FRAMES':  0,
     'VISIONEGG_SYNC_SWAP':            1,
     'VISIONEGG_RECORD_TIMES':         1,
     'VISIONEGG_MAXPRIORITY':          0,
@@ -67,7 +73,7 @@ defaults= {
     'VISIONEGG_TKINTER_OK':           1,
     'VISIONEGG_MESSAGE_LEVEL':        1,
     'VISIONEGG_GUI_ON_ERROR':         1,
-    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" (blank string) means sys.stderr
+    'VISIONEGG_LOG_FILE':             'VisionEgg.log',
     'VISIONEGG_LOG_TO_STDERR':        1,
     'SYNCLYNC_PRESENT':               0,
     }
