@@ -131,7 +131,13 @@ class Texture:
 class TextureFromFile(Texture):
     """A Texture that is loaded from a graphics file"""
     def __init__(self,filename):
-        self.orig = Image.open(filename)
+        try:
+            self.orig = Image.open(filename)
+        except:
+            import os
+            VisionEgg.Core.message.add("Could not open \"%s\""%(os.path.abspath(filename),),
+                                       level=VisionEgg.Core.Message.WARNING)
+            raise
 
 class TextureFromPILImage(Texture):
     """A Texture that is loaded from a Python Imaging Library Image."""
