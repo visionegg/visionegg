@@ -285,9 +285,9 @@ class Screen(VisionEgg.ClassWithParameters):
         # place in the code to do it because it's an application-level
         # thing, not a screen-level thing, but it fits reasonably well
         # here for now.)
-        if self.constant_parameters.maxpriority: 
+        if self.constant_parameters.maxpriority:
             PlatformDependent.set_realtime()
-
+            
         if hasattr(VisionEgg.config,'_open_screens'):
             VisionEgg.config._open_screens.append(self)
         else:
@@ -1095,7 +1095,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             if calculated_fps > impossibly_fast_frame_rate: # Let's assume no monitor can exceed impossibly_fast_frame_rate
                 message.add(
                     """Frame by frame control desired, but average
-                    frame rate was %f frames per second-- faster than
+                    frame rate was %.2f frames per second-- faster than
                     any display device (that I know of).  Set your
                     drivers to sync buffer swapping to vertical
                     retrace. (platform/driver
@@ -1108,7 +1108,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
             # and only print this warning if that variable is true
             message.add(
-                """Calculated frames per second was %s, while
+                """Calculated frames per second was %.3f, while
                 VisionEgg.config specified %s."""%(calculated_fps,VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ),
                 level=Message.WARNING
                 )
