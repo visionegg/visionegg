@@ -172,9 +172,9 @@ class TextureBuffer:
                              image_data)                     # image data
                 
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_WIDTH) == 0:
-                raise EggError("Texture is too wide for your video system!")
+                raise VisionEgg.Core.EggError("Texture is too wide for your video system!")
             if glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D,0,GL_TEXTURE_HEIGHT) == 0:
-                raise EggError("Texture is too tall for your video system!")
+                raise VisionEgg.Core.EggError("Texture is too tall for your video system!")
 
             if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
                 glTexImage2D(GL_TEXTURE_2D,                  # target
@@ -278,7 +278,13 @@ class TextureStimulus(TextureStimulusBaseClass):
 
     def draw(self):
         if self.parameters.on:
-            self.parameters.projection.push_and_set_gl_projection() # Save then set the projection matrix
+            # Clear the modeview matrix
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+            
+            # Save then set the projection matrix
+            self.parameters.projection.push_and_set_gl_projection()
+
             glDisable(GL_DEPTH_TEST)
             glDisable(GL_BLEND)
             glEnable(GL_TEXTURE_2D)
