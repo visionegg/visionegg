@@ -42,7 +42,7 @@ if build_sdl:
 
 # Normal distutils stuff
 setup(name="visionegg",
-      version = "0.5.3",
+      version = "0.5.4",
       description = "Vision Egg",
       url = 'http://visionegg.sourceforge.net',
       author = "Andrew Straw",
