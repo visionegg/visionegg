@@ -303,7 +303,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         return self.frames_dropped_in_last_go_loop
 
     def get_last_go_loop_start_time_absolute_sec(self):
-        print "SENT self.last_go_loop_start_time_absolute_sec",self.last_go_loop_start_time_absolute_sec
         return self.last_go_loop_start_time_absolute_sec
 
     def go(self):
