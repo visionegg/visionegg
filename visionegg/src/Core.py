@@ -151,8 +151,11 @@ class Screen(ClassWithParameters):
             print "************ VISION EGG WARNING ***************"
             print "Video system reports %d bits per pixel, while your"%self.bpp
             print "program requested %d. Can you adjust your video drivers?"%try_bpp
-            
+
+        # Save the address of these function so they can be called
+        # when closing the screen.
         self.cursor_visible_func = pygame.mouse.set_visible
+        self.set_dout = PlatformDependent.set_dout
 
         # Attempt to synchronize buffer swapping with vertical sync again
         if not sync_success:
@@ -191,9 +194,9 @@ class Screen(ClassWithParameters):
         pass
 
     def __del__(self):
-        """Make sure mouse is visible after screen closed."""
-##        if hasattr(self,"cursor_visible_func"):
-##            self.cursor_visible_func(1)
+        # Make sure the TTL signal is low when screen closed.
+        self.set_dout(0)
+        # Make sure mouse is visible after screen closed.
         self.cursor_visible_func(1)
         
 ####################################################################
