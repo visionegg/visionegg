@@ -73,8 +73,8 @@ go_duration_controller = tcp_listener.create_tcp_controller(
     tcp_name="go_duration",
     initial_controller=ConstantController(during_go_value=(10,'seconds'))
     )
-go_loop_controller = tcp_listener.create_tcp_controller(
-    tcp_name="go_loop",
+go_controller = tcp_listener.create_tcp_controller(
+    tcp_name="go",
     initial_controller=ConstantController(during_go_value=0)
     )
 
