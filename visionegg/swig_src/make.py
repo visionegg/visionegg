@@ -30,6 +30,7 @@ if swig_src_dir: # the above returns '' if we're in it on Python2.1
 
 interfaces = ["darwin_app_stuff",
               "darwin_maxpriority",
+              "win32_getrefresh",
               "win32_maxpriority",
               "posix_maxpriority"]
 end_names = ["_wrap.c",
