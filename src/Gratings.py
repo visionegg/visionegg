@@ -206,8 +206,6 @@ class SinGrating2D(LuminanceGratingCommon):
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
         gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE) # change to GL_BLEND if color2 defined
-        gl.glEnable(gl.GL_TEXTURE_1D)
-        gl.glDisable(gl.GL_TEXTURE_2D)
 
     def __del__(self):
         gl.glDeleteTextures( [self._texture_object_id] )
@@ -219,6 +217,8 @@ class SinGrating2D(LuminanceGratingCommon):
                 gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
             gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
             
+            gl.glEnable(gl.GL_TEXTURE_1D)
+            gl.glDisable(gl.GL_TEXTURE_2D)
             if p.bit_depth != self.cached_bit_depth:
                 self.calculate_bit_depth_dependencies()
                     
@@ -291,6 +291,8 @@ class SinGrating2D(LuminanceGratingCommon):
                 gl.glTexCoord2f(0.0,1.0)
                 gl.glVertex3f(l,t,depth)
                 gl.glEnd() # GL_QUADS
+            
+            gl.glDisable(gl.GL_TEXTURE_1D)
 
 class NumSamplesTooLargeError( VisionEgg.Core.EggError ):
     """Overrides VisionEgg.Core.EggError"""

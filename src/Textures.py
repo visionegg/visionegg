@@ -937,6 +937,9 @@ class Mask2D(VisionEgg.ClassWithParameters):
         gl.glVertex3f(le,te,depth)
         
         gl.glEnd() # GL_QUADS
+        gl.glEnable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
+        gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # return to 1st texture unit
+        
 
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle for 2D use (z coordinate fixed to 0.0)."""
