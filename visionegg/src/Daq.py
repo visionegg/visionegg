@@ -1,5 +1,19 @@
+"""Definition of data acquisition interfaces.
+
+This module provides an interface to abstract data acquisition
+devices.  To interface with real data acquisition devices, use a
+module that subclasses the classes defined here."""
+
+# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
+# GNU Lesser General Public License (LGPL)
+
 import VisionEgg
-import types
+import types, string
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class Trigger(VisionEgg.ClassWithParameters):
     pass
@@ -49,21 +63,31 @@ class Input(Functionality):
         raise RuntimeError("Must override get_data method with daq implementation!")
 
 class Output(Functionality):
-    def put_data(self):
+    def put_data(self,data):
         raise RuntimeError("Must override put_data method with daq implementation!")
 
 class Channel(VisionEgg.ClassWithParameters):
     constant_parameters_and_defaults = { 'signal_type' : (None,SignalType),
                                          'daq_mode' : (None,DaqMode),
                                          'functionality' : (None,Functionality)}
+    def __init__(self,**kw):
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        self.constant_parameters.signal_type.channel = self
+        self.constant_parameters.daq_mode.channel = self
+        self.constant_parameters.functionality.channel = self
+        self.device = None # Not set yet
+        
     def arm_trigger(self):
         raise NotImpelemetedError("This method must be overridden.")
 
 class Device:
-    def __init__(self):
-        if self.__class__ == Device:
-            raise RuntimeError("Trying to instantiate abstract base class.")
+    def __init__(self, channels = None):
         self.channels = []
+        if channels is not None:
+            if type(channels) is not types.ListType:
+                raise ValueError("channels must be a list of channels")
+            for channel in channels:
+                self.add_channel( channel )
         
     def add_channel(self,channel):
         # override this method if you need to do error checking
@@ -71,3 +95,4 @@ class Device:
             self.channels.append(channel)
         else:
             raise ValueError("%s not instance of VisionEgg.Daq.Channel"%channel)
+        channel.device = self
