@@ -35,6 +35,10 @@ Textures -- Texture (images mapped onto polygons) stimuli
 Text -- Text stimuli
 __init__ -- Loaded with "import VisionEgg" (This module)
 
+Subpackages:
+
+PyroApps -- Support for demo applications based on Pyro
+
 Classes:
 
 Parameters -- Parameter container
@@ -218,13 +222,11 @@ class ClassWithParameters:
         as having an unchangeable value, it is more subtle.
 
     """
-    
     parameters_and_defaults = {} # empty for base class
     constant_parameters_and_defaults = {} # empty for base class
 
     def __init__(self,**kw):
         """Create self.parameters and set values."""
-        
         self.constant_parameters = Parameters() # create self.constant_parameters
         self.parameters = Parameters() # create self.parameters
         
@@ -252,6 +254,7 @@ class ClassWithParameters:
                     if len(klass.parameters_and_defaults[parameter_name]) != 2:
                         raise ValueError("Definition of parameter '%s' in class %s must be a 2 tuple specifying value and type."%(parameter_name,klass))
                     value,tipe = klass.parameters_and_defaults[parameter_name]
+
                     if type(tipe) not in [types.TypeType,types.ClassType]:
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
