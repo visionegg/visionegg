@@ -146,7 +146,7 @@ def set_priority(*args,**kw):
             policy SCHED_FIFO and priority to %d"""%max_priority,
             VisionEgg.Core.Message.INFO)
                 
-        posix_maxpriority.set_self_policy_priority( policy, max_priority )
+        posix_maxpriority.set_self_policy_priority( policy, max_priority ) # Fails if you don't have permission (try running as root)
         posix_maxpriority.stop_memory_paging()
     else:
         raise RuntimeError("Cannot change priority.  Unknown platform '%s'"%sys.platform)
