@@ -22,12 +22,21 @@ targetBackground.py -- Moving target over a spinning drum.
 texture.py -- Load a texture from a file.
 textureDrum.py -- A texture-mapped spinning drum.
 
+Pyro -- demo directory for remote control of Vision Egg programs
+Pyro/simpleServer.py -- Very simple usage of Pyro (server)
+Pyro/simpleClient.py -- Very simple usage of Pyro (client)
+Pyro/gratingPyroServer.py -- Grating control with low-level Controllers (server)
+Pyro/gratingPyroGUI.py -- Grating control with low-level Controllers (GUI client)
+Pyro/metaPyroServer.py  -- Grating control with high-level meta-controller (server)
+Pyro/metaPyroGUI.py -- Grating control with high-level meta-controller (GUI client)
+
 calibrate -- demo directory with luminance calibration utilities
 (own README.txt)
 
 daq -- demo directory for data acquisition
 daq/trigger_in.py -- Use an external device to trigger the Vision Egg.
 daq/trigger_out.py -- Use the Vision Egg to trigger an external device.
+daq/tcp/demo_gui_lab.py -- Integrated data acquisition/stimulus control
 
 GUI -- demo directory for graphical user interfaces
 GUI/drumDemoGUI.py -- Spinning drum with a graphical user interface (old).
