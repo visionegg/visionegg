@@ -1043,6 +1043,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                     gl.glEnd() # GL_QUADS
 
             else: # draw as cylinder
+                gl.glTranslatef(p.position[0],p.position[1],p.position[2])
+                
                 # turn the coordinate system so we don't have to deal with
                 # figuring out where to draw the texture relative to drum
                 gl.glRotatef(p.angular_position,0.0,1.0,0.0)
