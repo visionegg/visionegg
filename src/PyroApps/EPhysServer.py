@@ -18,6 +18,7 @@ __date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
+import parser, symbol, token, compiler
 import tkMessageBox
 import pygame.display
 import VisionEgg.Core
@@ -28,6 +29,9 @@ import VisionEgg.Textures
 import VisionEgg.PyroHelpers
 import Pyro, Pyro.core
 
+# AST extensions:
+import VisionEgg.PyroApps.AST_ext as AST_ext
+
 # Add your stimulus modules here
 import VisionEgg.PyroApps.TargetServer
 import VisionEgg.PyroApps.MouseTargetServer
@@ -36,6 +40,7 @@ import VisionEgg.PyroApps.SphereGratingServer
 import VisionEgg.PyroApps.SpinningDrumServer
 import VisionEgg.PyroApps.GridServer
 import VisionEgg.PyroApps.ColorCalServer
+import VisionEgg.PyroApps.DropinServer
 
 server_modules = [ VisionEgg.PyroApps.TargetServer,
                    VisionEgg.PyroApps.MouseTargetServer,
@@ -44,6 +49,7 @@ server_modules = [ VisionEgg.PyroApps.TargetServer,
                    VisionEgg.PyroApps.SpinningDrumServer,
                    VisionEgg.PyroApps.GridServer,
                    VisionEgg.PyroApps.ColorCalServer,
+                   VisionEgg.PyroApps.DropinServer
                    ]
 
 # 3D screen positioning parameters
@@ -56,6 +62,8 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.stimdict = {}
         self.stimkey = server_modules[0].get_meta_controller_stimkey() # first stimulus will be this
         self.quit_status = 0
+        self.exec_demoscript_flag = 0
+        #self.loaded_demoscript_flag = 0
         self.presentation = presentation
         # target for stimulus onset calibration
         self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
@@ -75,7 +83,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
                                                           stimuli=[self.onset_cal_bg,
                                                                    self.onset_cal_fg]
                                                           )
-        
+
         for server_module in server_modules:
             stimkey = server_module.get_meta_controller_stimkey()
             klass = server_module.get_meta_controller_class()
@@ -85,16 +93,16 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def __del__(self):
         self.presentation.remove_controller(self.onset_cal_fg,'on')
         Pyro.core.ObjBase.__del__(self)
-            
+
     def get_quit_status(self):
         return self.quit_status
-    
+
     def set_quit_status(self,quit_status):
         self.quit_status = quit_status
         self.presentation.parameters.quit = quit_status
 
     def first_connection(self):
-        # break out of initial run_forever loop        
+        # break out of initial run_forever loop
         self.presentation.parameters.quit = 1
 
     def set_stim_onset_cal(self, on):
@@ -110,7 +118,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.onset_cal_fg.parameters.position = center
         self.onset_cal_bg.parameters.size = size
         self.onset_cal_fg.parameters.size = size[0]-2,size[1]-2
-        
+
     def get_stim_onset_cal_location(self):
         x,y = self.onset_cal_bg.parameters.position
         width,height = self.onset_cal_bg.parameters.size
@@ -124,14 +132,14 @@ class EPhysServer(  Pyro.core.ObjBase ):
 
     def were_frames_dropped_in_last_go_loop(self):
         return self.presentation.were_frames_dropped_in_last_go_loop()
-    
+
     def get_last_go_loop_start_time_absolute_sec(self):
         return self.presentation.get_last_go_loop_start_time_absolute_sec()
 
     def set_override_t_abs_sec(self, value_sec_string):
         value_sec = float(value_sec_string) # Pyro loses precision
         self.presentation.parameters.override_t_abs_sec = value_sec
-    
+
     def get_next_stimulus_meta_controller(self):
         if self.stimkey:
             klass, make_stimuli = self.stimdict[self.stimkey]
@@ -142,7 +150,7 @@ class EPhysServer(  Pyro.core.ObjBase ):
 
     def get_stimkey(self):
         return self.stimkey
-        
+
     def set_next_stimkey(self,stimkey):
         self.stimkey = stimkey
 
@@ -162,12 +170,44 @@ class EPhysServer(  Pyro.core.ObjBase ):
             traceback.print_exc()
             raise
 
+    def build_AST(self, source):
+        AST = parser.suite(source)
+        self.AST = AST
+
+    def exec_AST(self, screen, dropin_meta_params):
+
+        for var in dropin_meta_params.vars_list:
+            self.AST = AST_ext.modify_AST(self.AST, var[0], var[1])
+
+        code_module = self.AST.compile()
+        #eval(code_module)
+        #This fixes prbolem with pygame demo but other demos
+        # come up with screen not defined error
+        #print dir(globals())
+        #dir(code_module.globals())
+
+
+
+        #exec code_module in globals(), {'screen':screen}
+        exec code_module in locals()
+        #exec code_module in globals()
+        try:
+            self.script_dropped_frames = code_module.p.were_frames_dropped_in_last_go_loop()
+        except NameError:
+            self.script_dropped_frames = -1
+        self.exec_demoscript_flag = 0
+
+    def run_demoscript(self):
+        self.exec_demoscript_flag = 1
+
 def start_server( server_modules, server_class=EPhysServer ):
+
+    super_flag = 0
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     # get Vision Egg stimulus ready to go
     screen = VisionEgg.Core.Screen.create_default()
-    
+
     temp = ScreenPositionParameters()
 
     projection = VisionEgg.Core.PerspectiveProjection(temp.left,
@@ -197,47 +237,64 @@ def start_server( server_modules, server_class=EPhysServer ):
     ephys_server = server_class(p, server_modules)
     pyro_server.connect(ephys_server,"ephys_server")
     hostname,port = pyro_server.get_hostname_and_port()
-    
+
     wait_text.parameters.text = "Waiting for connection at %s port %d"%(hostname,port)
-    
+
     # get listener controller and register it
     p.add_controller(None,None, pyro_server.create_listener_controller())
 
     p.run_forever() # run until we get first connnection, which breaks out immmediately
 
     wait_text.parameters.text = "Loading new experiment, please wait."
-    
+
     while not ephys_server.get_quit_status():
 
-        perspective_viewport.parameters.stimuli = []
-        overlay2D_viewport.parameters.stimuli = [wait_text]
-        p.between_presentations() # draw wait_text
-        
-        pyro_name, meta_controller_class, stimulus_list = ephys_server.get_next_stimulus_meta_controller()
-        stimulus_meta_controller = meta_controller_class(screen, p, stimulus_list) # instantiate meta_controller
-        pyro_server.connect(stimulus_meta_controller, pyro_name)
-            
-        overlay2D_viewport.parameters.stimuli = [] # clear wait_text
-            
-        for stim in stimulus_list:
-            if stim[0] == '3d_perspective':
-                perspective_viewport.parameters.stimuli.append(stim[1])
-            elif stim[0] == '3d_perspective_with_set_viewport_callback':
-                key, stimulus, callback_function = stim
-                callback_function(perspective_viewport)
-                perspective_viewport.parameters.stimuli.append(stimulus)
-            elif stim[0] == '2d_overlay':
-                overlay2D_viewport.parameters.stimuli.append(stim[1])
-            else:
-                raise RuntimeError("Unknown viewport id %s"%stim[0])
-        
-        # enter loop
-        p.parameters.enter_go_loop = 0
-        p.parameters.quit = 0
-        p.run_forever()
+        if super_flag == 0:
+            wait_text.parameters.text = "Loading new experiment, please wait."
+            perspective_viewport.parameters.stimuli = []
+            overlay2D_viewport.parameters.stimuli = [wait_text]
+            p.between_presentations() # draw wait_text
+            pyro_name, meta_controller_class, stimulus_list = ephys_server.get_next_stimulus_meta_controller()
+            stimulus_meta_controller = meta_controller_class(screen, p, stimulus_list) # instantiate meta_controller
+            pyro_server.connect(stimulus_meta_controller, pyro_name)
 
-        pyro_server.disconnect(stimulus_meta_controller)
-        del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
+        super_flag = 0
+
+        if ephys_server.get_stimkey() == "dropin_server":
+            #while ephys_server.exec_demoscript_flag == 0:
+            #locked loop doesn't work for some reason!
+            wait_text.parameters.text = "Demo script has been loaded."
+
+            p.parameters.enter_go_loop = 0
+            p.parameters.quit = 0
+            p.run_forever()
+
+            if ephys_server.exec_demoscript_flag == 1:
+                dropin_meta_params = stimulus_meta_controller.get_parameters()
+                ephys_server.exec_AST(screen, dropin_meta_params)
+                super_flag = 1
+
+        else:
+            overlay2D_viewport.parameters.stimuli = [] # clear wait_text
+            for stim in stimulus_list:
+                if stim[0] == '3d_perspective':
+                    perspective_viewport.parameters.stimuli.append(stim[1])
+                elif stim[0] == '3d_perspective_with_set_viewport_callback':
+                    key, stimulus, callback_function = stim
+                    callback_function(perspective_viewport)
+                    perspective_viewport.parameters.stimuli.append(stimulus)
+                elif stim[0] == '2d_overlay':
+                    overlay2D_viewport.parameters.stimuli.append(stim[1])
+                else:
+                    raise RuntimeError("Unknown viewport id %s"%stim[0])
+
+            # enter loop
+            p.parameters.enter_go_loop = 0
+            p.parameters.quit = 0
+            p.run_forever()
+
+            pyro_server.disconnect(stimulus_meta_controller)
+            del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
 
 if __name__ == '__main__':
     start_server( server_modules )
