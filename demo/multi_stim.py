@@ -21,14 +21,14 @@ import pygame.locals
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # make black (RGBA)
 
-x1 = screen.size[0]/4.0
-x2 = 3*screen.size[0]/4.0
+x1 = screen.size[0]/4
+x2 = 3*screen.size[0]/4
 
-y1 = screen.size[1]/4.0
-y2 = 3*screen.size[1]/4.0
+y1 = screen.size[1]/4
+y2 = 3*screen.size[1]/4
 
-width = screen.size[0]/3.0
-height = screen.size[1]/3.0
+width = screen.size[0]/3
+height = screen.size[1]/3
 
 #####################################
 #  text                             #
