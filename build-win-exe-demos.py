@@ -23,6 +23,7 @@ scripts_orig = string.split(r"""
 check-config.py
 demo\displayText.py
 demo\grating.py
+demo\lib3ds-demo.py
 demo\makeMovie.py
 demo\mouseTarget.py
 demo\movingPOV.py
