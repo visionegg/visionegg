@@ -25,7 +25,7 @@ acquisition system.
 Contents:
 ---------
 
-alpha_textuer.py -- Textures with alpha (transparency).
+alpha_texture.py -- Textures with alpha (transparency).
 color_grating.py -- Colored sine wave grating in circular mask
 convert3d_to_2d.py -- Convert 3D position to 2D position
 displayText.py -- Display text strings
