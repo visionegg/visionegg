@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Display quicktime movie."""
+"""Display a quicktime movie in the Vision Egg.
+
+See also mpeg.py, which plays MPEG movies.
+"""
 
 import os, sys
 import VisionEgg
