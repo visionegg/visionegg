@@ -5,9 +5,11 @@ DEBUG = 0
 import unittest
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import OpenGL.GL as gl
 
 # for some specific test cases:
+import VisionEgg.ParameterTypes
 import VisionEgg.Dots
 import VisionEgg.Gratings
 import VisionEgg.SphereMap
@@ -46,17 +48,68 @@ class VETestCase(unittest.TestCase):
         VisionEgg.Core.swap_buffers() # just for a brief flash...
         del self.screen
 
-    def test_core_presentation_go(self):
-        p = VisionEgg.Core.Presentation(go_duration=(5,'frames'))
+    def test_parameter_types_simple(self):
+        ve_types = VisionEgg.ParameterTypes
+        b = ve_types.Boolean
+        ui = ve_types.UnsignedInteger
+        i = ve_types.Integer
+        r = ve_types.Real
+        ve_types.assert_type(b,ui)
+        ve_types.assert_type(b,i)
+        ve_types.assert_type(b,r)
+        ve_types.assert_type(ui,i)
+        ve_types.assert_type(ui,r)
+        ve_types.assert_type(i,r)
+
+    def test_parameter_types_sequence(self):
+        ve_types = VisionEgg.ParameterTypes
+        sr = ve_types.Sequence( ve_types.Real )
+        s4r = ve_types.Sequence4( ve_types.Real )
+        s3r = ve_types.Sequence3( ve_types.Real )
+        s2r = ve_types.Sequence2( ve_types.Real )
+        ve_types.assert_type(s4r,sr)
+        ve_types.assert_type(s3r,sr)
+        ve_types.assert_type(s2r,sr)
+        s4i = ve_types.Sequence4( ve_types.Integer )
+        s3i = ve_types.Sequence3( ve_types.Integer )
+        s2i = ve_types.Sequence2( ve_types.Integer )
+        ve_types.assert_type(s4i,sr)
+        ve_types.assert_type(s3i,sr)
+        ve_types.assert_type(s2i,sr)
+        
+    def test_parameter_types_instance(self):
+        ve_types = VisionEgg.ParameterTypes
+        istim = ve_types.Instance( VisionEgg.Core.Stimulus )
+        itext = ve_types.Instance( VisionEgg.Text.Text )
+        ve_types.assert_type(itext,istim)
+        
+        class A: # classic classes
+            pass
+        class B(A):
+            pass
+        ia = ve_types.Instance( A )
+        ib = ve_types.Instance( B )
+        ve_types.assert_type(ib, ia)
+        
+        class An(object): # new style classes
+            pass
+        class Bn(An):
+            pass
+        ian = ve_types.Instance( An )
+        ibn = ve_types.Instance( Bn )
+        ve_types.assert_type(ibn, ian)
+
+    def test_presentation_go(self):
+        p = VisionEgg.FlowControl.Presentation(go_duration=(5,'frames'))
         p.go()
 
-    def test_core_presentation_go_twice(self):
-        p = VisionEgg.Core.Presentation(go_duration=(5,'frames'))
+    def test_presentation_go_twice(self):
+        p = VisionEgg.FlowControl.Presentation(go_duration=(5,'frames'))
         p.go()
         p.go() # check to make sure it works a second time
 
-    def test_core_presentation_go_not(self):
-        p = VisionEgg.Core.Presentation(go_duration=(0,'frames'))
+    def test_presentation_go_not(self):
+        p = VisionEgg.FlowControl.Presentation(go_duration=(0,'frames'))
         p.go() # make sure it works with 0 duration
 
     def test_core_screen_query_refresh_rate(self):
@@ -75,6 +128,11 @@ class VETestCase(unittest.TestCase):
         fps2 = self.screen.measure_refresh_rate(average_over_seconds=1.0)
         percent_diff = abs(fps1-fps2)/max(fps1,fps2)*100.0
         self.failUnless(percent_diff < 5.0,'measured and queried frame rates different (swap buffers may not be synced to vsync)')
+
+    def test_core_fixation_spot(self):
+        stimulus = VisionEgg.Core.FixationSpot()
+        self.ortho_viewport.parameters.stimuli = [ stimulus ]
+        self.ortho_viewport.draw()
 
     def test_dots_dotarea2d(self):
         stimulus = VisionEgg.Dots.DotArea2D()
@@ -315,12 +373,16 @@ class VETestCase(unittest.TestCase):
         
 def suite():
     ve_test_suite = unittest.TestSuite()
-    ve_test_suite.addTest( VETestCase("test_core_presentation_go") )
-    ve_test_suite.addTest( VETestCase("test_core_presentation_go_twice") )
-    ve_test_suite.addTest( VETestCase("test_core_presentation_go_not") )
+    ve_test_suite.addTest( VETestCase("test_parameter_types_simple") )
+    ve_test_suite.addTest( VETestCase("test_parameter_types_sequence") )
+    ve_test_suite.addTest( VETestCase("test_parameter_types_instance") )
+    ve_test_suite.addTest( VETestCase("test_presentation_go") )
+    ve_test_suite.addTest( VETestCase("test_presentation_go_twice") )
+    ve_test_suite.addTest( VETestCase("test_presentation_go_not") )
     ve_test_suite.addTest( VETestCase("test_core_refresh_rates_match") )
     ve_test_suite.addTest( VETestCase("test_core_screen_query_refresh_rate") )
     ve_test_suite.addTest( VETestCase("test_core_screen_measure_refresh_rate") )
+    ve_test_suite.addTest( VETestCase("test_core_fixation_spot") )
     ve_test_suite.addTest( VETestCase("test_dots_dotarea2d") )
     ve_test_suite.addTest( VETestCase("test_gratings_singrating2d") )
     ve_test_suite.addTest( VETestCase("test_gratings_singrating2d_mask") )
