@@ -30,9 +30,9 @@ The files will be installed to %s. This is the default Python 2.2 framework dire
 
 A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link will be made from your Desktop.
 
-This release exposes a few known bugs with Tk and pygame that are Mac OS X specific. Checkbuttons in dialog windows are broken until a button is pressed, and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working.
+This release exposes a few known bugs with Mac OS X versions of software that the Vision Egg depends on. Checkbuttons in dialog windows are broken until a button is pressed (Tk bug), and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working (pygame bug).
 
-This package has the following dependencies, all of which can be downloaded as a single archive from http://redivi.com/~bob
+This package has the following dependencies, all of which can be downloaded as a single archive from the Vision Egg website http://www.visionegg.org
 
 Python with frameworks
 PyOpenGL (Python module)
@@ -167,7 +167,7 @@ os.chdir(orig_dir)
 os.system("pax -f %s"%(pax_file,))
 
 pkg_info = copy.deepcopy(packageInfoDefaults)
-pkg_info['Title'] = "Vision Egg %s"%(setup.version)
+pkg_info['Title'] = setup.description
 pkg_info['Version'] = setup.version
 pkg_info['Description'] = "Vision Egg for Mac OS X (http://www.visionegg.org)"
 pkg_info['DefaultLocation'] = default_location
