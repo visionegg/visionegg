@@ -12,6 +12,23 @@ blow-by-blow accounts of how I got the prerequisites for the Vision
 Egg installed on all the supported platforms, check out the website at
 http://www.visionegg.org/ 
 
+MAC OS X ODDITIES
+
+A couple of minor issues will confront you when compiling the 0.9.2a0
+release on Mac OS X due to the option of compiling C code to acheive
+real-time priority and synchronizing framebuffer swaps with the
+vertical retrace sync pulse.  If you don't want these features, edit
+"setup.py" and set "skip_macosx_c_compilation = 1".  This will free
+you from needing to do any c compilation, which frees you from needing
+Apple's developer's tools. Otherwise, get the developer tools from
+http://developer.apple.com/
+
+Next, when you run "python setup.py install", the compilation of
+_darwin_sync_swap.c will fail.  Just copy the long line (it will
+probably wrap around your terminal window) beginning with "cc" and
+paste it back onto the command line.  This time it should compile
+fine.  Now run "python setup.py install" again.
+
 RUN THE CONFIGURATION CHECK (BEFORE AND/OR AFTER INSTALLATION)
 
 Check for pre-requisites on your system by running check-config.py.
