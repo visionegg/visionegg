@@ -28,6 +28,16 @@ the environment variable VISIONEGG_CONFIG_FILE.  """
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
+import VisionEgg
+import re, os, errno, sys                  # standard python packages
+import ConfigParser
+import string
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
 ####################################################################
 #
 #        Default configuration variables
@@ -51,24 +61,15 @@ defaults= {
     'VISIONEGG_TKINTER_OK':           1,
     'VISIONEGG_MESSAGE_LEVEL':        1,
     'VISIONEGG_GUI_ON_ERROR':         1,
-    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" means sys.stderr
+    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" (blank string) means sys.stderr
     }
 
-####################################################################
-#
-#        Import all the necessary packages
-#
-####################################################################
-
-import VisionEgg
-import re, os, errno, sys                  # standard python packages
-import ConfigParser
-import string
-
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+extra_darwin_defaults = {
+    'VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM'      : 120,
+    'VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM' : 2400,
+    'VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM'  : 1200,
+    'VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE'       : 0,
+}
 
 class Config:
     def __init__(self):
@@ -92,26 +93,63 @@ class Config:
                 configFile = os.path.join(self.VISIONEGG_SYSTEM_DIR,"VisionEgg.cfg")
                 if not os.path.isfile(configFile):
                     configFile = None # No file, use defaults specified in environment variables then here
-            
 
-        cfg.read(configFile)
+        try:
+            cfg.read(configFile)
+        except ConfigParser.MissingSectionHeaderError:
+            sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
+            sys.stderr.flush()
+            raise
 
+        # Do the general stuff first
         # Set the default values
         for name in defaults.keys():
             setattr(self,name,defaults[name])
 
         # Get the values from the configFile
-        for option in cfg.options('VisionEgg'):
+        try:
+            general_options = cfg.options('General')
+        except ConfigParser.NoSectionError,x:
+            sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
+            sys.stderr.flush()
+            raise
+        for option in general_options:
             name = string.upper(option)
             if name not in defaults.keys():
                 raise KeyError("No Vision Egg configuration variable \"%s\""%option)
             if type(defaults[name]) == type(42): # int
-                setattr(self,name,int(cfg.get('VisionEgg',option)))
+                setattr(self,name,int(cfg.get('General',option)))
             elif type(defaults[name]) == type(42.0): # float
-                setattr(self,name,float(cfg.get('VisionEgg',option)))
+                setattr(self,name,float(cfg.get('General',option)))
             else:
-                setattr(self,name,cfg.get('VisionEgg',option))
-        
+                setattr(self,name,cfg.get('General',option))
+
+        # Do platform specific stuff
+        # Set the default values
+        extra_name = "extra_%s_defaults"%(sys.platform,)
+        if extra_name in globals().keys():
+            extra_defaults = globals()[extra_name]
+            for name in extra_defaults.keys():
+                setattr(self,name,extra_defaults[name])
+
+            # Get the values from the configFile
+            try:
+                platform_options = cfg.options(sys.platform)
+            except ConfigParser.NoSectionError,x:
+                sys.stderr.write("Error opening old VisionEgg.cfg format file at %s\n"%(os.path.abspath(configFile),))
+                sys.stderr.flush()
+                raise
+            for option in platform_options:
+                name = string.upper(option)
+                if name not in extra_defaults.keys():
+                    raise KeyError("No Vision Egg configuration variable \"%s\""%option)
+                if type(extra_defaults[name]) == type(42): # int
+                    setattr(self,name,int(cfg.get(sys.platform,option)))
+                elif type(extra_defaults[name]) == type(42.0): # float
+                    setattr(self,name,float(cfg.get(sys.platform,option)))
+                else:
+                    setattr(self,name,cfg.get(sys.platform,option))
+            
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
         else:
