@@ -66,9 +66,8 @@ video_info.initialized = 0
 video_info.tex_compress = 0
 try:
     from OpenGL.GL.ARB.texture_compression import * #   can use this to fit more textures in texture memory
-    if sys.platform != 'darwin':
-        ## if glInitTextureCompressionARB(): # This function doesn't seem to return any useful info
-        video_info.tex_compress = 1 # texture compression doesn't work on my PowerBook G4
+    ## if glInitTextureCompressionARB(): # This function doesn't seem to return any useful info, at least on my PowerBook G4
+    ## video_info.tex_compress = 1 # texture compression doesn't work on lots of computers
 except:
     pass
 
