@@ -65,7 +65,7 @@ class AppWindow(Tkinter.Frame):
         self.after(1,self.idle) # (re)register idle function with Tkinter
 
 class OpenScreenDialog(Tkinter.Frame):
-    """A GUI window to open an instance of Screen"""
+    """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
@@ -77,95 +77,143 @@ class OpenScreenDialog(Tkinter.Frame):
                       font=("Helvetica",14,"bold")).grid(row=row,columnspan=2)
         row += 1
 
-        Tkinter.Label(self,
-                      text="The default value for these variables and the\npresence of this dialog window can be\ncontrolled via the Vision Egg config file.",
-                      ).grid(row=row,columnspan=2)
-        row += 1
+        topframe = Tkinter.Frame(self)
+        topframe.grid(row=row,column=0,columnspan=2)
+        topframe_row = 0
+        
+        Tkinter.Label(topframe,
+                      text=self.format_string("The default value for these variables and the presence of this dialog window can be controlled via the Vision Egg config file. If this file exists in the Vision Egg user directory, that file is used.  Otherwise, the configuration file found in the Vision Egg system directory is used."),
+                      ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
+        topframe_row += 1
 
         if sys.platform == 'darwin':
-            Tkinter.Label(self,
-                          text="On Mac OS X, an error dialog will appear after you run\na Vision Egg application in non fullscreen mode which says\n\"The application Python has quit unexpectedly.\"\nThis is a known bug and will be addressed in future releases.",
-                          ).grid(row=row,columnspan=2)
-            row += 1
+            Tkinter.Label(topframe,
+                          text=self.format_string("On Mac OS X, an error dialog will appear after you run a Vision Egg application in non fullscreen mode which erroneously says \"The application Python has quit unexpectedly.\" This is a known bug and will be addressed in future releases."),
+                          ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
+            topframe_row += 1
 
-            Tkinter.Label(self,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=row,column=0,sticky=Tkinter.E)
-            Tkinter.Button(self,text="PRESS ME FIRST").grid(row=row,column=1,sticky=Tkinter.W)
-            row += 1
+            Tkinter.Label(topframe,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=topframe_row,column=1,sticky=Tkinter.E)
+            Tkinter.Button(topframe,text="PRESS ME FIRST").grid(row=topframe_row,column=2,sticky=Tkinter.W,)
+            topframe_row += 1
 
+        try:
+            import Image,ImageTk
+            im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp'))
+            self.tk_im=ImageTk.PhotoImage(im)
+            Tkinter.Label(topframe,image=self.tk_im).grid(row=0,rowspan=topframe_row,column=0)
+        except Exception,x:
+            VisionEgg.Core.message.add("Error while trying to display image in GUI.OpenScreenDialog: %s: %s"%(str(x.__class__),str(x)))
+
+        row += 1
         
         file_frame = Tkinter.Frame(self)
         file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
+
+        # Vision Egg system dir
+        file_row = 0
+        Tkinter.Label(file_frame,
+                      text="Vision Egg system directory:").grid(row=file_row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(file_frame,
+                      text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_SYSTEM_DIR),)).grid(row=file_row,column=1,sticky=Tkinter.W)
+        file_row += 1
+        
+        # Vision Egg user dir
+        Tkinter.Label(file_frame,
+                      text="Vision Egg user directory:").grid(row=file_row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(file_frame,
+                      text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_USER_DIR),)).grid(row=file_row,column=1,sticky=Tkinter.W)
+        file_row += 1
         
         # Config file
         Tkinter.Label(file_frame,
-                      text="Config file location:").grid(row=0,column=0,sticky=Tkinter.E)
+                      text="Config file location:").grid(row=file_row,column=0,sticky=Tkinter.E)
         if VisionEgg.config.VISIONEGG_CONFIG_FILE:
             Tkinter.Label(file_frame,
-                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_CONFIG_FILE),)).grid(row=0,column=1,sticky=Tkinter.W)
+                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_CONFIG_FILE),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         else:
             Tkinter.Label(file_frame,
-                          text="(None)").grid(row=0,column=1,sticky=Tkinter.W)
+                          text="(None)").grid(row=file_row,column=1,sticky=Tkinter.W)
+        file_row += 1
 
         # Log file location
-        
         Tkinter.Label(file_frame,
-                      text="Log file location:").grid(row=1,column=0,sticky=Tkinter.E)
+                      text="Log file location:").grid(row=file_row,column=0,sticky=Tkinter.E)
         if VisionEgg.config.VISIONEGG_LOG_FILE:
             Tkinter.Label(file_frame,
-                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).grid(row=1,column=1,sticky=Tkinter.W)
+                          text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         else:
             Tkinter.Label(file_frame,
-                          text="(stderr console)").grid(row=1,column=1,sticky=Tkinter.W)
+                          text="(stderr console)").grid(row=file_row,column=1,sticky=Tkinter.W)
         row += 1
 
+        cf = Tkinter.Frame(self)
+        cf.grid(row=row,columnspan=2,column=0)
+        row += 1
+        cf_row = 0 
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
         self.fullscreen.set(VisionEgg.config.VISIONEGG_FULLSCREEN)
-        Tkinter.Checkbutton(self,
+        Tkinter.Checkbutton(cf,
                             text='Fullscreen',
                             variable=self.fullscreen,
-                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
         
         # Maximum priority
         self.maxpriority = Tkinter.BooleanVar()
         self.maxpriority.set(VisionEgg.config.VISIONEGG_MAXPRIORITY)
+
 	try:
 	    import _maxpriority
-	    # Only display checkbutton if we have the module
-	    Tkinter.Checkbutton(self,
-                                text='Maximum priority',
-                                variable=self.maxpriority,
-                                relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
-            row += 1
+            self.show_maxpriority_option = 1
 	except:
-            pass
+            self.show_maxpriority_option = 0
+
+        if self.show_maxpriority_option:
+	    # Only display checkbutton if we have the module
+            if sys.platform=='darwin':
+                # Only used on darwin platform
+                self.darwin_realtime_period_denom = Tkinter.StringVar()
+                self.darwin_realtime_period_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM))
+                self.darwin_realtime_computation_denom = Tkinter.StringVar()
+                self.darwin_realtime_computation_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM))
+                self.darwin_realtime_constraint_denom = Tkinter.StringVar()
+                self.darwin_realtime_constraint_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM))
+                self.darwin_realtime_preemptible = Tkinter.IntVar()
+                self.darwin_realtime_preemptible.set(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
+                Tkinter.Button(cf,text="Maximum priority fine tune...",
+                               command=self.darwin_maxpriority_tune).grid(row=cf_row,column=1,sticky=Tkinter.W)
+	    Tkinter.Checkbutton(cf,
+                                text='Maximum priority (use with caution)',
+                                variable=self.maxpriority,
+                                relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+            cf_row += 1
 
         # Sync swap
         self.sync_swap = Tkinter.BooleanVar()
         self.sync_swap.set(VisionEgg.config.VISIONEGG_SYNC_SWAP)
-        Tkinter.Checkbutton(self,
-                            text='Synchronize buffer swaps',
+        Tkinter.Checkbutton(cf,
+                            text='Attempt to synchronize buffer swaps',
                             variable=self.sync_swap,
-                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
 
         # Record times
         self.record_times = Tkinter.BooleanVar()
         self.record_times.set(VisionEgg.config.VISIONEGG_RECORD_TIMES)
-        Tkinter.Checkbutton(self,
+        Tkinter.Checkbutton(cf,
                             text='Record frame timing information',
                             variable=self.record_times,
-                            relief=Tkinter.FLAT).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
 
 ##        # texture compression
 ##        self.tex_compress = Tkinter.BooleanVar()
 ##        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
-##        Tkinter.Checkbutton(self,
+##        Tkinter.Checkbutton(cf,
 ##                            text='Texture compression',
 ##                            variable=self.tex_compress,
-##                            relief=Tkinter.FLAT).grid(row=row,columnspan=2)
+##                            relief=Tkinter.FLAT).grid(row=cf_row,columnspan=2)
 ##        row += 1
 
         # frame rate
@@ -229,7 +277,65 @@ class OpenScreenDialog(Tkinter.Frame):
         b.grid(row=row,columnspan=2)
         b.focus_force()
         b.bind('<Return>',self.start)
-       
+
+    def format_string(self,in_str):
+        # This probably a slow way to do things, but it works!
+        min_line_length = 60
+        in_list = string.split(in_str)
+        out_str = ""
+        cur_line = ""
+        for word in in_list:
+            cur_line = cur_line + word + " "
+            if len(cur_line) > min_line_length:
+                out_str = out_str + cur_line[:-1] + "\n"
+                cur_line = "    "
+        out_str = out_str + cur_line + "\n"
+        return out_str
+        
+    def darwin_maxpriority_tune(self):
+        class DarwinFineTuneDialog(ToplevelDialog):
+            def __init__(self,parent,**cnf):
+                # Bugs in Tk 8.4a4 for Darwin prevent use of "grid" in this dialog
+                apply(ToplevelDialog.__init__,(self,),cnf)
+                self.title("Fine tune maximum priority")
+                f = Tkinter.Frame(self)
+                f.pack(expand=1,fill=Tkinter.BOTH,ipadx=2,ipady=2)
+                row = 0
+                Tkinter.Label(f,
+                              text=parent.format_string(
+
+                    """This information is used by the Vision Egg when
+                    in "maximum priority" mode.  These values fine
+                    tune this behavior on the Mac OS X ("darwin")
+                    platform.  The numerical values represent a
+                    fraction of the total cycles available on the
+                    computer. For more information, please refer to
+                    http://developer.apple.com/ techpubs/ macosx/
+                    Darwin/ General/ KernelProgramming/ scheduler/
+                    Using_Mach__pplications.html"""
+                    
+                    )).grid(row=row,columnspan=2,column=0)
+                row += 1
+                Tkinter.Label(f,text="Realtime period denominator").grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_period_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                row += 1
+                Tkinter.Label(f,text="Realtime computation denominator").grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_computation_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                row += 1
+                Tkinter.Label(f,text="Realtime constraint denominator").grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(f,textvariable=parent.darwin_realtime_constraint_denom).grid(row=row,column=1,sticky=Tkinter.W)
+                row += 1
+                Tkinter.Checkbutton(f,text="preemptible",variable=parent.darwin_realtime_preemptible).grid(row=row,column=0,columnspan=2)
+                row += 1
+                Tkinter.Button(f, text="ok",command=self.ok).grid(row=row,column=0,columnspan=2)
+                row += 1
+                self.wait_window(self)
+                
+            def ok(self):
+                self.destroy()
+                
+        DarwinFineTuneDialog(parent=self)
+        
     def start(self):
         
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
@@ -245,6 +351,13 @@ class OpenScreenDialog(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS = int(self.green_depth.get())
         VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS = int(self.blue_depth.get())
         VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS = int(self.alpha_depth.get())
+
+        if self.show_maxpriority_option and sys.platform=='darwin':
+            # Only used on darwin platform
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM = int(self.darwin_realtime_period_denom.get())
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = self.darwin_realtime_preemptible.get()
 
         self.opened_screen = None
 
