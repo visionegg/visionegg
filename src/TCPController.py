@@ -91,7 +91,8 @@ class SocketListenController(VisionEgg.Core.Controller):
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
     re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
     re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
-    re_exec_str = re.compile(r'exec_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
+    re_exec_str = re.compile(r'exec_str\(\s?(?:\*)?\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
+    re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
     def __init__(self,
                  socket,
                  disconnect_ok = 0,
@@ -261,7 +262,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                 new_contained_controller = apply(VisionEgg.Core.ConstantController,[],kw_args)
                 new_type = new_contained_controller.returns_type()
                 if new_type != require_type:
-                    if not issubclass( new_type, require_type):
+                    if not require_type==types.ClassType or not issubclass( new_type, require_type):
                         new_contained_controller = None
                         raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
             except Exception, x:
@@ -299,9 +300,18 @@ class SocketListenController(VisionEgg.Core.Controller):
                     try:
                         match_groups = match.groups()
                         kw_args = {}
+                        if match_groups[0] == '*':
+                            kw_args['restricted_namespace'] = 0
+                            match_groups = match_groups[1:]
+                        else:
+                            kw_args['restricted_namespace'] = 1
                         kw_args['during_go_exec_string'] = match_groups[0]
+                        if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
+                            raise ValueError("x is not defined for during_go_exec_string")
                         if match_groups[1] is not None:
                             kw_args['between_go_exec_string'] = match_groups[1]
+                            if not SocketListenController.re_x_finder.match(kw_args['during_go_exec_string']):
+                                raise ValueError("x is not defined for between_go_exec_string")
                         if match_groups[2] is not None:
                             kw_args['return_type'] = eval(match_groups[2])
                         if match_groups[3] is not None:
@@ -314,9 +324,9 @@ class SocketListenController(VisionEgg.Core.Controller):
                             if not issubclass( new_type, require_type):
                                 new_contained_controller = None
                                 raise TypeError("New controller returned type %s, but should return type %s"%(new_type,require_type))
-                    except Exception, x:
-                        self.socket.send("Error parsing exec_str for %s: %s\n"%(tcp_name,x))
-                        VisionEgg.Core.message.add("Error parsing exec_str for %s: %s\n"%(tcp_name,x),
+                    except Exception, err:
+                        self.socket.send("Error parsing exec_str for %s: %s\n"%(tcp_name,err))
+                        VisionEgg.Core.message.add("Error parsing exec_str for %s: %s\n"%(tcp_name,err),
                                                    level=VisionEgg.Core.Message.INFO)
                 else:
                     self.socket.send("Error parsing command for %s: %s\n"%(tcp_name,command))
