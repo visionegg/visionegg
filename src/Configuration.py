@@ -138,6 +138,7 @@ class Config:
         try:
             general_options = cfg.options('General')
         except ConfigParser.NoSectionError,x:
+            raise ConfigParser.NoSectionError("No section: 'General' in file %s"%configFile)
 #            sys.stderr.write("Error opening VisionEgg.cfg at %s (is it old format?)\n"%(os.path.abspath(configFile),))
 #            sys.stderr.flush()
             raise
