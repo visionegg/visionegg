@@ -22,6 +22,8 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
 
     parameters_and_defaults = {'contrast':(1.0,types.FloatType),
                                'on':(1,types.IntType),
+                               'center_azimuth':(0.0,types.FloatType), # 0=right, 90=down
+                               'center_elevation':(0.0,types.FloatType), # 0=right, 90=down
                                # Changing these parameters will cause re-computation of display list (may cause frame skip)
                                'radius':(1.0,types.FloatType),
                                'slices':(30,types.IntType),
@@ -176,6 +178,10 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                 
             gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,p.texture_wrap_s)
             gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,p.texture_wrap_t)
+
+            # center the texture map
+            gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
 
             gl.glCallList(self.cached_display_list)
 
