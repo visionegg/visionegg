@@ -137,6 +137,21 @@ class Screen(VisionEgg.ClassWithParameters):
         
         apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
 
+        if VisionEgg.config.SYNCMASTER_PRESENT:
+            global SyncMaster # import into global namespace
+            import SyncMaster
+            try:
+                print "Loading SyncMaster."
+                SyncMaster.init()
+                VisionEgg.config._SYNCMASTER_CONNECTED = 1
+                VisionEgg.config._SYNCMASTER_THREAD = SyncMaster.get_kernel_interaction_thread()
+            except SyncMaster.SyncMasterError, x:
+                message.add( "Could not connect to SyncMaster device (SyncMasterError: %s)."%(str(x),),
+                             level=Message.WARNING )
+                VisionEgg.config._SYNCMASTER_CONNECTED = 0
+        else:
+            VisionEgg.config._SYNCMASTER_CONNECTED = 0
+
         # Attempt to synchronize buffer swapping with vertical sync
         if VisionEgg.config.VISIONEGG_SYNC_SWAP:
             sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
@@ -1124,6 +1139,9 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.time_sec_since_go = 0.0
         self.frames_since_go = 0
         
+        if VisionEgg.config._SYNCMASTER_CONNECTED:
+            SyncMaster.clear_vsync_count()
+        
         # Tell transitional controllers a presentation is starting
         self.__call_controllers(
             go_started=1,
@@ -1139,6 +1157,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             current_duration_value = self.frames_since_go
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
+
         while (current_duration_value < p.go_duration[0]):
             # Update all the realtime parameters
             self.__call_controllers(
@@ -1161,6 +1180,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 viewport.draw()
                 
             # Swap the buffers
+            if VisionEgg.config._SYNCMASTER_CONNECTED:
+                a=VisionEgg.timing_func()
+                SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS + SyncMaster.IN_GO_LOOP )
+                b=VisionEgg.timing_func()
+                print (b-a)*1000.0,"msec"
             swap_buffers()
             
             # Set the time variables for the next frame
@@ -1206,6 +1230,10 @@ class Presentation(VisionEgg.ClassWithParameters):
         self.__call_controllers(
             go_started=0,
             doing_transition=1)
+
+        # Tell SyncMaster we're not in go loop anymore
+        if VisionEgg.config._SYNCMASTER_CONNECTED:
+            SyncMaster.notify_device()
         
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
@@ -1316,6 +1344,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                 viewport.draw()
                 
             # Swap the buffers
+            if VisionEgg.config._SYNCMASTER_CONNECTED:
+                SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS )
             swap_buffers()
             
             # Now save the contents of the framebuffer
@@ -1427,11 +1457,15 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Draw each viewport, including each stimulus
         for viewport in viewports:
             viewport.draw()
+        if VisionEgg.config._SYNCMASTER_CONNECTED:
+            SyncMaster.notify_device( SyncMaster.SWAPPED_BUFFERS )
         swap_buffers()
         self.frames_absolute = self.frames_absolute+1
         
     def __print_frame_timing_stats(self,timing_histogram,longest_frame_time_msec,time_msec_bins):
         timing_string = "During the last \"go\" loop, "+str(Numeric.sum(timing_histogram))+" frames were drawn.\n"
+        if VisionEgg.config._SYNCMASTER_CONNECTED:
+            timing_string += "(SyncMaster reports "+str(SyncMaster.get_vsync_count())+" frames displayed.)\n"
         timing_string += "Longest frame was %.2f msec.\n"%(longest_frame_time_msec,)
         timing_string = self.__print_hist(timing_histogram,timing_string,time_msec_bins)
         timing_string += "\n"
@@ -2079,8 +2113,8 @@ class Message:
             else:
                 raise TypeError("argument output_stream must have write and flush methods.")
         if self.output_stream != sys.stderr:
-            VisionEgg.config._orig_stderr = sys.stderr # save original stderr
             # reassign stderr to print to logfile
+            VisionEgg.config._orig_stderr = sys.stderr
             sys.stderr = self.output_stream
             VisionEgg.config._orig_stderr.write("Vision Egg logging to %s\n"%(os.path.abspath(VisionEgg.config.VISIONEGG_LOG_FILE),))
             VisionEgg.config._orig_stderr.flush()
