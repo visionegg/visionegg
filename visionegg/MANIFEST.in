@@ -2,5 +2,3 @@ include LICENSE
 include CHANGELOG
 exclude src/Daq.py
 exclude src/DaqOverTCP.py
-exclude demo/gabor.py
-exclude demo/sinusoid.py
