@@ -1,0 +1,702 @@
+#!/usr/bin/env python
+
+# Copyright (c) 2002-2003 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
+
+import VisionEgg, string
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+
+import sys, socket, re, time, string, types, os, pickle, random
+import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
+import Pyro
+
+import VisionEgg
+import VisionEgg.PyroClient
+import VisionEgg.PyroApps.ScreenPositionGUI
+
+# Add your client modules here
+import VisionEgg.PyroApps.TargetGUI
+import VisionEgg.PyroApps.FlatGratingGUI
+import VisionEgg.PyroApps.SphereGratingGUI
+import VisionEgg.PyroApps.SpinningDrumGUI
+import VisionEgg.PyroApps.GridGUI
+
+client_list = []
+client_list.extend( VisionEgg.PyroApps.TargetGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.FlatGratingGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.SphereGratingGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.SpinningDrumGUI.get_control_list() )
+client_list.extend( VisionEgg.PyroApps.GridGUI.get_control_list() )
+
+class Blahbject:
+    """Encapsulates objects to have useful methods when used in GUI"""
+    def __init__(self):
+        raise RuntimeError("Abstract base class!")
+    def get_str_30(self):
+        return "**** this is a generic str_30 ****"
+    def get_contained(self):
+        return self.contained
+    header = "unknown parameters"
+
+class ScrollListFrame(Tkinter.Frame):
+    def __init__(self,master=None,list_of_blahbjects=None,blahbject_maker=None,
+                 container_class=Blahbject,
+                 **cnf):
+        apply(Tkinter.Frame.__init__, (self,master), cnf)
+        if list_of_blahbjects is None:
+            self.list = []
+        else:
+            self.list = list_of_blahbjects
+        self.container_class = container_class
+
+        # The frame that has the list and the vscroll
+        self.frame = Tkinter.Frame(self,borderwidth=2)
+        self.frame.pack(fill=Tkinter.BOTH,expand=1)
+        self.header = Tkinter.StringVar(self)
+        self.frame.label = Tkinter.Label(self.frame, relief=Tkinter.FLAT,anchor=Tkinter.NW,borderwidth=0,
+                                 font='*-Courier-Bold-R-Normal-*',
+                                 textvariable=self.header)
+        self.frame.label.pack(fill=Tkinter.Y,anchor=Tkinter.W)
+
+        self.frame.vscroll = Tkinter.Scrollbar(self.frame,orient=Tkinter.VERTICAL)
+        self.frame.list = Tkinter.Listbox(
+            self.frame,
+            relief=Tkinter.SUNKEN,
+            font='*-Courier-Medium-R-Normal-*',
+            width=40, height=3,
+            selectbackground='#eed5b7',
+            selectborderwidth=0,
+            selectmode=Tkinter.BROWSE,
+            yscroll=self.frame.vscroll.set)
+                                          
+        self.frame.vscroll['command'] = self.frame.list.yview
+        self.frame.vscroll.pack(side=Tkinter.RIGHT, fill=Tkinter.Y, expand=1)
+        self.frame.list.pack(fill=Tkinter.BOTH,expand=1)
+##        self.frame.list.bind('<Double-Button-1>',self.edit_selected)
+        
+        # The buttons on bottom
+        self.bar = Tkinter.Frame(self,borderwidth=2)
+        self.bar.pack(fill=Tkinter.X)
+        self.bar.add = Tkinter.Button(self.bar,text='Add...',command=self.add_new)
+        self.bar.add.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.remove = Tkinter.Button(self.bar,text='Remove',command=self.remove_selected)
+        self.bar.remove.pack(side=Tkinter.LEFT,fill=Tkinter.X)
+        self.bar.tk_menuBar(self.bar.add,self.bar.remove)
+        self.update_now()
+        
+    def get_list_uncontained(self):
+        results = []
+        for blah_item in self.list:
+            results.append( blah_item.get_contained() )
+        return results
+
+    def update_now(self):
+        self.header.set(self.container_class.header)
+        self.frame.list.delete(0,Tkinter.AtEnd())
+        for item in self.list:
+            item_str_30 = item.get_str_30()
+            self.frame.list.insert(Tkinter.END,item_str_30)
+
+    def add_new(self):
+        blah = self.make_blah(self.container_class)
+        if blah:
+            self.list.append( blah )
+        self.update_now()
+
+    def make_blah(self, container_class):
+        """Factory function for Blahbject"""
+        if container_class == LoopBlah:
+            return self.make_loop_blah()
+        params = {}
+        p = container_class.contained_class.parameters_and_defaults
+        keys = p.keys()
+        keys.sort()
+        for pname in keys:
+            if p[pname][1] == types.StringType:
+                params[pname] = tkSimpleDialog.askstring(pname,pname,initialvalue=p[pname][0])
+            elif p[pname][1] == types.IntType:
+                params[pname] = tkSimpleDialog.askinteger(pname,pname,initialvalue=p[pname][0])
+            elif p[pname][1] == types.FloatType:
+                params[pname] = tkSimpleDialog.askfloat(pname,pname,initialvalue=p[pname][0])
+            elif p[pname][1] == types.ListType:
+                params[pname] = eval("["+tkSimpleDialog.askstring(pname,pname,initialvalue="1,2,3")+"]")
+                if type(params[pname]) is not types.ListType:
+                    params[pname] = [666] # XXX
+            else:
+                raise NotImplementedError("Don't know about type %s"%(p[pname][1],))
+            if params[pname] is None:
+                raise RuntimeError("Input cancelled")
+        contained = container_class.contained_class(**params) # call constructor
+        return container_class(contained)
+
+    def make_loop_blah(self):
+        d = LoopParamDialog(self, title="Loop Parameters" )
+        if d.result:
+            return LoopBlah(d.result)
+        else:
+            return
+
+    def get_selected(self):
+        items = self.frame.list.curselection()
+        try:
+            items = map(int, items)
+        except ValueError: pass
+        if len(items) > 0:
+            return items[0]
+        else:
+            return None
+
+    def remove_selected(self):
+        selected = self.get_selected()
+        if selected is not None:
+            del self.list[self.get_selected()]
+            self.update_now()
+
+###################################################
+
+class Loop(VisionEgg.ClassWithParameters):
+    parameters_and_defaults = {'variable':('<repeat>',
+                                           types.StringType),
+                               'sequence':([1, 1, 1],
+                                           types.ListType),
+                               'rest_duration_sec':(1.0,
+                                                    types.FloatType)}
+    def __init__(self,**kw):
+        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        self.num_done = 0
+    def is_done(self):
+        return self.num_done >= len(self.parameters.sequence)
+    def get_current(self):
+        return self.parameters.sequence[self.num_done]
+    def advance(self):
+        self.num_done += 1
+    def reset(self):
+        self.num_done = 0
+
+class LoopBlah(Blahbject):
+    """Contrainer for Loop class"""
+    contained_class = Loop
+    header = "     variable    rest values"
+    def __init__(self,contained=None):
+        self.contained = contained
+    def get_str_30(self):
+        p = self.contained.parameters
+        seq_str = ""
+        for val in p.sequence:
+            seq_str += str(val) + " "
+        name_str = p.variable
+        if len(name_str) > 15:
+            name_str = name_str[:15]
+        return "% 15s % 4s  %s"%(name_str, str(p.rest_duration_sec), seq_str)
+
+class LoopParamDialog(tkSimpleDialog.Dialog):
+    def body(self,master):
+        Tkinter.Label(master,
+                      text="Add sequence of automatic variable values",
+                      font=("Helvetica",12,"bold"),).grid(row=0,column=0,columnspan=2)
+
+        var_frame = Tkinter.Frame(master)
+        var_frame.grid(row=1,column=0)
+
+        sequence_frame = Tkinter.Frame(master)
+        sequence_frame.grid(row=1,column=1)
+
+        rest_dur_frame = Tkinter.Frame(master)
+        rest_dur_frame.grid(row=2,column=0,columnspan=2)
+
+        # loopable variable frame stuff
+        var_frame_row = 0
+        Tkinter.Label(var_frame,
+                      text="Select a variable",
+                      font=("Helvetica",12,"bold"),).grid(row=var_frame_row)
+        
+        self.var_name = Tkinter.StringVar()
+        self.var_name.set("<repeat>")
+        global loopable_variables
+        var_names = loopable_variables[:] # copy
+        var_names.sort()
+
+        var_frame_row += 1
+        Tkinter.Radiobutton( var_frame,
+                     text="Repeat (Average)",
+                     variable=self.var_name,
+                     value="<repeat>",
+                     anchor=Tkinter.W).grid(row=var_frame_row,sticky="w")
+        var_frame_row += 1
+        for var_name in var_names:
+            Tkinter.Radiobutton( var_frame,
+                                 text=var_name,
+                                 variable=self.var_name,
+                                 value=var_name,
+                                 anchor=Tkinter.W).grid(row=var_frame_row,sticky="w")
+            var_frame_row += 1
+
+        # sequence entry frame
+        seq_row = 0
+        Tkinter.Label(sequence_frame,
+                      text="Sequence values",
+                      font=("Helvetica",12,"bold"),).grid(row=seq_row,column=0,columnspan=2)
+        
+        seq_row += 1
+        self.sequence_type = Tkinter.StringVar()
+        self.sequence_type.set("manual")
+
+        Tkinter.Radiobutton( sequence_frame,
+                     text="Manual:",
+                     variable=self.sequence_type,
+                     value="manual",
+                     anchor=Tkinter.W).grid(row=seq_row,column=0,sticky="w")
+
+        self.sequence_manual_string = Tkinter.StringVar()
+        self.sequence_manual_string.set("[1,2,3]")
+        Tkinter.Entry(sequence_frame,
+                      textvariable=self.sequence_manual_string).grid(row=seq_row,column=1)
+
+        seq_row += 1
+        Tkinter.Radiobutton( sequence_frame,
+                     text="Linear:",
+                     variable=self.sequence_type,
+                     value="linear",
+                     anchor=Tkinter.W).grid(row=seq_row,column=0,sticky="w")
+
+        self.lin_start_tk = Tkinter.DoubleVar()
+        self.lin_start_tk.set(1.0)
+        self.lin_stop_tk = Tkinter.DoubleVar()
+        self.lin_stop_tk.set(100.0)
+        self.lin_n_tk = Tkinter.IntVar()
+        self.lin_n_tk.set(3)
+
+        lin_frame = Tkinter.Frame( sequence_frame)
+        lin_frame.grid(row=seq_row,column=1)
+        Tkinter.Label(lin_frame,text="start:").grid(row=0,column=0)
+        Tkinter.Entry(lin_frame,textvariable=self.lin_start_tk,width=6).grid(row=0,column=1)
+        Tkinter.Label(lin_frame,text="  stop:").grid(row=0,column=2)
+        Tkinter.Entry(lin_frame,textvariable=self.lin_stop_tk,width=6).grid(row=0,column=3)
+        Tkinter.Label(lin_frame,text="  N:").grid(row=0,column=4)
+        Tkinter.Entry(lin_frame,textvariable=self.lin_n_tk,width=6).grid(row=0,column=5)
+
+        seq_row += 1
+        Tkinter.Radiobutton( sequence_frame,
+                     text="Log:",
+                     variable=self.sequence_type,
+                     value="log",
+                     anchor=Tkinter.W).grid(row=seq_row,column=0,sticky="w")
+
+        self.log_start_tk = Tkinter.DoubleVar()
+        self.log_start_tk.set(-1.0)
+        self.log_stop_tk = Tkinter.DoubleVar()
+        self.log_stop_tk.set(2.0)
+        self.log_n_tk = Tkinter.IntVar()
+        self.log_n_tk.set(5)
+
+        log_frame = Tkinter.Frame( sequence_frame)
+        log_frame.grid(row=seq_row,column=1)
+        Tkinter.Label(log_frame,text="start: 10^").grid(row=0,column=0)
+        Tkinter.Entry(log_frame,textvariable=self.log_start_tk,width=6).grid(row=0,column=1)
+        Tkinter.Label(log_frame,text="  stop: 10^").grid(row=0,column=2)
+        Tkinter.Entry(log_frame,textvariable=self.log_stop_tk,width=6).grid(row=0,column=3)
+        Tkinter.Label(log_frame,text="  N:").grid(row=0,column=4)
+        Tkinter.Entry(log_frame,textvariable=self.log_n_tk,width=6).grid(row=0,column=5)
+
+        # rest duration frame
+        Tkinter.Label(rest_dur_frame,
+                      text="Other sequence parameters",
+                      font=("Helvetica",12,"bold"),).grid(row=0,column=0,columnspan=2)
+
+        Tkinter.Label(rest_dur_frame,
+                      text="Interval duration (seconds)").grid(row=1,column=0)
+        self.rest_dur = Tkinter.StringVar()
+        self.rest_dur.set("0.5")
+        Tkinter.Entry(rest_dur_frame,
+                      textvariable=self.rest_dur,
+                      width=10).grid(row=1,column=1)
+
+        self.shuffle_tk_var = Tkinter.BooleanVar()
+        self.shuffle_tk_var.set(0)
+        Tkinter.Checkbutton( rest_dur_frame,
+                             text="Shuffle sequence order",
+                             variable=self.shuffle_tk_var).grid(row=2,column=0,columnspan=2)
+
+    def validate(self):
+        if self.sequence_type.get() == "manual":
+            try:
+                seq = eval(self.sequence_manual_string.get())
+            except Exception, x:
+                tkMessageBox.showwarning("Invalid sequence parameters",
+                                         "Manual sequence entry: %s"%(str(x),),
+                                         parent=self)
+                return 0
+            if type(seq) != types.ListType:
+                tkMessageBox.showwarning("Invalid sequence parameters",
+                                         "Manual sequence entry: Not a list",
+                                         parent=self)
+                return 0
+        elif self.sequence_type.get() == "linear":
+            start = self.lin_start_tk.get()
+            stop = self.lin_stop_tk.get()
+            n = self.lin_n_tk.get()
+            if n < 2:
+                tkMessageBox.showwarning("Invalid sequence parameters",
+                                         "Must have n >= 2.",
+                                         parent=self)
+                return 0
+
+            incr = (stop-start)/float(n-1)
+            seq = []
+            value = start
+            while value <= stop:
+                seq.append(value)
+                value += incr
+        elif self.sequence_type.get() == "log":
+            start = self.log_start_tk.get()
+            stop = self.log_stop_tk.get()
+            n = self.log_n_tk.get()
+            if n < 2:
+                tkMessageBox.showwarning("Invalid sequence parameters",
+                                         "Must have n >= 2.",
+                                         parent=self)
+                return 0
+
+            incr = (stop-start)/float(n-1)
+            seq = []
+            value = start
+            while value <= stop:
+                seq.append(value)
+                value += incr
+            for i in range(len(seq)):
+                seq[i] = 10.0**seq[i]
+        else:
+            tkMessageBox.showwarning("Invalid sequence parameters",
+                                     "Invalid sequence type.",
+                                     parent=self)
+            return 0
+        try:
+            rest_dur_sec = float(self.rest_dur.get()) # convert from string
+        except Exception, x:
+            tkMessageBox.showwarning("Invalid sequence parameters",
+                                     "Rest duration invalid: %s"%(str(x),),
+                                     parent=self)
+            return 0
+
+        if self.shuffle_tk_var.get():
+            random.shuffle(seq)
+            
+        self.result = Loop(variable=self.var_name.get(),
+                           sequence=seq,
+                           rest_duration_sec=rest_dur_sec)
+        return 1
+    
+    def destroy(self):
+        # clear tk variables
+        self.var_name = None
+        self.sequence_type = None
+        self.sequence_manual_string = None
+        self.rest_dur = None
+        # call master's destroy method
+        tkSimpleDialog.Dialog.destroy(self)
+
+class AppWindow(Tkinter.Frame):
+    def __init__(self,
+                 master=None,
+                 client_list=None,
+                 **cnf):
+        # create myself
+        apply(Tkinter.Frame.__init__, (self,master), cnf)
+
+        self.client_list = client_list
+        
+        self.pyro_client = VisionEgg.PyroClient.PyroClient()
+        self.uber_server = self.pyro_client.get("uber_server")
+
+        self.autosave_dir = Tkinter.StringVar()
+        self.autosave_dir.set( os.path.abspath(os.curdir) )
+        
+        self.autosave_basename = Tkinter.StringVar()
+
+        # create a menu bar
+        row = 0
+        self.bar = Tkinter.Frame(self, name='bar',
+                                 relief=Tkinter.RAISED, borderwidth=2)
+        self.bar.grid(row=row,column=0,columnspan=2,sticky="nwes")
+
+        self.bar.file = BarButton(self.bar, text='File')
+        self.bar.file.menu.add_command(label='Save configuration file...', command=self.save_config)
+        self.bar.file.menu.add_command(label='Load configuration file...', command=self.load_config)
+        self.bar.file.menu.add_command(label='Quit', command=self.quit)
+
+        stimkey = self.uber_server.get_stimkey()
+        self.stimulus_tk_var = Tkinter.StringVar()
+        self.stimulus_tk_var.set( stimkey )
+        self.bar.stimuli = BarButton(self.bar, text='Stimuli')
+        for maybe_stimkey, maybe_control_frame, maybe_title in self.client_list:
+            self.bar.stimuli.menu.add_radiobutton(label=maybe_title,
+                                                  command=self.change_stimulus,
+                                                  variable=self.stimulus_tk_var,
+                                                  value=maybe_stimkey)
+
+        self.bar.calibration = BarButton(self.bar, text='Calibrate')
+        self.bar.calibration.menu.add_command(label='3D Perspective...', command=self.launch_screen_pos)
+
+##        row += 1
+##        Tkinter.Label(self,
+##                      text="Single Trial Parameters",
+##                      font=("Helvetica",12,"bold")).grid(row=row,columnspan=2)
+        row += 1
+
+        # options for self.stim_frame in grid layout manager
+        self.stim_frame_cnf = {'row':row,
+                               'column':0,
+                               'columnspan':2,
+                               'sticky':'nwes'}
+        
+        row += 1
+        Tkinter.Label(self,
+                      text="Sequence information",
+                      font=("Helvetica",12,"bold")).grid(row=row,column=0)
+        row += 1
+        # options for self.loop_frame in grid layout manager
+        self.loop_frame_cnf = {'row':row,
+                               'column':0,
+                               'sticky':'nwes'}
+
+        row -= 1
+        Tkinter.Label(self,
+                      text="Parameter Save Options",
+                      font=("Helvetica",12,"bold")).grid(row=row,column=1)
+        row += 1
+        asf = Tkinter.Frame(self)
+        asf.grid(row=row,column=1,sticky="nwes")
+        asf.columnconfigure(1,weight=1)
+
+        asf_row=0
+        self.autosave = Tkinter.BooleanVar()
+        self.autosave.set(1)
+        Tkinter.Checkbutton(asf,
+                            text="Auto save trial parameters",
+                            variable=self.autosave).grid(row=asf_row,columnspan=2)
+        asf_row += 1
+        Tkinter.Label(asf,
+                      text="Auto save directory:").grid(row=asf_row,column=0,sticky="e")
+        Tkinter.Entry(asf,
+                      textvariable=self.autosave_dir).grid(row=asf_row,column=1,sticky="we")
+        Tkinter.Button(asf,
+                       text="Set...",command=self.set_autosave_dir).grid(row=asf_row,column=2)
+        asf_row += 1
+        Tkinter.Label(asf,
+                      text="Auto save basename:").grid(row=asf_row,column=0,sticky="e")
+        Tkinter.Entry(asf,
+                      textvariable=self.autosave_basename).grid(row=asf_row,column=1,sticky="we")
+        Tkinter.Button(asf,
+                       text="Reset",command=self.reset_autosave_basename).grid(row=asf_row,column=2)
+        
+        row += 1
+        Tkinter.Button(self, text='Do single trial', command=self.do_single_trial).grid(row=row,column=0)
+        Tkinter.Button(self, text='Do sequence', command=self.do_loops).grid(row=row,column=1)
+
+        # Allow rows and columns to expand
+        for i in range(2):
+            self.columnconfigure(i,weight=1)
+        for i in range(row+1):
+            self.rowconfigure(i,weight=1)
+
+        self.switch_to_stimkey( stimkey )
+
+    def switch_to_stimkey( self, stimkey ):
+        success = 0
+        for maybe_stimkey, maybe_control_frame, maybe_title in self.client_list:
+            if stimkey == maybe_stimkey:
+                control_frame_klass = maybe_control_frame
+                success = 1
+
+        if not success:
+            raise RuntimeError("Could not find valid client for server stimkey %s"%stimkey)
+
+        if hasattr(self, 'stim_frame'):
+            # clear old frame
+            self.stim_frame.destroy()
+            del self.stim_frame
+
+        self.stim_frame = control_frame_klass(self,suppress_uber_buttons=1)
+        self.stim_frame.connect()
+        apply( self.stim_frame.grid, [], self.stim_frame_cnf )
+        
+        global loopable_variables
+        loopable_variables = self.stim_frame.get_loopable_variable_names()
+        if hasattr(self, 'loop_frame'):
+            # clear old frame
+            self.loop_frame.destroy()
+            del self.loop_frame
+        self.loop_frame = ScrollListFrame(master=self,
+                                          container_class=LoopBlah)
+        apply( self.loop_frame.grid, [], self.loop_frame_cnf )
+
+        self.autosave_basename.set( self.stim_frame.get_shortname() )
+
+    def change_stimulus(self, dummy_arg=None, new_stimkey=None ):
+        # if new_stimkey is None, get from the tk variable
+        if new_stimkey is None:
+            new_stimkey = self.stimulus_tk_var.get()
+
+        found = 0
+        for maybe_stimkey, maybe_control_frame, maybe_title in self.client_list:
+            if new_stimkey == maybe_stimkey:
+                new_control_frame_klass = maybe_control_frame
+                new_stimkey = maybe_stimkey
+                found = 1
+                break
+
+        if not found:
+            raise RuntimeError("Don't know about stimkey %s"%new_stimkey)
+        
+        if new_control_frame_klass != self.stim_frame.__class__:
+                                
+            # make wait cursor
+            root = self.winfo_toplevel()
+            old_cursor = root["cursor"]
+            root["cursor"] = "watch"
+            root.update()
+            
+            self.uber_server.set_next_stimkey( new_stimkey )
+
+            # new stimulus type
+            self.stim_frame.quit_server() # disconnect
+
+            self.uber_server.get_stimkey() # wait for server to load
+
+            self.switch_to_stimkey( new_stimkey)
+
+            #restore cursor
+            root["cursor"] = old_cursor
+            root.update()
+            
+    def save_config(self):
+        filename = tkFileDialog.asksaveasfilename(defaultextension=".vecfg",filetypes=[('Configuration file','*.vecfg')])
+        fd = open(filename,"w")
+        save_dict = {'stim_type':self.stim_frame.get_shortname(),
+                     'loop_list':self.loop_frame.list,
+                     'stim_frame_dict':self.stim_frame.get_parameters_dict(),
+                     'autosave':self.autosave.get(),
+                     'autosave_dir':self.autosave_dir.get(),
+                     'autosave_basename':self.autosave_basename.get()}
+        pickle.dump( save_dict, fd )
+
+    def load_config(self):
+        filename = tkFileDialog.askopenfilename(defaultextension=".vecfg",filetypes=[('Configuration file','*.vecfg')])
+        if not filename:
+            return
+        fd = open(filename,"r")
+        load_dict = pickle.load(fd)
+        if load_dict['stim_type'] != self.stim_frame.get_shortname():
+            self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
+            #raise RuntimeError("Configuration file for a different stimulus type.")
+        self.loop_frame.list = load_dict['loop_list']
+        self.loop_frame.update_now()
+        self.stim_frame.set_parameters_dict( load_dict['stim_frame_dict'] )
+        self.autosave.set(load_dict['autosave'])
+        self.autosave_dir.set(load_dict['autosave_dir'])
+        self.autosave_basename.set(load_dict['autosave_basename'])
+        
+        self.stim_frame.update_tk_vars()
+
+    def launch_screen_pos(self, dummy_ary=None):
+        dialog = Tkinter.Toplevel(self)
+        frame = VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame(dialog,auto_connect=1)
+        frame.pack(expand=1,fill=Tkinter.BOTH)
+
+    def set_autosave_dir(self):
+        self.autosave_dir.set( os.path.abspath( tkFileDialog.askdirectory() ) )
+
+    def reset_autosave_basename(self):
+        self.autosave_basename.set( self.stim_frame.get_shortname() )
+
+    def do_loops(self):
+        loop_list = self.loop_frame.get_list_uncontained()
+        global need_rest_period
+        need_rest_period = 0
+
+        if not len(loop_list):
+            return
+
+        def process_loops(depth): # recursive processing of loops
+            global need_rest_period
+            loop = loop_list[depth]
+            max_depth = len(loop_list)-1
+            while not loop.is_done():
+                if loop.parameters.variable != "<repeat>":
+                    self.stim_frame.set_loopable_variable(loop.parameters.variable,loop.get_current())
+                if depth < max_depth:
+                    process_loops(depth+1)
+                elif depth == max_depth: # deepest level -- do the trial
+                    if need_rest_period:
+                        time.sleep(loop.parameters.rest_duration_sec)
+                    self.do_single_trial()
+                    need_rest_period = 1
+                else:
+                    raise RuntimeError("Called with max_depth==-1:")
+                loop.advance()
+            loop.reset()
+
+        process_loops(0) # start recursion on top level
+        
+    def do_single_trial(self):
+        self.duration_sec = self.stim_frame.get_duration_sec()
+        if self.autosave.get():
+            # Figure out filename to save results in
+            (year,month,day,hour24,min,sec) = time.localtime(time.time()+self.duration_sec)[:6]
+            time_str = "%04d%02d%02d_%02d%02d%02d.params"%(year,month,day,hour24,min,sec)
+            filename = self.autosave_basename.get() + time_str
+            fullpath_filename = os.path.join( self.autosave_dir.get(), filename)
+            fd = open(fullpath_filename,"w")
+            fd.write("finished_time = %04d%02d%02d%02d%02d%02d\n"%(year,month,day,hour24,min,sec))
+            parameter_list = self.stim_frame.get_parameters_as_strings()
+            for parameter_name, parameter_value in parameter_list:
+                fd.write("%s = %s\n"%(parameter_name, parameter_value))
+            fd.close()
+        self.stim_frame.go()
+        time.sleep(self.duration_sec)
+
+    def quit(self):
+        self.uber_server.set_quit_status(1)
+        apply(Tkinter.Frame.quit, (self,))
+
+    def destroy(self):
+        self.uber_server.set_quit_status(1)
+        apply(Tkinter.Frame.destroy, (self,))
+        
+class BarButton(Tkinter.Menubutton):
+    # Taken from Guido van Rossum's Tkinter svkill demo
+        def __init__(self, master=None, **cnf):
+            apply(Tkinter.Menubutton.__init__, (self, master), cnf)
+            self.pack(side=Tkinter.LEFT)
+            self.menu = Tkinter.Menu(self, name='menu', tearoff=0)
+            self['menu'] = self.menu
+                
+if __name__ == '__main__':
+    try:
+        app_window = AppWindow(master=None,client_list=client_list)
+    except Pyro.errors.ProtocolError, x:
+        if str(x) == 'connection failed': # Can't find UberServer running on network
+            try:
+                tkMessageBox.showerror("Can't find UberServer","Can't find UberServer running on Pyro network.")
+                sys.exit(1)
+            except:
+                raise # Can't find UberServer running on network
+        else:
+            raise
+    except Pyro.errors.PyroError, x:
+        if str(x) in ["Name Server not responding","connection failed"]:
+            try:
+                tkMessageBox.showerror("Can't find Pyro Name Server","Can't find Pyro Name Server on network.")
+                sys.exit(1)
+            except:
+                raise # Can't find Pyro Name Server on network
+        else:
+            raise        
+    app_window.winfo_toplevel().wm_iconbitmap()
+    app_window.pack(expand=1,fill=Tkinter.BOTH)
+    app_window.winfo_toplevel().title("Vision Egg")
+    app_window.winfo_toplevel().minsize(1,1)
+    app_window.mainloop()
