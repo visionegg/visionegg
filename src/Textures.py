@@ -132,19 +132,6 @@ class Texture(object):
                  '_buf_t',
                  )
 
-    def __getstate__(self,*args,**kw):
-        """support for being pickled"""
-        result = {}
-        for attr in self.__slots__:
-            if hasattr(self,attr):
-                result[attr] = getattr(self,attr)
-        return result
-
-    def __setstate__(self,dict):
-        """support for being unpickled"""
-        for attr in dict.keys():
-            setattr(self,attr,dict[attr])   
-    
     def __init__(self,texels=None,size=None):
         """Creates instance of Texture object.
 
@@ -401,19 +388,6 @@ class TextureObject(object):
         'gl_id',
         '__gl_module__',
         )
-    
-    def __getstate__(self,*args,**kw):
-        """support for being pickled"""
-        result = {}
-        for attr in self.__slots__:
-            if hasattr(self,attr):
-                result[attr] = getattr(self,attr)
-        return result
-
-    def __setstate__(self,dict):
-        """support for being unpickled"""
-        for attr in dict.keys():
-            setattr(self,attr,dict[attr])   
     
     _cube_map_side_names = ['positive_x', 'negative_x',
                             'positive_y', 'negative_y',
@@ -1690,10 +1664,6 @@ class SpinningDrum(TextureStimulusBaseClass):
 
             if p.flat: # draw as flat texture on a rectange
                 lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
-                if len(p.position) > 2:
-                    lowerleft = lowerleft[0], lowerleft[1], p.position[2]
-                else:
-                    lowerleft = lowerleft[0], lowerleft[1], 0.0
                 
                 # do the orientation
                 gl.glRotatef(p.orientation,0,0,1)
