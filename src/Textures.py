@@ -972,15 +972,15 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     Parameters
     ==========
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Default: GL_LINEAR
     texture_min_filter -- OpenGL filter enum (Integer)
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_t     -- OpenGL texture wrap enum (Integer)
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
 
     Constant Parameters
     ===================
@@ -1233,7 +1233,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     depth_test         -- perform depth test? (Boolean)
                           Default: False
     mask               -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     max_alpha          -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
                           Default: 1.0
     on                 -- draw stimulus? (Boolean)
@@ -1241,22 +1241,22 @@ class TextureStimulus(TextureStimulusBaseClass):
     position           -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
                           Default: (0.0, 0.0)
     size               -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                           Inherited from TextureStimulusBaseClass
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: GL_LINEAR
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_t     -- OpenGL texture wrap enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
 
     Constant Parameters
     ===================
@@ -1290,7 +1290,7 @@ class TextureStimulus(TextureStimulusBaseClass):
         'angle':(0.0, # in degrees
                  ve_types.Real,
                  "units: degrees, 0=right, 90=up"),
-        'size':(None, # in eye coordinates, defaults to texture data's size (if it exists)
+        'size':(None,
                 ve_types.Sequence2(ve_types.Real),
                 "defaults to texture data size (units: eye coordinates)"),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
@@ -1305,14 +1305,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                       "perform depth test?"),
         }
     
-    def __init__(self,**kw):
-        TextureStimulusBaseClass.__init__(self,**kw)
-        if self.parameters.size is None:
-            if hasattr(self.parameters.texture,'size'): # Texture.size isn't really part of the API, so this is naughty...
-                self.parameters.size = self.parameters.texture.size
-            else:
-                self.parameters.size = (640,480)
-                
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -1329,8 +1321,18 @@ class TextureStimulus(TextureStimulusBaseClass):
             p.anchor = 'lowerleft'
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
         if p.on:
+            tex = p.texture
+            tex.update()
+
+            if p.size is None:
+                # Note: 'size' attribute is not supposed to be part of the API,
+                # so this is naughty.
+                size = tex.size 
+            else:
+                size = p.size
+                
             # calculate lowerleft corner
-            lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
+            lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,size)
             
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -1361,16 +1363,12 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glTranslate(*translate_vector)
             gl.glRotate(p.angle,0,0,1)
 
-            tex = p.texture
-
-            tex.update()
-            
             gl.glColorf(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
             l = lowerleft[0] - p.position[0]
-            r = l + p.size[0]
+            r = l + size[0]
             b = lowerleft[1] - p.position[1]
-            t = b + p.size[1]
+            t = b + size[1]
 
             if p.mask:
                 p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
@@ -1405,19 +1403,19 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                           Default: True
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                           Inherited from TextureStimulusBaseClass
-                          Default: (determined at instantiation)
+                          Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: GL_LINEAR
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     texture_wrap_t     -- OpenGL texture wrap enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: (GL enum determined at instantiation)
+                          Default: (GL enum determined at runtime)
     upperleft          -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
                           Default: (0.0, 1.0, -1.0)
     upperright         -- vertex position (units: eye coordinates) (AnyOf(Sequence3 of Real or Sequence4 of Real))
@@ -1525,6 +1523,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: 0.0
     flat                  -- toggles flat vs. cylinder (Boolean)
                              Default: False
+    flat_size             -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
+                             Default: (determined at runtime)
     flip_image            -- toggles normal vs. horizonally flipped image (Boolean)
                              Default: False
     num_sides             -- (UnsignedInteger)
@@ -1539,19 +1539,19 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: 1.0
     texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                              Inherited from TextureStimulusBaseClass
-                             Default: (determined at instantiation)
+                             Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
                              Default: GL_LINEAR
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
     texture_wrap_s        -- OpenGL texture wrap enum (Integer)
                              Inherited from TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
     texture_wrap_t        -- OpenGL texture wrap enum (Integer)
                              Inherited from TextureStimulusBaseClass
-                             Default: (GL enum determined at instantiation)
+                             Default: (GL enum determined at runtime)
 
     Constant Parameters
     ===================
@@ -1576,6 +1576,9 @@ class SpinningDrum(TextureStimulusBaseClass):
         'flat':(False,
                 ve_types.Boolean,
                 'toggles flat vs. cylinder'),
+        'flat_size':(None,
+                     ve_types.Sequence2(ve_types.Real),
+                     "defaults to texture data size (units: eye coordinates)"),
         'flip_image':(False,
                       ve_types.Boolean,
                       'toggles normal vs. horizonally flipped image'),
@@ -1664,10 +1667,12 @@ class SpinningDrum(TextureStimulusBaseClass):
 
             if p.flat: # draw as flat texture on a rectange
                 lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
-                
-                # do the orientation
+
+                translate_vector = p.position
+                if len(translate_vector) == 2:
+                    translate_vector = translate_vector[0], translate_vector[1], 0
+                gl.glTranslate(*translate_vector)
                 gl.glRotatef(p.orientation,0,0,1)
-                gl.glTranslate(lowerleft[0],lowerleft[1],lowerleft[2])
                 
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
@@ -1680,21 +1685,32 @@ class SpinningDrum(TextureStimulusBaseClass):
                 TINY = 1.0e-10
                 tex = p.texture
                 tex.update()
-                
+
+                if p.flat_size is None:
+                    size = tex.size
+                else:
+                    size = p.flat_size
+
+                l = lowerleft[0] - p.position[0]
+                r = l + size[0]
+                b = lowerleft[1] - p.position[1]
+                t = b + size[1]
+
+                #tex_phase = 0.0
                 if tex_phase < TINY: # it's effectively zero
 
                     gl.glBegin(gl.GL_QUADS)
                     gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                    gl.glVertex2f(0.0,0.0)
+                    gl.glVertex2f(l,b)
 
                     gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                    gl.glVertex2f(w,0.0)
+                    gl.glVertex2f(r,b)
 
                     gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                    gl.glVertex2f(w,h)
+                    gl.glVertex2f(r,t)
 
                     gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                    gl.glVertex2f(0.0,h)
+                    gl.glVertex2f(l,t)
                     gl.glEnd() # GL_QUADS
 
                 else:
@@ -1702,37 +1718,38 @@ class SpinningDrum(TextureStimulusBaseClass):
                     buf_break_f = ( (tex.buf_rf - tex.buf_lf) * (1.0-tex_phase) ) + tex.buf_lf
 
                     # Convert tex_phase into object coords value
-                    quad_x_break = w * tex_phase
+                    quad_x_break = (r-l) * tex_phase + l
+##                    quad_x_break = w * tex_phase
 
                     gl.glBegin(gl.GL_QUADS)
 
                     # First quad
 
                     gl.glTexCoord2f(buf_break_f,tex.buf_bf)
-                    gl.glVertex2f(0.0,0.0)
+                    gl.glVertex2f(l,b)
 
                     gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                    gl.glVertex2f(quad_x_break,0.0)
+                    gl.glVertex2f(quad_x_break,b)
 
                     gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                    gl.glVertex2f(quad_x_break,h)
+                    gl.glVertex2f(quad_x_break,t)
 
                     gl.glTexCoord2f(buf_break_f,tex.buf_tf)
-                    gl.glVertex2f(0.0,h)
+                    gl.glVertex2f(l,t)
 
                     # Second quad
 
                     gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                    gl.glVertex2f(quad_x_break,0.0)
+                    gl.glVertex2f(quad_x_break,b)
 
                     gl.glTexCoord2f(buf_break_f,tex.buf_bf)
-                    gl.glVertex2f(w,0.0)
+                    gl.glVertex2f(r,b)
 
                     gl.glTexCoord2f(buf_break_f,tex.buf_tf)
-                    gl.glVertex2f(w,h)
+                    gl.glVertex2f(r,t)
 
                     gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                    gl.glVertex2f(quad_x_break,h)
+                    gl.glVertex2f(quad_x_break,t)
                     gl.glEnd() # GL_QUADS
 
             else: # draw as cylinder
