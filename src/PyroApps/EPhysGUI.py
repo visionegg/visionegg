@@ -825,15 +825,13 @@ class AppWindow(Tkinter.Frame):
         self.bar.file_menu.add_command(label='Save configuration file...', command=self.save_config)
         self.bar.file_menu.add_command(label='Load configuration file...', command=self.load_config)
         self.bar.file_menu.add_command(label='Load auto-saved .py parameter file...', command=self.load_params)
-##        if sys.platform == 'win32':
-##            quit_accelerator = "Ctrl-Q"
-##        elif sys.platform == 'darwin':
-##            quit_accelerator = "Command-Q"
-##        else:
-##            quit_accelerator = None
+        self.bar.file_menu.add_separator()
+        self.quit_server_too = Tkinter.BooleanVar()
+        self.quit_server_too.set(1)
+        self.bar.file_menu.add_checkbutton(label='Quit server too',
+                                           variable=self.quit_server_too)
         self.bar.file_menu.add_command(label='Quit',
                                        command=self.quit,
-#                                       accelerator=quit_accelerator
                                        )
         
         stimkey = self.ephys_server.get_stimkey()
@@ -1368,13 +1366,15 @@ class AppWindow(Tkinter.Frame):
             percent_done = (time.time() - start_time)/duration_sec*100
 
     def quit(self):
-        self.ephys_server.set_quit_status(1)
+        if self.quit_server_too.get():
+            self.ephys_server.set_quit_status(1)
         # call parent class
         Tkinter.Frame.quit(self)
 
     def destroy(self):
         try:
-            self.ephys_server.set_quit_status(1)
+            if self.quit_server_too.get():
+                self.ephys_server.set_quit_status(1)
         except:
             pass
         Tkinter.Frame.destroy(self)
