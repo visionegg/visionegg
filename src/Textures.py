@@ -21,8 +21,6 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-__all__ = ['Texture','TextureFromFile','TextureFromPILImage','TextureBuffer',
-           'TextureStimulusBaseClass','TextureStimulus','SpinningDrum']
 
 ############ Import texture compression stuff and use it, if possible ##############
 # This may mess up image statistics! Check the output before using in an experiment!
