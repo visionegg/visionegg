@@ -42,7 +42,7 @@ TCPController -- Control a parameter from a network (TCP) connection
 
 import VisionEgg
 import VisionEgg.Core
-import socket, select, re, string, types
+import socket, select, re, string, types, traceback
 import Numeric, math # for eval
 
 try:
@@ -69,25 +69,90 @@ class TCPServer:
                  hostname="",
                  port=7834,
                  single_socket_but_reconnect_ok=0,
-                 dialog_ok=1):
+                 dialog_ok=1,
+                 confirm_address_with_gui=1):
         """Bind to hostname and port, but don't listen yet.
 
         """
-        server_address = (hostname,port)
+        server_address = (socket.getfqdn(hostname),port)
         self.dialog_ok = dialog_ok
+        self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
+        self.buffer = ""
+        self.server_socket=None
         if not globals().has_key("Tkinter") or (VisionEgg.config.VISIONEGG_TKINTER_OK==0):
             self.dialog_ok = 0
-        try:
+
+        class GetServerAddressWindow(Tkinter.Frame):
+            def __init__(self,server_address,**kw):
+                try:
+                    apply(Tkinter.Frame.__init__,(self),kw)
+                except AttributeError,x:
+                    if str(x) == "GetServerAddressWindow instance has no attribute 'tk'":
+                        tk=Tkinter.Tk()
+                        apply(Tkinter.Frame.__init__,(self,tk),kw)
+                self.winfo_toplevel().title("Vision Egg: TCP Server get address")
+                self.server_address = server_address
+                hostname,port = self.server_address
+                self.clicked_ok = 0
+                self.hostname = Tkinter.StringVar()
+                self.hostname.set(hostname)
+                self.port = Tkinter.StringVar()
+                self.port.set(port)
+                row = 0
+                Tkinter.Label(self,
+                              text="Please enter the hostname and port you would like to listen for connections on.",
+                              ).grid(row=row,columnspan=2)
+                row += 1
+                Tkinter.Label(self,
+                              text="Hostname (blank means localhost):",
+                              ).grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(self,textvariable=self.hostname).grid(row=row,column=1,sticky=Tkinter.W+Tkinter.E,padx=10)
+                row += 1
+                Tkinter.Label(self,
+                              text="Port:",
+                              ).grid(row=row,column=0,sticky=Tkinter.E)
+                Tkinter.Entry(self,textvariable=self.port).grid(row=row,column=1,sticky=Tkinter.W+Tkinter.E,padx=10)
+                row += 1
+                b = Tkinter.Button(self,
+                                   text="Bind port and listen for connections",
+                                   command=self.click_ok)
+                b.grid(row=row,columnspan=2)
+                b.focus_force()
+                b.bind('<Return>',self.click_ok)
+            def click_ok(self,dummy_arg=None):
+                hostname = self.hostname.get()
+                try:
+                    port = int(self.port.get())
+                except:
+                    port = self.port.get()
+                self.server_address = (hostname,port)
+                self.clicked_ok = 1
+                self.winfo_toplevel().destroy()
+                
+        bound = 0
+        if not bound:
+#        while not bound: # don't loop until the code is cleaner
+            if confirm_address_with_gui and self.dialog_ok:
+                window = GetServerAddressWindow(server_address)
+                window.pack()
+                window.mainloop()
+                if not window.clicked_ok:
+                    return # User wants to quit
+                server_address = window.server_address
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server_socket.bind(server_address)
-        except Exception, x:
-            if self.dialog_ok:
-                import tkMessageBox
-                tkMessageBox.showerror(title=str(x.__class__),message="While trying to connect to %s:\n%s"%(server_address,str(x)))
-                raise
-            else:
-                raise
-        self.single_socket_but_reconnect_ok = single_socket_but_reconnect_ok
+            bound = 1
+##            try:
+##                self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+##                self.server_socket.bind(server_address)
+##                bound = 1
+##            except Exception, x:
+##                if self.dialog_ok:
+##                    import tkMessageBox
+##                    tkMessageBox.showerror(title=str(x.__class__),message="While trying to connect to %s:\n%s"%(server_address,str(x)))
+##                    traceback.print_exc()
+##                else:
+##                    raise
 
     def create_listener_once_connected(self,eval_frequency=None):
         """Wait for connection and spawn instance of SocketListenController."""
