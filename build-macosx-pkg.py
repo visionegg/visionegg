@@ -33,9 +33,16 @@ import VisionEgg # get release no
 
 # pkg_name must be short to deal with Stuffit Expander braindead-ness.
 # The final number is a "build number" in case the packaging doesn't work.
-pkg_name = "visionegg-%s-py%s-%d"%(VisionEgg.release_name,sys.version.split()[0],build_number)
+pkg_name = "ve-%s-py%s-%d"%(VisionEgg.release_name,sys.version.split()[0],build_number)
+if len(pkg_name + ".pkg.tar.gz") > 31:
+    raise RuntimeError("Your package name will be too long for dumb Mac OS X apps")
 
-default_location = "/Library/Frameworks/Python.framework/Versions/%s"%py_version_short
+framework_dir = "/Library/Frameworks/Python.framework"
+current_link = os.path.join(framework_dir, "Versions" , "Current" )
+default_location = "%s/Versions/%s"%(framework_dir,py_version_short)
+if os.path.islink( current_link ):
+    if os.path.realpath( current_link ) != default_location:
+        raise RuntimeError("I think your current version of Python is not specied by %s"%(current_link,))
 bdist_dumb_results = "./dist/visionegg-%s.darwin-6.3-%s.tar.gz"%(setup.version,power_mac)
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
@@ -48,9 +55,9 @@ This package installs the Vision Egg library and associated files, including the
 
 The files will be installed to %s. This is the default Python %s framework directory. The system files will be in the subdirectory lib/python%s/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
 
-A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link to this directory named VisionEgg will be made on your Desktop, removing anything named VisionEgg already there.
+A copy of the user files will be made to /Applications/VisionEgg. Old files of the same name in this directory will be overwritten.
 
-This release exposes a few known bugs with Mac OS X versions of software that the Vision Egg depends on. Checkbuttons in dialog windows are broken until a button is pressed (Tk bug), and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working (pygame bug).
+This release exposes a few known bugs with Mac OS X versions of software that the Vision Egg depends on.
 
 This package has the following dependencies:
 
@@ -73,21 +80,13 @@ INSTALLDIR=%s
 SCRIPTDIR=$INSTALLDIR/VisionEgg
 LIBDIR=$INSTALLDIR/lib/python%s/site-packages/VisionEgg
 
-# Make a local user copy of the Vision Egg scripts
-echo "Copying to /Applications/VisionEgg"
-cp -p -r $SCRIPTDIR ~
-
-# Make the local copies owned by the user
-#chown -R $USER ~/Applications/VisionEgg
-#chmod -R a+r ~/Applications/VisionEgg
-
 # Make sure system directories owned by root (an Installer bug changes them to user on upgrade)
 chown -R root:admin $SCRIPTDIR
 chown -R root:admin $LIBDIR
 
-# Make the link owned by the user
-#chown $USER ~/Desktop/VisionEgg
-
+# Make a copy of the Vision Egg scripts in /Applications
+echo "Copying to /Applications/VisionEgg"
+cp -p -r $SCRIPTDIR /Applications
 """%(default_location,py_version_short)
 
 post_install = """#!/bin/sh
@@ -260,10 +259,5 @@ f = open(post_upgrade_file, "w")
 f.write(post_upgrade)
 f.close()
 os.chmod(post_upgrade_file,0755)
-
-##os.chdir(bdist_dumb_dir)
-##cmd = "sudo chown -R astraw *"
-##os.system(cmd)
-##os.chdir(orig_dir)
 
 shutil.rmtree(bdist_dumb_dir)
