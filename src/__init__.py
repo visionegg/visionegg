@@ -1,6 +1,6 @@
 """The Vision Egg package.
 
-See the "Core" module for the fundamental Vision Egg classes.
+See the 'Core' module for the fundamental Vision Egg classes.
 
 The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
@@ -41,7 +41,7 @@ TCPController -- Allows control of parameter values over the network
 Text -- Text stimuli
 Textures -- Texture (images mapped onto polygons) stimuli
 ThreeDeeMath -- Simulate OpenGL transforms
-__init__ -- Loaded with "import VisionEgg" (This module)
+__init__ -- Loaded with 'import VisionEgg' (This module)
 darwin_getrefresh -- (Platform dependent) wrappers for low-level C code
 darwin_maxpriority -- (Platform dependent) wrappers for low-level C code
 gl_qt -- (Platform dependent) wrappers for low-level C code
@@ -59,10 +59,21 @@ ClassWithParameters -- Base class for any class that uses parameters
 
 Functions:
 
-recursive_base_class_finder() -- A function to find all base classes
 time_func() -- Most accurate timing function available on a platform
-get_type() -- Get the type or class of argument
-assert_type() -- Verify the type of an instance
+start_default_logging() -- Create and add log handlers
+watch_exceptions() -- Catch exceptions, log them, and optionally open GUI
+stop_watching_exceptions() -- Stop catching exceptions, returning to previous state
+
+Less used functions:
+
+set_time_func_to_true_time() -- time_func() returns true time (Normal)
+set_time_func_to_frame_locked() -- time_func() returns framecount/framerate
+recursive_base_class_finder() -- A function to find all base classes
+
+Deprecated functions:
+
+timing_func() -- Use time_func() instead
+assert_type() -- Use VisionEgg.ParameterTypes.assert_type() instead
 
 Public variables:
 
@@ -120,20 +131,34 @@ config = VisionEgg.Configuration.Config()
 logger = logging.getLogger('VisionEgg')
 logger.setLevel( logging.INFO )
 log_formatter = logging.Formatter('%(asctime)s (%(process)d) %(levelname)s: %(message)s')
+_default_logging_started = False
 
-if config.VISIONEGG_LOG_TO_STDERR:
-    log_handler_stderr = logging.StreamHandler()
-    log_handler_stderr.setFormatter( log_formatter )
-    logger.addHandler( log_handler_stderr )
-    
-if config.VISIONEGG_LOG_FILE:
-    if hasattr(logging, 'handlers'):
-        log_handler_logfile = logging.handlers.RotatingFileHandler( config.VISIONEGG_LOG_FILE,
-                                                                    maxBytes=100000 )
-    else:
-        log_handler_logfile = logging.FileHandler( config.VISIONEGG_LOG_FILE )
-    log_handler_logfile.setFormatter( log_formatter )
-    logger.addHandler( log_handler_logfile )
+def start_default_logging():
+    """Create and add log handlers"""
+    global _default_logging_started
+    if _default_logging_started:
+        return # default logging already started
+
+    if config.VISIONEGG_LOG_TO_STDERR:
+        log_handler_stderr = logging.StreamHandler()
+        log_handler_stderr.setFormatter( log_formatter )
+        logger.addHandler( log_handler_stderr )
+
+    if config.VISIONEGG_LOG_FILE:
+        if hasattr(logging, 'handlers'):
+            log_handler_logfile = logging.handlers.RotatingFileHandler( config.VISIONEGG_LOG_FILE,
+                                                                        maxBytes=100000 )
+        else:
+            log_handler_logfile = logging.FileHandler( config.VISIONEGG_LOG_FILE )
+        log_handler_logfile.setFormatter( log_formatter )
+        logger.addHandler( log_handler_logfile )
+
+    script_name = sys.argv[0]
+    if not script_name:
+        script_name = "(interactive shell)"
+    logger.info("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,os.getpid()))
+    _default_logging_started = True
+
 
 ############# Default exception handler #############
 
@@ -199,14 +224,22 @@ class _ExceptionHookKeeper:
         self._sys.excepthook = self.orig_hook # restore original
 
 def watch_exceptions():
+    """Catch exceptions, log them, and optionally open GUI"""
     global _exception_hook_keeper
     _exception_hook_keeper = _ExceptionHookKeeper()
-
+    
 def stop_watching_exceptions():
+    """Stop catching exceptions, returning to previous state"""
     global _exception_hook_keeper
     del _exception_hook_keeper
 
-watch_exceptions()
+if config.VISIONEGG_ALWAYS_START_LOGGING:
+    start_default_logging()
+    watch_exceptions()
+    if len(config._delayed_configuration_log_warnings) != 0:
+        logger = logging.getLogger('VisionEgg.Configuration')
+        for msg in config._delayed_configuration_log_warnings:
+            logger.warning( msg )
 
 ############ A base class finder utility function ###########
 
@@ -224,39 +257,34 @@ def recursive_base_class_finder(klass):
     return result2
     
 ############# Setup timing functions #############
+
 if sys.platform == "win32":
     # on win32, time.clock() theoretically has better resolution than time.time()
     true_time_func = time.clock 
 else:
     true_time_func = time.time
-
-config._FRAMECOUNT_ABSOLUTE = 0 # initialize global variable
-def time_func():
-    """Return current time.
-
-    This returns a floating point timestamp.  It uses the most
-    accurate time available on a given platform (unless in "lock time
-    to frames" mode.").
-    """
-    # XXX ToDo
-    # Make config have setattr parameter that hooks to changing this
-    # so we can just assign the function pointer
-    #
     # XXX Possible To-Do:
     #  On MacOSX use AudioGetCurrentHostTime() and
     #  AudioConvertHostTimeToNanos() #
-    
-    if config.VISIONEGG_LOCK_TIME_TO_FRAMES:
-        return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
-    else:
-        return true_time_func()
 
+config._FRAMECOUNT_ABSOLUTE = 0 # initialize global variable
+def time_func_locked_to_frames():
+    return config._FRAMECOUNT_ABSOLUTE / float(config.VISIONEGG_MONITOR_REFRESH_HZ)
+
+time_func = true_time_func # name of time function Vision Egg programs should use
+
+def set_time_func_to_true_time():
+    time_func = true_time_func
+
+def set_time_func_to_frame_locked():
+    time_func = time_func_locked_to_frames
+    
 def timing_func():
     """DEPRECATED.  Use time_func instead"""
-    warnings.warn("timing_func() has been changed to time_func(). "+\
-                                 "This warning will only be issued once, but each call to "+\
-                                 "timing_func() will be slower than if you called time_func() "+\
-                                 "directly",DeprecationWarning, stacklevel=2)
+    warnings.warn("timing_func() has been changed to time_func(). "
+                  "This warning will only be issued once, but each call to "
+                  "timing_func() will be slower than if you called time_func() "
+                  "directly", DeprecationWarning, stacklevel=2)
     return time_func()
 
 ####################################################################
