@@ -5,6 +5,8 @@
 # of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg, string
+import VisionEgg.ParameterTypes as ve_types
+
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
@@ -92,11 +94,10 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
 
     def __del__(self):
         self.p.parameters.handle_event_callbacks = self.orig_event_handlers
-        self.p.remove_controller(None,self.mouse_position_controller)
+        self.p.remove_controller(None,None,self.mouse_position_controller)
         self.p.remove_controller(self.stim,'center')
         self.p.remove_controller(self.stim,'size')
         self.p.remove_controller(self.stim,'orientation')
-        Pyro.core.ObjBase.__del__(self) # call base class
     
     def get_parameters(self):
         return self.meta_params
@@ -141,7 +142,7 @@ class MousePositionController( VisionEgg.Core.Controller ):
     def __init__(self):
         global mouse_position
         VisionEgg.Core.Controller.__init__(self,
-                            return_type=type(None),
+                            return_type=ve_types.get_type(None),
                             eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
         self.between_go_eval = self.during_go_eval
 
@@ -160,7 +161,7 @@ class TargetPositionController( VisionEgg.Core.Controller ):
     def __init__(self):
         global mouse_position
         VisionEgg.Core.Controller.__init__(self,
-                            return_type=type(mouse_position),
+                            return_type=ve_types.Sequence2(ve_types.Real),
                             eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
         self.between_go_eval = self.during_go_eval
 
@@ -182,7 +183,7 @@ def mag(b):
 class TargetOrientationController( VisionEgg.Core.Controller ):
     def __init__(self):
         VisionEgg.Core.Controller.__init__(self,
-                            return_type=type(90.0),
+                            return_type=ve_types.Real,
                             eval_frequency=VisionEgg.Core.Controller.EVERY_FRAME)
         self.c = (0.0,0.0,1.0)
         self.last_orientation = 0.0
