@@ -58,8 +58,6 @@ import sys, types, string, math, time, os       # standard Python modules
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import PlatformDependent                        # platform dependent Vision Egg C code
 
-import Image                                    # Python Imaging Library (PIL)
-
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
 import pygame.display
@@ -358,12 +356,109 @@ class Screen(VisionEgg.ClassWithParameters):
         else:
             VisionEgg.config._open_screens = [self]
 
-    def get_framebuffer_as_image(self):
+    def get_framebuffer_as_image(self, buffer='back', format=gl.GL_RGB):
+        """get pixel values from framebuffer to PIL image (SLOW)"""
+        import Image # Could import this at the beginning of the file, but it breaks sometimes!
+
+        if buffer == 'front':
+            gl.glReadBuffer( gl.GL_FRONT )
+        elif buffer == 'back':
+            gl.glReadBuffer( gl.GL_BACK )
+        else:
+            raise ValueError('No support for "%s" framebuffer'%buffer)
+        if format == gl.GL_RGB:
+            mode_string = 'RGB'
+        elif format == gl.GL_RGBA:
+            mode_string = 'RGBX'
+        else:
+            raise NotImplementedError("Only RGB and RGBA formats currently supported")
         gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],gl.GL_RGB,gl.GL_UNSIGNED_BYTE)
-        fb_image = Image.fromstring('RGB',self.size,framebuffer_pixels)
+        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],format,gl.GL_UNSIGNED_BYTE)
+        fb_image = Image.fromstring(mode_string,self.size,framebuffer_pixels)
         fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
         return fb_image
+
+    def get_framebuffer_as_array(self, buffer='back', format=gl.GL_RGB):
+        """get pixel values from framebuffer to Numeric array (SLOW)"""
+        
+        if buffer == 'front':
+            gl.glReadBuffer( gl.GL_FRONT )
+        elif buffer == 'back':
+            gl.glReadBuffer( gl.GL_BACK )
+        else:
+            raise ValueError('No support for "%s" framebuffer'%buffer)
+        if format == gl.GL_RGB:
+            num_channels = 3
+        elif format == gl.GL_RGBA:
+            num_channels = 4
+        else:
+            raise NotImplementedError("Only RGB and RGBA formats currently supported")
+        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+        framebuffer_pixels = gl.glReadPixels(0,0,self.size[0],self.size[1],format,gl.GL_UNSIGNED_BYTE)
+        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UnsignedInt8)
+        fb_array = Numeric.reshape(fb_array,(self.size[1],self.size[0],num_channels))
+        return fb_array
+
+    def put_pixels(self,
+                   pixels=None,
+                   position=(0,0),
+                   anchor='lowerleft',
+                   scale_x=1.0, # "zoom" the pixels
+                   scale_y=1.0, # "zoom" the pixels
+                   texture_min_filter=gl.GL_NEAREST, # only used if scale < 1.0
+                   texture_mag_filter=gl.GL_NEAREST, # only used if scale > 1.0
+                   internal_format=gl.GL_RGB, # pixel data converted to this format in texture (gl.GL_RGBA also useful)
+                   ):
+        """Put pixel values to screen.
+
+        Pixel values become texture data using the VisionEgg.Textures
+        module.  Any source of texture data accepted by that module is
+        accepted here."""
+        import VisionEgg.Textures # import here to avoid import loop
+        make_new_texture_object = 0
+        if not hasattr(self, "_put_pixels_texture_stimulus"): 
+            make_new_texture_object = 1
+        else:
+            if internal_format != self._put_pixels_texture_stimulus.constant_parameters.internal_format:
+                make_new_texture_object = 1
+        if make_new_texture_object:
+            # For speed, don't do this on anything other than 1st run
+            texture = VisionEgg.Textures.Texture(pixels)
+            on_screen_size = (texture.size[0]*scale_x, texture.size[1]*scale_y)
+            t = VisionEgg.Textures.TextureStimulus(texture=texture,
+                                                   position=position,
+                                                   anchor=anchor,
+                                                   size=on_screen_size,
+                                                   mipmaps_enabled=0,
+                                                   texture_min_filter=texture_min_filter,
+                                                   texture_mag_filter=texture_mag_filter,
+                                                   internal_format = internal_format,
+                                                   )
+            self._put_pixels_texture_stimulus = t # rename
+            self._pixel_coord_projection = OrthographicProjection(left=0,right=self.size[0],
+                                                                  bottom=0,top=self.size[1],
+                                                                  z_clip_near=0.0,
+                                                                  z_clip_far=1.0)
+        else:
+            
+            # We've run once before and therefore already have a
+            # texture stimulus. (XXX In the future, make use of
+            # already assigned texture object and use put_sub_image
+            # for speed.)
+            
+            self._put_pixels_texture_stimulus.parameters.texture = VisionEgg.Textures.Texture(pixels)
+
+        self._pixel_coord_projection.push_and_set_gl_projection() # Save projection
+        self._put_pixels_texture_stimulus.draw() # Draw pixels as texture
+        
+        gl.glMatrixMode(gl.GL_PROJECTION) # Restore projection
+        gl.glPopMatrix()
+                
+    def get_framerate(self, wait_n_frames_ok=0):
+        if not wait_n_frames_ok:
+            raise NotImplementedError("Platform dependent code to check frame rate not yet implemented.")
+        else:
+            raise NotImplementedError("Not yet...")
 
     def set_gamma_ramp(self, red, green, blue):
         return pygame.display.set_gamma_ramp(red,green,blue)
@@ -1293,11 +1388,6 @@ class Presentation(VisionEgg.ClassWithParameters):
             raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
 
         while (current_duration_value < p.go_duration[0]):
-            # Update all the realtime parameters
-            self.__call_controllers(
-                go_started=1,
-                doing_transition=0)
-            
             # Get list of screens
             screens = []
             for viewport in p.viewports:
@@ -1309,10 +1399,15 @@ class Presentation(VisionEgg.ClassWithParameters):
             for screen in screens:
                 screen.clear()
                 
+            # Update all the realtime parameters
+            self.__call_controllers(
+                go_started=1,
+                doing_transition=0)
+            
             # Draw each viewport
             for viewport in p.viewports:
                 viewport.draw()
-                            
+
             # Swap the buffers
             if synclync_connection:
                 if not synclync_hack_done_once:
@@ -1473,11 +1568,6 @@ class Presentation(VisionEgg.ClassWithParameters):
         else:
             raise RuntimeError("Unknown duration unit '%s'"%p.go_duration[1])
         while (current_duration_value < p.go_duration[0]):
-            # Update all the realtime parameters
-            self.__call_controllers(
-                go_started=1,
-                doing_transition=0)
-            
             # Get list of screens
             screens = []
             for viewport in p.viewports:
@@ -1489,10 +1579,15 @@ class Presentation(VisionEgg.ClassWithParameters):
             for screen in screens:
                 screen.clear()
                 
+            # Update all the realtime parameters
+            self.__call_controllers(
+                go_started=1,
+                doing_transition=0)
+            
             # Draw each viewport
             for viewport in p.viewports:
                 viewport.draw()
-                
+
             # Swap the buffers
             if synclync_connection:
                 # Notify SyncLync device if present
@@ -1502,7 +1597,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             swap_buffers()
             
             # Now save the contents of the framebuffer
-            fb_image = screen.get_framebuffer_as_image()
+            fb_image = screen.get_framebuffer_as_image(buffer='front',format=gl.GL_RGB)
             filename = "%s%04d%s"%(filename_base,image_no,filename_suffix)
             savepath = os.path.join( path, filename )
             message.add("Saving '%s'"%filename)
