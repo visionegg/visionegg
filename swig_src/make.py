@@ -33,27 +33,42 @@ interfaces = ["darwin_app_stuff",
               "win32_getrefresh",
               "win32_maxpriority",
               "posix_maxpriority"]
-end_names = ["_wrap.c",
-             ".py",
-             ".m",
-             ".c"]
+product_suffixes = ["_wrap.c",
+                    ".py"]
+other_source_suffixes = [".m",
+                         ".c",
+                         ".h"]
 for i in interfaces:
-    sys_string = "%s -python %s.i"%(swig_command,i)
-    print sys_string
-    if 'commands' in globals().keys():
-        status, output = commands.getstatusoutput(sys_string)
-        if status != 0:
-            print "ERROR:", output
-            raise RuntimeError("SWIG error")
+    interface_filename = i+".i"
+    products = map(i.__add__,product_suffixes)
+    other_sources = map(i.__add__,other_source_suffixes)
+    mod_time = os.stat(interface_filename)[stat.ST_MTIME]
+    must_rebuild = False
+    found_any = False
+    for product in products:
+        if os.path.exists(product):
+            found_any = True
+            if os.stat(product)[stat.ST_MTIME] < mod_time:
+                must_rebuild = True
+    if not found_any: must_rebuild = True
+    if must_rebuild:
+        sys_string = "%s -python %s"%(swig_command,interface_filename)
+        print sys_string
+        if 'commands' in globals().keys():
+            status, output = commands.getstatusoutput(sys_string)
+            if status != 0:
+                print "ERROR:", output
+                raise RuntimeError("SWIG error")
+        else:
+            print "WARNING: Cannot verify success of operation"
+            os.system(sys_string)
     else:
-        print "WARNING: Cannot verify success of operation"
-        os.system(sys_string)
-    for end_name in end_names:
-        filename = i + end_name
+        pass
+    copy_files = products + other_sources
+    for filename in copy_files:
+        if not os.path.exists(filename):
+            continue
         new_filename =  "../src/"+filename
-        try:
-#            if os.stat(filename)[stat.ST_MTIME] > os.stat(new_filename)[stat.ST_MTIME]:
-             shutil.copyfile(filename,new_filename)
-             print "copied %s to ../src/"%filename
-        except:
-            pass
+        if not os.path.exists(new_filename) or os.stat(new_filename)[stat.ST_MTIME] < os.stat(filename)[stat.ST_MTIME]:
+            shutil.copy2(filename,new_filename) # copy2 preserves attributes
+            print "copied %s to ../src/"%filename
