@@ -1012,7 +1012,7 @@ class AppWindow(Tkinter.Frame):
             initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
         if not filename:
             return
-        fd = open(filename,"w")
+        fd = open(filename,"wb")
         save_dict = {'stim_type':self.stim_frame.get_shortname(),
                      'loop_list':self.loop_frame.list,
                      'stim_frame_dict':self.stim_frame.get_parameters_dict(),
@@ -1029,7 +1029,7 @@ class AppWindow(Tkinter.Frame):
             initialdir=VisionEgg.config.VISIONEGG_USER_DIR)
         if not filename:
             return
-        fd = open(filename,"r")
+        fd = open(filename,"rb")
         load_dict = pickle.load(fd)
         if load_dict['stim_type'] != self.stim_frame.get_shortname():
             self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")

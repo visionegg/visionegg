@@ -442,7 +442,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
 
     def save(self):
         filename = tkFileDialog.asksaveasfilename(defaultextension=".ve_3dproj",filetypes=[('Projection file','*.ve_3dproj')])
-        fd = open(filename,"w")
+        fd = open(filename,"wb")
         save_dict = self.get_param_dict()
         pickle.dump( save_dict, fd )
 
@@ -450,7 +450,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         filename = tkFileDialog.askopenfilename(defaultextension=".ve_3dproj",filetypes=[('Projection file','*.ve_3dproj')])
         if not filename:
             return
-        fd = open(filename,"r")
+        fd = open(filename,"rb")
         load_dict = pickle.load(fd)
         self.set_param_dict( load_dict )
         self.send_values()
