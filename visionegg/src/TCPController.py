@@ -15,10 +15,18 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 names = {}
 
+class Parser:
+    def __init__(self,tcp_name,most_recent_command):
+        self.tcp_name = tcp_name
+        self.most_recent_command = most_recent_command
+
+    def parse_func(self,match):
+        self.most_recent_command[self.tcp_name] = match.groups()[-1]
+        return ""
+
 class Handler:
-    # TODO: fix code to not need re_eol (module re already does good multiline stuff)
-    re_eol = re.compile(r"(.*)[\n]+(.*)")
-    re_eval = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\)')
+    re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
+    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\)',re.MULTILINE)
     def __init__(self,request,client_address):
         self.request = request
         self.client_address = client_address
@@ -42,35 +50,40 @@ class Handler:
         self.buffer = ""
 
         self.match_names = {}
+        self.parse_for = {}
 
     def prepare_for(self,tcp_name):
-        self.match_names[tcp_name] = re.compile("%s\((.*)\)"%tcp_name)
+        self.match_names[tcp_name] = re.compile(r"^"+tcp_name+r"\s*=\s*(.*)\s*$",re.MULTILINE)
         self.most_recent_command[tcp_name] = None
+        self.parse_for[tcp_name] = Parser(tcp_name,self.most_recent_command).parse_func
         
     def check_input(self):
         # First, update the buffer
         ready_to_read, temp, temp2 = select.select([self.request],[],[],0)
         new_info = 0
-        if len(ready_to_read):
+        while len(ready_to_read):
             #assert(ready_to_read[0] == self.request)
             self.buffer = self.buffer + self.request.recv(1024)
             new_info = 1
+            ready_to_read, temp, temp2 = select.select([self.request],[],[],0)
             
         # Second, convert the buffer to command_queue entries
         if new_info:
-            match = Handler.re_eol.match(self.buffer)
-
-            if match is not None:
-                self.buffer = match.group(2)
-                this_command = match.group(1)
-
-                #print "this_command",this_command
-                for name in self.match_names.keys():
-                    match = self.match_names[name].match(this_command)
-                    if match is not None:
-                        self.most_recent_command[name] = match.group(1)
-                        #print "self.most_recent_command[name]",self.most_recent_command[name]
-                        break # No need to keep going through list
+            # Handle variations on newlines:
+            self.buffer = string.replace(self.buffer,chr(0x0D),"") # no CR
+            self.buffer = string.replace(self.buffer,chr(0x0A),"\n") # LF = newline
+            # Handle each line for which we have a tcp_name
+            for tcp_name in self.match_names.keys():
+                # If the following line makes a match, it
+                # sticks the result in self.most_recent_command[tcp_name].
+                self.buffer = self.match_names[tcp_name].sub(self.parse_for[tcp_name],self.buffer)
+            # Clear any complete lines for which we don't have a tcp_name
+            self.buffer = Handler.re_line.sub(self.unknown_line,self.buffer)
+            
+    def unknown_line(self,match):
+        for str in match.groups():
+            self.request.send("Error with line: "+str+"\n")
+        return ""
 
     def create_new_controller_if_needed_for(self,tcp_name):
         return_value = None
@@ -79,7 +92,7 @@ class Handler:
         self.check_input()
         params = self.most_recent_command[tcp_name]
         if params is not None:
-            match = Handler.re_eval.match(params)
+            match = Handler.re_eval_str.match(params)
             if match is not None:
                 go_str = match.group(1)
                 #print "go_str",go_str
@@ -96,7 +109,7 @@ class Handler:
                     temporal_variable_type = temporal_variable_type,
                     eval_frequency = eval_frequency)
             else:
-                print " unknown command"
+                self.request.send("Error parsing command for %s: %s\n"%(tcp_name,params))
             self.most_recent_command[tcp_name] = None
         # create controller based on last command_queue
         return return_value
