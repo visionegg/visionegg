@@ -101,7 +101,7 @@ p.add_controller(stimulus,'orientation', orientation_controller)
 p.add_controller(stimulus,'num_samples', num_samples_controller)
 p.add_controller(stimulus,'bit_depth', bit_depth_controller)
 p.add_controller(p,'go_duration', go_duration_controller)
-p.add_controller(p,'enter_go_loop', go_loop_controller)
+p.add_controller(p,'enter_go_loop', go_controller)
 
 # Go!
 p.run_forever()

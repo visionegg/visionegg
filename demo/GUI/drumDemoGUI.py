@@ -66,7 +66,7 @@ class DrumGui(AppWindow):
                                       to=60.0,
                                       resolution=0.5,
                                       orient=Tkinter.HORIZONTAL,
-                                      label="Duration (seconds):")
+                                      label="Duration of go loop (seconds):")
         self.duration.set(10.0)
         self.duration.pack(expand=1,fill=Tkinter.X)
 
@@ -142,7 +142,7 @@ p = Presentation(viewports=[perspective_viewport,flat_viewport])
 gui_window = DrumGui(idle_func=p.between_presentations)
 
 p.add_controller(fixation_spot,'on',FunctionController(during_go_func=lambda t: gui_window.fixation_spot.get(),eval_frequency=Controller.TRANSITIONS))
-p.add_controller(p,'duration',FunctionController(during_go_func=lambda t: (gui_window.duration.get(),'seconds'),eval_frequency=Controller.TRANSITIONS))
+p.add_controller(p,'go_duration',FunctionController(during_go_func=lambda t: (gui_window.duration.get(),'seconds'),eval_frequency=Controller.TRANSITIONS))
 p.add_controller(drum,'angular_position',FunctionController(during_go_func=gui_window.positionFunction))
 p.add_controller(drum,'contrast',FunctionController(during_go_func=gui_window.contrastFunction))
 

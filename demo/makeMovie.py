@@ -63,12 +63,17 @@ p.add_controller(target,'center', target_position_controller )
 #  Run the stimulus!  #
 #######################
 
-save_directory = os.path.join(VisionEgg.config.VISIONEGG_USER_DIR,'movie')
+base_dir = VisionEgg.config.VISIONEGG_USER_DIR
+if not os.path.isdir(base_dir):
+    base_dir = VisionEgg.config.VISIONEGG_SYSTEM_DIR
+save_directory = os.path.join(base_dir,'movie')
 if not os.path.isdir(save_directory):
     os.mkdir(save_directory)
     if not os.path.isdir(save_directory):
-        message.add( "Error: cannot make movie directory '%s'."%save_directory,
+        message.add( "Error: cannot make movie directory '%s'."%(save_directory,)
                      level=Message.ERROR )
+message.add( "Saving movie to directory '%s'."%(save_directory,),
+             level=Message.INFO )
 basename = "movie_"+os.path.splitext(os.path.basename(sys.argv[0]))[0]
 p.export_movie_go(frames_per_sec=fps,filename_base=basename,path=save_directory)
 

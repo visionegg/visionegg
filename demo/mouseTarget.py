@@ -42,7 +42,7 @@ class MousePositionController( Controller ):
                             return_type=type(None),
                             eval_frequency=Controller.EVERY_FRAME)
 
-    def during_go_eval(self):
+    def during_go_eval(self,t=None):
         # Convert pygame mouse position to OpenGL position
         global mouse_position, last_mouse_position
         just_current_pos = mouse_position
@@ -60,7 +60,7 @@ class TargetPositionController( Controller ):
                             return_type=type(mouse_position),
                             eval_frequency=Controller.EVERY_FRAME)
 
-    def during_go_eval(self):
+    def during_go_eval(self,t=None):
         global mouse_position
         return mouse_position
 
@@ -90,15 +90,30 @@ class TargetOrientationController( Controller ):
              float(last_mouse_position[1]-mouse_position[1]),
              0.0)
 
-        if mag(b) > 5.0: # Must mouse 5 pixels before changing orientation (rejects noise)
+        if mag(b) > 2.0: # Must mouse 10 pixels before changing orientation (rejects noise)
             # find cross product b x c. assume b and c are 3-vecs, b has
             # 3rd component 0.
             orientation_vector = cross_product(b,self.c)
             self.last_orientation = atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
 
-def get_target_size(dummy):
+def get_target_size(t=None):
     global target_w, target_h
+    global up, down, left, right
+
+    amount = 0.02
+    
+    if up:
+        target_w = target_w+(amount*target_w)
+    elif down:
+        target_w = target_w-(amount*target_w)
+    elif right:
+        target_h = target_h+(amount*target_h)
+    elif left:
+        target_h = target_h-(amount*target_h)
+    target_w = max(target_w,0.0)
+    target_h = max(target_h,0.0)
+    
     return (target_w, target_h)
 
 #############################################
@@ -108,25 +123,43 @@ def get_target_size(dummy):
 def quit(event):
     raise SystemExit
 
+# target size global variables
 target_w = 50.0
 target_h = 10.0
 
+# key state global variables
+up = 0
+down = 0
+left = 0
+right = 0
+
 def keydown(event):
-    global target_w, target_h
+    global up, down, left, right
     if event.key == pygame.locals.K_ESCAPE:
         quit(event)
     elif event.key == pygame.locals.K_UP:
-        target_w = (target_w * 1.1)
+        up = 1
     elif event.key == pygame.locals.K_DOWN:
-        target_w = (target_w * 0.9)
+        down = 1
     elif event.key == pygame.locals.K_RIGHT:
-        target_h = (target_h * 1.1)
+        right = 1
     elif event.key == pygame.locals.K_LEFT:
-        target_h = (target_h * 0.9)
-    target_w = max(target_w,0.0)
-    target_h = max(target_h,0.0)
-
-handle_event_callbacks = [(pygame.locals.QUIT, quit),(pygame.locals.KEYDOWN, keydown)]
+        left = 1
+        
+def keyup(event):
+    global up, down, left, right
+    if event.key == pygame.locals.K_UP:
+        up = 0
+    elif event.key == pygame.locals.K_DOWN:
+        down = 0
+    elif event.key == pygame.locals.K_RIGHT:
+        right = 0
+    elif event.key == pygame.locals.K_LEFT:
+        left = 0
+        
+handle_event_callbacks = [(pygame.locals.QUIT, quit),
+                          (pygame.locals.KEYDOWN, keydown),
+                          (pygame.locals.KEYUP, keyup)]
 
 # Create an instance of the Presentation class.  This contains the
 # the Vision Egg's runtime control abilities.

@@ -9,33 +9,28 @@ simpleClient.py from any computer on your network!
 """
 
 from VisionEgg.Core import *
-from VisionEgg.MoreStimuli import *
+from VisionEgg.Gratings import *
 from VisionEgg.PyroHelpers import *
 
 pyro_server = PyroServer()
 
 # get visionegg stimulus ready to go
 screen = get_default_screen()
-projection = SimplePerspectiveProjection(fov_x=45.0)
-viewport = Viewport(screen,(0,0),screen.size,projection)
-stimulus = Teapot()
-viewport.add_stimulus(stimulus)
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+stimulus = SinGrating2D(temporal_freq_hz=0.0)
+viewport = Viewport(screen=screen,stimuli=[stimulus])
+p = Presentation(go_duration=(5.0,'seconds'),viewports=[viewport])
 
 # make a controller, serve it via pyro, and glue it to the Presentation
-angle_controller = EvalStringPyroController('90.0*t')
-pyro_server.connect(angle_controller,'angle_controller')
-p.add_realtime_time_controller(stimulus,'angular_position', angle_controller.eval)
+tf_controller = PyroConstantController(during_go_value=0.0)
+pyro_server.connect(tf_controller,'tf_controller')
+p.add_controller(stimulus,'temporal_freq_hz', tf_controller)
 
-on_controller = BiStatePyroController(1,0) # on during stimulus, off otherwise
-pyro_server.connect(on_controller,'on_controller')
-p.add_transitional_controller(stimulus,'on', on_controller.eval)
+quit_controller = PyroConstantController(during_go_value=0)
+pyro_server.connect(quit_controller,'quit_controller')
+p.add_controller(p,'quit', quit_controller)
+
+# get listener controller and register it
+p.add_controller(None,None, pyro_server.create_listener_controller())
 
 # initialize graphics to between presentations state
-p.between_presentations() 
-
-# register the go function and serve it with pyro
-go_object = PyroGoClass(p.go)
-pyro_server.connect(go_object,'go_object')
-
-pyro_server.mainloop()
+p.run_forever()
