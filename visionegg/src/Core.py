@@ -1,6 +1,8 @@
 # The Vision Egg: Core
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2004 Andrew Straw
+# Copyright (C) 2004 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -381,8 +383,7 @@ class Screen(VisionEgg.ClassWithParameters):
             pil_mode = 'RGB'
         elif format == gl.GL_RGBA:
             pil_mode = 'RGBA'
-        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
-        fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
+        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring(),'raw','RGB',0,-1)
         return fb_image
 
     def get_framebuffer_as_array(self,
