@@ -92,7 +92,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
 
     def __del__(self):
         self.p.parameters.handle_event_callbacks = self.orig_event_handlers
-        self.p.add_controller(None,self.mouse_position_controller)
+        self.p.remove_controller(None,self.mouse_position_controller)
         self.p.remove_controller(self.stim,'center')
         self.p.remove_controller(self.stim,'size')
         self.p.remove_controller(self.stim,'orientation')
@@ -195,11 +195,11 @@ class TargetOrientationController( VisionEgg.Core.Controller ):
              float(last_mouse_position[1]-mouse_position[1]),
              0.0)
 
-        if mag(b) > 2.0: # Must mouse 10 pixels before changing orientation (rejects noise)
+        if mag(b) > 1.0: # Must mouse 1 pixel before changing orientation (supposed to reject noise)
             # find cross product b x c. assume b and c are 3-vecs, b has
             # 3rd component 0.
             orientation_vector = cross_product(b,self.c)
-            self.last_orientation = math.atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
+            self.last_orientation = -math.atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
         
 def get_target_size(t=None):
