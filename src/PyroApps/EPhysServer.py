@@ -11,6 +11,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import tkMessageBox
+import pygame.display
 import VisionEgg.Core
 import VisionEgg.SphereMap
 import VisionEgg.Text
@@ -63,6 +64,9 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def first_connection(self):
         # break out of initial run_forever loop        
         self.presentation.parameters.quit = 1
+
+    def set_gamma_ramp(self, red, blue, green):
+        return pygame.display.set_gamma_ramp(red,green,blue)
     
     def get_next_stimulus_meta_controller(self):
         if self.stimkey:
