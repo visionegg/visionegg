@@ -8,7 +8,6 @@
 from VisionEgg.Core import *
 from VisionEgg.MoreStimuli import *
 from math import *
-from types import *
 
 #################################
 #  Initialize the various bits  #

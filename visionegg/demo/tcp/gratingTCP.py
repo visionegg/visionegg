@@ -69,15 +69,13 @@ bit_depth_controller = tcp_listener.create_tcp_controller(
     tcp_name="bit_depth",
     initial_controller=ConstantController(during_go_value=8)
     )
-# Another contoller for the duration
-duration_controller = tcp_listener.create_tcp_controller(
-    tcp_name="duration",
-    initial_controller=ConstantController(during_go_value=('forever',))
+go_duration_controller = tcp_listener.create_tcp_controller(
+    tcp_name="go_duration",
+    initial_controller=ConstantController(during_go_value=(10,'seconds'))
     )
-# A wildcard controller
-wildcard_controller = tcp_listener.create_tcp_controller(
-    tcp_name="wildcard",
-    initial_controller=ConstantController(during_go_value=None,return_type=type(None))
+go_loop_controller = tcp_listener.create_tcp_controller(
+    tcp_name="go_loop",
+    initial_controller=ConstantController(during_go_value=0)
     )
 
 # Create the instance SinGrating with appropriate parameters
@@ -102,8 +100,8 @@ p.add_controller(stimulus,'phase_at_t0', phase_controller)
 p.add_controller(stimulus,'orientation', orientation_controller)
 p.add_controller(stimulus,'num_samples', num_samples_controller)
 p.add_controller(stimulus,'bit_depth', bit_depth_controller)
-p.add_controller(p,'duration', duration_controller)
-p.add_controller(None,None, wildcard_controller)
+p.add_controller(p,'go_duration', go_duration_controller)
+p.add_controller(p,'enter_go_loop', go_loop_controller)
 
 # Go!
-p.go()
+p.run_forever()

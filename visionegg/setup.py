@@ -49,6 +49,7 @@ def organize_script_dirs(scripts):
 
 scripts = gather_scripts()
 data_files = organize_script_dirs(scripts)
+data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
 
 long_description = """
 The Vision Egg is a programming library (with demo
