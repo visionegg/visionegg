@@ -23,10 +23,9 @@ screen = get_default_screen()
 perspective = SimplePerspectiveProjection(fov_x=90.0)
 
 # Create a viewport with this projection
-perspective_viewport = Viewport(screen,
-                                size=screen.size,
+perspective_viewport = Viewport(screen=screen,
                                 projection=perspective)
-    
+
 # Now create a spinning drum stimulus
 try:
     texture = TextureFromFile("orig.bmp") # try to open a texture file
@@ -41,15 +40,8 @@ perspective_viewport.add_stimulus(drum)
 #  Setup a small target in the foreground  #
 ############################################
 
-# Create an orthographic projection so that OpenGL
-# object coordinates are equal to window (pixel) coordinates.
-pixel_coords = OrthographicProjection(left=0,right=screen.size[0],
-                                      bottom=0,top=screen.size[1])
-
-# Create a viewport with this projection
-flat_viewport = Viewport(screen,
-                         size=screen.size,
-                         projection=pixel_coords)
+# Use viewport with pixel coordinate system for projection
+flat_viewport = Viewport(screen=screen)
 
 # Create an instance of the Target2D class with appropriate parameters
 target = Target2D(size  = (25.0,10.0),
