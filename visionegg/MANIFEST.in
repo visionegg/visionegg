@@ -1,2 +1,2 @@
 include LICENSE
-include testPyOpenGL.py
+include opengl_info.py
