@@ -18,6 +18,7 @@ config-check.exe -- Check a number of configuration settings.
 displayText.exe -- Display text strings.
 grating.exe -- Sinusoidal grating calculated in realtime.
 gratingTCP.exe -- Start a Vision Egg TCPServer to control a grating
+gratingGUI.exe -- GUI for Python control of gratingTCP
 makeMovie.exe -- Save movie of a black target moving across a white background.
 mouseTarget.exe -- Control a target with the mouse, get SDL/pygame events.
 movingPOV.exe -- 2 viewports, one with a changing perspective.

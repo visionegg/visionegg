@@ -32,6 +32,7 @@ demo\targetBackground.py
 demo\texture.py
 demo\textureDrum.py
 demo\tcp\gratingTCP.py
+demo\tcp\gratingGUI.py
 """)
 
 copy_list = string.split(r"""
@@ -46,6 +47,8 @@ CHANGELOG.txt
 scripts = []
 for script in scripts_orig:
     if script == "check-config.py":
+        opts = "--tk --ascii"
+    elif script == r"demo\tcp\gratingGUI.py":
         opts = "--tk --ascii"
     else:
         opts = "--noconsole --tk --ascii"
@@ -115,8 +118,6 @@ command = string.join([python,"-O",build,"sumo.spec"])
 print command
 os.system(command)
 
-os.remove("sumo.spec")
-          
 for file in copy_list:
     dir,name = os.path.split(file)
     dest = output_dir

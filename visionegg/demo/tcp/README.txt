@@ -1,17 +1,15 @@
 OVERVIEW
 
-Controlling the Vision Egg over TCP offers an easy way to integrate
-immediately with any most computer setup.  For example, let's say you
-control your stimulus device with Data Acquisition Product X to
-generate in advance a waveform that controls your stimulus.  Instead
-of a complete waveform, you can control the Vision Egg with a strings
-sent over the network.  The demo/calibrate directory illustrates the
-concept.  (Although it uses a Pyro connection rather than simple TCP.)
+Controlling the Vision Egg over TCP offers an easy way to integrate as
+quickly as possible with most laboratory computer setups.
 
-QUICKSTART INSTRUCTIONS
-
-XXX I must write this!
+I think that using the demo programs will give you the best idea of
+how it all works. Start gratingTCP first, then run gratingGUI.  After
+you've played around with gratingGUI, you might want to try
+controlling the Vision Egg with telnet or your favorite data
+acquisition program with TCP capabilities.
 
 CONTENTS
 
 gratingTCP.py -- Start a Vision Egg TCPServer to control a grating
+gratingGUI.py -- Python GUI to control gratingTCP

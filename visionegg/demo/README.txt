@@ -1,6 +1,12 @@
 This directory contains several demonstration scripts for the Vision
-Egg library.  These scripts are not meant to be used for experiments,
-but rather to demonstrate most of the features of the Vision Egg.
+Egg library.  Most of these demos are merely a feature overview of the
+Vision Egg, are not meant to be used for experiments.
+
+The closest example of a script that could be used for experiments is
+the gratingTCP script in the tcp directory.  This can be controlled by
+gratingGUI or your own program.  See trigger_out in the daq directory
+to see how you could combine it with triggering for easy integration
+into your current data acquisition system.
 
 Contents:
 ---------

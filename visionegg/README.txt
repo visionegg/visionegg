@@ -23,6 +23,10 @@ DEMO SCRIPTS
 
 For demos, see the 'demo' directory.
 
+The current reigning champion of all the demos is the combination of
+the gratingTCP server with the gratingGUI controller in the demo/tcp
+directory.
+
 CURRENT STATUS
 
 This is release 0.9.1. We're homing in on a 1.0 release, and at this
