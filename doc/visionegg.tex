@@ -5,9 +5,9 @@
 \author{Andrew Straw}
 
 \date{\today}			% update before release!
-\release{0.9.5b1}		% software release, not documentation
+\release{0.9.5b3}		% software release, not documentation
 \setreleaseinfo{}		% empty for final release
-\setshortversion{0.9.5a2}	% major.minor only for software
+\setshortversion{0.9.5b3}	% major.minor only for software
 
 \makeindex                      % tell \index to actually write the
                                 % .idx file
@@ -40,9 +40,9 @@ the VisionEgg itself.
 Note before starting: The Vision Egg is fundamentally object oriented
 in nature, and this document assumes you are familiar with terms such
 as ''class'' and ''instance''.  If you are not, please find some
-information on the topic of object oriented programming.  You may also
-need to consult the documentation for the packages on which the Vision
-Egg is based as you write your own scripts.
+information on the topic of object oriented programming.  As you write
+scipts, you may also need to consult the Python, Numeric, pygame, or
+other documentation.
 \end{abstract}
 
 \tableofcontents
@@ -55,12 +55,13 @@ event handling, using the Vision Egg solely for drawing graphics.
 This is often useful in psychophysics experiments where interaction
 with a subject is interleaved with presentation of stimuli.
 
-Alternatively, you can make use of \class{Presentation}, a class which
-maintains an association between parameters of stimuli and their
-control functions, calls these functions, and initiates drawing of the
-stimuli.  There are several ways to use the \class{Presentation} class
-described below.  This mode of operation is useful for
-electrophysiology experiments.
+Alternatively, you can make use of the classes in
+\module{VisionEgg.FlowControl}.  For example, \class{Presentation} is a class
+that maintains an association between the parameters of stimuli and
+their control functions, calls these functions, and initiates drawing
+of the stimuli.  There are several ways to use the
+\class{Presentation} class described below.  This mode of operation is
+useful for electrophysiology experiments.
 
 \section{Custom flow control and event handling}
 
