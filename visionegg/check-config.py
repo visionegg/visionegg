@@ -178,7 +178,7 @@ if 'VisionEgg' in globals().keys():
 
     print
     for configname in dir(VisionEgg.config):
-        if configname[:2] != '__':
+        if not configname.startswith('_'):
             print configname + " = " + str(getattr(VisionEgg.config,configname))
     print
 
