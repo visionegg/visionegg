@@ -79,7 +79,7 @@ get onto this user-oriented side of things.  Help with any of the
 above would be great -- even writing up little tutorials that detail
 how you've done something.
 
-OUTPUT AND EXCEPTIONS
+OUTPUT LOGGING
 
 The output of the Vision Egg is logged.  The default log is a file
 named "VisionEgg.log".  If unspecified, or if there are problems
@@ -88,12 +88,14 @@ error console.  I recommend examining the log after running Vision Egg
 demo scripts.  Most of the demos do not open GUI windows, and so any
 normal ouput they produce is sent to the log.
 
-Exceptions occur when something goes wrong.  If you need to see what
-exception was raised, you will have to look at the console.  On
-Windows, the console is normally open during the execution of a python
-program, but disappers once python terminates.  If you run from the
-command line, however, the console window is not closed, and you can
-scroll back.
+Exceptions occur when something goes wrong.  These exceptions are
+normally logged to the same log file as the rest of the Vision Egg.
+In some cases, however, the Vision Egg doesn't even load, and the
+exception is printed to the console.  In this case, you will have to
+look at the console.  On Windows, the console is normally open during
+the execution of a python program, but disappers once python
+terminates.  If you run from the command line, however, the console
+window is not closed, and you can scroll back.
 
 On Mac OS X, the console is visible when running the "Console"
 application in "Applications/Utilities".
