@@ -590,7 +590,8 @@ class Presentation:
                 print "**************************************************************"
                 print
                 print "PROBABLE VISION EGG ERROR: Frame by frame control desired, but"
-                print "average frame rate was %f frames per second-- set your drivers"%(current_frame / current_time)
+                print "average frame rate was %f frames per second-- faster than any"%(current_frame / current_time)
+                print "display device (that I know of).  Set your drivers"
                 print "to sync buffer swapping to vertical retrace. (platform/driver dependent)"
                 print
                 print "**************************************************************"
