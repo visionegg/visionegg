@@ -79,6 +79,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                       font=("Helvetica",14,"bold")).grid(row=row,columnspan=2)
         row += 1
 
+        ################## begin topframe ##############################
+        
         topframe = Tkinter.Frame(self)
         topframe.grid(row=row,column=0,columnspan=2)
         topframe_row = 0
@@ -99,10 +101,6 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                           ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
             topframe_row += 1
 
-            Tkinter.Label(topframe,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=topframe_row,column=1,sticky=Tkinter.E)
-            Tkinter.Button(topframe,text="PRESS ME FIRST").grid(row=topframe_row,column=2,sticky=Tkinter.W,)
-            topframe_row += 1
-
         try:
             import Image,ImageTk
             im = Image.open(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'data/visionegg.bmp'))
@@ -111,13 +109,23 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         except Exception,x:
             VisionEgg.Core.message.add("Error while trying to display image in GUI.GraphicsConfigurationWindow: %s: %s"%(str(x.__class__),str(x)))
 
+        ################## end topframe ##############################
+
         row += 1
+
+        ################## begin file_frame ##############################
         
         file_frame = Tkinter.Frame(self)
         file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
 
-        # Vision Egg system dir
+        # Script name and location
         file_row = 0
+        Tkinter.Label(file_frame,
+                      text="This script:").grid(row=file_row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(file_frame,
+                      text="%s"%(os.path.abspath(sys.argv[0]),)).grid(row=file_row,column=1,sticky=Tkinter.W)
+        file_row += 1
+        # Vision Egg system dir
         Tkinter.Label(file_frame,
                       text="Vision Egg system directory:").grid(row=file_row,column=0,sticky=Tkinter.E)
         Tkinter.Label(file_frame,
@@ -151,11 +159,16 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         else:
             Tkinter.Label(file_frame,
                           text="(stderr console)").grid(row=file_row,column=1,sticky=Tkinter.W)
+
+        ################## end file_frame ##############################
+
         row += 1
 
+        ################## begin cf ##############################
+        
         cf = Tkinter.Frame(self)
-        cf.grid(row=row,columnspan=2,column=0)
-        row += 1
+        cf.grid(row=row,column=0,padx=10)
+
         cf_row = 0 
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
@@ -178,6 +191,12 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         if self.show_maxpriority_option:
 	    # Only display checkbutton if we have the module
+	    Tkinter.Checkbutton(cf,
+                                text='Maximum priority (use with caution)',
+                                variable=self.maxpriority,
+                                relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+            cf_row += 1
+
             if sys.platform=='darwin':
                 # Only used on darwin platform
                 self.darwin_conventional = Tkinter.IntVar()
@@ -193,13 +212,9 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                 self.darwin_realtime_preemptible = Tkinter.IntVar()
                 self.darwin_realtime_preemptible.set(not VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
                 Tkinter.Button(cf,text="Maximum priority options...",
-                               command=self.darwin_maxpriority_tune).grid(row=cf_row,column=1,sticky=Tkinter.W)
-	    Tkinter.Checkbutton(cf,
-                                text='Maximum priority (use with caution)',
-                                variable=self.maxpriority,
-                                relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-            cf_row += 1
-
+                               command=self.darwin_maxpriority_tune).grid(row=cf_row,column=0)
+                cf_row += 1
+                
         # Sync swap
         self.sync_swap = Tkinter.BooleanVar()
         self.sync_swap.set(VisionEgg.config.VISIONEGG_SYNC_SWAP)
@@ -218,6 +233,24 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
 
+        # Frameless window
+        self.frameless = Tkinter.BooleanVar()
+        self.frameless.set(VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW)
+        Tkinter.Checkbutton(cf,
+                            text='No frame around window',
+                            variable=self.frameless,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
+        
+        # Hide mouse
+        self.mouse_visible = Tkinter.BooleanVar()
+        self.mouse_visible.set(not VisionEgg.config.VISIONEGG_HIDE_MOUSE)
+        Tkinter.Checkbutton(cf,
+                            text='Mouse cursor visible',
+                            variable=self.mouse_visible,
+                            relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
+        cf_row += 1
+
 ##        # texture compression
 ##        self.tex_compress = Tkinter.BooleanVar()
 ##        self.tex_compress.set(VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION)
@@ -225,62 +258,79 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 ##                            text='Texture compression',
 ##                            variable=self.tex_compress,
 ##                            relief=Tkinter.FLAT).grid(row=cf_row,columnspan=2)
-##        row += 1
+        
+        if sys.platform == 'darwin':
+            Tkinter.Label(cf,text="If you want to check any buttons\n(Mac OS X Tk 8.4a4 bug workaround):").grid(row=cf_row,column=0)
+            cf_row += 1
+            Tkinter.Button(cf,text="PRESS ME FIRST").grid(row=cf_row,column=0)
+            cf_row += 1
+
+        ################## end cf ##############################
+
+        ################## begin entry_frame ###################
+
+        entry_frame = Tkinter.Frame(self)
+        entry_frame.grid(row=row,column=1,padx=10)
+        row += 1
+        ef_row = 0 
 
         # frame rate
-        Tkinter.Label(self,text="What will your monitor refresh's rate be (Hz):").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="What will your monitor refresh's rate be (Hz):").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.frame_rate = Tkinter.StringVar()
         self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
-        Tkinter.Entry(self,textvariable=self.frame_rate).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.frame_rate).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # width
-        Tkinter.Label(self,text="Window width (pixels):").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Window width (pixels):").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.width = Tkinter.StringVar()
         self.width.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_W))
-        Tkinter.Entry(self,textvariable=self.width).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.width).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # height
-        Tkinter.Label(self,text="Window height (pixels):").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Window height (pixels):").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.height = Tkinter.StringVar()
         self.height.set("%s"%str(VisionEgg.config.VISIONEGG_SCREEN_H))
-        Tkinter.Entry(self,textvariable=self.height).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.height).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # color depth
-        Tkinter.Label(self,text="Requested total color depth (bits per pixel):").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Requested total color depth (bits per pixel):").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.color_depth = Tkinter.StringVar()
         self.color_depth.set(str(VisionEgg.config.VISIONEGG_PREFERRED_BPP))
-        Tkinter.Entry(self,textvariable=self.color_depth).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.color_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # red depth
-        Tkinter.Label(self,text="Requested red bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Requested red bits per pixel:").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.red_depth = Tkinter.StringVar()
         self.red_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_RED_BITS))
-        Tkinter.Entry(self,textvariable=self.red_depth).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.red_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # green depth
-        Tkinter.Label(self,text="Requested green bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Requested green bits per pixel:").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.green_depth = Tkinter.StringVar()
         self.green_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS))
-        Tkinter.Entry(self,textvariable=self.green_depth).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.green_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # blue depth
-        Tkinter.Label(self,text="Requested blue bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Requested blue bits per pixel:").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.blue_depth = Tkinter.StringVar()
         self.blue_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS))
-        Tkinter.Entry(self,textvariable=self.blue_depth).grid(row=row,column=1,sticky=Tkinter.W)
-        row += 1
+        Tkinter.Entry(entry_frame,textvariable=self.blue_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+        ef_row += 1
 
         # alpha depth
-        Tkinter.Label(self,text="Requested alpha bits per pixel:").grid(row=row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="Requested alpha bits per pixel:").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.alpha_depth = Tkinter.StringVar()
         self.alpha_depth.set(str(VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS))
-        Tkinter.Entry(self,textvariable=self.alpha_depth).grid(row=row,column=1,sticky=Tkinter.W)
+        Tkinter.Entry(entry_frame,textvariable=self.alpha_depth).grid(row=ef_row,column=1,sticky=Tkinter.W)
+
+        ################## end entry_frame ###################
+
         row += 1
 
         # Start button
@@ -365,6 +415,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
         VisionEgg.config.VISIONEGG_SYNC_SWAP = self.sync_swap.get()
         VisionEgg.config.VISIONEGG_RECORD_TIMES = self.record_times.get()
+        VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW = self.frameless.get()
+        VisionEgg.config.VISIONEGG_HIDE_MOUSE = not self.mouse_visible.get()
 #        VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION = self.tex_compress.get()
         VisionEgg.config.VISIONEGG_SCREEN_W = int(self.width.get())
         VisionEgg.config.VISIONEGG_SCREEN_H = int(self.height.get())
