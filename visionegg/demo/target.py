@@ -4,22 +4,21 @@ from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
 
-velocity = 25.0
-
+# Define several "controller" functions
 def x_as_function_of_time(t):
-    return velocity*sin(0.1*2.0*math.pi*t)
+    return 25.0*sin(0.1*2.0*math.pi*t)
 
 def y_as_function_of_time(t):
-    return velocity*sin(0.1*2.0*math.pi*t)
+    return 25.0*sin(0.1*2.0*math.pi*t)
 
-def orientation(dummy):
+def orientation(dummy_argument):
     return 135.0
 
 def on_during_experiment(t):
     if t < 0.0:
-        return 0
+        return 0 # off between stimuli
     else:
-        return 1
+        return 1 # on during stimulus presentation
     
 screen = get_default_screen()
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white (RGBA)
