@@ -22,6 +22,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 from VisionEgg import *
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, Controller, FunctionController
 from VisionEgg.GUI import *
 from VisionEgg.Textures import *
 

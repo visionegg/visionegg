@@ -2,6 +2,7 @@
 """Use an external device to trigger the Vision Egg."""
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, ConstantController
 from VisionEgg.Gratings import *
 import VisionEgg.Daq
 from VisionEgg.DaqLPT import *

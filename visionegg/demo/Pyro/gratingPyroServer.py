@@ -14,6 +14,7 @@ gratingPyroGUI.py from any computer on your network.
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
     from VisionEgg.Core import *
+    from VisionEgg.FlowControl import Presentation
     from VisionEgg.Gratings import *
     from VisionEgg.PyroHelpers import *
 

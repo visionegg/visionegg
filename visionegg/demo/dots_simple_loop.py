@@ -2,7 +2,7 @@
 
 """Draw dots, using your own event loop.
 
-This bypasses the VisionEgg.Core.Presentation class.  It may be easier
+This bypasses the VisionEgg.FlowControl.Presentation class.  It may be easier
 to create simple experiments this way."""
 
 import VisionEgg
@@ -32,7 +32,7 @@ text = Text( text = "Vision Egg dot_simple_loop demo.",
 viewport = Viewport( screen=screen, stimuli=[dots,text] )
 
 # The main loop below is an alternative to using the
-# VisionEgg.Core.Presentation class.
+# VisionEgg.FlowControl.Presentation class.
 
 frame_timer = FrameTimer()
 while not pygame.event.peek((QUIT,KEYDOWN,MOUSEBUTTONDOWN)):

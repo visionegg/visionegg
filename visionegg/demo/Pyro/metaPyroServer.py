@@ -21,6 +21,7 @@ metaPyroGUI.py from any computer on your network.
 
 import sys
 import VisionEgg.Core
+import VisionEgg.FlowControl
 import VisionEgg.Gratings
 import VisionEgg.PyroHelpers
 import Pyro.core
@@ -32,14 +33,14 @@ class GratingExperimentMetaController( Pyro.core.ObjBase ):
     def __init__(self,presentation,grating_stimulus):
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = GratingMetaParameters()
-        if not isinstance(presentation,VisionEgg.Core.Presentation):
-            raise ValueError("Expecting instance of VisionEgg.Core.Presentation")
+        if not isinstance(presentation,VisionEgg.FlowControl.Presentation):
+            raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(grating_stimulus,VisionEgg.Gratings.SinGrating2D):
             raise ValueError("Expecting instance of VisionEgg.Gratings.SinGrating2D")
         self.p = presentation
         self.stim = grating_stimulus
 
-        self.p.add_controller(self.stim,'on',VisionEgg.Core.FunctionController(during_go_func=self.on_function))
+        self.p.add_controller(self.stim,'on',VisionEgg.FlowControl.FunctionController(during_go_func=self.on_function))
 
     def turn_off(self):
         self.stim.parameters.on = 0
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     screen = VisionEgg.Core.Screen.create_default()
     stimulus = VisionEgg.Gratings.SinGrating2D()
     viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stimulus])
-    p = VisionEgg.Core.Presentation(viewports=[viewport])
+    p = VisionEgg.FlowControl.Presentation(viewports=[viewport])
 
     # now hand over control of stimulus to GratingExperimentMetaController
     meta_controller = GratingExperimentMetaController(p,stimulus)

@@ -2,8 +2,8 @@
 
 """Draw dots and save movie using your own event loop.
 
-This bypasses the VisionEgg.Core.Presentation class.  It may be easier
-to create simple experiments this way."""
+This bypasses the VisionEgg.FlowControl.Presentation class.  It may be easier
+to create simple scripts this way."""
 
 import VisionEgg
 from VisionEgg.Core import *

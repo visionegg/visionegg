@@ -3,6 +3,7 @@
 
 import VisionEgg
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.Text import *
 from VisionEgg.Textures import *
 

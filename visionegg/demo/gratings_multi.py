@@ -6,6 +6,7 @@
 ############################
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Gratings import *
 
 #####################################

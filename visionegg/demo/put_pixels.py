@@ -6,10 +6,10 @@ import pygame
 from pygame.locals import *
 
 screen = get_default_screen()
-screen.parameters.bgcolor = (0.0,0.0,0.0,0.0) # black (RGBA)
+screen.set( bgcolor = (0.0,0.0,0.0) ) # black (RGB)
 
 # The main loop below is an alternative to using the
-# VisionEgg.Core.Presentation class.
+# VisionEgg.FlowControl.Presentation class.
 
 white_frame = (Numeric.ones((100,200,3))*255).astype(Numeric.UnsignedInt8)
 red_frame = white_frame.copy()

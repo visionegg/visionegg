@@ -9,6 +9,7 @@ simpleClient.py from any computer on your network!
 """
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Gratings import *
 from VisionEgg.PyroHelpers import *
 

@@ -297,9 +297,9 @@ drum_viewport = Viewport( screen     = screen,
                           projection = drum_projection,
                           stimuli    = [drum])
 
-#######################################################
-#  Main loop (not using VisionEgg.Core.Presentation)  #
-#######################################################
+##############################################################
+#  Main loop (not using VisionEgg.FlowControl.Presentation)  #
+##############################################################
 
 # save time
 frame_timer = VisionEgg.Core.FrameTimer()
@@ -310,7 +310,7 @@ while not pygame.event.peek((pygame.locals.QUIT,
                              pygame.locals.MOUSEBUTTONDOWN)):
     t = VisionEgg.time_func()
     
-    # update parameters (can be done with VisionEgg.Core.Controllers)
+    # update parameters (can be done with VisionEgg.FlowControl.Controllers)
     color_grating.parameters.pedestal = pedestal_func(t)
     drum.parameters.angular_position = angle_as_function_of_time(t)
     drum_projection.parameters.matrix = projection_matrix_f(t)

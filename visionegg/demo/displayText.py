@@ -2,6 +2,7 @@
 """Display text strings."""
 
 from VisionEgg.Core import *
+from VisionEgg.FlowControl import Presentation
 from VisionEgg.Text import *
 
 screen = get_default_screen()
