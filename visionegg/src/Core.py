@@ -505,6 +505,13 @@ class Presentation:
         controllers, this routine is very similar to the inside of the
         main loop in the go method.
         """
+        # For each controller, let it do its thing
+        # Pass value of -1.0 to indicate between stimulus status
+        #
+        # This works by evaluating the function "controller" and
+        # putting the results in parameters.name.
+        # It's like "parameters.name = controller(-1.0)", but name is
+        # a string, so it must be called this way.
         for parameters,name,controller in self.realtime_controllers:
             setattr(parameters,name,controller(-1.0))
         for parameters,name,controller in self.transitional_controllers:
