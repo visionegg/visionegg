@@ -23,9 +23,13 @@ if sys.platform not in ['cygwin','mac','win32'] and (sys.platform != 'darwin' or
 
 if sys.platform == "darwin" and not skip_macosx_c_compilation:
     extensions.append(Extension(name='_darwin_sync_swap',
-                                sources=['src/_darwin_sync_swap.c'],
-                                include_dirs=['/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers'],
-                                extra_link_args=["-framework OpenGL"],
+                                sources=['src/_darwin_sync_swap.m'],
+                                include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
+                                              '/System/Library/Frameworks/Carbon.framework/Headers',
+                                              '/System/Library/Frameworks/Cocoa.framework/Headers',
+                                              ],
+                                extra_compile_args=['-fpascal-strings'],
+                                extra_link_args=['-framework','OpenGL'],
                                 ))
 
 if sys.platform == 'linux2':
