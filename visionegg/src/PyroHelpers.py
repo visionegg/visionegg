@@ -189,10 +189,6 @@ class PyroClient:
 
     def get(self,name):
         """Return a remote Pyro object being served by a Pyro server."""
-        try:
-            URI=self.ns.resolve(name)
-            #print '%s URI: %s'%(name,URI)
-        except Pyro.core.PyroError,x:
-            #print 'Couldn\'t bind object, nameserver says:',x
-            raise SystemExit
+        URI=self.ns.resolve(name)
         return Pyro.core.getProxyForURI(URI)
+
