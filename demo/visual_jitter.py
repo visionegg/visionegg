@@ -83,7 +83,7 @@ p = Presentation(go_duration=(dynamic_time+static_time,'seconds'),
 
 # Use a controller to hook into go loop, but control texture buffer
 # through direct manipulation.
-dynamic_texture_object = dynamic_checkerboard.texture.get_texture_object()
+dynamic_texture_object = dynamic_checkerboard.parameters.texture.get_texture_object()
 def control_dynamic(t):
     if t <= dynamic_time:
         random_data = RandomArray.randint(0,2,dynamic_checkerboard_size)*255
