@@ -64,6 +64,7 @@ release_name = '0.9.5a0'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
+import Numeric
 import warnings
 import traceback
 try:
@@ -166,13 +167,19 @@ else:
 
 config._FRAMECOUNT_ABSOLUTE = 0 # initialize global variable
 def time_func():
+    """Return current time.
+
+    This returns a floating point timestamp.  It uses the most
+    accurate time available on a given platform (unless in "lock time
+    to frames" mode.")."""
     if config.VISIONEGG_LOCK_TIME_TO_FRAMES:
         return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
     else:
         return true_time_func()
 
 def timing_func():
-    if "_gave_timing_func_warning" not in globals().keys():
+    """DEPRECATED.  Use time_func instead"""
+    if globals().has_key('_gave_timing_func_warning'):
         global _gave_timing_func_warning
         _gave_timing_func_warning = 1
         warnings.warn("timing_func() has been changed to time_func(). "+\
@@ -277,7 +284,7 @@ class ClassWithParameters:
                     if type(tipe) not in [types.TypeType,types.ClassType]:
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
-                    if parameter_name in kw.keys(): 
+                    if kw.has_key(parameter_name): 
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own default
@@ -285,7 +292,14 @@ class ClassWithParameters:
                         # Check anything other than None
                         if not tipe == CallableType:
                             if not isinstance(value,tipe):
-                                raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value,type(value),tipe))
+                                if type(value) != Numeric.ArrayType:
+                                    value_str = str(value)
+                                else:
+                                    if Numeric.multiply.reduce(value.shape) < 10:
+                                        value_str = str(value) # print array if it's smallish
+                                    else:
+                                        value_str = "(array data)" # don't pring if it's big
+                                raise TypeError("Parameter '%s' value %s is type %s (not type %s)"%(parameter_name,value_str,type(value),tipe))
                         else: # make sure it's a callable type
                             if not type(value) == types.FunctionType:
                                 if not type(value) == types.MethodType:
@@ -312,7 +326,7 @@ class ClassWithParameters:
                     if type(tipe) not in [types.TypeType,types.ClassType]:
                         raise ValueError("In definition of constant parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
-                    if parameter_name in kw.keys(): 
+                    if kw.has_key(parameter_name): 
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own default
@@ -333,7 +347,7 @@ class ClassWithParameters:
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
-            if parameter_name in klass.constant_parameters_and_defaults.keys():
+            if klass.constant_parameters_and_defaults.has_key(parameter_name):
                 return 1
         # The for loop only completes if parameter_name is not in any subclass
         return 0
@@ -342,7 +356,7 @@ class ClassWithParameters:
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
-            if parameter_name in klass.parameters_and_defaults.keys():
+            if klass.parameters_and_defaults.has_key(parameter_name):
                 return klass.parameters_and_defaults[parameter_name][1]
         # The for loop only completes if parameter_name is not in any subclass
         raise AttributeError("%s has no parameter named '%s'"%(self.__class__,parameter_name))
