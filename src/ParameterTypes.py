@@ -205,6 +205,8 @@ def get_type(value):
     py_type = type(value)
     if value is None:
         return NoneType
+    elif py_type == bool:
+        return Boolean
     elif py_type == int:
         return Integer
     elif py_type == float:
