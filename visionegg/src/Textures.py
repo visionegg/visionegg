@@ -6,7 +6,9 @@
 all = [ 'FixationCross', 'Mask2D', 'SpinningDrum', 'Texture',
         'TextureFromFile', 'TextureObject', 'TextureStimulus',
         'TextureStimulus3D', 'TextureStimulusBaseClass',
-        'TextureTooLargeError']
+        'TextureTooLargeError',
+        # utilities
+        'next_power_of_2', 'is_power_of_2']
 
 ####################################################################
 #
@@ -67,6 +69,12 @@ else:
 #        Textures
 #
 ####################################################################
+
+def next_power_of_2(f):
+    return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
+
+def is_power_of_2(f):
+    return f == next_power_of_2(f)
 
 class Texture:
     """A 2 dimensional texture.
@@ -135,7 +143,7 @@ class Texture:
             self.texels = small_texels
             self.size = (w,h)
         else:
-            raise RuntimeError("Texture too large, but auto-rescaling not supported.")
+            raise NotImplementedError("Texture too large, but rescaling only implemented for PIL images.")
 
     def unload(self):
         """Unload texture data from video texture memory.
@@ -188,9 +196,6 @@ class Texture:
 
         assert( isinstance( texture_object, TextureObject ))
         assert( texture_object.dimensions == 2 )
-
-        def next_power_of_2(f):
-            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
 
         width, height = self.size
 
@@ -262,7 +267,7 @@ class Texture:
                 raise NotImplementedError(
                     "Building of mipmaps not implemented for this texel "+\
                     "data type. (Use PIL Images or set parameter "+\
-                    "mipmaps_enabled = 0.)")
+                    "mipmaps_enabled = False.)")
             this_width, this_height = self.size
             biggest_dim = max(this_width,this_height)
             mipmap_level = 1
@@ -323,7 +328,7 @@ class TextureObject:
                 if not gl.glInitMultitextureARB():
                     raise RuntimeError("Need GL_ARB_multitexture OpenGL extension.")
                 else:
-                    VisionEgg.config._glInitMultitextureARB_done = 1
+                    VisionEgg.config._glInitMultitextureARB_done = True
             attr_name = "GL_TEXTURE%d_ARB"%multitexture_unit_num
             self.multitexture_unit = getattr(gl,attr_name)
         # default OpenGL values for these values
@@ -550,15 +555,10 @@ class TextureObject:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
         # determine size and make sure its power of 2
-        def check_power_of_2(f):
-            def next_power_of_2(f):
-                return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
-            if f != next_power_of_2(f):
-                raise ValueError("texel_data does not have all dimensions == n^2")
         if self.dimensions == 1:
             # must be Numeric array
             width = data.shape[0]
-            check_power_of_2(width)
+            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
             new_mipmap_array['width'] = width
         else:
             if type(data) == Numeric.ArrayType:
@@ -568,14 +568,14 @@ class TextureObject:
                 width, height = data.size
             elif isinstance(texel_data,pygame.surface.Surface):
                 width, height = data.get_size()
-            check_power_of_2(width)
-            check_power_of_2(height)
+            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
+            if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
             new_mipmap_array['width'] = width
             new_mipmap_array['height'] = height
             if self.dimensions == 3:
                 # must be Numeric array
                 depth = data.shape[2]
-                check_power_of_2(depth)
+                if not is_power_of_2(depth): raise ValueError("texel_data does not have all dimensions == n^2")
                 new_mipmap_array['depth'] = height
 
         if self.dimensions in [2,'cube']:
@@ -778,14 +778,17 @@ class TextureObject:
 
         if self.dimensions == 1:
             if offset_tuple is None:
-                offset_tuple = (0,)
-            if (offset_tuple[0] + data.shape[0]) > previous_mipmap_array['width']:
+                x_offset = 0
+            else:
+                x_offset = offset_tuple[0]
+            width = data.shape[0]
+            if (x_offset + width) > previous_mipmap_array['width']:
                 raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
             raw_data = data.astype(Numeric.UnsignedInt8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
-                               offset_tuple[0],
-                               data.shape[0],
+                               x_offset,
+                               width,
                                data_format,
                                data_type,
                                raw_data)
@@ -796,7 +799,9 @@ class TextureObject:
                 target_name = 'GL_CUBE_MAP_'+string.upper(cube_side) # e.g. 'positive_x'
                 target = getattr(gl,target_name)
             if offset_tuple is None:
-                offset_tuple = (0,0)
+                x_offset = y_offset = 0
+            else:
+                x_offset, y_offset = offset_tuple
             if type(data) == Numeric.ArrayType:
                 width = data.shape[1]
                 height = data.shape[0]
@@ -811,10 +816,14 @@ class TextureObject:
                     raw_data = pygame.image.tostring(texel_data,'RGBA',1)
                 else:
                     raw_data = pygame.image.tostring(texel_data,'RGB',1)
+            if (x_offset + width) > previous_mipmap_array['width']:
+                raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
+            if (y_offset + height) > previous_mipmap_array['height']:
+                raise TextureTooLargeError("put_sub_image trying to exceed previous height.")
             gl.glTexSubImage2D(target,
                                mipmap_level,
-                               offset_tuple[0],
-                               offset_tuple[1],
+                               x_offset,
+                               y_offset,
                                width,
                                height,
                                data_format,
@@ -881,19 +890,14 @@ class TextureObject:
             raise ValueError("Must specify size for put_new_framebuffer(): cannot guess")
 
         # determine size and make sure its power of 2
-        def check_power_of_2(f):
-            def next_power_of_2(f):
-                return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
-            if f != next_power_of_2(f):
-                raise ValueError("texel_data does not have all dimensions == n^2")
         if self.dimensions == 1:
             width = size[0]
-            check_power_of_2(width)
+            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
             new_mipmap_array['width'] = width
         else:
             width, height = size
-            check_power_of_2(width)
-            check_power_of_2(height)
+            if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
+            if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
             new_mipmap_array['width'] = width
             new_mipmap_array['height'] = height
 
@@ -1035,9 +1039,6 @@ class Mask2D(VisionEgg.ClassWithParameters):
                        ve_types.Sequence2(ve_types.Real)),
         }
     def __init__(self,**kw):
-        def next_power_of_2(f):
-            return math.pow(2.0,math.ceil(math.log(f)/math.log(2.0)))
-        
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         cp = self.constant_parameters # shorthand
@@ -1556,7 +1557,7 @@ class FixationCross(VisionEgg.Core.Stimulus):
                                                  anchor = 'center',
                                                  size = self.parameters.size,
                                                  internal_format = gl.GL_RGBA,
-                                                 mipmaps_enabled = 0,
+                                                 mipmaps_enabled = False,
                                                  texture_min_filter = gl.GL_NEAREST,
                                                  texture_mag_filter = gl.GL_NEAREST,
                                                  )
