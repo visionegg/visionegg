@@ -699,9 +699,7 @@ static swig_type_info *swig_types_initial[] = {
 
 static swig_const_info swig_const_table[] = {
 { SWIG_PY_INT,     (char *)"IDLE_PRIORITY_CLASS", (long) IDLE_PRIORITY_CLASS, 0, 0, 0},
-{ SWIG_PY_INT,     (char *)"BELOW_NORMAL_PRIORITY_CLASS", (long) BELOW_NORMAL_PRIORITY_CLASS, 0, 0, 0},
 { SWIG_PY_INT,     (char *)"NORMAL_PRIORITY_CLASS", (long) NORMAL_PRIORITY_CLASS, 0, 0, 0},
-{ SWIG_PY_INT,     (char *)"ABOVE_NORMAL_PRIORITY_CLASS", (long) ABOVE_NORMAL_PRIORITY_CLASS, 0, 0, 0},
 { SWIG_PY_INT,     (char *)"HIGH_PRIORITY_CLASS", (long) HIGH_PRIORITY_CLASS, 0, 0, 0},
 { SWIG_PY_INT,     (char *)"REALTIME_PRIORITY_CLASS", (long) REALTIME_PRIORITY_CLASS, 0, 0, 0},
 { SWIG_PY_INT,     (char *)"THREAD_PRIORITY_IDLE", (long) THREAD_PRIORITY_IDLE, 0, 0, 0},
