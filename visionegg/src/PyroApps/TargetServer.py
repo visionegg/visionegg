@@ -42,7 +42,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
             during_go_func=self.on_function_during_go,
             between_go_func=self.on_function_between_go))
 
-        self.p.add_controller(self.stim,'center',VisionEgg.Core.FunctionController(
+        self.p.add_controller(self.stim,'position',VisionEgg.Core.FunctionController(
             during_go_func=self.center_during_go,
             between_go_func=self.center_between_go))
 
