@@ -56,6 +56,10 @@ class Screen:
         PlatformDependent.sync_swap_with_vbl(failure_ok = 0)
 
         pygame.display.init()
+        if hasattr(pygame.display,"gl_set_attribute"):
+            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,8)
+        else:
+            print "WARNING: Could not request alpha in framebuffer because you have an old version of pygame."
         pygame.display.set_caption("Vision Egg")
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
         if self.fullscreen:
