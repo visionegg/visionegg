@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Data acquisition and triggering over the parallel port.
 
 This module was programmed using information from "Interfacing the
@@ -176,3 +177,22 @@ class LPTTriggerInController(VisionEgg.Core.Controller):
     def between_go_eval(self):
         value = self.trigger_in_channel.constant_parameters.functionality.get_data()
         return (value & self.mask)
+
+if __name__ == '__main__':
+    
+    # If this module is run as a standalone script, run perpetual loop
+    # testing the parallel port.
+    
+    import time
+    print "Press Ctrl-C to stop"
+    address = 0x378
+    out_value = 0
+    while 1:
+        print "out: 0x%x"%out_value,
+        raw_lpt_module.out( address, out_value )
+        out_value += 1
+        if out_value > 255:
+            out_value = 0
+        in_value = raw_lpt_module.inp( address+1 )
+        print "in: 0x%x"%in_value
+        time.sleep(1.0)
