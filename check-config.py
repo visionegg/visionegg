@@ -6,7 +6,7 @@ number of the Vision Egg.
 
 """
 
-import sys, string, os
+import sys, string, os, traceback
 
 # Mac OS X weirdness:
 
@@ -83,19 +83,49 @@ if sys.platform in ['darwin','mac','win32'] and gui_ok:
         print "(Failed to open dialog box-- is Tkinter installed?)"
 
 # Import
+unknown_import_fail = 0
 
 try:
     import VisionEgg
-except:
-    print """Could not load the VisionEgg module.
+except ImportError:
+    print """Could not import the VisionEgg module.
     
-    Is it installed?
+    This is probably because it is not yet installed.
     
     Try installing by running 'python setup.py install' from the
-    command line.
+    command line (as root if necessary).
 
     The exception raised was:"""
-    raise
+    traceback.print_exc()
+except AttributeError, x:
+    try:
+        def my_import(name):
+            mod = __import__(name)
+            components = string.split(name, '.')
+            for comp in components[1:]:
+                mod = getattr(mod, comp)
+                return mod
+        mod = my_import("VisionEgg.VisionEgg")
+        if mod.__name__ == "VisionEgg.VisionEgg":
+            print """            **********************************************************
+            YOU APPEAR TO HAVE AN OLD COPY OF THE VISION EGG INSTALLED
+
+            Please remove the old installation directory and re-install.
+
+            The old installation directory is %s
+            **********************************************************"""%(os.path.abspath(os.path.dirname(mod.__file__)),)
+        else:
+            unknown_import_fail = 1
+    except:
+        unknown_import_fail = 1
+except:
+    unknown_import_fail = 1
+
+if unknown_import_fail:
+    print """Could not import the VisionEgg module for an unknown reason.
+    
+    The exception raised was:"""
+    traceback.print_exc()
 
 # Finally, do it!
 
@@ -121,6 +151,11 @@ if 'VisionEgg' in globals().keys():
 
     print "The demo files should be in %s"%(os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,'demos'),)
 
+    print
+else:
+    print "VisionEgg not installed (or other VisionEgg import problems)"
+    print
+    print "Continuing with prerequisites check."
     print
 
 print "Version checklist:"
@@ -205,5 +240,9 @@ if gui_ok and sys.platform == 'win32':
         
         """This dialog keeps the console open until you close
         it. However, this feature is not provided by other Vision Egg
-        scripts, so you have to run from the command line to see the
+        scripts.  Although the Vision Egg does not print by default to the console,
+        all python errors
+
+        , so an error occursif anything (such as errors) is printed to the console
+        you have to run from the command line to see the
         console -- sorry!""")
