@@ -273,7 +273,8 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
 
             if self.parameters.flat: # draw as flat texture on a rectange
                 z = -self.parameters.dist_from_o # in OpenGL (arbitrary) units
-                h = float(self.texture.height)/2.0
+                h = float(self.texture.height-1)*0.5
+                w = float(self.texture.width-1)*0.5
                 # calculate texture coordinates based on current angle
                 tex_phase = self.parameters.angle/360.0
 
@@ -285,19 +286,19 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
                 glBegin(GL_QUADS)
                 #Bottom left of quad
                 glTexCoord2f(tex_phase,self.texture.buf_bf)
-                glVertex4f( 0.0, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                glVertex4f( -w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
 
                 #Bottom right of quad
                 glTexCoord2f(tex_phase+1.0,self.texture.buf_bf)
-                glVertex4f( float(self.texture.width), -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                glVertex4f( w, -h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
                 
                 #Top right of quad
                 glTexCoord2f(tex_phase+1.0,self.texture.buf_tf)
-                glVertex4f( float(self.texture.width), h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                glVertex4f( w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
                 
                 #Top left of quad
                 glTexCoord2f(tex_phase,self.texture.buf_tf)
-                glVertex4f( 0.0, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
+                glVertex4f( -w, h, z, 1.0 ) # 4th coordinate is "w"--look up "homogeneous coordinates" for more info.
                 
                 glEnd()
         
@@ -323,8 +324,8 @@ class SpinningDrum(VisionEgg.Core.Stimulus):
         glBegin(GL_QUADS)
         for i in range(num_sides):
             # angle of sides
-            theta1 = i*deltaTheta + 180.0
-            theta2 = (i+1)*deltaTheta + 180.0
+            theta1 = i*deltaTheta
+            theta2 = (i+1)*deltaTheta
             # fraction of texture
             frac1 = (self.texture.buf_l + (float(i)/num_sides*self.texture.width))/float(self.texture.width)
             frac2 = (self.texture.buf_l + (float(i+1)/num_sides*self.texture.width))/float(self.texture.width)
