@@ -50,45 +50,49 @@ class Target2D(VisionEgg.Core.Stimulus):
 
     Parameters
     ==========
-    anchor        -- (String)
+    anchor        -- specifies how position parameter is interpreted (String) (String)
                      Default: center
     anti_aliasing -- (Boolean)
                      Default: True
-    center        -- (Sequence2 of Real)
+    center        -- DEPRECATED: don't use (Sequence2 of Real)
                      Default: (determined at runtime)
     color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
                      Default: (1.0, 1.0, 1.0)
-    on            -- (Boolean)
+    on            -- draw stimulus? (Boolean) (Boolean)
                      Default: True
     orientation   -- (Real)
                      Default: 0.0
     position      -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
                      Default: (320.0, 240.0)
-    size          -- (Sequence2 of Real)
+    size          -- units: eye coordinates (Sequence2 of Real)
                      Default: (64.0, 16.0)
     """
     
     parameters_and_defaults = {
         'on':(True,
-              ve_types.Boolean),
+              ve_types.Boolean,
+              "draw stimulus? (Boolean)"),
         'color':((1.0,1.0,1.0),
                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                 ve_types.Sequence4(ve_types.Real))),
         'anti_aliasing':(True,
                          ve_types.Boolean),
-        'orientation':(0.0, # 0.0 degrees = right, 90.0 degrees = up
+        'orientation':(0.0,
                        ve_types.Real),
-        'position' : ( ( 320.0, 240.0 ), # in eye coordinates
+        'position' : ( ( 320.0, 240.0 ),
                        ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
                                       ve_types.Sequence3(ve_types.Real),
                                       ve_types.Sequence4(ve_types.Real)),
                        "units: eye coordinates"),
         'anchor' : ('center',
-                    ve_types.String),
-        'size':((64.0,16.0), # in eye coordinates
-                ve_types.Sequence2(ve_types.Real)),
-        'center' : (None,  # DEPRECATED -- don't use
-                    ve_types.Sequence2(ve_types.Real)),  
+                    ve_types.String,
+                    "specifies how position parameter is interpreted (String)"),
+        'size':((64.0,16.0),
+                ve_types.Sequence2(ve_types.Real),
+                "units: eye coordinates"),
+        'center' : (None,
+                    ve_types.Sequence2(ve_types.Real),
+                    "DEPRECATED: don't use"),
         }
     
     __slots__ = (
