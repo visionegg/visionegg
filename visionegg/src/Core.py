@@ -704,12 +704,13 @@ class Presentation(VisionEgg.ClassWithParameters):
                          frames_since_go=None,
                          go_started=None,
                          doing_transition=None):
+        switch_to_transitional = [] # list of contollers
         for (parameters_instance, parameter_name, controller) in self.controllers:
             if doing_transition:
                 if controller.eval_frequency == Controller.TRANSITIONS or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS: # or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
                     if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
                         # We evaluated it once, switch to TRANSITIONS mode
-                        controller.eval_frequency == Controller.TRANSITIONS
+                        switch_to_transitional.append(controller)
                     if go_started:
                         result = controller.during_go_eval()
                         if parameter_name is not None:
@@ -720,7 +721,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                             setattr(parameters_instance, parameter_name, result)
             elif controller.eval_frequency == Controller.EVERY_FRAME or controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS or controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL:
                 if controller.eval_frequency == Controller.NOW_THEN_TRANSITIONS:
-                    controller.eval_frequency = Controller.TRANSITIONS
+                    switch_to_transitional.append(controller)
                 if controller.temporal_variable_type == Controller.TIME_SEC_SINCE_GO:
                     controller.temporal_variable = time_sec_since_go
                 elif controller.temporal_variable_type == Controller.FRAMES_SINCE_GO:
@@ -729,18 +730,16 @@ class Presentation(VisionEgg.ClassWithParameters):
                     controller.temporal_variable = time_sec_absolute
                     
                 if go_started:
-                    if parameter_name is None:
-                        controller.during_go_eval()
-                    else:
-                        # XXX This if statementis a hack that slows stuff down just
-                        # to support deprecated DEPRECATED_TRANSITIONAL eval_frequency
-                        if ((not controller.eval_frequency == Controller.DEPRECATED_TRANSITIONAL) or time_sec_since_go==0.0):
-                            setattr(parameters_instance, parameter_name, controller.during_go_eval())
+                    result = controller.during_go_eval()
+                    if parameter_name is not None:
+                        setattr(parameters_instance, parameter_name, result)
                 else:
                     result = controller.between_go_eval()
                     if parameter_name is not None:
                         setattr(parameters_instance, parameter_name, result)
-
+        for controller in switch_to_transitional:
+            controller.eval_frequency = Controller.TRANSITIONS
+            
     # The next functions (those with "realtime" and "transitional" in
     # their names) are deprecated, so there's a deprecation warning.
     
@@ -941,8 +940,9 @@ class Presentation(VisionEgg.ClassWithParameters):
                     dependent)"""%(calculated_fps),
                     level=Message.ERROR
                     )
-
-        if abs( calculated_fps / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) ) > 0.1:
+                
+        # Warn if > 10% error in frame rate
+        if abs(calculated_fps-VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) / float(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ) > 0.05:
             # Should also add VisionEgg.config.FRAME_LOCKED_MODE variable
             # and only print this warning if that variable is true
             message.add(
@@ -983,7 +983,7 @@ class Presentation(VisionEgg.ClassWithParameters):
         # Clear the screen(s)
         for screen in screens:
             screen.clear()
-        # Draw each viewport
+        # Draw each viewport, including each stimulus
         for viewport in viewports:
             viewport.draw()
         swap_buffers()
