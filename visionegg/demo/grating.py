@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Display a sinusoidal grating
+"""Sinusoidal grating calculated in realtime."""
 
 ############################
 #  Import various modules  #
@@ -22,7 +21,7 @@ screen = get_default_screen()
 stimulus = SinGrating2D(center           = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
                         size             = ( 300.0 , 300.0 ),
                         spatial_freq     = 10.0 / screen.size[0], # units of cycles/pixel
-                        temporal_freq_hz = 5.0,
+                        temporal_freq_hz = 1.0,
                         orientation      = 45.0 )
 
 ###############################################################

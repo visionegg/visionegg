@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-#
+"""Spinning drum with a graphical user interface (old).
+
+This demo is pretty old, and I don't recommend looking at it too
+closely!"""
+
 # This is the python source code for a demo application that uses the
 # Vision Egg package.
 #
@@ -24,7 +28,6 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 from VisionEgg.Core import *
-from VisionEgg.AppHelper import *
 from VisionEgg.GUI import *
 from VisionEgg.Textures import *
 
@@ -112,16 +115,6 @@ class DrumGui(AppWindow):
         p.go()
 
 screen = get_default_screen() # initialize graphics
-perspective = SimplePerspectiveProjection(fov_x=90.0)
-perspective_viewport = Viewport(screen,
-                                size=screen.size,
-                                projection=perspective)
-
-pixel_coords = OrthographicProjection(right=screen.size[0],
-                                      top=screen.size[1])
-flat_viewport = Viewport(screen,
-                         size=screen.size,
-                         projection=pixel_coords)
 
 try:
     texture = TextureFromFile("orig.bmp") # try to open a texture file
@@ -129,19 +122,25 @@ except:
     texture = Texture(size=(256,16)) # otherwise, generate one
 
 drum = SpinningDrum(texture=texture)
-
 fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2))
 
-perspective_viewport.add_stimulus(drum)
-flat_viewport.add_stimulus(fixation_spot)
+perspective = SimplePerspectiveProjection(fov_x=90.0)
+perspective_viewport = Viewport(screen=screen,
+                                size=screen.size,
+                                projection=perspective,
+                                stimuli=[drum])
+
+flat_viewport = Viewport(screen=screen,
+                         size=screen.size,
+                         stimuli=[fixation_spot])
 
 p = Presentation(viewports=[perspective_viewport,flat_viewport])
 gui_window = DrumGui(idle_func=p.between_presentations)
 
-p.add_transitional_controller(fixation_spot,'on',lambda t: gui_window.fixation_spot.get())
-p.add_transitional_controller(p,'duration',lambda t: (gui_window.duration.get(),'seconds'))
-p.add_realtime_time_controller(drum,'angular_position',gui_window.positionFunction)
-p.add_realtime_time_controller(drum,'contrast',gui_window.contrastFunction)
+p.add_controller(fixation_spot,'on',FunctionController(during_go_func=lambda t: gui_window.fixation_spot.get(),eval_frequency=Controller.TRANSITIONS))
+p.add_controller(p,'duration',FunctionController(during_go_func=lambda t: (gui_window.duration.get(),'seconds'),eval_frequency=Controller.TRANSITIONS))
+p.add_controller(drum,'angular_position',FunctionController(during_go_func=gui_window.positionFunction))
+p.add_controller(drum,'contrast',FunctionController(during_go_func=gui_window.contrastFunction))
 
 gui_window.mainloop()
 

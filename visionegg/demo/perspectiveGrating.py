@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Script to display a perspective distorted moving sinusoidal grating.
+"""Perspective-distorted sinusoidal grating."""
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Display a moving sinusoidal grating
+"""Sinusoidal grating under network control."""
 
 from VisionEgg.Core import *
 from VisionEgg.Gratings import *
@@ -8,12 +7,15 @@ from VisionEgg.TCPController import *
 import sys
 
 # Vision Egg server name and port
-hostname = 'localhost'
+hostname = ''
 port = 5000
 
 # Allow command line to override defaults
 if len(sys.argv) == 2:
-    port = int(sys.argv[1])
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        hostname = sys.argv[1]
 elif len(sys.argv) == 3:
     hostname = sys.argv[1]
     port = int(sys.argv[2])

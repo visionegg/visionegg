@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-"""A demonstration of 2 viewports.
-"""
-import math
+"""2 viewports, one with a changing perspective."""
 
+import math
 import VisionEgg
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
-
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
