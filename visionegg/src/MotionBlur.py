@@ -136,7 +136,7 @@ class BlurTextureFamily:
             (deg_per_sec, pix_per_frame) = p.speedList[i]
             if not use_cache:
                 if p.blurKernel == 'gaussian':
-                    filter = GaussianFilter(pix_per_frame/10.0)
+                    filter = GaussianFilter(pix_per_frame/10.0) # This sigma is wrong, must figure it out!
                 elif p.blurKernel == 'boxcar':
                     filter = BoxcarFilter(pix_per_frame)
                 else:
