@@ -20,8 +20,7 @@ after the acquisition has occurred."""
 
 import VisionEgg
 import VisionEgg.Daq
-import VisionEgg.Message
-import socket, re
+import socket, re, types
 import Numeric
 
 import string
@@ -36,29 +35,128 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 # with data acquisition capabilities running a simple protocol.  #
 ##################################################################
 
-class DaqOverTCP(VisionEgg.Daq.DaqSetup):
+class DaqServerTrigger(VisionEgg.Daq.Trigger):
+    valid_modes = ['immediate','rising_edge','falling_edge']
+    parameters_and_defaults = {'mode':('immediate',types.StringType)}
+
+class DaqServerInputChannel(VisionEgg.Daq.Input):
+    def get_data(self):
+        print "Getting data!"
+        self.my_channel.my_device.get_data_for_channel(self.my_channel.constant_parameter.channel_number)
+
+    def set_my_channel(self,daq_server_channel):
+        self.my_channel = daq_server_channel
+
+class DaqServerChannel(VisionEgg.Daq.Channel):
+    constant_parameters_and_defaults = {'channel_number':(0,types.IntType)}
+    
+    def __init__(self,**kw):
+        apply(VisionEgg.Daq.Channel.__init__,(self,),kw)
+        # Should let daq server raise this error if it can't set gain
+        analog = self.constant_parameters.signal_type
+        if not isinstance(analog,VisionEgg.Daq.Analog):
+            raise NotImplementedError("Only analog channels implemented.")
+        if analog.constant_parameters.gain not in [0.2048,2.048,20.48]:
+            raise ValueError("Gain not right!")
+        self.constant_parameters.functionality.set_my_channel(self)
+
+    def set_my_device(self,device):
+        self.my_device = device
+
+    def arm_trigger(self):
+        # For MacAdios/DaqServ, only one trigger for everything
+        if not hasattr(self,'my_device'):
+            raise RuntimeError("Must set device")
+        self.my_device.arm()
+
+class TCPDaqDevice(VisionEgg.Daq.Device):
     """Data acquisition over TCP.
 
     Interface to a remote data acquisition TCP server that implements
     a simple data acquisition protocol."""
-    parameters_and_defaults = { 'daq_server_hostname' : 'localhost',
-                                'daq_server_port' : 50003,
-                                }
-    def __init__(self,**cnf):
-        apply(VisionEgg.Daq.DaqSetup.__init__,(self,),cnf)
-        self.connection = DaqServerConnection(hostname=self.parameters.daq_server_hostname,
-                                              port=self.parameters.daq_server_port,
-                                              
-                                              )
+    def __init__(self,hostname='localhost',port=50003,**kw):
+        apply(VisionEgg.Daq.Device.__init__,(self,),kw)
+        self.connection = DaqConnection(hostname=hostname,port=port)
 
-class DaqConnection(VisionEgg.ClassWithParameters):
-    parameters_and_defaults = { 'hostname' : 'localhost',
-                                'port' : 50003,
-                                }
+    def add_channel(self,channel):
+        if not isinstance(channel,DaqServerChannel):
+            raise ValueError("Can only use DaqServerChannel types!")
+        if isinstance(channel.constant_parameters.signal_type,VisionEgg.Daq.Analog):
+            buffered = channel.constant_parameters.daq_mode
+            if not isinstance(buffered,VisionEgg.Daq.Buffered):
+                raise ValueError("channel must have buffered daq_mode.")
+            input = channel.constant_parameters.functionality
+            if not isinstance(input,VisionEgg.Daq.Input):
+                raise NotImplementedError("Only input channels currently implemented.")
+            if not isinstance(channel.constant_parameters.daq_mode.parameters.trigger,DaqServerTrigger):
+                raise ValueError("channel trigger must be instance of DaqServerTrigger")
+            # It's analog, buffered, input
+            num = channel.constant_parameters.channel_number
+            if num < 0 or num > 7:
+                raise ValueError("Channel number %d not in range [0-7]."%num)
+            if len(self.channels) > 0:
+                for existing_channel in self.channels:
+                    if existing_channel.constant_parameters.channel_number == num:
+                        raise ValueError("Can only have channels with unique numbers.")
+                analog = channel.constant_parameters.signal_type
+                if analog.parameters.gain != self.channels[0].constant_parameters.signal_type.parameters.gain:
+                    raise ValueError("gain for each channel must be equal.")
+                if analog.parameters.offset != 0.0:
+                    raise ValueError("offset must be 0.0.")
+                must_be_same = ['sample_rate_hz','duration_sec','trigger']
+                for p_name in must_be_same:
+                    orig_value = getattr(self.channels[0].constant_parameters.daq_mode.parameters,p_name)
+                    if getattr(buffered.parameters,p_name) != orig_value:
+                        raise ValueError("%s for each channel must be equal."%p_name)
+            self.channels.append(channel)
+            channel.set_my_device(self)
+        else:
+            raise NotImplementedError("Only analog channels currently supported.")
 
+###### The following methods are specific to tcp daq device ########
+
+    def quit_server(self):
+        self.connection.quit_socket()
+
+    def arm(self):
+        # Must be device-wide because MacAdios triggers all channels together
+        if len(self.channels) > 0:
+            channel_numbers = []
+            for existing_channel in self.channels:
+                channel_numbers.append(existing_channel.constant_parameters.channel_number)
+            channel_numbers.sort()
+            num_channels = channel_numbers[-1]
+            sampled_channels = range(num_channels)
+            # all the durations and sample frequencies and trigger modes are the same
+            buffered = self.channels[0].constant_parameters.daq_mode
+            trigger_num = None
+            if buffered.parameters.trigger.parameters.mode == 'immediate':
+                trigger_num = 0
+            else:
+                raise NotImplementedError("")
+            self.connection.arm(num_channels,
+                                buffered.parameters.sample_rate_hz,
+                                buffered.parameters.duration_sec,
+                                trigger_num)
+        else:
+            raise RuntimeError("Must have at least 1 channel")
+
+class DebugSocket(socket.socket):
+    def send(self,string):
+        print "SEND",string
+        apply(socket.socket.send,(self,string))
+
+    def recv(self,bufsize):
+        results = apply(socket.socket.recv,(self,bufsize))
+        print "RECV",results
+        return results
+
+class DaqConnection:
     # values for self.remote_state
     NOT_CONNECTED = 1
     COMMAND_PROMPT = 2
+    READY = 3
+    ARMED = 4
 
     # some constants
     CRLF = '\r\n'
@@ -68,23 +166,20 @@ class DaqConnection(VisionEgg.ClassWithParameters):
     command_prompt = re.compile('^daqserv> ')
     ready_prompt = re.compile('^ready> ')
     begin_data_prompt = re.compile('^'+re.escape(
-        'BEGIN HEX DATA (32 bit "short" big-endian signed int)'
+        'BEGIN ASCII DATA (32 bit big-endian signed int)'
         )+'$')
     end_data_prompt = re.compile('^'+re.escape(
-        'END HEX DATA'
+        'END ASCII DATA'
         )+'$')
     
-    def __init__(self,**cnf):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),cnf)
-        
+    def __init__(self,hostname='localhost',port=50003):
         self.remote_state = DaqConnection.NOT_CONNECTED
 
         # Connect to the server 
-        self.socket = debug_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = DebugSocket(socket.AF_INET, socket.SOCK_STREAM)
         #self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.socket.connect((self.parameters.hostname,
-                             self.parameters.port))
+        self.socket.connect((hostname,port))
         self.buffer = ''
         
         # Wait until we get a command prompt
@@ -94,14 +189,12 @@ class DaqConnection(VisionEgg.ClassWithParameters):
         
         self.remote_state = DaqConnection.COMMAND_PROMPT
 
-        self.parameters.trigger.register_daq_setup(self)
-
     def sync(self):
-        if self.remote_state != 'command prompt':
+        if self.remote_state != DaqConnection.COMMAND_PROMPT:
             raise RuntimeError("Must be in command prompt state!")
         
         # Set the gain
-        self.socket.send('gain(%f)'%self.daq_params.parameters.gain + CRLF)
+        self.socket.send('gain(%f)'%self.daq_params.parameters.gain + DaqConnection.CRLF)
 
         # Get a command prompt
         data = self.socket.recv(BUFSIZE)
@@ -112,32 +205,39 @@ class DaqConnection(VisionEgg.ClassWithParameters):
         while not self.command_prompt.search(data):
             data = self.socket.recv(BUFSIZE)
 
-        self.remote_state = 'command prompt'
+        self.remote_state = DaqConnection.COMMAND_PROMPT
 
-    def go(self):
-        if self.remote_state != 'command prompt':
-            raise RuntimeError('DaqConnection.go() called when remote server not in command prompt state.')
-        digitize_string = "digitize(%d,%f,%f,%d)"%(self.daq_params.parameters.num_channels,
-                                                   self.daq_params.parameters.sample_freq_hz,
-                                                   self.daq_params.parameters.duration_sec,
-                                                   self.daq_params.parameters.trigger_mode)
-        self.socket.send(digitize_string + CRLF)
+    def arm(self,
+            num_channels,
+            sample_rate_hz,
+            duration_sec,
+            trigger_num):
+        if self.remote_state != DaqConnection.COMMAND_PROMPT:
+            raise RuntimeError('DaqConnection.arm() called when remote server not in command prompt state.')
+        digitize_string = "digitize(%d,%f,%f,%d)"%(num_channels,
+                                                   sample_rate_hz,
+                                                   duration_sec,
+                                                   trigger_num)
+        self.socket.send(digitize_string + DaqConnection.CRLF)
 
         # I should go into non-blocking mode and wait
         # a timeout period before giving up and
         # returning an error
-        data = self.socket.recv(BUFSIZE)
-        if not self.ready_to_go_prompt.search(data):
+        data = self.socket.recv(DaqConnection.BUFSIZE)
+        if not DaqConnection.ready_prompt.search(data):
             raise RuntimeError("Got unexpected reply when preparing to digitize in DaqConnection: %s"%data)
         
-        self.remote_state = 'ready' # waiting for "go"
+        self.remote_state = DaqConnection.READY
+
+        ######### Return here #######
+
 
         ##################################################
         
-        if self.remote_state != 'ready':
+        if self.remote_state != DaqConnection.READY:
             raise RuntimeError('DaqOverTCP.go() called when remote server not in ready state.')
-        self.socket.send('go' + CRLF)
-        self.remote_state = 'acquiring'
+        self.socket.send('go' + DaqConnection.CRLF)
+        self.remote_state = DaqConnection.ARMED
 
         ##################################################
 
@@ -145,7 +245,7 @@ class DaqConnection(VisionEgg.ClassWithParameters):
         self.parse_data()
 
     def parse_data(self):
-        if self.remote_state != 'acquiring':
+        if self.remote_state != DaqConnection.ARMED:
             raise RuntimeError('DaqConnection.parse_data() called when remote server not in aquiring state.')
 
         # Parse data
@@ -156,9 +256,9 @@ class DaqConnection(VisionEgg.ClassWithParameters):
         print "a"
         while not done:
             print "b"
-            data = self.socket.recv(BUFSIZE)
+            data = self.socket.recv(DaqConnection.BUFSIZE)
             print "c"
-            lines = string.split(data,CRLF)
+            lines = string.split(data,DaqConnection.CRLF)
 
             print "lines",lines
 
@@ -177,19 +277,19 @@ class DaqConnection(VisionEgg.ClassWithParameters):
                 if line == "": # Nothing in this line, do the next
                     continue 
                 if not getting_waves:
-                    if self.begin_data.search(line):
+                    if DaqConnection.begin_data_prompt.search(line):
                         print "START!"
                         getting_waves = 1
                     else:
                         raise ValueError("Unexpected string from daq server when parsing output: '%s'"%line)
                 else: # getting_waves 
-                    if self.end_data.search(line):
+                    if DaqConnection.end_data_prompt.search(line):
                         print "DONE!"
                         self.current_data_array = Numeric.array(waves)
                         waves = []
                         getting_waves = 0
                     else: # The data!
-                        this_row = map(lambda hex: int(hex,16),string.split(line))
+                        this_row = map(int,string.split(line))
 ##                        samples = string.split(line)
 ##                        for sample in samples:
 ##                            this_row.append(int(sample))
@@ -201,11 +301,11 @@ class DaqConnection(VisionEgg.ClassWithParameters):
                             # (Also would have to save waves...)
                             self.current_data_array = Numeric.array(waves)
         print self.current_data_array
-        self.remote_state = 'command prompt'
+        self.remote_state = DaqConnection.COMMAND_PROMPT
 
     def close_socket(self,command='exit'):
-        if self.remote_state != "not connected":
-            self.socket.send(command + CRLF)
+        if self.remote_state != DaqConnection.COMMAND_PROMPT:
+            self.socket.send(command + DaqConnection.CRLF)
         del self
 ##            self.socket.setblocking( 0 ) # stop blocking - clear the receive buffer
 ##            try:
@@ -229,146 +329,4 @@ class DaqConnection(VisionEgg.ClassWithParameters):
 ##            while len(data) > 0:
 ##                data = self.socket.recv(BUFSIZE) # clear the input buffer
 
-###################### OLD CRAP ######################################33
-    
-    def __init__(self,host,port,channel_params_list,trigger_method):
-        # Make sure all my arguments are acceptable
-        self.sample_freq_hz = channel_params_list[0].sample_freq_hz
-        self.duration_sec = channel_params_list[0].duration_sec
-        self.gain = channel_params_list[0].gain
-        channel_numbers = []
-        for channel_params in channel_params_list:
-            channel_numbers.append(channel_params.channel_number)
-            if channel_params.sample_freq_hz != self.sample_freq_hz or channel_params.duration_sec != self.duration_sec or channel_params.gain != self.gain:
-                raise EggError("Each channel passed to DaqOverTCP must have the same parameters.")
-        channel_numbers.sort()
-        for i in range(len(channel_numbers)):
-            if i != channel_numbers[i]:
-                raise EggError("DaqOverTCP only records from contiguous channels starting with 0.")
-        self.num_channels = len(channel_numbers)
-        Daq.__init__(self,channel_params_list,trigger_method)
 
-        # TCP server prompts
-        self.command_prompt = re.compile('^daqserv> ')
-        self.ready_to_go_prompt = re.compile('^ready> ')
-        self.begin_data = re.compile('^BEGIN TEXT WAVES$')
-        self.end_data = re.compile('^END TEXT WAVES$')
-        
-        # Connect to the server 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((host,port))
-        data = self.socket.recv(BUFSIZE)
-
-        # Wait until we get a command prompt
-        while not self.command_prompt.search(data):
-            data = self.socket.recv(BUFSIZE)
-
-        # Set the gain
-        self.socket.send('gain(%f)'%self.gain + CRLF)
-
-        # Get a command prompt
-        data = self.socket.recv(BUFSIZE)
-        if not self.command_prompt.search(data):
-            raise EggError("Got unexpected reply trying to set gain in DaqOverTCP: %s"%data)
-
-        self.remote_state = 'command prompt'
-
-    def __del__(self):
-        # close socket connection nicely if possible
-        try:
-            self.socket.send('exit' +  CRLF)
-            data = self.socket.recv(BUFSIZE) # clear the input buffer
-        except:
-            pass
-    
-    def prepare_to_go(self):
-        if hasattr(self,'current_data_array'):
-            del self.current_data_array # it's no longer current!
-        if self.remote_state != 'command prompt':
-            raise EggError('DaqOverTCP.prepare_to_go() called when remote server not in command prompt state.')
-        if isinstance(self.trigger_method,NoTrigger):
-            trigger_mode = 0
-        elif isinstance(self.trigger_method,TriggerLowToHigh):
-            trigger_mode = 1
-        elif isinstance(self.trigger_method,TriggerHighToLow):
-            trigger_mode = 2
-        digitize_string = "digitize(%d,%f,%f,%d)"%(self.num_channels,
-                                                   self.sample_freq_hz,
-                                                   self.duration_sec,
-                                                   trigger_mode)
-        self.socket.send(digitize_string + CRLF)
-
-        # I should go into non-blocking mode and wait
-        # a timeout period before giving up and
-        # returning an error
-        data = self.socket.recv(BUFSIZE)
-        if not self.ready_to_go_prompt.search(data):
-            lines = string.split(data,CRLF)
-            for line in lines:
-                print line
-            raise EggError("Got unexpected reply when preparing to digitize in DaqOverTCP: %s"%data)
-        self.remote_state = 'ready' # waiting for "go"
-
-    def go(self):
-        if self.remote_state != 'ready':
-            raise EggError('DaqOverTCP.go() called when remote server not in ready state.')
-        self.socket.send('go' + CRLF)
-        self.remote_state = 'acquiring'
-
-    def get_data(self,channel_params):
-        # Check to see if we've already parsed this data
-        if not hasattr(self,'current_data_array'):
-            self.parse_data()
-        if not isinstance(channel_params,ChannelParams):
-            raise TypeError()
-        return self.current_data_array[:,channel_params.channel_number]
-
-    def parse_data(self):
-        if self.remote_state != 'acquiring':
-            raise EggError('DaqOverTCP.parse_data() called when remote server not in aquiring state.')
-
-        # Parse data
-        done = 0
-        getting_waves = 0
-        waves = []
-        leftover_data = ""
-        while not done:
-            data = self.socket.recv(BUFSIZE)
-            lines = string.split(data,CRLF)
-
-            # due to buffering not being lined up with lines:
-            lines[0] = leftover_data + lines[0] # use last incomplete line
-            leftover_data = lines.pop() # incomplete last line
-
-            # because the command prompt doesn't end with CRLF, check for it:
-            if self.command_prompt.search(leftover_data):
-                done = 1
-
-            for line in lines:
-                if line == "": # Nothing in this line, do the next
-                    continue 
-                if not getting_waves:
-                    if self.begin_data.search(line):
-                        getting_waves = 1
-                    elif self.command_prompt.search(line): # Never the case, because the command prompt doesn't end with CRLF
-                        done = 1
-                    else:
-                        raise EggError("Unexpected string from daq server when parsing output: '%s'"%line)
-                else: # getting_waves 
-                    if self.end_data.search(line):
-                        self.current_data_array = Numeric.array(waves)
-                        waves = []
-                        getting_waves = 0
-                    else: # The data!
-                        this_row = []
-                        samples = string.split(line)
-                        for sample in samples:
-                            this_row.append(int(sample))
-                        if len(this_row) > 0:
-                            this_row = Numeric.array(this_row)
-                            waves.append(this_row)
-                            self.current_data_array = Numeric.array(waves)
-                     
-        self.remote_state = 'command prompt'
-    
-    
