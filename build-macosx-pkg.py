@@ -13,6 +13,7 @@ Author: Andrew Straw <astraw@users.sourceforge.net>
 """
 
 import os, string, shutil, copy, tempfile,sys, commands
+import distutils.util
 import setup # from local directory
 
 if len(sys.argv) > 1:
@@ -22,10 +23,8 @@ else:
 
 if sys.version.startswith("2.2"):
     py_version_short = "2.2"
-    power_mac = "Power_Macintosh"
 elif sys.version.startswith("2.3"):
     py_version_short = "2.3"
-    power_mac = "Power Macintosh"
 else:
     raise RuntimeError("Build this with Python 2.2 or 2.3")
 
@@ -33,11 +32,9 @@ status, output = commands.getstatusoutput("sw_vers")
 output_lines = output.split('\n')
 mac_os_x_version = output_lines[1].split()[1]
 
-import VisionEgg # get release no
-
 # pkg_name must be short to deal with Stuffit Expander braindead-ness.
 # The final number is a "build number" in case the packaging doesn't work.
-pkg_name = "ve-%s-py%s-%d"%(VisionEgg.release_name,sys.version.split()[0],build_number)
+pkg_name = "ve-%s-py%s-%d"%(setup.version,sys.version.split()[0],build_number)
 if len(pkg_name + ".pkg.tar.gz") > 31:
     raise RuntimeError("Your package name will be too long for dumb Mac OS X apps")
 
@@ -48,7 +45,7 @@ if os.path.islink( current_link ):
     if os.path.realpath( current_link ) != default_location:
         raise RuntimeError("I think your current version of Python is not specied by %s"%(current_link,))
 darwin_version = os.uname()[2]
-bdist_dumb_results = "./dist/visionegg-%s.darwin-%s-%s.tar.gz"%(setup.version,darwin_version,power_mac)
+bdist_dumb_results = "./dist/visionegg-%s.%s.tar.gz"%(setup.version,distutils.util.get_platform())
 bdist_dumb_results = os.path.abspath(bdist_dumb_results)
 
 # Initial screen
