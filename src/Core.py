@@ -20,6 +20,8 @@ import PlatformDependent                        # platform dependent Vision Egg 
 
 import pygame                                   # pygame handles OpenGL window setup
 import pygame.locals
+
+import types
 			                        # from PyOpenGL:
 from OpenGL.GL import *                         #   main package
 from OpenGL.GLU import *                        #   utility routines
@@ -27,40 +29,75 @@ from OpenGL.GLU import *                        #   utility routines
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-############# What function do we use to swap the buffers? #########
-swap_buffers = pygame.display.flip
-
 ####################################################################
 #
 #        Screen
 #
 ####################################################################
 
-class Screen:
-    """Contains one or more viewports.
+class Screen(ClassWithParameters):
+    """An OpenGL window for use by Vision Egg.
 
-    Currently only one screen is supported, but hopefully multiple
-    screens will be supported in the future.
-    """
+    An easy way to make an instance of screen is to use a helper
+    function in the VisionEgg.AppHelper class:
+    
+    >>> import Visionegg.AppHelper
+    >>> VisionEgg.AppHelper.get_default_screen()
+
+    Make an instance of this class to create an OpenGL window for the
+    Vision Egg to draw in.  For a an instance of Screen to do anything
+    useful, it must contain one or more instances of the Viewport
+    class and one or more instances of the Stimulus class.
+
+    Only one parameter can be changed in realtime--bgcolor.  The
+    screen is cleared with this color on each frame drawn.
+
+    Currently, only one screen is supported by the library with which
+    the Vision Egg opens an OpenGL window (pygame/SDL).  However, this
+    need not limit display to a single physical display device.
+    NVidia's video drivers, for example, allow applications to treat
+    two separate monitors as one large array of contiguous pixels.  By
+    sizing a window such that it occupies both monitors and creating
+    separate viewports for the portion of the window on each monitor,
+    a multiple screen effect can be created.  """
+    # List of stuff to be improved in this class:
+    # Better configurability of number of bits per pixel, including alpha.
+    
+    parameters_and_defaults = {'bgcolor':config.VISIONEGG_SCREEN_BGCOLOR}
 
     def __init__(self,
                  size=(config.VISIONEGG_SCREEN_W,
                        config.VISIONEGG_SCREEN_H),
                  fullscreen=config.VISIONEGG_FULLSCREEN,
                  preferred_bpp=config.VISIONEGG_PREFERRED_BPP,
-                 bgcolor=config.VISIONEGG_SCREEN_BGCOLOR,
-                 maxpriority=config.VISIONEGG_MAXPRIORITY):
+                 maxpriority=config.VISIONEGG_MAXPRIORITY,
+                 **kw):
+        
+        apply(ClassWithParameters.__init__,(self,),kw)
+        
         self.size = size
         self.fullscreen = fullscreen 
 
+        # Attempt to synchronize buffer swapping with vertical sync
         sync_success = PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
+        # Initialize pygame stuff
+        if sys.platform == "darwin": # bug in Mac OS X version of pygame
+            pygame.init()
         pygame.display.init()
+
+        # Request alpha in the framebuffer
         if hasattr(pygame.display,"gl_set_attribute"):
             pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,8)
+            requested_alpha = 1
         else:
-            print "WARNING: Could not request alpha in framebuffer because you have an old version of pygame."
+            requested_alpha = 0
+            print "WARNING: Could not request alpha in framebuffer because"
+            print "you have an old version of pygame. This is only of concern"
+            print "if you need to use alpha in the framebuffer (unlikely)."
+            
         pygame.display.set_caption("Vision Egg")
+        
         flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
         if self.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
@@ -69,20 +106,9 @@ class Screen:
         try_bpps = [32,24,0] # bits per pixel (32 = 8 bits red, 8 green, 8 blue, 8 alpha, 0 = any)
         try_bpps.insert(0,preferred_bpp) # try the preferred size first
 
-        # SDL, and therefore pygame, has problems on linux when trying
-        # to acheive a 32 bpp depth, at least on any of the (nVidia)
-        # setups I've tried.  This is a real killer when trying to use
-        # alpha in the framebuffer.
-        
-        # I workaround this by modifying "display.c" in the pygame
-        # sourcecode where I've added
-        # "SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);" before
-        # "SDL_SetVideoMode(w, h, depth, flags);"
-
-        # Until this is fixed in SDL and pygame, the following
-        # special case for linux must stay. :(
-        
-        if sys.platform=='linux2': 
+        if not requested_alpha and sys.platform=='linux2':
+            # linux (at least nVidia drivers) doesn't like to give a
+            # 32 bpp depth.
             try:
                 while 1:
                     try_bpps.remove(32)
@@ -126,6 +152,7 @@ class Screen:
             
         self.cursor_visible_func = pygame.mouse.set_visible
 
+        # Attempt to synchronize buffer swapping with vertical sync again
         if not sync_success:
             if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
                 print '************ VISION EGG WARNING ***************'
@@ -133,23 +160,23 @@ class Screen:
                 print 'retrace. May be possible by manually adjusting video'
                 print 'drivers. (Try "Enable Vertical Sync" or similar.)'
 
-        # Check previously made OpenGL assumptions
+        # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
         
         if self.fullscreen:
             self.cursor_visible_func(0)
 
-        self.parameters = Parameters()
-        self.parameters.bgcolor = bgcolor
-
-        # Attempt to set maximum priority
-        # (This may not be the best place in the code to do it,
-        # because it's an application-level thing, not a screen-level
-        # thing, but it fits reasonably well here for now.)
+        # Attempt to set maximum priority (This may not be the best
+        # place in the code to do it because it's an application-level
+        # thing, not a screen-level thing, but it fits reasonably well
+        # here for now.)
         if maxpriority: 
             PlatformDependent.set_realtime()
 
     def clear(self):
+        """Clear the screen.
+
+        Gets called every frame."""
         c = self.parameters.bgcolor # Shorthand
         glClearColor(c[0],c[1],c[2],c[3])
         glClear(GL_COLOR_BUFFER_BIT)
@@ -163,8 +190,9 @@ class Screen:
 
     def __del__(self):
         """Make sure mouse is visible after screen closed."""
-        if hasattr(self,"cursor_visible_func"):
-            self.cursor_visible_func(1)
+##        if hasattr(self,"cursor_visible_func"):
+##            self.cursor_visible_func(1)
+        self.cursor_visible_func(1)
         
 ####################################################################
 #
@@ -172,25 +200,37 @@ class Screen:
 #
 ####################################################################
 
-class Viewport:
+class Viewport(ClassWithParameters):
     """A portion of a screen which shows stimuli.
 
     A screen may have multiple viewports.  The viewports may be
-    overlapping.  """
-    def __init__(self,screen,lower_left,size,projection=None):
+    overlapping.
+
+    By default, a viewport has a projection which maps eye coordinates
+    to viewport coordinates in 1:1 manner.  In other words, eye
+    coordinates specify pixel location in the viewport.
+
+    A different projection is desired for stimuli whose eye
+    coordinates it is most convenient not be equal to viewport
+    coordinates. In this case, the application must change the
+    viewport's projection from the default.  This is typically the
+    case for 3D stimuli.    
+    """
+    parameters_and_defaults = {'lowerleft':(0,0),
+                               'size':(640,480),
+                               'projection':None}
+
+    def __init__(self,screen,**kw):
+        apply(ClassWithParameters.__init__,(self,),kw)
+        
         self.screen = screen
         self.stimuli = []
-        self.parameters = Parameters()
-        self.parameters.lower_left = lower_left
-        self.parameters.size = size
-        if projection is None:
-            # Default projection maps object coordinates 1:1 on viewport pixel coordinates
+        if self.parameters.projection is None:
+            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             self.parameters.projection = OrthographicProjection(left=0,right=self.parameters.size[0],
                                                                 bottom=0,top=self.parameters.size[1],
                                                                 z_clip_near=0.0,
                                                                 z_clip_far=1.0)
-        else:
-            self.parameters.projection = projection
 
     def add_stimulus(self,stimulus,draw_order=-1):
         """Add a stimulus to the list of those drawn in the viewport
@@ -209,7 +249,7 @@ class Viewport:
     def draw(self):
         """Set the viewport and draw stimuli."""
         self.screen.make_current()
-        glViewport(self.parameters.lower_left[0],self.parameters.lower_left[1],self.parameters.size[0],self.parameters.size[1])
+        glViewport(self.parameters.lowerleft[0],self.parameters.lowerleft[1],self.parameters.size[0],self.parameters.size[1])
 
         self.parameters.projection.set_gl_projection()
         
@@ -222,10 +262,15 @@ class Viewport:
 #
 ####################################################################
 
-class Projection:
+class Projection(ClassWithParameters):
     """Abstract base class to define interface for OpenGL projection matrices"""
-    def __init__(self):
-        raise RuntimeError("Trying to instantiate an abstract base class.")
+    parameters_and_defaults = {'matrix':array([[1.0, 0.0, 0.0, 0.0], # 4x4 identity matrix
+                                               [0.0, 1.0, 0.0, 0.0],
+                                               [0.0, 0.0, 1.0, 0.0],
+                                               [0.0, 0.0, 0.0, 1.0]]) }
+                               
+    def __init__(self,**kw):
+        apply(ClassWithParameters.__init__,(self,),kw)
 
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
@@ -283,63 +328,41 @@ class OrthographicProjection(Projection):
 
         Defaults to map x eye coordinates in the range [0,640] to clip
         coordinates in the range [0,1] and y eye coordinates [0,480]
-        -> [0,1].  In other words, if the viewport is 640 x 480, eye
-        coordinates correspond 1:1 with window coordinates."""
-        self.parameters = Parameters()
+        -> [0,1].  Therefore, if the viewport is 640 x 480, eye
+        coordinates correspond 1:1 with window (pixel) coordinates."""
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glOrtho(left,right,bottom,top,z_clip_near,z_clip_far) # Let GL create a matrix and compose it
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if self.parameters.matrix is None:
+        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
+        apply(Projection.__init__,(self,),{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
     """A simplified perspective projection"""
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=100.0,aspect_ratio=4.0/3.0):
-        self.parameters = Parameters()
         fov_y = fov_x / aspect_ratio
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far) # Let GLU create a matrix and compose it
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if self.parameters.matrix is None:
+        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
+        apply(Projection.__init__,(self,),{'matrix':matrix})
 
 class PerspectiveProjection(Projection):
     """A perspective projection"""
     def __init__(self,left,right,bottom,top,near,far):
-        self.parameters = Parameters()
         glMatrixMode(GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         glLoadIdentity() # Clear the projection matrix
         glFrustrum(left,right,top,bottom,near,far) # Let GL create a matrix and compose it
-        self.parameters.matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        if self.parameters.matrix is None:
+        matrix = glGetFloatv(GL_PROJECTION_MATRIX)
+        if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
-
-####################################################################
-#
-#        Parameters
-#
-####################################################################
-
-class Parameters:
-    """Hold stimulus parameters.
-
-    This abstraction of parameters is useful so that parameters can be
-    controlled via any number of means: evaluating a python function,
-    acquiring some data with a digital or analog input, etc.
-
-    All parameters (such as contrast, position, etc.) which should be
-    modifiable in runtime should be attributes of an instance of this
-    class, which serves as a nameholder for just this purpose.
-
-    See the Presentation class for more information about parameters
-    and controllers.
-    """
-    pass
+        apply(Projection.__init__,(self,),{'matrix':matrix})
 
 ####################################################################
 #
@@ -347,7 +370,7 @@ class Parameters:
 #
 ####################################################################
 
-class Stimulus:
+class Stimulus(ClassWithParameters):
     """Base class for a stimulus.
 
     Any stimulus element should be a subclass of this Stimulus class.
@@ -373,32 +396,20 @@ class Stimulus:
     of this inherent uncertainty, there are only limited assumptions
     about the state of OpenGL that an instance of Stimulus should
     expect when its draw() method is called.  Because the Vision Egg
-    loops through stimuli this also imposes some rules that a
-    well-behaved subclass of Stimulus must follow.
+    loops through stimuli this also imposes some important behaviors:
     
     First, the framebuffer will contain the results of any drawing
     operations performed since the last buffer swap by other instances
     of (subclasses of) Stimulus. Therefore, the order in which stimuli
     are added to an instance of Viewport may be important.
     Additionally, if there are overlapping viewports, the order in
-    which viewports are added to an instance of Screen may be
-    important.
+    which viewports are added to an instance of Screen is important.
 
-    Second, the projection matrix will be that which was set by the
-    viewport. Note that for some stimuli, you will want the stimulus
-    to set its own projection.  Most 2D objects should probably define
-    their own projection, which will specify where, in relation to the
-    viewport, the object is drawn.  3D objects should probably let the
-    viewport's default projection be used.   To be well-behaved, if the draw() method alters the
-    projection matrix, it must be restored.  The glPushMatrix() and
-    glPopMatrix() commands provide an easy way to do this.  (See the
-    FixationSpot class for an example.)
+    Second, previously established OpenGL display lists and OpenGL
+    texture objects will be available.  The __init__() method should
+    establish these things.
 
-    Third, previously established OpenGL display lists and OpenGL
-    texture objects will be available.  The method init_gl() is
-    provided to establish these things.
-
-    Fourth, there are several OpenGL state variables which are
+    Third, there are several OpenGL state variables which are
     commonly set by subclasses of Stimulus, and which cannot be
     assumed to have any particular value at the time draw() is called.
     These state variables are: blending mode and function, texture
@@ -411,33 +422,34 @@ class Stimulus:
     values other than those listed above to their initial state before
     draw() and init_gl() were called.  In other words, before your
     stimulus changes the state of an OpenGL variable, use
-    glGetBoolean, glGetInteger, glGetFloat, or a similar function to 
-    query its value and restore it later.
-    """
+    glGetBoolean, glGetInteger, glGetFloat, or a similar function to
+    query its value and restore it later.  For example, upon calling
+    the draw() method, the projection matrix will be that which was
+    set by the viewport. If the draw() method alters the projection
+    matrix, it must be restored. The glPushMatrix() and glPopMatrix()
+    commands provide an easy way to do this.
+
+    The default projection of Viewport maps eye coordinates in a 1:1
+    fashion to window coordinates (in other words, it sets eye
+    coordinates to use pixel units from the lower left corner of the
+    viewport). Therefore the default parameters for a stimulus should
+    specify pixel coordinates if possible (such as for a 2D
+    stimulus). Assuming a window size of 640 by 480 for the default
+    parameters is a pretty safe way to do things.  """
+    
     parameters_and_defaults = {} # empty for base Stimulus class
 
     def __init__(self,**kw):
+        """Get a Stimulus ready to draw.
 
-        self.parameters = Parameters() # create self.parameters
-        
-        # Get a list of all classes this instance is derived from
-        classes = recursive_base_class_finder(self.__class__)
+        Set parameter values and create anything needed to draw the
+        stimulus including OpenGL state variables such display lists
+        and texture objects.
 
-        # Fill self.parameters with parameter names and set to default values
-        for klass in classes:
-            for parameter_name in klass.parameters_and_defaults.keys():
-                # Make sure this parameter key/value pair doesn't exist already
-                if hasattr(self.parameters,parameter_name):
-                    raise ValueError("More than one definition of parameter '%s'"%parameter_name)
-                setattr(self.parameters,parameter_name,klass.parameters_and_defaults[parameter_name])
-
-        # Set self.parameters to the value in "kw"
-        for kw_parameter_name in kw.keys():
-            # Make sure this parameter exists already
-            if not hasattr(self.parameters,kw_parameter_name):
-                raise ValueError("parameter '%s' unknown"%kw_parameter_name)
-            else:
-                setattr(self.parameters,kw_parameter_name,kw[kw_parameter_name])
+        In this base class, nothing needs to be done other than set
+        parameter values.
+        """
+        apply(ClassWithParameters.__init__,(self,),kw)
         
     def draw(self):
     	"""Draw the stimulus.  This method is called every frame.
@@ -446,13 +458,6 @@ class Stimulus:
         stimulus. In this base class, however, it does nothing."""
         pass
         
-    def init_gl(self):
-        """Get OpenGL ready to do everything in the draw() method.
-
-        This method typically loads texture objects and creates
-        display lists.  In this base class, however, it does nothing."""
-        pass
-
 ####################################################################
 #
 #        FixationSpot
@@ -460,36 +465,15 @@ class Stimulus:
 ####################################################################
 
 class FixationSpot(Stimulus):
-    parameters_and_defaults = {'projection':None, # set in __init__
-                               'on':1,
+    parameters_and_defaults = {'on':1,
                                'color':(1.0,1.0,1.0,1.0),
-                               'width':0.01,
-                               'height':0.01*4.0/3.0, # assume 4:3 aspect ratio of projection to make square
-                               'x':0.5,
-                               'y':0.5}
+                               'center':(320.0,240.0), # place in center of 640x480 viewport
+                               'size':(4.0,4.0)} # horiz and vertical size
     
-    def __init__(self,projection=None,**kw):
+    def __init__(self,**kw):
         """Create a fixation spot.
-        
-        If no projection is specified, assume the position of the
-        fixation spot, which is by default equal to (320,240), is in
-        the middle of the viewport.
         """
         apply(Stimulus.__init__,(self,),kw)
-        # Make sure the projection is set
-        if projection is not None:
-            # Use the user-supplied projection
-            self.parameters.projection = projection
-        else:
-            # No user-supplied projection, use the default. (Which is probably None.)
-            if self.parameters.projection is None:
-                # Since the default projection is None, set it to something useful.
-                # Assume spot is in center of viewport.
-                w,h=(2*self.parameters.x,2*self.parameters.y)
-                self.parameters.projection = OrthographicProjection(right=w,top=h)
-            
-    def init_gl(self):
-        pass
 
     def draw(self):
         if self.parameters.on:
@@ -500,18 +484,15 @@ class FixationSpot(Stimulus):
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
 
-            # before we set the projection matrix, push its state
-            self.parameters.projection.push_and_set_gl_projection()
-
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
             # still use one of the matrices to make it change size.
-            x_size = self.parameters.width/2.0
-            y_size = self.parameters.height/2.0
-            x,y = self.parameters.x,self.parameters.y
+            x_size = self.parameters.size[0]/2.0
+            y_size = self.parameters.size[1]/2.0
+            x,y = self.parameters.center[0],self.parameters.center[1]
             x1 = x-x_size; x2 = x+x_size
             y1 = y-y_size; y2 = y+y_size
             glBegin(GL_QUADS)
@@ -521,15 +502,13 @@ class FixationSpot(Stimulus):
             glVertex2f(x1,y2)
             glEnd() # GL_QUADS
 
-            glPopMatrix() # restore projection matrix
-
 ####################################################################
 #
 #        Presentation
 #
 ####################################################################
 
-class Presentation:
+class Presentation(ClassWithParameters):
     """Handles the timing and coordination of stimulus presentation.
 
     This class is the key to the real-time operation of the Vision
@@ -570,72 +549,88 @@ class Presentation:
     your favorite operating system here), a new frame is drawn before
     every vertical retrace sync pulse.
     """
-    
-    def __init__(self,viewports=[],duration=(5.0,'seconds')):
-        self.parameters = Parameters()
-        self.parameters.viewports = viewports
-        self.parameters.duration = duration
+    parameters_and_defaults = {'viewports' : [],
+                               'duration' : (5.0,'seconds') }
+
+    def __init__(self,**kw):
+        apply(ClassWithParameters.__init__,(self,),kw)
+
+        # These next three lists contain all the parameters under control
         self.realtime_time_controllers = []
         self.realtime_frame_controllers = []
         self.transitional_controllers = []
+
+        # An list that optionally records when frames were drawn by go() method.
         self.frame_draw_times = []
 
-    def add_realtime_time_controller(self, parameters, name, controller):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
-        self.realtime_time_controllers.append((parameters,name,controller))
+    def add_realtime_time_controller(self, class_with_parameters, parameter_name, controller_function):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
+        self.realtime_time_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
 
-    def remove_realtime_time_controller(self, parameters, name):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+    def remove_realtime_time_controller(self, class_with_parameters, parameter_name):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
         i = 0
         while i < len(self.realtime_time_controllers):
-            orig_parameters,orig_name,orig_controller = self.realtime_time_controllers[i]
-            if orig_parameters == parameters and orig_name == name:
+            orig_parameters,orig_parameter_name,orig_controller_function = self.realtime_time_controllers[i]
+            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                 del self.realtime_time_controllers[i]
             else:
                 i = i + 1
 
-    def add_realtime_frame_controller(self, parameters, name, controller):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
-        self.realtime_frame_controllers.append((parameters,name,controller))
+    def add_realtime_frame_controller(self, class_with_parameters, parameter_name, controller_function):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
+        self.realtime_frame_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
 
-    def remove_realtime_frame_controller(self, parameters, name):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+    def remove_realtime_frame_controller(self, class_with_parameters, parameter_name):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
         i = 0
         while i < len(self.realtime_frame_controllers):
-            orig_parameters,orig_name,orig_controller = self.realtime_frame_controllers[i]
-            if orig_parameters == parameters and orig_name == name:
+            orig_parameters,orig_parameter_name,orig_controller_function = self.realtime_frame_controllers[i]
+            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                 del self.realtime_frame_controllers[i]
             else:
                 i = i + 1
 
-    def add_transitional_controller(self, parameters, name, controller):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
-        self.transitional_controllers.append((parameters,name,controller))
+    def add_transitional_controller(self, class_with_parameters, parameter_name, controller_function):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
+        self.transitional_controllers.append((class_with_parameters.parameters,parameter_name,controller_function))
 
-    def remove_transitional_controller(self, parameters, name):
-        if not isinstance(parameters,Parameters):
-            raise ValueError('"%s" is not an instance of %s'%(parameters,Parameters))
-        if not hasattr(parameters,name):
-            raise AttributeError('"%s" not an attribute of %s'%(name,parameters))
+    def remove_transitional_controller(self, class_with_parameters, parameter_name):
+        if not isinstance(class_with_parameters,ClassWithParameters):
+            raise ValueError('"%s" is not a subclass of %s'%(class_with_parameters,ClassWithParameters))
+        if not isinstance(class_with_parameters.parameters,Parameters):
+            raise EggError('Internal Vision Egg consistency error: attribute "parameters" of %s is not an instance of %s'%(class_with_parameters,Parameters))
+        if not hasattr(class_with_parameters.parameters,parameter_name):
+            raise AttributeError('"%s" not an attribute of %s'%(parameter_name,class_with_parameters.parameters))
         i = 0
         while i < len(self.transitional_controllers):
-            orig_parameters,orig_name,orig_controller = self.transitional_controllers[i]
-            if orig_parameters == parameters and orig_name == name:
+            orig_parameters,orig_parameter_name,orig_controller_function = self.transitional_controllers[i]
+            if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
                 del self.transitional_controllers[i]
             else:
                 i = i + 1
@@ -662,7 +657,7 @@ class Presentation:
         and your video drivers.  (This should be remedied in OpenGL 2.)
         """
         # Create a few shorthand notations, which speeds
-        # the main loop by not performing name lookup each time.
+        # the main loop slightly by not performing name lookup each time.
         duration_value = self.parameters.duration[0]
         duration_units = self.parameters.duration[1]
         viewports = self.parameters.viewports
@@ -674,8 +669,8 @@ class Presentation:
                 screens.append(viewport.screen)
 
         # Tell transitional controllers a presentation is starting
-        for parameters,name,controller in self.transitional_controllers:
-            setattr(parameters,name,controller(0.0))
+        for parameters,parameter_name,controller_function in self.transitional_controllers:
+            setattr(parameters,parameter_name,controller_function(0.0))
 
         # Clear any previous timing info if necessary
         if collect_timing_info:
@@ -695,10 +690,10 @@ class Presentation:
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
-            for parameters,name,controller in self.realtime_time_controllers:
-                setattr(parameters,name,controller(current_time))
-            for parameters,name,controller in self.realtime_frame_controllers:
-                setattr(parameters,name,controller(current_frame))
+            for parameters,parameter_name,controller_function in self.realtime_time_controllers:
+                setattr(parameters,parameter_name,controller_function(current_time))
+            for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
+                setattr(parameters,parameter_name,controller_function(current_frame))
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -727,7 +722,7 @@ class Presentation:
         # Check to see if frame by frame control was desired
         # but OpenGL not syncing to vertical retrace
         if len(self.realtime_frame_controllers) > 0: # Frame by frame control desired
-            impossibly_fast_frame_rate = 205.0
+            impossibly_fast_frame_rate = 210.0
             if current_frame / current_time > impossibly_fast_frame_rate: # Let's assume no monitor exceeds 200 Hz
                 print
                 print "**************************************************************"
@@ -770,12 +765,12 @@ class Presentation:
         # putting the results in parameters.name.
         # It's like "parameters.name = controller(-1.0)", but name is
         # a string, so it must be called this way.
-        for parameters,name,controller in self.realtime_time_controllers:
-            setattr(parameters,name,controller(-1.0))
-        for parameters,name,controller in self.realtime_frame_controllers:
-            setattr(parameters,name,controller(-1))
-        for parameters,name,controller in self.transitional_controllers:
-            setattr(parameters,name,controller(-1.0))
+        for parameters,parameter_name,controller_function in self.realtime_time_controllers:
+            setattr(parameters,parameter_name,controller_function(-1.0))
+        for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
+            setattr(parameters,parameter_name,controller_function(-1))
+        for parameters,parameter_name,controller_function in self.transitional_controllers:
+            setattr(parameters,parameter_name,controller_function(-1.0))
 
         viewports = self.parameters.viewports
 
@@ -796,17 +791,14 @@ class Presentation:
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
         """Call this method rather than go() to save a movie of your experiment.
         """
-        import Image # Could import this above, but it breaks stuff!
+        import Image # Could import this at the beginning of the file, but it breaks sometimes!
         
-        for parameters,name,controller in self.realtime_time_controllers:
-            setattr(parameters,name,controller(0.0))
-        for parameters,name,controller in self.realtime_frame_controllers:
-            setattr(parameters,name,controller(0))
-        for parameters,name,controller in self.transitional_controllers:
-            setattr(parameters,name,controller(0.0))
+        # Tell transitional controllers a presentation is starting
+        for parameters,parameter_name,controller_function in self.transitional_controllers:
+            setattr(parameters,parameter_name,controller_function(0.0))
 
         # Create a few shorthand notations, which speeds
-        # the main loop by not performing name lookup each time.
+        # the main loop a little by not performing name lookup each time.
         duration_value = self.parameters.duration[0]
         duration_units = self.parameters.duration[1]
         viewports = self.parameters.viewports
@@ -831,10 +823,10 @@ class Presentation:
             raise RuntimeError("Unknown duration unit '%s'"%duration_units)
         while (current_duration_value < duration_value):
             # Update all the realtime parameters
-            for parameters,name,controller in self.realtime_time_controllers:
-                setattr(parameters,name,controller(current_time))
-            for parameters,name,controller in self.realtime_frame_controllers:
-                setattr(parameters,name,controller(current_frame))
+            for parameters,parameter_name,controller_function in self.realtime_time_controllers:
+                setattr(parameters,parameter_name,controller_function(current_time))
+            for parameters,parameter_name,controller_function in self.realtime_frame_controllers:
+                setattr(parameters,parameter_name,controller_function(current_frame))
             # Clear the screen(s)
             for screen in screens:
                 screen.clear()
@@ -929,13 +921,15 @@ class EggError(Exception):
 
 gl_assumptions = []
 
-def add_gl_assumption(gl_variable,required_value,failure_string):
+def add_gl_assumption(gl_variable,required_value,failure_callback):
     """Save assumptions for later checking once OpenGL context created."""
-    gl_assumptions.append((gl_variable,required_value,failure_string))
+    if type(failure_callback) != types.FunctionType:
+        raise ValueError("failure_callback must be a function!")
+    gl_assumptions.append((gl_variable,required_value,failure_callback))
 
 def check_gl_assumptions():
     """Requires OpenGL context to be created."""
-    for gl_variable,required_value,failure_string in gl_assumptions:
+    for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
         if string.upper(gl_variable) == "GL_VENDOR":
             value = string.split(string.lower(glGetString(GL_VENDOR)))[0]
@@ -945,5 +939,4 @@ def check_gl_assumptions():
             value_str = string.split(glGetString(GL_VERSION))[0]
             value_ints = map(int,string.split(value_str,'.'))
             value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
-            if value < required_value:
-                raise EggError(gl_variable + " less than " + str(required_value) + ": " + failure_string)
+            failure_callback()
