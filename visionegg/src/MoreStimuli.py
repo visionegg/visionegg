@@ -15,18 +15,19 @@ __version__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
-from VisionEgg import *
-from VisionEgg.Core import *
+import VisionEgg.Core
+from OpenGL.GL import *
 
 # for Teapot
 from OpenGL.GLUT import *
 
-class Teapot(Stimulus):
+class Teapot(VisionEgg.Core.Stimulus):
     """A very simple stimulus because GLUT can draw a teapot"""
-    def __init__(self):
-        Stimulus.__init__(self)
-        self.parameters.yrot = 0.0
-        self.parameters.on = 1
+    parameters_and_defaults = {'yrot':0.0,
+                               'on':1}
+
+    def __init__(self,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
         
     def draw(self):
         if self.parameters.on:
@@ -40,59 +41,44 @@ class Teapot(Stimulus):
             glRotatef(self.parameters.yrot,0.0,1.0,0.0)
             glutSolidTeapot(0.5)
         
-class Target2D(Stimulus):
-    def __init__(self):
-        self.parameters = Parameters()
-        self.parameters.on = 1
-        self.parameters.projection_matrix = eye(4)
-        self.parameters.orientation = 0.0
-        self.parameters.width = 5.0
-        self.parameters.height = 2.0
-        self.parameters.x = 0.0
-        self.parameters.y = 0.0
-        self.parameters.color = (1.0,1.0,1.0,1.0)
-        self.parameters.anti_aliasing = 1
-
-        # Now set self.parameters.projection_matrix
-
-        # impose our own measurement grid on the viewport
-        viewport_aspect = 4.0/3.0 # guess for the default
-        pseudo_width = 100.0
-        pseudo_height = 100.0 / viewport_aspect
-        (l,r,b,t) = (-0.5*pseudo_width,0.5*pseudo_width,-0.5*pseudo_height,0.5*pseudo_height)
-        z_near = -1.0
-        z_far = 1.0
-        
-        matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
-
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-        glOrtho(l,r,b,t,z_near,z_far)
-        self.parameters.projection_matrix = glGetFloatv(GL_PROJECTION_MATRIX)
-        glPopMatrix()
-
-        glMatrixMode(matrix_mode)
+class Target2D(VisionEgg.Core.Stimulus):
+    parameters_and_defaults = {'projection':None, # set in __init__
+                               'on':1,
+                               'color':(1.0,1.0,1.0,1.0),
+                               'anti_aliasing':1,
+                               'orientation':135.0,
+                               'width':0.1,
+                               'height':0.025,
+                               'x':0.5,
+                               'y':0.5}
+                        
+    def __init__(self,projection=None,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        # Make sure the projection is set
+        if projection is not None:
+            # Use the user-supplied projection
+            self.parameters.projection = projection
+        else:
+            # No user-supplied projection, use the default. (Which is probably None.)
+            if self.parameters.projection is None:
+                # Since the default projection is None, set it to something useful.
+                # Assume spot is in center of viewport.
+                self.parameters.projection = VisionEgg.Core.OrthographicProjection(right=1.0,top=1.0)
 
     def draw(self):
         if self.parameters.on:
-            # save current matrix mode
-            matrix_mode = glGetIntegerv(GL_MATRIX_MODE)
-
             glMatrixMode(GL_MODELVIEW)
-            glPushMatrix() # save the current modelview to the stack
             glLoadIdentity()
             glTranslate(self.parameters.x,self.parameters.y,0.0)
             glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
             # before we clear the projection matrix, save its state
-            glMatrixMode(GL_PROJECTION) 
-            glPushMatrix()
-            glLoadMatrixf(self.parameters.projection_matrix) # set the projection matrix
+            self.parameters.projection.push_and_set_gl_projection()
 
             c = self.parameters.color
             glColor(c[0],c[1],c[2],c[3])
             glDisable(GL_TEXTURE_2D)
+            glDisable(GL_BLEND)
 
             w = self.parameters.width/2.0
             h = self.parameters.height/2.0
@@ -105,8 +91,8 @@ class Target2D(Stimulus):
 
             if self.parameters.anti_aliasing:
                 # GL_POLYGON_SMOOTH doesn't seem to work
-                # so we'll first draw a filled polygon (aliased)
-                # then draw the outline of the polygon (with anti-aliasing)
+                # We've already drawn a filled polygon (aliased),
+                # now redraw the outline of the polygon (with anti-aliasing)
 
                 # Calculate coverage value for each pixel of outline
                 # and store as alpha
@@ -127,9 +113,4 @@ class Target2D(Stimulus):
                 # Set the polygon mode back to fill mode
                 glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
 
-            # Now restore everything
-            glEnable(GL_TEXTURE_2D)
             glPopMatrix() # restore projection matrix
-            glMatrixMode(GL_MODELVIEW)
-            glPopMatrix() # restore modelview matrix
-            glMatrixMode(matrix_mode)   # restore matrix state
