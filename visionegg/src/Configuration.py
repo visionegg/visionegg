@@ -100,51 +100,16 @@ class Config:
         cfg.read(configFile)
 
         for option in cfg.options('VisionEgg'):
-##            print option,"=",cfg.get('VisionEgg',option)
-            setattr(self,string.upper(option),cfg.get('VisionEgg',option))
+            name = string.upper(option)
+            if name in defaults.keys():
+                if type(defaults[name]) == type(42): # int
+                    setattr(self,name,int(cfg.get('VisionEgg',option)))
+                elif type(defaults[name]) == type(42.0): # float
+                    setattr(self,name,float(cfg.get('VisionEgg',option)))
+                else:
+                    setattr(self,string.upper(option),cfg.get('VisionEgg',option))
         
-##        reader.parse(configFile)
-
-##        self.__dict__.update(reader.items)
-
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
         else:
             self.VISIONEGG_CONFIG_FILE = None
-
-##class ConfigReader:
-##    def __init__(self, defaults):
-##        self.matcher=re.compile(r'\s*([^#]\w*)\s*=\s*(\S*)\s*$')
-##        self.items=defaults.copy()
-        
-##    def parse(self, file):
-##        done_config_file = 0
-##        if file:
-##            done_config_file = 1
-
-##            file=open(file).readlines()
-##            for l in file:
-##                match=self.matcher.match(l)
-##                if match:
-##                    if defaults.has_key(match.group(1)):
-##                        self.items[match.group(1)] = match.group(2)
-##                    else:
-##                        raise KeyError('Unknown config in configfile: '+match.group(1))
-
-##        # Parse the environment variables (they override the config file)
-##        self.items.update(self.processEnv(defaults.keys()))
-
-##        # Now fix up all other items:
-##        for i in self.items.keys():
-##            # fix the type if it's an integer
-##            if type(defaults[i]) == type(42): # int
-##                self.items[i] = int(self.items[i])
-##            elif type(defaults[i]) == type(42.0): # float
-##                self.items[i] = float(self.items[i])
-
-##    def processEnv(self, keys):
-##        env={}
-##        for key in keys:
-##            try: env[key] = os.environ[key]
-##            except KeyError: pass
-##        return env
