@@ -238,6 +238,13 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.parameters.stimuli = [ stimulus ]
         self.ortho_viewport.draw()
 
+    def test_textures_spinning_drum_flat(self):
+        stimulus = VisionEgg.Textures.SpinningDrum(flat=1,
+                                                   anchor='center',
+                                                   )
+        self.ortho_viewport.parameters.stimuli = [ stimulus ]
+        self.ortho_viewport.draw()
+
     def test_textures_fixation_cross(self):
         stimulus = VisionEgg.Textures.FixationCross()
         self.ortho_viewport.parameters.stimuli = [ stimulus ]
@@ -393,6 +400,7 @@ def suite():
     ve_test_suite.addTest( VETestCase("test_texture_pil") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_3d") )
     ve_test_suite.addTest( VETestCase("test_textures_spinning_drum") )
+    ve_test_suite.addTest( VETestCase("test_textures_spinning_drum_flat") )
     ve_test_suite.addTest( VETestCase("test_textures_fixation_cross") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_numpy_rgb") )
     ve_test_suite.addTest( VETestCase("test_texture_stimulus_numpy_rgba") )
