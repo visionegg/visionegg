@@ -35,7 +35,7 @@ setting the environment variable VISIONEGG_CONFIG_FILE.
 
 # Special values:
 #  %u means os.environ['HOME'] if defined, os.curdir otherwise
-#  %b means sys.prefix
+#  %b means sys.prefix if directory is writeable, os.environ['HOME'] if not
 #  %c means os.curdir
 
 defaults= {
@@ -96,8 +96,7 @@ class Config:
         try:
             os.mkdir(self.VISIONEGG_STORAGE)
         except OSError,x:
-            if x.errno == 13:#errno.EPERM:
-                print "XXX hack!"
+            if x.errno == 13: #errno.EPERM:
                 self.VISIONEGG_STORAGE = os.path.join(os.environ['HOME'],"VisionEgg/storage")
                 try:
                     os.mkdir(self.VISIONEGG_STORAGE)
