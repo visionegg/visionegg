@@ -6,7 +6,7 @@ from VisionEgg.Text import *
 
 # Define a couple "controller" functions
 def y_as_function_of_time(t):
-    return 25.0*sin(0.1*2.0*math.pi*t)
+    return 0.4*sin(0.1*2.0*math.pi*t)+0.5
 
 def on_during_experiment(t):
     if t < 0.0:
@@ -17,7 +17,8 @@ def on_during_experiment(t):
 screen = get_default_screen()
 screen.parameters.bgcolor = (1.0,1.0,1.0,1.0) # background white (RGBA)
 viewport = Viewport(screen,(0,0),screen.size)
-text = BitmapText("Hello World!")
+text = BitmapText("Hello world!")
+text.parameters.x = 0.4
 text.init_gl()
 text.parameters.color = (0.0,0.0,0.0,1.0) # black text (RGBA)
 viewport.add_stimulus(text)

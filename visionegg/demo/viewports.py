@@ -8,12 +8,15 @@ def angle_as_function_of_time(t):
     return 90.0*t # rotate at 90 degrees per second
 
 screen = get_default_screen()
-projection = SimplePerspectiveProjection(fov_x=45.0)
 
-midscreen = (screen.size[0]/2,screen.size[1]/2)
+mid_y = screen.size[1]/2
 
-viewport1 = Viewport(screen,(0,0),midscreen,projection)
-viewport2 = Viewport(screen,midscreen,midscreen,projection)
+projection = SimplePerspectiveProjection(fov_x=45.0,aspect_ratio=float(screen.size[0]/mid_y))
+
+viewport1 = Viewport(screen,(0,0),(screen.size[0],mid_y),projection)
+
+viewport2 = Viewport(screen,(0,mid_y),(screen.size[0],mid_y),projection)
+
 stimulus = Teapot()
 stimulus.init_gl()
 viewport1.add_stimulus(stimulus)

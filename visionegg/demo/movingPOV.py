@@ -30,7 +30,7 @@ def projection_matrix_f(t):
     fov_y = fov_x / aspect_ratio
     
     gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far)
-    gluLookAt(0.0,t*0.1+1.0,-2.0,
+    gluLookAt(0.0,t*0.3+1.0,-2.0,
               0.0,0.0,0.0,
               0.0,1.0,0.0)
     results = glGetFloatv(GL_PROJECTION_MATRIX)

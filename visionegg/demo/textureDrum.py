@@ -4,10 +4,13 @@ from VisionEgg.Core import *
 from VisionEgg.AppHelper import *
 from VisionEgg.Textures import *
 
-max_speed = 1000.0 # degrees per second
+max_speed = 500.0 # degrees per second
 
 def angle_as_function_of_time(t):
     return max_speed*math.cos(t)
+
+def contrast_as_function_of_time(t):
+    return abs(math.cos(2*math.pi*t))
 
 try:
     texture = TextureFromFile("orig.bmp") # try to open a texture file
@@ -22,6 +25,7 @@ stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
 p.add_realtime_time_controller(stimulus.parameters,'angle', angle_as_function_of_time)
+p.add_realtime_time_controller(stimulus.parameters,'contrast', contrast_as_function_of_time)
 p.go()
 
 

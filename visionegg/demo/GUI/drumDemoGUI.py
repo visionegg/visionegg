@@ -33,7 +33,7 @@ from math import *
 import os
 import time
 
-default_max_speed = 1000.0
+default_max_speed = 400.0
 
 class DrumGui(AppWindow):
     def __init__(self,master=None,**cnf):

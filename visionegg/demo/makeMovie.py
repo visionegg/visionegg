@@ -7,10 +7,12 @@ from VisionEgg.MoreStimuli import *
 
 fps = 12.0 # frames per second
 
-def x_as_function_of_time(t):
+def x_as_function_of_frame(frame):
+    t = float(frame) / fps
     return 10.0*sin(0.2*2.0*math.pi*t)
 
-def y_as_function_of_time(t):
+def y_as_function_of_frame(frame):
+    t = float(frame) / fps
     return 10.0*sin(0.2*2.0*math.pi*t)
 
 def orientation(dummy):
@@ -29,10 +31,10 @@ target = Target2D()
 target.init_gl()
 viewport.add_stimulus(target)
 
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
+p = Presentation(duration=(60,'frames'),viewports=[viewport])
 
-p.add_realtime_time_controller(target.parameters,'x', x_as_function_of_time)
-p.add_realtime_time_controller(target.parameters,'y', y_as_function_of_time)
+p.add_realtime_frame_controller(target.parameters,'x', x_as_function_of_frame)
+p.add_realtime_frame_controller(target.parameters,'y', y_as_function_of_frame)
 p.add_transitional_controller(target.parameters,'orientation', orientation)
 p.add_transitional_controller(target.parameters,'on', one_during_experiment)
 
