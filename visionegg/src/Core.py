@@ -1072,6 +1072,8 @@ class Presentation(VisionEgg.ClassWithParameters):
                                                           types.FloatType),
                                'warn_longest_frame_threshold':(2.0, # fraction (set to 2.0 for no false alarms)
                                                                types.FloatType),
+                               'override_t_abs_sec':(None, # override t_abs (in seconds) -- set only when reconstructing experiments
+                                                     types.FloatType),
                                }
     
     def __init__(self,**kw):
@@ -1097,6 +1099,7 @@ class Presentation(VisionEgg.ClassWithParameters):
 
         self.in_go_loop = 0
         self.frames_dropped_in_last_go_loop = 0 # boolean
+        self.last_go_loop_start_time_absolute_sec = None
 
     def add_controller( self, class_with_parameters, parameter_name, controller ):
         """Add a controller"""
@@ -1211,6 +1214,10 @@ class Presentation(VisionEgg.ClassWithParameters):
     def were_frames_dropped_in_last_go_loop(self):
         return self.frames_dropped_in_last_go_loop
 
+    def get_last_go_loop_start_time_absolute_sec(self):
+        print "SENT self.last_go_loop_start_time_absolute_sec",self.last_go_loop_start_time_absolute_sec
+        return self.last_go_loop_start_time_absolute_sec
+
     def go(self):
         """Main control loop during stimulus presentation.
 
@@ -1249,6 +1256,14 @@ class Presentation(VisionEgg.ClassWithParameters):
         longest_frame_draw_time_sec = 0.0
 
         self.time_sec_absolute=VisionEgg.time_func()
+
+        if p.override_t_abs_sec is not None:
+            if VisionEgg.config.VISIONEGG_LOCK_TIME_TO_FRAMES:
+                raise RuntimeError("Cannot override absolute time in 'lock time to frames' mode")
+            else:
+                raise NotImplementedError("Cannot override absolute time yet")
+        
+        self.last_go_loop_start_time_absolute_sec = self.time_sec_absolute
         self.time_sec_since_go = 0.0
         self._true_time_go_start = VisionEgg.true_time_func()
         self._true_time_last_frame = self._true_time_go_start
