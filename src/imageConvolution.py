@@ -61,15 +61,15 @@ class Filter:
         return equal(x,0).astype('f')
 
 class GaussianFilter(Filter):
-    def __init__(self,theta,unityGain=1):
+    def __init__(self,sigma,unityGain=1):
         Filter.__init__(self,unityGain)
-        if theta < 0.8:
-            print "WARNING: Convolving with a Gaussian of radius", theta
+        if sigma < 0.8:
+            print "WARNING: Convolving with a Gaussian of radius", sigma
             print "(Anything less than 0.8 results in sampling error!)"
-        self.theta = float(theta)
+        self.sigma = float(sigma)
 
     def kernelFunction(self,x):
-        tmp = -(x*x)/(self.theta*self.theta)
+        tmp = -(x*x)/(self.sigma*self.sigma)
         try:
             result = exp(tmp)
         except OverflowError: # Numeric gets a math range error sometimes
@@ -147,11 +147,11 @@ if __name__ == '__main__':
     #f = BoxcarFilter(1.0,unityGain=0)
 
     try:
-        theta = float(sys.argv[1])
+        sigma = float(sys.argv[1])
     except:
-        theta = 1.5
-        print "Usage: imageConvolution.py [theta]\n(Or use it as a python module!)"
-    f = GaussianFilter(theta)
+        sigma = 1.5
+        print "Usage: imageConvolution.py [sigma]\n(Or use it as a python module!)"
+    f = GaussianFilter(sigma)
 
     # save the original
     im.save("orig.ppm")
