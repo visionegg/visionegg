@@ -64,12 +64,14 @@ class AppWindow(Tkinter.Frame):
         self.idle_func()
         self.after(1,self.idle) # (re)register idle function with Tkinter
 
-class OpenScreenDialog(Tkinter.Frame):
+class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
         apply(Tkinter.Frame.__init__,(self,master),cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
+        
+        self.clicked_ok = 0 # So we can distinguish between clicking OK and closing the window
 
         row = 0
         Tkinter.Label(self,
@@ -81,6 +83,11 @@ class OpenScreenDialog(Tkinter.Frame):
         topframe.grid(row=row,column=0,columnspan=2)
         topframe_row = 0
         
+        Tkinter.Label(topframe,
+                      text=self.format_string("This window allows you to interactively Vision Egg parameters that are not controllable in real time."),
+                      ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
+        topframe_row += 1
+
         Tkinter.Label(topframe,
                       text=self.format_string("The default value for these variables and the presence of this dialog window can be controlled via the Vision Egg config file. If this file exists in the Vision Egg user directory, that file is used.  Otherwise, the configuration file found in the Vision Egg system directory is used."),
                       ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
@@ -102,7 +109,7 @@ class OpenScreenDialog(Tkinter.Frame):
             self.tk_im=ImageTk.PhotoImage(im)
             Tkinter.Label(topframe,image=self.tk_im).grid(row=0,rowspan=topframe_row,column=0)
         except Exception,x:
-            VisionEgg.Core.message.add("Error while trying to display image in GUI.OpenScreenDialog: %s: %s"%(str(x.__class__),str(x)))
+            VisionEgg.Core.message.add("Error while trying to display image in GUI.GraphicsConfigurationWindow: %s: %s"%(str(x.__class__),str(x)))
 
         row += 1
         
@@ -180,8 +187,8 @@ class OpenScreenDialog(Tkinter.Frame):
                 self.darwin_realtime_constraint_denom = Tkinter.StringVar()
                 self.darwin_realtime_constraint_denom.set(str(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM))
                 self.darwin_realtime_preemptible = Tkinter.IntVar()
-                self.darwin_realtime_preemptible.set(VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
-                Tkinter.Button(cf,text="Maximum priority fine tune...",
+                self.darwin_realtime_preemptible.set(not VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE)
+                Tkinter.Button(cf,text="Maximum priority options...",
                                command=self.darwin_maxpriority_tune).grid(row=cf_row,column=1,sticky=Tkinter.W)
 	    Tkinter.Checkbutton(cf,
                                 text='Maximum priority (use with caution)',
@@ -273,7 +280,7 @@ class OpenScreenDialog(Tkinter.Frame):
         row += 1
 
         # Start button
-        b = Tkinter.Button(self,text="start",command=self.start)
+        b = Tkinter.Button(self,text="ok",command=self.start)
         b.grid(row=row,columnspan=2)
         b.focus_force()
         b.bind('<Return>',self.start)
@@ -325,7 +332,7 @@ class OpenScreenDialog(Tkinter.Frame):
                 Tkinter.Label(f,text="Realtime constraint denominator").grid(row=row,column=0,sticky=Tkinter.E)
                 Tkinter.Entry(f,textvariable=parent.darwin_realtime_constraint_denom).grid(row=row,column=1,sticky=Tkinter.W)
                 row += 1
-                Tkinter.Checkbutton(f,text="preemptible",variable=parent.darwin_realtime_preemptible).grid(row=row,column=0,columnspan=2)
+                Tkinter.Checkbutton(f,text="Do not preempt",variable=parent.darwin_realtime_preemptible).grid(row=row,column=0,columnspan=2)
                 row += 1
                 Tkinter.Button(f, text="ok",command=self.ok).grid(row=row,column=0,columnspan=2)
                 row += 1
@@ -337,7 +344,7 @@ class OpenScreenDialog(Tkinter.Frame):
         DarwinFineTuneDialog(parent=self)
         
     def start(self):
-        
+        self.clicked_ok = 1
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
         VisionEgg.config.VISIONEGG_FULLSCREEN = self.fullscreen.get()
         VisionEgg.config.VISIONEGG_MAXPRIORITY = self.maxpriority.get()
@@ -357,21 +364,21 @@ class OpenScreenDialog(Tkinter.Frame):
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PERIOD_DENOM = int(self.darwin_realtime_period_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM = int(self.darwin_realtime_computation_denom.get())
             VisionEgg.config.VISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM = int(self.darwin_realtime_constraint_denom.get())
-            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = self.darwin_realtime_preemptible.get()
+            VisionEgg.config.VISIONEGG_DARWIN_REALTIME_PREEMPTIBLE = not self.darwin_realtime_preemptible.get()
 
-        self.opened_screen = None
+##        self.opened_screen = None
 
-        try:
-            self.opened_screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                                                             VisionEgg.config.VISIONEGG_SCREEN_H),
-                                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                                                       bgcolor=(0.5,0.5,0.5,0.0),
-                                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
-        finally:
-            for child in self.children.values():
-                child.destroy()
-            Tkinter.Tk.destroy(self.master) # OK, now close myself
+##        try:
+##            self.opened_screen = VisionEgg.Core.Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+##                                                             VisionEgg.config.VISIONEGG_SCREEN_H),
+##                                                       fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+##                                                       preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+##                                                       bgcolor=(0.5,0.5,0.5,0.0),
+##                                                       maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY)
+##        finally:
+        for child in self.children.values():
+            child.destroy()
+        Tkinter.Tk.destroy(self.master) # OK, now close myself
 
 class InfoFrame(Tkinter.Frame):
     def __init__(self,master=None,**cnf):
@@ -444,12 +451,3 @@ class GetKeypressDialog(ToplevelDialog):
     def keypress(self,tkinter_event):
         self.result = tkinter_event.keysym
         self.destroy()
-
-def get_screen_via_GUI():
-    window = OpenScreenDialog()
-    window.mainloop()
-    if hasattr(window,"opened_screen"):
-        return window.opened_screen
-    else:
-        # User trying to quit
-        sys.exit()
