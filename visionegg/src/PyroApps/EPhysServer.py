@@ -50,12 +50,12 @@ class EPhysServer(  Pyro.core.ObjBase ):
         self.presentation = presentation
         # target for stimulus onset calibration
         self.onset_cal_bg = VisionEgg.MoreStimuli.Target2D(color=(0.0,0.0,0.0,1.0),
-                                                           center=(50.0,50.0),
-                                                           size=(100.0,100.0))
+                                                           center=(30.0,30.0),
+                                                           size=(50.0,50.0))
         self.onset_cal_fg = VisionEgg.MoreStimuli.Target2D(on=0,
                                                            color=(1.0,1.0,1.0,1.0),
-                                                           center=(50.0,50.0),
-                                                           size=(90.0,90.0))
+                                                           center=(30.0,30.0),
+                                                           size=(50.0,50.0))
         self.presentation.add_controller(self.onset_cal_fg,'on',VisionEgg.Core.ConstantController(during_go_value=1,
                                                                                                   between_go_value=0))
         # get screen (hack)
@@ -94,21 +94,25 @@ class EPhysServer(  Pyro.core.ObjBase ):
             if self.onset_cal_viewport in self.presentation.parameters.viewports:
                 self.presentation.parameters.viewports.remove(self.onset_cal_viewport)
 
-    def set_stim_onset_cal_location(self, horiz="left", vert="lower"):
-        w,h = self.onset_cal_screen.size
-        if horiz == "left":
-            x = 50
-        elif horiz == "right":
-            x = w - 50
-        if vert == "lower":
-            y = 50
-        else:
-            y = h - 50
-        self.onset_cal_bg.parameters.center = x, y
-        self.onset_cal_fg.parameters.center = x, y
+    def set_stim_onset_cal_location(self, center, size):
+        self.onset_cal_bg.parameters.center = center
+        self.onset_cal_fg.parameters.center = center
+        self.onset_cal_bg.parameters.size = size
+        self.onset_cal_fg.parameters.size = size[0]-2,size[1]-2
+        
+    def get_stim_onset_cal_location(self):
+        x,y = self.onset_cal_bg.parameters.center
+        width,height = self.onset_cal_bg.parameters.size
+        return x,y,width,height
 
     def set_gamma_ramp(self, red, blue, green):
         return pygame.display.set_gamma_ramp(red,green,blue)
+
+    def is_in_go_loop(self):
+        return self.presentation.is_in_go_loop()
+
+    def were_frames_dropped_in_last_go_loop(self):
+        return self.presentation.were_frames_dropped_in_last_go_loop()
     
     def get_next_stimulus_meta_controller(self):
         if self.stimkey:
