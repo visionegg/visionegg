@@ -1291,7 +1291,7 @@ class Presentation(VisionEgg.ClassWithParameters):
             timing_string = timing_string + "Inter-frame interval\n"
             timing_string = self.__print_hist(frame_draw_times,bins,timing_string)
             timing_string = timing_string + "\n"
-            message.add(timing_string,level=Message.INFO)
+            message.add(timing_string,level=Message.INFO,preserve_formatting=1)
 
     def __histogram(self,a, bins):  
         """Create a histogram from data
