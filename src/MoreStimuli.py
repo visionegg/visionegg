@@ -134,15 +134,20 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
         'on':(True,
               ve_types.Boolean),
         'color':((1.0,1.0,1.0,1.0),
-                 ve_types.Sequence4(ve_types.Real)),
+                 ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                ve_types.Sequence4(ve_types.Real))),
         'vertex1':(( -10.0, 0.0, -10.0),
-                   ve_types.Sequence3(ve_types.Real)),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         'vertex2':(( -10.0, 0.0,  10.0),
-                   ve_types.Sequence3(ve_types.Real)),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         'vertex3':((  10.0, 0.0,  10.0),
-                   ve_types.Sequence3(ve_types.Real)),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         'vertex4':((  10.0, 0.0, -10.0),
-                   ve_types.Sequence3(ve_types.Real)),
+                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
+                                  ve_types.Sequence4(ve_types.Real))),
         }
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
@@ -153,14 +158,14 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glLoadIdentity()
 
-            c = p.color
-            gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glColor(*p.color)
+                
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
             gl.glBegin(gl.GL_QUADS)
-            gl.glVertex3fv(p.vertex1);
-            gl.glVertex3fv(p.vertex2);
-            gl.glVertex3fv(p.vertex3);
-            gl.glVertex3fv(p.vertex4);
+            gl.glVertex(*p.vertex1)
+            gl.glVertex(*p.vertex2)
+            gl.glVertex(*p.vertex3)
+            gl.glVertex(*p.vertex4)
             gl.glEnd() # GL_QUADS
