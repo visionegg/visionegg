@@ -28,6 +28,7 @@ except ImportError,x:
 
 import sys
 import math
+import Numeric
 
 Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
 
