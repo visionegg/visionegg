@@ -13,12 +13,22 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import Pyro.core
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 class PyroClient:
     """Simplifies getting PyroControllers from a remote computer."""
-    def __init__(self,server_hostname='',server_port=7766):
+    def __init__(self,server_hostname='',server_port=7766,lookup_fqdn=False):
         """Initialize Pyro client."""
         Pyro.core.initClient()
-        self.server_hostname = socket.getfqdn(server_hostname)
+        if lookup_fqdn:
+            self.server_hostname = socket.getfqdn(server_hostname)
+        else:
+            self.server_hostname = server_hostname
         self.server_port = server_port
 
     def get(self,name):
