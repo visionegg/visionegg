@@ -20,7 +20,6 @@ import OpenGL.GLUT
 glut = OpenGL.GLUT
 
 import pygame
-import Image
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -31,8 +30,8 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 class Text(VisionEgg.Textures.TextureStimulus):
     parameters_and_defaults = {'text':('the string to display',types.StringType), #changing this redraws texture, may cause slowdown
                                'ignore_size_parameter':(1,types.IntType)} # boolean
-    constant_parameters_and_defaults = {'font_size':(36,types.IntType),
-                                        'font_name':(None,types.StringType)}
+    constant_parameters_and_defaults = {'font_size':(30,types.IntType),
+                                        'font_name':(None,types.StringType)} # None = use default font
     def __init__(self,**kw):
         if not pygame.font:
             raise RuntimeError("no pygame font module")
@@ -40,10 +39,13 @@ class Text(VisionEgg.Textures.TextureStimulus):
             pygame.font.init()
             if not pygame.font.get_init():
                 raise RuntimeError("pygame doesn't init")
-        if 'texture' not in kw.keys():
-            kw['texture'] = VisionEgg.Textures.Texture() # default texture for now...
+        # override some defaults
         if 'internal_format' not in kw.keys():
             kw['internal_format'] = gl.GL_RGBA        
+        if 'mipmaps_enabled' not in kw.keys():
+            kw['mipmaps_enabled'] = 0
+        if 'texture_min_filter' not in kw.keys():
+            kw['texture_min_filter'] = gl.GL_LINEAR        
         VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
         cp = self.constant_parameters
         self.font = pygame.font.Font(cp.font_name,cp.font_size)
@@ -51,17 +53,10 @@ class Text(VisionEgg.Textures.TextureStimulus):
         
     def _render_text(self):
         p = self.parameters
-##        # pygame alpha doesn't appear to be handled properly
-##        rendered_surf = self.font.render(p.text, 1, (255,255,255,255),(0,0,0,0)) # pygame.Surface object
-##        texels_pil = Image.fromstring('RGBA',rendered_surf.get_size(),pygame.image.tostring(rendered_surf,'RGBA')) # XXX slow?
+        rendered_surf = self.font.render(p.text, 1, (255,255,255)) # pygame.Surface object
         
-        rendered_surf = self.font.render(p.text, 1, (255,255,255),(0,0,0)) # pygame.Surface object
-        texels_pil = Image.fromstring('RGB',rendered_surf.get_size(),pygame.image.tostring(rendered_surf,'RGB')) # XXX slow?
-        r,g,b=texels_pil.split()
-        a=r
-        texels_pil = Image.merge("RGBA",(r,g,b,a))
-        
-        p.texture = VisionEgg.Textures.Texture(texels_pil)
+        # we could use put_new_image for speed (or put_sub_image for more)
+        p.texture = VisionEgg.Textures.Texture(rendered_surf)
         self._reload_texture()
         self._text = p.text # cache string so we know when to re-render
         if p.ignore_size_parameter:
