@@ -1,33 +1,32 @@
 #!/usr/bin/env python
 """A texture-mapped spinning drum."""
 
+from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
-import math
+import math, os
 
-max_speed = 500.0 # degrees per second
+max_speed = 100.0 # degrees per second
 
 def angle_as_function_of_time(t):
     return max_speed*math.cos(t)
 
 def contrast_as_function_of_time(t):
-    return abs(math.cos(2*math.pi*t))
+    return abs(math.cos(2*math.pi*t*0.2))
 
-try:
-    texture = TextureFromFile("orig.bmp") # try to open a texture file
-except:
-    texture = Texture(size=(256,16)) # otherwise, generate one
+filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
+texture = TextureFromFile(filename)
 
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)
-stimulus = SpinningDrum(texture=texture)
+stimulus = SpinningDrum(texture=texture,shrink_texture_ok=1)
 viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection,
                     stimuli=[stimulus])
-p = Presentation(duration=(5.0,'seconds'),viewports=[viewport])
-p.add_realtime_time_controller(stimulus,'angular_position', angle_as_function_of_time)
-p.add_realtime_time_controller(stimulus,'contrast', contrast_as_function_of_time)
+p = Presentation(duration=(10.0,'seconds'),viewports=[viewport])
+p.add_controller(stimulus,'angular_position', FunctionController(during_go_func=angle_as_function_of_time))
+p.add_controller(stimulus,'contrast', FunctionController(during_go_func=contrast_as_function_of_time))
 p.go()
 
 
