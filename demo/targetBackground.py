@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Display a white target moving across a textured drum.
+"""Moving target over a spinning drum."""
 
 ############################
 #  Import various modules  #

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Display a black target moving across a white background.
+"""A moving target."""
 
 ############################
 #  Import various modules  #

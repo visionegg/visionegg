@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Load a texture from a file."""
 
 from VisionEgg.Core import *
 from VisionEgg.Textures import *

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""A texture-mapped spinning drum."""
 
 from VisionEgg.Core import *
 from VisionEgg.Textures import *

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# Make a movie of a black target moving across a white background.
+"""Save movie of a black target moving across a white background."""
 
 fps = 12.0
 
