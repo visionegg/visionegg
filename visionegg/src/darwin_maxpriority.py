@@ -39,9 +39,8 @@ set_self_pthread_priority = _darwin_maxpriority.set_self_pthread_priority
 
 getpriority = _darwin_maxpriority.getpriority
 
-setpriority = _darwin_maxpriority.setpriority
-
 sched_get_priority_max = _darwin_maxpriority.sched_get_priority_max
 
-cvar = _darwin_maxpriority.cvar
+setpriority = _darwin_maxpriority.setpriority
+
 
