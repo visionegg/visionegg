@@ -2,9 +2,8 @@ Welcome to the Vision Egg!
 
 INSTALLATION
 
-This is a straight Python package. The normal Python distutils method
-works well. To install from source do this (as root, if necessary)
-from the Vision Egg base directory:
+To install from source, type this from a command line (as root, if
+necessary) from the Vision Egg base directory:
 
 python setup.py install
 
@@ -13,18 +12,12 @@ blow-by-blow accounts of how I got the prerequisites for the Vision
 Egg installed on all the supported platforms, check out the website at
 http://www.visionegg.org/ 
 
-check-config.py
+RUN THE CONFIGURATION CHECK (BEFORE AND/OR AFTER INSTALLATION)
 
-Check for pre-requisites on your system by running the check-config
-script.  This can be run before or after installation of the Vision
-Egg, and also displays useful information about the Vision Egg, if
+Check for pre-requisites on your system by running check-config.py.
+This can be run before or after installation of the Vision Egg, and
+also displays useful information about the Vision Egg, if already
 installed.
-
-RUN THE CONFIGURATION CHECK
-
-Run check-config.py script to check your configuration.  Additionally,
-there may be useful system-specific information about where errors are
-being printed, even if installation has not proceeded.
 
 DEMO SCRIPTS
 
@@ -86,11 +79,26 @@ get onto this user-oriented side of things.  Help with any of the
 above would be great -- even writing up little tutorials that detail
 how you've done something.
 
-A CALL FOR HELP
+OUTPUT AND EXCEPTIONS
 
-Read the to-do list above. Do you see anywhere you could help out?
-Get in touch if there is! Of course, suggestions and comments are
-welcome.
+The output of the Vision Egg is logged.  The default log is a file
+named "VisionEgg.log".  If unspecified, or if there are problems
+opening the log file, the log will be printed to the system's standard
+error console.  I recommend examining the log after running Vision Egg
+demo scripts.  Most of the demos do not open GUI windows, and so any
+normal ouput they produce is sent to the log.
+
+Exceptions occur when something goes wrong.  If you need to see what
+exception was raised, you will have to look at the console.  On
+Windows, the console is normally open during the execution of a python
+program, but disappers once python terminates.  If you run from the
+command line, however, the console window is not closed, and you can
+scroll back.
+
+On Mac OS X, the console is visible when running the "Console"
+application in "Applications/Utilities".
+
+On other flavors of Unix, you probably know and love the console!
 
 MAILING LIST
 
