@@ -16,9 +16,14 @@ import VisionEgg
 if 'PYRO_STORAGE' not in os.environ.keys():
     os.environ['PYRO_STORAGE'] = VisionEgg.config.VISIONEGG_STORAGE
 
-import Pyro.naming
-import Pyro.core
-from Pyro.errors import PyroError,NamingError
+try:
+    import Pyro.core
+    import Pyro.naming
+    from Pyro.errors import PyroError,NamingError
+except ImportError,x:
+    print "ERROR: Could not import Pyro. Download from http://pyro.sourceforge.net/"
+    import sys
+    sys.exit(1)
 
 import sys
 from math import *
