@@ -781,12 +781,21 @@ class OrthographicProjection(Projection):
         -> [0,1].  Therefore, if the viewport is 640 x 480, eye
         coordinates correspond 1:1 with window (pixel) coordinates."""
 
-        # This is from the OpenGL spec:
+        # using Numeric (from the OpenGL spec):
         matrix = Numeric.array([[ 2./(right-left), 0.,              0.,                           -(right+left)/(right-left)],
                                 [ 0.,              2./(top-bottom), 0.,                           -(top+bottom)/(top-bottom)],
                                 [ 0.,              0.,              -2./(z_clip_far-z_clip_near), -(z_clip_far+z_clip_near)/(z_clip_far-z_clip_near)],
                                 [ 0.,              0.,              0.,                           1.0]])
         matrix = Numeric.transpose(matrix) # convert to OpenGL format
+
+        ## same as above, but use OpenGL
+        #gl.glMatrixMode(gl.GL_PROJECTION)
+        #gl.glPushMatrix() # save current matrix
+        #gl.glLoadIdentity()
+        #gl.glOrtho(left,right,bottom,top,z_clip_near,z_clip_far)
+        #matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        #gl.glPopMatrix() # restore original matrix
+            
         Projection.__init__(self,**{'matrix':matrix})
 
 class SimplePerspectiveProjection(Projection):
