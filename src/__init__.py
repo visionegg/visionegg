@@ -50,7 +50,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.0'
+release_name = '0.9.1'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
@@ -80,10 +80,21 @@ if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
     config.VISIONEGG_TKINTER_OK = 0
 
 if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
-    import traceback, StringIO
+    import traceback
+    try:
+        import cStringIO
+        StringIO = cStringIO
+    except:
+        import StringIO
     import GUI
     def _vision_egg_exception_hook(exc_type, exc_value, exc_traceback):
+        # close any open screens
+        if hasattr(config,'_open_screens'):
+            for screen in config._open_screens:
+                screen.close()
+        # print exception to sys.stderr
         traceback.print_exception(exc_type,exc_value,exc_traceback)
+        # print exception to dialog
         traceback_stream = StringIO.StringIO()
         traceback.print_tb(exc_traceback,None,traceback_stream)
         GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
