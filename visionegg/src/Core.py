@@ -939,4 +939,5 @@ def check_gl_assumptions():
             value_str = string.split(glGetString(GL_VERSION))[0]
             value_ints = map(int,string.split(value_str,'.'))
             value = float( str(value_ints[0]) + "." + string.join(map(str,value_ints[1:]),''))
-            failure_callback()
+            if value < required_value:
+                failure_callback()
