@@ -7,6 +7,7 @@ bin directory called ns.  Run it, run this script, and then run
 simpleClient.py from any computer on your network!"""
 
 from VisionEgg.Core import *
+from VisionEgg.MoreStimuli import *
 from VisionEgg.AppHelper import *
 from VisionEgg.PyroHelpers import *
 
@@ -16,7 +17,7 @@ pyro_server = PyroServer()
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=45.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
-stimulus = Stimulus()
+stimulus = Teapot()
 stimulus.init_gl()
 viewport.add_stimulus(stimulus)
 p = Presentation(duration_sec=5.0,viewports=[viewport])

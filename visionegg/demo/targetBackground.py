@@ -32,7 +32,6 @@ projection = SimplePerspectiveProjection(fov_x=90.0)
 viewport = Viewport(screen,(0,0),screen.size,projection)
 target = Target2D()
 target.init_gl()
-viewport.add_overlay(target)
 try:
     texture = TextureFromFile("orig.bmp") # try to open a texture file
 except:
@@ -41,6 +40,7 @@ except:
 drum = BlurredDrum(max_speed=drum_max_speed, texture=texture)
 drum.init_gl()
 viewport.add_stimulus(drum)
+viewport.add_stimulus(target) # add target after drum so it is drawn on top
 
 p = Presentation(duration_sec=10.0,viewports=[viewport])
 
