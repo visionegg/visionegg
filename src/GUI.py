@@ -132,13 +132,11 @@ class InfoFrame(Tkinter.Frame):
 
 class ToplevelDialog(Tkinter.Toplevel):
     """Base class for a dialog that runs on the top level."""
-    def __init__(self,master=None,**kw):
-        if not master:
-            master = Tkinter._default_root
-        apply(Tkinter.Toplevel.__init__,(self,master),kw)
-        self.transient(master)
+    def __init__(self,**kw):
+        apply(Tkinter.Toplevel.__init__,(self,),kw)
+        self.transient(self)
         self.frame = Tkinter.Frame(self)
-        self.frame.pack()
+        self.frame.pack(padx=100,pady=70,ipadx=20,ipady=10,expand=1)
         self.frame.focus_set()
 
     def destroy(self):
@@ -161,13 +159,12 @@ class GetKeypressDialog(ToplevelDialog):
     interpreter may be created if this Dialog is called with no
     master widget."""
     def __init__(self,
-                 master=None,
                  title="Press a key",
                  text="Press a key",
                  key_list=[],
                  **kw):
         
-        apply(ToplevelDialog.__init__,(self,master),kw)
+        apply(ToplevelDialog.__init__,(self,),kw)
         self.title(title)
         self.result = None
 
