@@ -109,7 +109,7 @@ LICENSE
 The Vision Egg is copyright (c) Andrew D. Straw, 2001-2002.  It is
 distributed under the terms of the GNU LGPL (Lesser General Public
 License.) See LICENSE.txt for more information.  This software is
-provided "as is" without any arranty of any kind, either expressed or
+provided "as is" without any warranty of any kind, either expressed or
 implied.
 
 MAILING LIST
