@@ -1166,7 +1166,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                   ve_types.String),
         'lowerleft':(None,  # DEPRECATED -- don't use
                      ve_types.Sequence2(ve_types.Real)),
-        'size':((640.0,480.0), # in eye coordinates
+        'size':(None, # in eye coordinates, defaults to texture data's size (if it exists)
                 ve_types.Sequence2(ve_types.Real)),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
                      ve_types.Real),
@@ -1179,7 +1179,12 @@ class TextureStimulus(TextureStimulusBaseClass):
         if 'mask' in kw.keys():
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         TextureStimulusBaseClass.__init__(self,**kw)
-
+        if self.parameters.size is None:
+            if hasattr(self.parameters.texture,'size'): # Texture.size isn't really part of the API, so this is naughty...
+                self.parameters.size = self.parameters.texture.size
+            else:
+                self.parameters.size = (640,480)
+                
     def draw(self):
         p = self.parameters
         if p.mask:
