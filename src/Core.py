@@ -96,12 +96,12 @@ class Screen(VisionEgg.ClassWithParameters):
             requested_alpha = 1
         else:
             requested_alpha = 0
-            
-            print "WARNING: Could not request alpha in framebuffer"
-            print "because you need pygame release 1.4.9 or greater. This is"
-            print "only of concern if you use a stimulus that needs this"
-            print "feature. In that case, the stimulus should verify the presence of"
-            print "alpha."
+            pygame_nag = """Could not request alpha in framebuffer because you need
+            pygame release 1.4.9 or greater. This is only of concern
+            if you use a stimulus that needs this feature. In that
+            case, the stimulus should verify the presence of alpha."""
+
+            message.add(text=pygame_nag,level=Message.NAG)
             
         pygame.display.set_caption("Vision Egg")
         
@@ -143,7 +143,8 @@ class Screen(VisionEgg.ClassWithParameters):
             print "WARNING: Could not find acceptable video mode! Trying anyway with bpp=0..."
             try_bpp = 0 # At least try something!
 
-        print "Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],try_bpp)
+        message.add("Initializing graphics at %d x %d ( %d bpp )."%(self.size[0],self.size[1],try_bpp))
+
         try:
             pygame.display.set_mode(self.size, flags, try_bpp )
         except pygame.error, x:
@@ -151,11 +152,12 @@ class Screen(VisionEgg.ClassWithParameters):
             sys.exit(1)
 
         self.bpp = pygame.display.Info().bitsize
-        print "Video system reports %d bpp"%self.bpp
+        message.add("Video system reports %d bpp"%self.bpp)
         if self.bpp < try_bpp:
-            print "************ VISION EGG WARNING ***************"
-            print "Video system reports %d bits per pixel, while your"%self.bpp
-            print "program requested %d. Can you adjust your video drivers?"%try_bpp
+            message.add(
+                """Video system reports %d bits per pixel, while your program
+                requested %d. Can you adjust your video drivers?"""%(self.bpp,try_bpp),
+                level=Message.WARNING)
 
         # Save the address of these function so they can be called
         # when closing the screen.
@@ -165,10 +167,11 @@ class Screen(VisionEgg.ClassWithParameters):
         # Attempt to synchronize buffer swapping with vertical sync again
         if not sync_success:
             if not PlatformDependent.sync_swap_with_vbl_post_gl_init():
-                print '************ VISION EGG WARNING ***************'
-                print 'Unable to synchronize buffer swapping with vertical'
-                print 'retrace. May be possible by manually adjusting video'
-                print 'drivers. (Try "Enable Vertical Sync" or similar.)'
+                message.add(
+                    """Unable to synchronize buffer swapping with vertical
+                    retrace. May be possible by manually adjusting video
+                    drivers. (Try "Enable Vertical Sync" or similar.)""",
+                    level=Message.WARNING)
 
         # Check previously made OpenGL assumptions now that we have OpenGL window
         check_gl_assumptions()
@@ -917,6 +920,58 @@ class Presentation(VisionEgg.ClassWithParameters):
 #        Error handling and assumption checking
 #
 ####################################################################
+
+class Message:
+    """Handles message/warning/error printing, exception raising"""
+
+    # Levels are:
+    TRIVIAL = 0
+    INFO = 1
+    NAG = 2
+    WARNING = 3
+    ERROR = 4
+    FATAL = 5
+    
+    def __init__(self,
+                 prefix="VisionEgg",
+                 exception_level=ERROR,
+                 print_level=INFO,
+                 print_stream=sys.stderr):
+        self.prefix = prefix
+        self.message_queue = []
+        self.exception_level = exception_level
+        self.print_level = print_level
+        self.print_stream = print_stream
+        
+    def add(self,text,level=INFO):
+        self.message_queue.append((level,text))
+        self.handle()
+
+    def handle(self):
+        while len(self.message_queue) > 0:
+            level, text = self.message_queue.pop(0)
+            if level >= self.print_level:
+                self.print_stream.write(self.prefix)
+                if level == Message.TRIVIAL:
+                    self.print_stream.write(" trivial")
+                elif level == Message.INFO:
+                    self.print_stream.write(" info")
+                elif level == Message.NAG:
+                    self.print_stream.write(" nag")
+                elif level == Message.WARNING:
+                    self.print_stream.write(" WARNING")
+                elif level == Message.ERROR:
+                    self.print_stream.write(" ERROR")
+                elif level == Message.FATAL:
+                    self.print_stream.write(" FATAL")
+                self.print_stream.write(" message: "+text+"\n")
+                self.print_stream.flush()
+            if level >= self.exception_level:
+                raise EggError(text)
+            if level == Message.FATAL:
+                sys.exit(-1)
+
+message = Message() # create instance of Message class for everything to use
     
 class EggError(Exception):
     """Created whenever a Vision Egg specific error occurs"""
