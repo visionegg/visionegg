@@ -1075,13 +1075,23 @@ class AppWindow(Tkinter.Frame):
         self.loop_frame.list = [] # clear loop list
         self.loop_frame.update_now()
         new_params = {}
+        exception_info = []
         for param_name in dir(self.stim_frame.meta_params):
             if param_name[:2] != "__":
-                new_params[param_name] = load_dict[param_name]
+                try:
+                    new_params[param_name] = load_dict[param_name]
+                except Exception, x:
+                    exception_info.append(sys.exc_info()) # don't die on exception
+                else:
+                    del load_dict[param_name]
+        for exc_type, exc_value, exc_traceback in exception_info:
+            # ignore actual traceback
+            VisionEgg.GUI.showexception(exc_type,exc_value,"")
         self.stim_frame.set_parameters_dict( new_params )
         self.autosave_basename.set(load_dict['stim_type'])
         
         self.stim_frame.update_tk_vars()
+        return load_dict # return unused variables
 
     def launch_screen_pos(self, dummy_arg=None):
         dialog = Tkinter.Toplevel(self)
