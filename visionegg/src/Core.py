@@ -26,7 +26,7 @@ from OpenGL.GLU import *                        #   utility routines
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
-############# What function do we use to swap the buffers? ############
+############# What function do we use to swap the buffers? #########
 swap_buffers = pygame.display.flip
 
 ####################################################################
@@ -40,8 +40,8 @@ class Screen:
 
     Currently only one screen is supported, but hopefully multiple
     screens will be supported in the future.
-
     """
+
     def __init__(self,
                  size=(config.VISIONEGG_SCREEN_W,
                        config.VISIONEGG_SCREEN_H),
@@ -261,9 +261,12 @@ class Parameters:
 class Stimulus:
     """Base class for a stimulus.
 
-    Use this class if your projection is associated with the viewport,
-    which you normally want to do with 3D stimuli.  If your stimulus
-    defines its own projection, use StimulusWithProjection instead.
+    Note that for many stimuli, you will want the stimulus to set its
+    own projection.  Most 2D objects should probably define their own
+    projection, which will specify where, in relation to the viewport,
+    the object is drawn. (See the FixationSpot class for an example.)
+    3D objects should probably let the viewport's default projection
+    be used.
     """
     def __init__(self):
         self.parameters = Parameters()
@@ -394,6 +397,7 @@ class Presentation:
         self.parameters.duration_sec = duration_sec
         self.realtime_controllers = []
         self.transitional_controllers = []
+        self.frame_draw_times = []
 
     def add_realtime_controller(self, parameters, name, controller):
         if not isinstance(parameters,Parameters):
@@ -435,7 +439,7 @@ class Presentation:
             else:
                 i = i + 1
 
-    def go(self):
+    def go(self,collect_timing_info=0):
         """Main control loop during stimulus presentation.
 
         This is the heart of realtime control in the Vision Egg, and
@@ -456,12 +460,6 @@ class Presentation:
         It usually depends on your operating system, your video card,
         and your video drivers.  (This should be remedied in OpenGL 2.)
         """
-        # First, make sure I have the most up to date parameters
-        for parameters,name,controller in self.realtime_controllers:
-            setattr(parameters,name,controller(0.0))
-        for parameters,name,controller in self.transitional_controllers:
-            setattr(parameters,name,controller(0.0))
-
         # Create a few shorthand notations, which speeds
         # the main loop by not performing name lookup each time.
         duration_sec = self.parameters.duration_sec 
@@ -473,8 +471,19 @@ class Presentation:
             if viewport.screen not in screens:
                 screens.append(viewport.screen)
 
-        # Still need to add DAQ hooks...
-        
+        # Make sure I have the most up to date parameters
+        for parameters,name,controller in self.realtime_controllers:
+            setattr(parameters,name,controller(0.0))
+        for parameters,name,controller in self.transitional_controllers:
+            setattr(parameters,name,controller(0.0))
+
+        # Clear any previous timing info if necessary
+        if collect_timing_info:
+            self.frame_draw_times = []
+
+        # Still need to add DAQ hooks here...
+
+        # Do the main loop
         start_time_absolute = timing_func()
         cur_time = 0.0
         while (cur_time <= duration_sec):
@@ -487,11 +496,18 @@ class Presentation:
             # Draw each viewport
             for viewport in viewports:
                 viewport.draw()
+            # Swap the buffers
             swap_buffers()
+            # If wanted, save time this frame was drawn for
+            if collect_timing_info:
+                self.frame_draw_times.append(cur_time)
+            # Get the time for the next frame
             cur_time_absolute = timing_func()
             cur_time = cur_time_absolute-start_time_absolute
             
-        self.between_presentations() # At least call once at end of stimulus
+        self.between_presentations() # Call at end of stimulus to reset values
+        if collect_timing_info:
+            self.print_frame_timing_stats()
 
     def between_presentations(self):
         """Maintain display while between stimulus presentations.
@@ -591,6 +607,61 @@ class Presentation:
             fb_image.save( savepath )
             image_no = image_no + 1
             cur_time = cur_time + 1.0/frames_per_sec
+
+    def print_frame_timing_stats(self):
+        """Print a histogram of the last recorded frame drawing times.
+        """
+        if len(self.frame_draw_times) > 1:
+            frame_draw_times = array(self.frame_draw_times)
+            self.frame_draw_times = [] # clear the list
+            frame_draw_times = frame_draw_times[1:] - frame_draw_times[:-1] # get inter-frame interval
+            print (len(frame_draw_times)+1), "frames drawn."
+            mean_sec = mean(frame_draw_times)
+            print "mean frame to frame time:", mean_sec*1.0e6, "(usec), fps: ",1.0/mean_sec, " max:",max(frame_draw_times)*1.0e6
+            
+            bins = arange(0.0,15.0,1.0) # msec
+            bins = bins*1.0e-3 # sec
+            print "Frame to frame"
+            self.print_hist(frame_draw_times,bins)
+
+    def histogram(self,a, bins):  
+        """Create a histogram from data
+
+        This function is taken straight from NumDoc.pdf, the Numeric Python
+        documentation."""
+        n = searchsorted(sort(a),bins)
+        n = concatenate([n, [len(a)]])
+        return n[1:]-n[:-1]
+        
+    def print_hist(self,a, bins):
+        """Print a pretty histogram"""
+        hist = self.histogram(a,bins)
+        lines = 10
+        maxhist = float(max(hist))
+        h = hist # copy
+        hist = hist.astype('f')/maxhist*float(lines) # normalize to 10
+        print "Histogram:"
+        for line in range(lines):
+            val = float(lines)-1.0-float(line)
+            print "%6d"%(round(maxhist*val/10.0),),
+            q = greater(hist,val)
+            for qi in q:
+                s = ' '
+                if qi:
+                    s = '*'
+                print "%5s"%(s,),
+            print
+        print " Time:",
+##        for bin in bins:
+##            print "%5d"%(int(bin*1.0e3),),
+##        print "(msec)"
+        for bin in bins:
+            print "%5.2f"%(bin*1.0e3,),
+        print "(msec)"
+        print "Total:",
+        for hi in h:
+            print "%5d"%(hi,),
+        print
         
 ####################################################################
 #
