@@ -20,7 +20,7 @@ except:
 
 screen = get_default_screen()
 projection = SimplePerspectiveProjection(fov_x=90.0)
-viewport = Viewport(screen,
+viewport = Viewport(screen=screen,
                     size=screen.size,
                     projection=projection)
 stimulus = SpinningDrum(texture=texture)

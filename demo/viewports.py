@@ -13,12 +13,12 @@ mid_y = screen.size[1]/2
 
 projection = SimplePerspectiveProjection(fov_x=45.0,aspect_ratio=float(screen.size[0]/mid_y))
 
-viewport1 = Viewport(screen,
+viewport1 = Viewport(screen=screen,
                      lowerleft=(0,0),
                      size=(screen.size[0],mid_y),
                      projection=projection)
 
-viewport2 = Viewport(screen,
+viewport2 = Viewport(screen=screen,
                      lowerleft=(0,mid_y),
                      size=(screen.size[0],mid_y),
                      projection=projection)

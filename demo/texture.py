@@ -28,7 +28,7 @@ stimulus = TextureStimulus(texture = texture,
                            size    = texture.orig.size)
 
 lower_y = screen.size[1]/2 - texture.orig.size[1]/2
-viewport = Viewport(screen,
+viewport = Viewport(screen=screen,
                     lowerleft=(0,lower_y),
                     size=screen.size,
                     projection=pixel_coords)
