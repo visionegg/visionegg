@@ -21,7 +21,7 @@ if sys.platform not in ['cygwin','darwin','mac','win32'] or is_source_distributi
     extensions.append(Extension(name='_maxpriority',sources=['src/_maxpriority.c']))
 
 if sys.platform == 'linux2' or is_source_distribution:
-    extensions.append(Extension(name='_dout',sources=['src/_dout.c']))
+    extensions.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
 
 def visit_script_dir(scripts, dirname, filenames):
     for filename in filenames:
@@ -58,7 +58,7 @@ experiments."""
 
 # Normal distutils stuff
 setup(name="VisionEgg",
-      version = "0.8.3a0",
+      version = "0.9.0",
       description = "Vision Egg",
       url = 'http://www.visionegg.org/',
       author = "Andrew Straw",
