@@ -278,6 +278,7 @@ class TextureBuffer:
         return self.gl_id
 
     def put_sub_image(self,pil_image,lower_left, size):
+        """This function always segfaults, for some reason!"""
         glBindTexture(GL_TEXTURE_2D, self.gl_id)
         print "bound texture"
         data = pil_image.tostring("raw","RGB",0,-1)
@@ -288,9 +289,10 @@ class TextureBuffer:
                                          0, # level
                                          lower_left[0], # x offset
                                          lower_left[1], # y offset
+                                         GL_RGB,
                                          size[0], # width
                                          size[1], # height
-                                         GL_RGB,
+                                         0,
                                          GL_UNSIGNED_INT,
                                          data)
         else:
@@ -304,6 +306,9 @@ class TextureBuffer:
                             GL_RGB,
                             GL_UNSIGNED_INT,
                             data)
+
+    def free(self):
+        glDeleteTextures(self.gl_id)
     
 ####################################################################
 #
