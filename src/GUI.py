@@ -19,6 +19,33 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+class showwarning(Tkinter.Frame):
+    """A window that shows a string."""
+    def __init__(self,title="Vision Egg Warning",message=None):
+        Tkinter.Frame.__init__(self,borderwidth=20)
+        self.pack()
+        self.winfo_toplevel().title(title)
+        Tkinter.Label(self,text=self.format_string(message)).pack()
+        b = Tkinter.Button(self,text="OK",command=self.close_window)
+        b.pack()
+        b.focus_force()
+        b.bind('<Return>',self.close_window)
+        self.mainloop()
+    def format_string(self,in_str):
+        min_line_length = 65
+        in_list = string.split(in_str)
+        out_str = ""
+        cur_line = ""
+        for word in in_list:
+            cur_line = cur_line + word + " "
+            if len(cur_line) > min_line_length:
+                out_str = out_str + cur_line[:-1] + "\n"
+                cur_line = ""
+        out_str = out_str + cur_line
+        return out_str
+    def close_window(self,dummy_arg=None):
+        self.winfo_toplevel().destroy()
+                
 class AppWindow(Tkinter.Frame):
     """A GUI Window to be subclassed for your main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
