@@ -17,7 +17,7 @@ import Numeric, MLab
 import OpenGL.GL as gl
 
 try:
-    import OpenGL.GL.ARB.multitexture # Not necessary
+    import OpenGL.GL.ARB.multitexture # Not necessary for most Vision Egg functions
 except ImportError:
     pass
 else:
@@ -837,7 +837,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
     """A mask for windowing a portion of a texture.
 
     Thanks to the author, Jon Peirce, of the AlphaStim class from the
-    PsychoPy package on which this class is based."""
+    PsychoPy package from which the idea to do this came."""
 
     # All of these parameters are constant -- if you need a new mask, create a new instance
     constant_parameters_and_defaults = {'function':('gaussian',types.StringType), # can be 'gaussian' or 'circle'
@@ -902,7 +902,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
         gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
         # reset active texture unit to 0
-        gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # bind 2nd texture unit to mask texture
+        gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         
     def draw_masked_quad(self,lt,rt,bt,tt,le,re,be,te,depth):
 
