@@ -44,6 +44,7 @@ gl_constants = {}
 
 # functions which we don't want to map all the arguments of
 special_functions = {
+    'glOrtho':[0,1,2,3,4,5], # x,y,width,height
     'glReadPixels':[0,1,2,3], # x,y,width,height
     'glTexImage2D':[1,3,4,5], # level,width,height,border
     'glVertex2f':[0,1], # all arguments
