@@ -63,7 +63,7 @@ def get_meta_controller_class():
     return GridMetaController
 
 def make_stimuli():
-    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/mercator.png")
+    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data/az_el.png")
     texture = VisionEgg.Textures.Texture(filename)
     stimulus = VisionEgg.SphereMap.SphereMap(texture=texture,
                                              stacks=100,
