@@ -86,6 +86,9 @@ if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
     # When run directly from commandline, no GUIs!
     config.VISIONEGG_TKINTER_OK = 0
 
+if not sys.argv[0]: # Interactive mode
+    config.VISIONEGG_GUI_ON_ERROR = 0
+
 class _ExceptionHookKeeper:
     def handle_exception(self, exc_type, exc_value, exc_traceback):
 
