@@ -79,6 +79,22 @@ if sys.platform == 'darwin' and not os.path.isabs(sys.argv[0]):
     # When run directly from commandline, no GUIs!
     config.VISIONEGG_TKINTER_OK = 0
 
+if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
+    import traceback, StringIO
+    import GUI
+    def _vision_egg_exception_hook(exc_type, exc_value, exc_traceback):
+        traceback_stream = StringIO.StringIO()
+        traceback.print_tb(exc_traceback,None,traceback_stream)
+        GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
+        traceback.print_exception(exc_type,exc_value,exc_traceback)
+    class _ExceptionHookKeeper:
+        def __init__(self):
+            self.orig_hook = sys.excepthook
+            sys.excepthook = _vision_egg_exception_hook
+        def __del__(self):
+            sys.excepthook = self.orig_hook
+    _exception_hook_keeper = _ExceptionHookKeeper()
+
 ############ A base class finder utility function ###########
 
 def recursive_base_class_finder(klass):
