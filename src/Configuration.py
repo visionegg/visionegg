@@ -1,20 +1,3 @@
-# This is the python source code for the config module of the Vision Egg package.
-#
-# Based on Pyro/configuration.py, copyright Irmen de Jong.
-#
-# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).  
-
-####################################################################
-#
-#        Default configuration variables
-#
-####################################################################
-
-# Special characters are '%c' (current directory, absolute) and
-# $STORAGE which is replaced by the VISIONEGG_STORAGE path.
-
-
 """Load VisionEgg configuration values.
 
 This module searches for configuration options in the following order:
@@ -36,8 +19,25 @@ Values are accessible as members of VisionEgg.config.  For example,
 VisionEgg.config.VISIONEGG_FULLSCREEN.
 """
 
+# This is the python source code for the config module of the Vision Egg package.
+#
+# Based on Pyro/configuration.py, copyright (c) Irmen de Jong.
+#
+# Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
+# GNU General Public License (GPL).  
+
+####################################################################
+#
+#        Default configuration variables
+#
+####################################################################
+
+# Special characters are '%c' (current directory, absolute) and
+# $STORAGE which is replaced by the VISIONEGG_STORAGE path.
+
+
 defaults= {
-    'VISIONEGG_STORAGE':              '%c', # current dir (abs)
+    'VISIONEGG_STORAGE':              '%u/VisionEggStorage', # %u means os.environ['HOME']
     'VISIONEGG_DEFAULT_INIT':         'config', # could also be 'GUI'
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
@@ -134,6 +134,11 @@ class ConfigReader:
         if type(value)==type(""):
             if value=='%c':
                 return os.curdir
+            elif value=='%u':
+                try:
+                    return os.environ['HOME']
+                else:
+                    return os.curdir
             elif len(value)>=9 and value[:9]=='$STORAGE/':
                 return os.path.join(self.items['VISIONEGG_STORAGE'], value[9:])
         return value
