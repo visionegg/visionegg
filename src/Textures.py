@@ -291,10 +291,7 @@ class TextureStimulus(TextureStimulusBaseClass):
             while max(self.texture.orig.size) > max_dim:
                 w = self.texture.orig.size[0]/2
                 h = self.texture.orig.size[1]/2
-                try:
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
-                except IOError: # on IRIX this happens
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BILINEAR)
+                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
@@ -304,10 +301,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                 except TextureTooLargeError,x:
                     w = self.texture.orig.size[0]/2
                     h = self.texture.orig.size[1]/2
-                    try:
-                        self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
-                    except IOError: # on IRIX this happens
-                        self.texture.orig = self.texture.orig.resize((w,h),Image.BILINEAR)
+                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
@@ -397,10 +391,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             while max(self.texture.orig.size) > max_dim:
                 w = self.texture.orig.size[0]/2
                 h = self.texture.orig.size[1]/2
-                try:
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
-                except IOError: # on IRIX this happens
-                    self.texture.orig = self.texture.orig.resize((w,h),Image.BILINEAR)
+                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
                 resized = 1
             loaded_ok = 0
             while not loaded_ok:
@@ -410,10 +401,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 except TextureTooLargeError,x:
                     w = self.texture.orig.size[0]/2
                     h = self.texture.orig.size[1]/2
-                    try:
-                        self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
-                    except IOError: # on IRIX this happens
-                        self.texture.orig = self.texture.orig.resize((w,h),Image.BILINEAR)
+                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
                     resized = 1
             if resized:
                 VisionEgg.Core.message.add(
