@@ -170,7 +170,7 @@ class Screen(VisionEgg.ClassWithParameters):
             
         pygame.display.set_caption("Vision Egg")
         
-        flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
+        flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF #| pygame.locals.NOFRAME
         if self.constant_parameters.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
 
@@ -250,9 +250,10 @@ class Screen(VisionEgg.ClassWithParameters):
                 requested %d. Can you adjust your video drivers?"""%(got_bpp,try_bpp),
                 level=Message.WARNING)
 
-        # Save the address of these function so they can be called
+        # Save the address of these functions so they can be called
         # when closing the screen.
         self.cursor_visible_func = pygame.mouse.set_visible
+        self.pygame_quit = pygame.quit
 
         # Attempt to synchronize buffer swapping with vertical sync again
         if VisionEgg.config.VISIONEGG_SYNC_SWAP:
@@ -339,7 +340,12 @@ class Screen(VisionEgg.ClassWithParameters):
     def __del__(self):
         # Make sure mouse is visible after screen closed.
         if hasattr(self,"cursor_visible_func"):
-            self.cursor_visible_func(1)
+            try:
+                self.cursor_visible_func(1)
+                self.pygame_quit()
+            except pygame.error, x:
+                if str(x) != 'video system not initialized':
+                    raise
             
 def get_default_screen():
     """Return an instance of screen opened with to default values.
@@ -351,14 +357,29 @@ def get_default_screen():
     parameters.  """
 
     global VisionEgg # module is in global namespace, not local
-    if not VisionEgg.config.VISIONEGG_GUI_INIT:
-        return Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                                           VisionEgg.config.VISIONEGG_SCREEN_H),
-                                     fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                                     preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP)
-    else:
-        import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
-        return VisionEgg.GUI.get_screen_via_GUI()
+    screen = None
+    try:
+        if not VisionEgg.config.VISIONEGG_GUI_INIT:
+            screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                  VisionEgg.config.VISIONEGG_SCREEN_H),
+                            fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                            preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP)
+        else:
+            import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+            screen = VisionEgg.GUI.get_screen_via_GUI()
+    finally:
+        if screen is None:
+            try:
+                pygame.mouse.set_visible(1) # make sure mouse is visible
+                pygame.quit() # close screen
+            except pygame.error, x:
+                if str(x) != 'video system not initialized':
+                    raise
+
+    if screen is None:
+        raise RuntimeError("Screen open failed. Check your error log for a traceback.")
+    
+    return screen
     
 ####################################################################
 #
@@ -1919,8 +1940,8 @@ class Message:
 
     # Levels are:
     TRIVIAL = 0
-    INFO = 1
-    NAG = 2
+    NAG = 1
+    INFO = 2
     DEPRECATION = 3
     WARNING = 4
     ERROR = 5
