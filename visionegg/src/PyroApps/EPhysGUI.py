@@ -286,7 +286,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
             del kw['orig_values']
         else:
             self.orig_values = None
-        return tkSimpleDialog.Dialog.__init__(*(self,)+args, **kw )
+        return tkSimpleDialog.Dialog.__init__(self, *args, **kw )
         
     def body(self,master):
         Tkinter.Label(master,
