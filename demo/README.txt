@@ -16,16 +16,15 @@ targetBackground.py -- Moving target over a spinning drum.
 texture.py -- Load a texture from a file.
 textureDrum.py -- A texture-mapped spinning drum.
 
-GUI -- demo directory for graphical user interfaces
-GUI/drumDemoGUI.py -- Spinning drum with a graphical user interface (old).
-
-Pyro -- demo directory for Python Remote Objects
-Pyro/simpleServer.py -- Run a simple VisionEgg Pyro server (old).
-XXX Pyro not done yet
+calibrate -- demo directory with luminance calibration utilities
+(own README.txt)
 
 daq -- demo directory for data acquisition
 daq/trigger_in.py -- Use an external device to trigger the Vision Egg.
 daq/trigger_out.py -- Use the Vision Egg to trigger an external device.
 
+GUI -- demo directory for graphical user interfaces
+GUI/drumDemoGUI.py -- Spinning drum with a graphical user interface (old).
+
 tcp -- demo directory for control of Vision Egg over TCP
-tcp/gratingTCP.py -- Sinusoidal grating under network control.
+(own README.txt)
