@@ -1,12 +1,18 @@
 """VisionEgg TCPController module
+
+The following are examples of how to change the controller for "name".
+
+name=const(1.0,0.0,Types.Floattype,Time_sec_absolute,Every_frame)
+name=eval_str("t*5.0*360.0","0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
 """
 
-# Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms
+# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg
 import VisionEgg.Core
 import socket, select, re, string
+import types
 
 __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
@@ -26,7 +32,8 @@ class Parser:
 
 class Handler:
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
-    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\)',re.MULTILINE)
+    re_const = re.compile(r'const\(\s?(.*)\s?,\s?(.*)\s?,\s?(.*)\s?\,\s?(.*)\s?,\s?(.*)\s?\)',re.MULTILINE)
+    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?,\s?"(.*)"\s?,\s?(.*)\s?\,\s?(.*)\s?,\s?(.*)\s?\)',re.MULTILINE)
     def __init__(self,request,client_address):
         self.request = request
         self.client_address = client_address
@@ -92,24 +99,49 @@ class Handler:
         self.check_input()
         params = self.most_recent_command[tcp_name]
         if params is not None:
-            match = Handler.re_eval_str.match(params)
+            match = Handler.re_const.match(params)
             if match is not None:
-                go_str = match.group(1)
-                #print "go_str",go_str
-                not_go_str = match.group(2)
-                return_type = match.group(3)
-                return_type = eval("type(%s)"%match.group(3))
-                #eval_frequency = match.group(4)
-                eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME
-                temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE
-                return_value = VisionEgg.Core.EvalStringController(
-                    during_go_eval_string = go_str,
-                    between_go_eval_string = not_go_str,
-                    return_type = return_type,
-                    temporal_variable_type = temporal_variable_type,
-                    eval_frequency = eval_frequency)
+                try:
+                    go_val = eval(match.group(1))
+                    #print "go_str",go_str
+                    not_go_val = eval(match.group(2))
+                    namespace = {'types':types}
+                    return_type = eval(match.group(3),namespace)
+                    temporal_variable_type = eval("VisionEgg.Core.Controller.%s"%match.group(4))
+                    eval_frequency = eval("VisionEgg.Core.Controller.%s"%match.group(5))
+                    #eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME
+                    #temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE
+                    return_value = VisionEgg.Core.ConstantController(
+                        during_go_value = go_val,
+                        between_go_value = not_go_val,
+                        return_type = return_type,
+                        temporal_variable_type = temporal_variable_type,
+                        eval_frequency = eval_frequency)
+                except Exception, x:
+                    self.request.send("Error parsing eval_str for %s: %s\n"%(tcp_name,x))
             else:
-                self.request.send("Error parsing command for %s: %s\n"%(tcp_name,params))
+                match = Handler.re_eval_str.match(params)
+                if match is not None:
+                    try:
+                        go_str = match.group(1)
+                        #print "go_str",go_str
+                        not_go_str = match.group(2)
+                        namespace = {'types':types}
+                        return_type = eval(match.group(3),namespace)
+                        temporal_variable_type = eval("VisionEgg.Core.Controller.%s"%match.group(4))
+                        eval_frequency = eval("VisionEgg.Core.Controller.%s"%match.group(5))
+                        #eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME
+                        #temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE
+                        return_value = VisionEgg.Core.EvalStringController(
+                            during_go_eval_string = go_str,
+                            between_go_eval_string = not_go_str,
+                            return_type = return_type,
+                            temporal_variable_type = temporal_variable_type,
+                            eval_frequency = eval_frequency)
+                    except Exception, x:
+                        self.request.send("Error parsing eval_str for %s: %s\n"%(tcp_name,x))
+                else:
+                    self.request.send("Error parsing command for %s: %s\n"%(tcp_name,params))
             self.most_recent_command[tcp_name] = None
         # create controller based on last command_queue
         return return_value
