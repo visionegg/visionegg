@@ -12,6 +12,10 @@ import os
 
 gl = VisionEgg.Core.gl # get (potentially modified) OpenGL module from Core
 
+import Carbon.File
+import Carbon.Qt
+import Carbon.QuickTime
+
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
@@ -28,60 +32,29 @@ except NameError:
 
 is_quicktime_started = False # global variable
 
-class Movie:
-    """Wrapped QuickTime movie.
-
-    This should be roughly equivalent to the Java class
-    quicktime.std.movies.Movie
-
-    Do not count on this class remaining in Python -- it may get
-    migrated to C.
+def new_movie_from_filename(filename):
+    global is_quicktime_started
+    if not is_quicktime_started:
+        Carbon.Qt.EnterMovies()
+        is_quicktime_started = True
+    fsspec = Carbon.File.FSSpec(filename)
+    movieResRef = Carbon.Qt.OpenMovieFile(fsspec,1)
+    movie, d1, d2 = Carbon.Qt.NewMovieFromFile(movieResRef, 0, Carbon.QuickTime.newMovieActive)
+    return movie
     
-    """
-    # most of this is probably already in MacPython.  But does that
-    # work on Windows???
-    def __init__(self, filename=None):
-        global is_quicktime_started
-        if not is_quicktime_started:
-            VisionEgg.gl_qt.initialize_quicktime()
-            is_quicktime_started = True
-        if not os.path.isfile(filename):
-            raise ValueError('filename is not a valid file')
-        self.movie = VisionEgg.gl_qt.load_movie(filename)
-    def task(self,maxMilliSecToUse=0):
-        """Service movies, updating output as necessary
-
-        Arguments:
-
-        maxMilliSecToUse -- Maximum number of milliseconds that
-            MoviesTask can work before returning. If this parameter
-            is 0, MoviesTask services every active movie exactly once.
-        
-        """
-        VisionEgg.gl_qt.MoviesTask(self.movie,maxMilliSecToUse)
-    def is_done(self):
-        return VisionEgg.gl_qt.IsMovieDone( self.movie )
-    def go_to_beginning(self):
-        VisionEgg.gl_qt.GoToBeginningOfMovie( self.movie )
-    def start(self):
-        VisionEgg.gl_qt.StartMovie(self.movie)
-    def stop(self):
-        VisionEgg.gl_qt.StopMovie(self.movie)
-    def get_box(self):
-        return VisionEgg.gl_qt.GetMovieBox(self.movie)
-
 class MovieTexture(VisionEgg.Textures.Texture):
     def __init__(self,
                  movie=None,
                  texture_size=None, # be default will be big enough for full movie, otherwise 2-tuple
                  ):
-        if not isinstance(movie,Movie):
+        if not type(movie) == Carbon.Qt.Movie:
             if type(movie) == str:
-                movie = Movie(filename=movie)
+                movie = get_movie_from_filename(filename=movie)
         self.movie = movie
-        left, bottom, right, top = self.movie.get_box()
-        width = abs(right-left)
-        height = abs(top-bottom)
+        bounds = self.movie.GetMovieBox()
+        width = bounds[2]-bounds[0]
+        height = bounds[3]-bounds[1]
+        self.movie.SetMovieBox((0,0,width,height))
         self.size = (width,height)
         self.scale = 1.0
         self.started = False
@@ -126,7 +99,7 @@ class MovieTexture(VisionEgg.Textures.Texture):
                                       mipmap_level=0 )
         self.texture_object = texture_object
 
-        self.gl_qt_renderer = VisionEgg.gl_qt.gl_qt_renderer_create(self.movie.movie,tex_shape,self.scale)
+        self.gl_qt_renderer = VisionEgg.gl_qt.gl_qt_renderer_create(self.movie,tex_shape,self.scale)
 
     def update(self):
         # only call this when my texture unit is active

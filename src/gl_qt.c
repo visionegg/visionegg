@@ -32,27 +32,6 @@ void gl_qt_set_error(const char * errmsg) {
   gl_qt_error_str = errmsg;
 }
 
-void initialize_quicktime( void ) {
-  OSErr anErr = noErr;
-  long qtVersion = 0L;
-  
-  if(noErr != Gestalt (gestaltQuickTime, &qtVersion)) {
-    gl_qt_set_error("QuickTime is not present in this system");
-    return;
-  }
-
-  if( (qtVersion >> 16 ) < 0x400 ) {
-    gl_qt_set_error("Need QT 4.0 or higher.");
-    return;
-  }
-
-  anErr = EnterMovies();
-  if(anErr != noErr) {
-    gl_qt_set_error("Problems with EnterMovies");
-    return;
-  }
-}
-
 gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float tex_scale ) {
   gl_qt_renderer * render_info = NULL;
 
@@ -232,38 +211,4 @@ void gl_qt_renderer_update(gl_qt_renderer * render_info) {
 		   GL_RGB, 
 		   GL_UNSIGNED_BYTE, 
 		   render_info->gl_texel_data);
-}
-
-Movie load_movie( const char * filename) {
-  Movie theMovie;
-
-  OSErr anErr = noErr;
-  FSSpec fsspecMovie;
-  short resFile = 0;
-  short resID = 0;
-
-  Str255 movieName;
-  Boolean wasChanged;
-
-  anErr = NativePathNameToFSSpec(filename,&fsspecMovie,0);
-  if(anErr != noErr) {
-    gl_qt_set_error(MAC_OSERR_TO_STR(anErr));
-    return NULL;
-  }
-
-  anErr = OpenMovieFile (&fsspecMovie, &resFile, fsRdPerm);
-  if(anErr != noErr) {
-    gl_qt_set_error(MAC_OSERR_TO_STR(anErr));
-    return NULL;
-  }  
-
-  anErr = NewMovieFromFile (&theMovie, resFile, &resID, movieName, newMovieActive, &wasChanged);
-  if(anErr != noErr) {
-    gl_qt_set_error(MAC_OSERR_TO_STR(anErr));
-    return NULL;
-  }  
-
-  CloseMovieFile(resFile);  // XXX closing this here causes seg fault??
-
-  return theMovie;
 }
