@@ -31,12 +31,14 @@ class TextureTestFrame(Tkinter.Frame):
         self.winfo_toplevel().title('Texture Test')
         self.pack()
 
-        VisionEgg.GUI.VideoInfoFrame(self).pack()
+        vid_info_frame = VisionEgg.GUI.VideoInfoFrame(self)
+        vid_info_frame.pack()
 
         self.tex_compression = Tkinter.BooleanVar()
         Tkinter.Checkbutton(self,
                             text="Texture compression",
-                            variable=self.tex_compression).pack()
+                            variable=self.tex_compression,
+                            command=vid_info_frame.update).pack()
 
         Tkinter.Label(self,text="Texture width:").pack()
         self.tex_width = Tkinter.StringVar()
@@ -52,7 +54,7 @@ class TextureTestFrame(Tkinter.Frame):
 #        Tkinter.Button(self,text="get maximum number of resident textures",command=do_resident_textures).pack()
 
     def do_blit_speed(self):
-        VisionEgg.use_texture_compression = self.tex_compression.get()
+        VisionEgg.video_info.tex_compress = self.tex_compression.get()
         
         tex1 = VisionEgg.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get())))
         tex1.load() # initialize the original texture
