@@ -128,6 +128,22 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def set_next_stimkey(self,stimkey):
         self.stimkey = stimkey
 
+    def save_image_sequence(self,fps=12.0,filename_base="im",filename_suffix=".tif",save_dir=".",make_new_dir=0):
+        try:
+            if make_new_dir:
+                if not os.path.isdir(save_dir):
+                    raise NotImplementedError("")
+            self.presentation.export_movie_go(frames_per_sec=fps,
+                                              filename_base=filename_base,
+                                              filename_suffix=filename_suffix,
+                                              path=save_dir
+                                              )
+        except Exception,x:
+            # do this because Pyro doesn't (by default) print a traceback
+            import traceback
+            traceback.print_exc()
+            raise
+
 def start_server( server_modules ):
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
