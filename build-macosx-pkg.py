@@ -19,27 +19,28 @@ pkg_name = "%s-%s.macosx.py22"%(setup.name,setup.version,)
 default_location = "/Library/Frameworks/Python.framework/Versions/2.2"
 bdist_dumb_results = "/Users/astraw/src/visionegg/visionegg-devel/dist/visionegg-%s.darwin-5.5-Power_Macintosh.tar.gz"%(setup.version,)
 
+# Initial screen
+welcome_txt = setup.long_description
+
+# "Important Information"
 readme_txt = """
 This package installs the Vision Egg library and associated files, including the demos.
 
-This release exposes two known Mac OS X specific bugs in the Vision Egg's dependencies. Checkbuttons in dialog windows are broken until a button is pressed, and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." These bugs are not serious, just annoying.
-
 The files will be installed to %s. This is the default Python 2.2 framework directory. The system files will be in the subdirectory lib/python2.2/site-packages/VisionEgg and a master copy of the user files will be in the subdirectory VisionEgg.
 
-A copy of the user files will be made to ~/VisionEgg.  Files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link will be made from ~/Desktop/VisionEgg.
+A copy of the user files will be made to $HOME/VisionEgg, where $HOME means your home directory, usually /Users/<username>.  If this directory does not exist, it will be created.  If this directory exists, files already in this directory named identically to files in the Vision Egg distribution will be overwritten. A link will be made from your Desktop.
+
+This release exposes a few known bugs with Tk and pygame that are Mac OS X specific. Checkbuttons in dialog windows are broken until a button is pressed, and when not run in fullscreen mode application scripts quit with a false error "The application Python has unexpectedly quit." On some Macs, fullscreen mode is not working.
 
 This package has the following dependencies, all of which can be downloaded as a single archive from http://redivi.com/~bob
 
-Python 2.2 with frameworks
-PyOpenGL 2.0 (Python module)
-pygame 1.3.3 (Python module)
-Python Imaging Library 1.1.2 (Python module)
-Numeric 20.3 (Python module)
+Python with frameworks
+PyOpenGL (Python module)
+pygame (Python module)
+Python Imaging Library (Python module)
+Numeric (Python module)
 """%(default_location,)
 readme_txt = string.strip(readme_txt)
-
-#welcome_txt = string.join(map(string.strip,string.split(setup.long_description)))
-welcome_txt = setup.long_description
 
 install_sh = """#!/bin/sh
 
@@ -58,7 +59,7 @@ chown -R $USER ~/VisionEgg
 ln -s ~/VisionEgg ~/Desktop
 
 # Make the link owned by the user
-chown $USER ~/Desktop/VisionEgg
+#chown $USER ~/Desktop/VisionEgg
 
 """%(default_location,)
 
