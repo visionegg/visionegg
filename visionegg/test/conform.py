@@ -32,6 +32,21 @@ except NameError:
     import operator
     def sum( values ):
         return reduce(operator.add, values )
+
+# start logging to file
+try:
+    import logging
+    import logging.handlers
+except ImportError:
+    import VisionEgg.py_logging as logging
+
+log_fname = 'conform.log'
+log_handler_logfile = logging.FileHandler( log_fname )
+print "saving log file to",log_fname
+log_handler_logfile.setFormatter( VisionEgg.log_formatter )
+VisionEgg.logger.addHandler( log_handler_logfile )
+ 
+  
     
 class VETestCase(unittest.TestCase):
     def setUp(self):
@@ -249,8 +264,9 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.draw()
 
     def test_textures_spinning_drum(self):
-        stimulus = VisionEgg.Textures.SpinningDrum()
-        self.ortho_viewport.parameters.stimuli = [ stimulus ]
+        stimulus1 = VisionEgg.Textures.SpinningDrum()
+        stimulus2 = VisionEgg.Textures.SpinningDrum()
+        self.ortho_viewport.parameters.stimuli = [ stimulus1, stimulus2 ]
         self.ortho_viewport.draw()
 
     def test_textures_spinning_drum_flat(self):
