@@ -18,6 +18,7 @@ Added wireframe azimuth/elevation grid with text labels
 Allow arbitrary orientation of textures and text with angle parameter
 FrameTimer class now available for use in your own main loops
 Automated testing for, among other things, pixel accuracy of textures
+No installation of demos or documentation (get source or demo package)
 Many small enhancements and bugfixes
 
 New demos:
