@@ -21,6 +21,10 @@ To make the manual in HTML form, run:
 
 python tools/mkhowto visionegg.tex
 
+In fact, I run:
+
+python tools/mkhowto --iconserver "../images" -s 3 --up-link "http://www.visionegg.org/" --up-title "Vision Egg website" visionegg.tex
+
 To make the manual in PDF form, run:
 
 python tools/mkhowto --pdf visionegg.tex
