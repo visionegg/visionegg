@@ -162,7 +162,7 @@ class Texture(object):
 
         if type(texels) == types.FileType:
             texels = Image.open(texels) # Attempt to open as an image file
-        elif type(texels) == types.StringType:
+        elif type(texels) in (types.StringType,types.UnicodeType):
             # is this string a filename or raw image data?
             if os.path.isfile(texels):
                 # cache filename and file stream for later use (if possible)
