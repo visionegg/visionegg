@@ -53,7 +53,8 @@ flat_viewport = Viewport(screen,
 
 # Create an instance of the Target2D class with appropriate parameters
 target = Target2D(size  = (25.0,10.0),
-                  color = (1.0,1.0,1.0,1.0)) # Set the target color (RGBA) white
+                  color = (1.0,1.0,1.0,1.0), # Set the target color (RGBA) white
+                  orientation = 135.0)
 
 # Add the small target to the appropriate viewport
 flat_viewport.add_stimulus(target)
@@ -80,16 +81,16 @@ if screen.size[0] < screen.size[1]:
 else:
     max_vel = screen.size[1] * 0.4
 
+# Control the small target:
 def xy_as_function_of_time(t):
     return ( max_vel*sin(0.1*2.0*math.pi*t) + mid_x , # x
              max_vel*sin(0.1*2.0*math.pi*t) + mid_y ) # y
 
-def orientation(dummy):
-    return 135.0
-
+# Control the background:
 def angle_as_function_of_time(t):
     return 50.0*math.cos(0.2*2*math.pi*t)
 
+# Control anything that should be off between presentations:
 def one_during_experiment(t):
     if t < 0.0:
         return 0.0
@@ -102,7 +103,6 @@ def one_during_experiment(t):
 
 p.add_realtime_time_controller(target,'center', xy_as_function_of_time)
 p.add_realtime_time_controller(drum,'angular_position', angle_as_function_of_time)
-p.add_transitional_controller(target,'orientation', orientation)
 p.add_transitional_controller(target,'on', one_during_experiment)
 p.add_transitional_controller(drum,'contrast', one_during_experiment)
 
