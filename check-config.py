@@ -15,7 +15,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gui_ok = 1
 
-print "check-config.py for Vision Egg 0.9.4."
+print "check-config.py for Vision Egg 0.9.5a1."
 print "[%s CVS revision %s]"%(__date__,__cvs__)
 print "Beginning configuration check."
 
@@ -259,12 +259,10 @@ except:
 try:
     import pygame.version
     print "pygame version %s"%(pygame.version.ver,),
-    if pygame.version.ver >= '1.5':
+    if pygame.version.ver >= '1.5.5':
         print "(OK)"
-    elif pygame.version.ver >= '1.3.3':
-        print "(Some VisionEgg features unsupported)"
     else:
-        print "(Untested)"
+        print "(Unsupported, probably won't work)"
 except:
     print "pygame failed"
 
