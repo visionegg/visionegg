@@ -1256,8 +1256,21 @@ class Presentation(VisionEgg.ClassWithParameters):
         """Remove one (or more--see below) controller(s).
 
         If controller is None, all controllers affecting the
-        specified parameter are removed."""
-        
+        specified parameter are removed.
+
+        If class_with_parameters and paramter_name are None, the controller is removed completely
+        """
+        if class_with_parameters is None and parameter_name is None:
+            if not isinstance(controller,Controller):
+                raise TypeError("When deleting a controller, but specify an instance of VisionEgg.Core.Controller class!")
+            i = 0
+            while i < len(self.controllers):
+                orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
+                if controller == orig_controller:
+                    del self.controllers[i]
+                else:
+                    i = i + 1
+            return
         if controller is None:
             # The controller function is not specified:
             # Delete all controllers that control the parameter specified.
@@ -1923,9 +1936,9 @@ class Controller:
         if return_type is None: # Can be types.NoneType, but not None!
             raise ValueError("Must set argument 'return_type' in Controller.")
         if not ve_types.is_parameter_type_def(return_type):
-            raise TypeError("Must argument 'return_type' in Controller must be a VisionEgg parameter type definition")
-        #if type(return_type) not in [types.TypeType,types.ClassType]:
-        #    raise TypeError("argument 'return_type' must specify a type or class.")
+            if type(return_type) == types.TypeType:
+                raise TypeError("Argument 'return_type' in Controller must be a VisionEgg parameter type definition.  Hint: use VisionEgg.ParameterTypes.get_type() to get the type of your value")
+            raise TypeError("Argument 'return_type' in Controller must be a VisionEgg parameter type definition")
         self.return_type = return_type
         
         self.temporal_variables = temporal_variables
@@ -2094,11 +2107,11 @@ class EvalStringController(Controller):
             if not (self.eval_frequency & Controller.NOT_DURING_GO):
                 message.add('Executing "%s" to test for return type.'%(during_go_eval_string,),
                             Message.TRIVIAL)
-                self.return_type = type(self._test_self(go_started=1))
+                self.return_type = ve_types.get_type(self._test_self(go_started=1))
             elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
                 message.add('Executing "%s" to test for return type.'%(between_go_eval_string,),
                             Message.TRIVIAL)
-                self.return_type = type(self._test_self(go_started=0))
+                self.return_type = ve_types.get_type(self._test_self(go_started=0))
                 
     def set_during_go_eval_string(self,during_go_eval_string):
         self.during_go_eval_code = compile(during_go_eval_string,'<string>','eval')
@@ -2212,11 +2225,11 @@ class ExecStringController(Controller):
             if not (self.eval_frequency & Controller.NOT_DURING_GO):
                 message.add('Executing "%s" to test for return type.'%(during_go_exec_string,),
                             Message.TRIVIAL)
-                self.return_type = type(self._test_self(go_started=1))
+                self.return_type = ve_types.get_type(self._test_self(go_started=1))
             elif not (self.eval_frequency & Controller.NOT_BETWEEN_GO):
                 message.add('Executing "%s" to test for return type.'%(between_go_exec_string,),
                             Message.TRIVIAL)
-                self.return_type = type(self._test_self(go_started=0))
+                self.return_type = ve_types.get_type(self._test_self(go_started=0))
 
     def set_during_go_exec_string(self,during_go_exec_string):
         self.during_go_exec_code = compile(during_go_exec_string,'<string>','exec')
