@@ -8,20 +8,20 @@ from VisionEgg.MotionBlur import *
 
 fps = 12.0 # frames per second
 
-target_velocity = 10.0
+target_max_velocity = 10.0
 drum_max_speed = 1000.0 # degrees per second
 
 def x_as_function_of_time(t):
-    return target_velocity*sin(0.1*2.0*math.pi*t)
+    return target_max_velocity*sin(0.2*2.0*math.pi*t)
 
 def y_as_function_of_time(t):
-    return target_velocity*sin(0.1*2.0*math.pi*t)
+    return target_max_velocity*sin(0.2*2.0*math.pi*t)
 
 def orientation(dummy):
     return 135.0
 
 def angle_as_function_of_time(t):
-    return drum_max_speed*math.cos(t) # rotate at 90 degrees per second
+    return drum_max_speed*math.cos(0.1*2.0*math.pi*t)
 
 def one_during_experiment(t):
     if t < 0.0:
