@@ -103,18 +103,21 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         self.ortho_tk_var = Tkinter.StringVar()
         self.ortho_tk_var.set("ortho")
 
-        ortho = Tkinter.Radiobutton( param_frame, text="Orthogonal",
-                                     variable=self.ortho_tk_var, value="ortho")
-        ortho.grid(row=pf_row,column=3)
-        manual = Tkinter.Radiobutton( param_frame, #text="Orthogonal",
+        manual = Tkinter.Radiobutton( param_frame, text="Manual",
                                       variable=self.ortho_tk_var, value="manual")
         manual.grid(row=pf_row,column=1)
+        
         self.orient_tk_var = Tkinter.DoubleVar()
         self.orient_tk_var.set(self.meta_params.orientation_deg)
+        
         manual_entry = Tkinter.Entry( param_frame,
                                       textvariable=self.orient_tk_var,
                                       width=self.entry_width )
         manual_entry.grid(row=pf_row,column=2)
+        
+        ortho = Tkinter.Radiobutton( param_frame, text="Orthogonal to motion",
+                                     variable=self.ortho_tk_var, value="ortho")
+        ortho.grid(row=pf_row,column=3)
         self.loopable_variables["Orientation"] = ("orientation_deg",self.orient_tk_var)
         
         pf_row += 1
@@ -184,9 +187,9 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
             self.meta_params.color = (1.0,1.0,1.0,1.0)
             self.meta_params.bgcolor = (0.0,0.0,0.0,0.0)
         
-        if self.ortho_tk_var.get():
+        if self.ortho_tk_var.get() == "ortho":
             self.meta_params.orientation_deg = math.fmod(self.meta_params.direction_deg,360.0)
-        else:
+        else: # it's "manual"
             self.meta_params.orientation_deg = self.orient_tk_var.get()
         self.meta_params.width = self.width_tk_var.get()
         self.meta_params.height = self.height_tk_var.get()
