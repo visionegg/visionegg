@@ -64,6 +64,7 @@ release_name = '0.9.5a0'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
+import warnings
 import traceback
 try:
     import cStringIO as StringIO
@@ -169,6 +170,16 @@ def time_func():
         return config._FRAMECOUNT_ABSOLUTE * (1.0/ config.VISIONEGG_MONITOR_REFRESH_HZ)
     else:
         return true_time_func()
+
+def timing_func():
+    if "_gave_timing_func_warning" not in globals().keys():
+        global _gave_timing_func_warning
+        _gave_timing_func_warning = 1
+        warnings.warn("timing_func() has been changed to time_func(). "+\
+                      "This warning will only be issued once, but each call to "+\
+                      "timing_func() will be slower than if you called time_func() "+\
+                      "directly",DeprecationWarning, stacklevel=2)
+    return time_func()
 
 ####################################################################
 #
