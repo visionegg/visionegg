@@ -16,7 +16,7 @@ import glob
 
 # Normal distutils stuff
 name="visionegg"
-version = "0.9.4a0"
+version = "0.9.4a1"
 description = "Vision Egg"
 url = 'http://www.visionegg.org/'
 author = "Andrew Straw"
