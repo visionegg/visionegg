@@ -1,4 +1,4 @@
-"""texture module of the Vision Egg package"""
+"""Texture (images mapped onto polygons) stimuli."""
 
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
@@ -160,7 +160,8 @@ class TextureBuffer:
             # Do error-checking on texture to make sure it will load
             max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
             if self.im.size[0] > max_dim or self.im.size[1] > max_dim:
-                raise VisionEgg.Core.EggError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
+                self.free() # Delete texture from OpenGL
+                raise TextureTooLargeError("Texture dimensions are too large for video system.\nOpenGL reports maximum size of %d x %d"%(max_dim,max_dim))
             
             # Because the MAX_TEXTURE_SIZE method is insensitive to the current
             # state of the video system, another check must be done using
@@ -187,9 +188,11 @@ class TextureBuffer:
                                 image_data)                        # image data
                 
             if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_WIDTH) == 0:
-                raise VisionEgg.Core.EggError("Texture is too wide for your video system!")
+                self.free() # Delete texture from OpenGL
+                raise TextureTooLargeError("Texture is too wide for your video system!")
             if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,0,gl.GL_TEXTURE_HEIGHT) == 0:
-                raise VisionEgg.Core.EggError("Texture is too tall for your video system!")
+                self.free() # Delete texture from OpenGL
+                raise TextureTooLargeError("Texture is too tall for your video system!")
 
             if VisionEgg.config.VISIONEGG_TEXTURE_COMPRESSION:
                 gl.glTexImage2D(gl.GL_TEXTURE_2D,                  # target
@@ -272,13 +275,39 @@ class TextureStimulus(TextureStimulusBaseClass):
     parameters_and_defaults = {'on':(1,types.IntType),
                                'lowerleft':((0.0,0.0),types.TupleType),
                                'size':((640.0,480.0),types.TupleType)}
-    def __init__(self,texture=None,**kw):
+    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
+
         if texture is not None:
             self.texture = texture
         else:
             self.texture = Texture(size=(256,16))
-        self.texture_object = self.texture.load()
+
+        if not shrink_texture_ok:
+            self.texture_object = self.texture.load()
+        else:
+            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
+            resized = 0
+            while max(self.texture.orig.size) > max_dim:
+                w = self.texture.orig.size[0]/2
+                h = self.texture.orig.size[1]/2
+                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                resized = 1
+            loaded_ok = 0
+            while not loaded_ok:
+                try:
+                    self.texture_object = self.texture.load()
+                    loaded_ok = 1
+                except TextureTooLargeError,x:
+                    w = self.texture.orig.size[0]/2
+                    h = self.texture.orig.size[1]/2
+                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    resized = 1
+            if resized:
+                VisionEgg.Core.message.add(
+                    "Resized texture in %s to %d x %d"%(
+                    str(self),w,h),VisionEgg.Core.Message.WARNING)
+                self.parameters.size = (w,h)
 
     def draw(self):
         if self.parameters.on:
@@ -347,14 +376,38 @@ class SpinningDrum(TextureStimulusBaseClass):
     # right=viewport.parameters.size[0],
     # bottom=0,top=viewport.parameters.size[1].
 
-    def __init__(self,texture=None,**kw):
+    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
         apply(TextureStimulusBaseClass.__init__,(self,),kw)
         if texture is not None:
             self.texture = texture
         else:
             self.texture = Texture(size=(256,16))
-        self.texture_object = self.texture.load()
 
+        if not shrink_texture_ok:
+            self.texture_object = self.texture.load()
+        else:
+            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
+            resized = 0
+            while max(self.texture.orig.size) > max_dim:
+                w = self.texture.orig.size[0]/2
+                h = self.texture.orig.size[1]/2
+                self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                resized = 1
+            loaded_ok = 0
+            while not loaded_ok:
+                try:
+                    self.texture_object = self.texture.load()
+                    loaded_ok = 1
+                except TextureTooLargeError,x:
+                    w = self.texture.orig.size[0]/2
+                    h = self.texture.orig.size[1]/2
+                    self.texture.orig = self.texture.orig.resize((w,h),Image.BICUBIC)
+                    resized = 1
+            if resized:
+                VisionEgg.Core.message.add(
+                    "Resized texture in %s to %d x %d"%(
+                    str(self),w,h),VisionEgg.Core.Message.WARNING)
+            
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.rebuild_display_list()
 
@@ -530,3 +583,6 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glVertex4f( x1,  h, z1, 1.0 )
         gl.glEnd()
         gl.glEndList()
+
+class TextureTooLargeError(VisionEgg.Core.EggError):
+    pass
