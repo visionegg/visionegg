@@ -48,8 +48,9 @@ text = Text( text = "Vision Egg multi stimulus demo - Press any key to quit",
 #####################################
 
 
-dots = DotArea2D( center                  = ( x1, y1),
-                  size                    = ( width, height ),
+dots = DotArea2D( position = ( x1, y1),
+                  anchor   = 'center',
+                  size     = ( width, height ),
                   )
 
 #####################################
@@ -70,7 +71,8 @@ color_grating = SinGrating2D(color1           = (0.5, 0.25, 0.5, 0.0), # RGBA, A
                              contrast         = 0.2,
                              pedestal         = 0.1,
                              mask             = circle_mask,
-                             center           = (x1,y2),
+                             position         = (x1,y2),
+                             anchor           = 'center',
                              size             = (width,width), # must be square for circle shape
                              spatial_freq     = 20.0/ screen.size[0],
                              temporal_freq_hz = 1.0,
@@ -119,13 +121,15 @@ except Exception, x:
                  level=Message.WARNING)
     gaussian_mask = None
 
-gray_rect = Target2D( center           = ( x2, y1 ),
-                      size             = ( width, height ),
-                      color            = (0.5, 0.5, 0.5, 1.0),
+gray_rect = Target2D( position = ( x2, y1 ),
+                      anchor   = 'center',
+                      size     = ( width, height ),
+                      color    = (0.5, 0.5, 0.5, 1.0),
                       )
 
 gabor = SinGrating2D(mask             = gaussian_mask,
-                     center           = ( x2, y1 ),
+                     position         = ( x2, y1 ),
+                     anchor           = 'center',
                      size             = ( width, height ),
                      spatial_freq     = 40.0 / screen.size[0], # units of cycles/pixel
                      temporal_freq_hz = 2.0,
@@ -138,12 +142,12 @@ gabor = SinGrating2D(mask             = gaussian_mask,
 # setup Texture instance for proper size and scaling, etc.
 framebuffer_copy_texture = Texture( texels=screen.get_framebuffer_as_image() )
 
-framebuffer_copy = TextureStimulus( texture = framebuffer_copy_texture,
-                                    mipmaps_enabled=0,
-                                    size=(width,height),
-                                    texture_min_filter=gl.GL_LINEAR,
-                                    position=(x3,y1),
-                                    anchor='center' )
+framebuffer_copy = TextureStimulus( texture            = framebuffer_copy_texture,
+                                    mipmaps_enabled    = 0, # False
+                                    size               = (width,height),
+                                    texture_min_filter = gl.GL_LINEAR,
+                                    position           = (x3,y1),
+                                    anchor             = 'center' )
 
 framebuffer_texture_object = framebuffer_copy.parameters.texture.get_texture_object()
 
@@ -160,18 +164,20 @@ def copy_framebuffer():
 #  Create viewports                    #
 ########################################
 
-viewport_2d = Viewport( screen=screen, stimuli=[dots,
-                                                color_grating,
-                                                gray_rect,
-                                                gabor,
-                                                text,
-                                                framebuffer_copy] )
+viewport_2d = Viewport( screen  = screen,
+                        stimuli = [dots,
+                                   color_grating,
+                                   gray_rect,
+                                   gabor,
+                                   text,
+                                   framebuffer_copy] )
 
-drum_viewport = Viewport(screen=screen,
-                         lowerleft=(x2-width/2,y2-height/2),
-                         size=(width,height),
-                         projection=drum_projection,
-                         stimuli=[drum])
+drum_viewport = Viewport( screen     = screen,
+                          position   = (x2-width/2,y2-height/2),
+                          anchor     = 'lowerleft',
+                          size       = (width,height),
+                          projection = drum_projection,
+                          stimuli    = [drum])
 
 #####################################################
 #  Main loop (non VisionEgg.Core.Presentation way)  #
