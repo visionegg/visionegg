@@ -49,6 +49,7 @@ class Target2D(VisionEgg.Core.Stimulus):
 
             c = self.parameters.color
             gl.glColor(c[0],c[1],c[2],c[3])
+            gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
