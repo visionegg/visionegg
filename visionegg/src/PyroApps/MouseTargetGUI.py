@@ -20,23 +20,8 @@ def get_control_list():
 class MouseTargetMetaParameters:
     def __init__(self):
         # colors
-        self.color = (1.0, 1.0, 1.0, 1.0)
-        self.bgcolor = (0.0, 0.0, 0.0, 0.0)
-        
-        # motion parameters
-#        self.start_x = 10.0
-#        self.start_y = 50.0
-#        self.velocity_pps = 100.0 # pixels per second
-#        self.direction_deg = 0.0
-        
-        # size and orientation
-#        self.width = 10.0
-#        self.height = 30.0
-#        self.orientation_deg = 0.0
-        
-#        self.pre_stim_sec = 1.0
-#        self.stim_sec = 2.0
-#        self.post_stim_sec = 1.0
+        self.color = (0.0, 0.0, 0.0, 1.0)
+        self.bgcolor = (1.0, 1.0, 1.0, 0.0)
         
 class MouseTargetControlFrame(client_utils.StimulusControlFrame):
     title = "Mouse Controlled Moving Target"
@@ -85,7 +70,7 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
             pf_row += 1
         Tkinter.Label(param_frame,text="Color:").grid(row=pf_row,column=0)
         self.color_tk_var = Tkinter.StringVar()
-        self.color_tk_var.set("white on black")
+        self.color_tk_var.set("black on white")
         bar = Tkinter.Menubutton(param_frame, textvariable=self.color_tk_var, relief=Tkinter.RAISED)
         bar.grid(row=pf_row, column=2, sticky=Tkinter.W+Tkinter.E, pady=2, padx=2)
         bar.menu = Tkinter.Menu(bar,tearoff=0)
@@ -168,7 +153,7 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
             self.stim_dur_tk_var.set( self.meta_params.stim_sec )
             self.poststim_dur_tk_var.set( self.meta_params.post_stim_sec )
 
-        if self.meta_params.color == (0.0,0.0,0.0,0.0) and self.meta_params.bgcolor == (1.0,1.0,1.0,1.0):
+        if self.meta_params.color == (0.0,0.0,0.0,1.0) and self.meta_params.bgcolor == (1.0,1.0,1.0,0.0):
             self.color_tk_var.set( "black on white" )
         elif self.meta_params.color == (1.0,1.0,1.0,1.0) and self.meta_params.bgcolor == (0.0,0.0,0.0,0.0):
             self.color_tk_var.set( "white on black" )
@@ -177,8 +162,8 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
         
     def send_values(self,dummy_arg=None):
         if self.color_tk_var.get() == "black on white":
-            self.meta_params.color = (0.0,0.0,0.0,0.0)
-            self.meta_params.bgcolor = (1.0,1.0,1.0,1.0)
+            self.meta_params.color = (0.0,0.0,0.0,1.0)
+            self.meta_params.bgcolor = (1.0,1.0,1.0,0.0)
         elif self.color_tk_var.get() == "white on black":
             self.meta_params.color = (1.0,1.0,1.0,1.0)
             self.meta_params.bgcolor = (0.0,0.0,0.0,0.0)
