@@ -1518,29 +1518,29 @@ class SpinningDrum(TextureStimulusBaseClass):
 
     Parameters
     ==========
-    anchor                -- (String)
-                             Default: lowerleft
-    angular_position      -- (Real)
+    anchor                -- only used when flat: same as anchor parameter of TextureStimulus (String)
+                             Default: center
+    angular_position      -- may be best to clamp in range [0.0,360.0] (Real)
                              Default: 0.0
     contrast              -- (Real)
                              Default: 1.0
-    drum_center_azimuth   -- (Real)
+    drum_center_azimuth   -- changes orientation of drum in space (Real)
                              Default: 0.0
-    drum_center_elevation -- (Real)
+    drum_center_elevation -- changes orientation of drum in space (Real)
                              Default: 0.0
-    flat                  -- (Boolean)
+    flat                  -- toggles flat vs. cylinder (Boolean)
                              Default: False
-    flip_image            -- (Boolean)
+    flip_image            -- toggles normal vs. horizonally flipped image (Boolean)
                              Default: False
     num_sides             -- (UnsignedInteger)
                              Default: 50
     on                    -- (Boolean)
                              Default: True
-    orientation           -- (Real)
+    orientation           -- 0=right, 90=up (Real)
                              Default: 0.0
-    position              -- (AnyOf(Sequence2 of Real or Sequence3 of Real))
+    position              -- 3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus (AnyOf(Sequence2 of Real or Sequence3 of Real))
                              Default: (0.0, 0.0, 0.0)
-    radius                -- (Real)
+    radius                -- radius if cylinder (not used if flat) (Real)
                              Default: 1.0
     texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                              Inherited from TextureStimulusBaseClass
@@ -1574,26 +1574,37 @@ class SpinningDrum(TextureStimulusBaseClass):
         'num_sides':(50,
                      ve_types.UnsignedInteger),
         'angular_position':(0.0, # may be best to clamp [0.0,360.0]
-                            ve_types.Real),
+                            ve_types.Real,
+                            'may be best to clamp in range [0.0,360.0]'),
         'contrast':(1.0,
                     ve_types.Real),
-        'flat':(False, # toggles flat vs. cylinder
-                ve_types.Boolean), 
+        'flat':(False,
+                ve_types.Boolean,
+                'toggles flat vs. cylinder'),
         'flip_image':(False,
-                      ve_types.Boolean), # toggles normal vs. horizonally flipped image
-        'radius':(1.0, # radius if cylinder, z distance if flat
-                  ve_types.Real),
-        'position':( (0.0,0.0,0.0), # (3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus)
+                      ve_types.Boolean,
+                      'toggles normal vs. horizonally flipped image'),
+        'radius':(1.0,
+                  ve_types.Real,
+                  'radius if cylinder (not used if flat)'),
+        'position':( (0.0,0.0,0.0),
                      ve_types.AnyOf(ve_types.Sequence2(ve_types.Real),
-                                    ve_types.Sequence3(ve_types.Real))),
-        'anchor':( 'lowerleft',# only used when flat: same as anchor parameter of TextureStimulus
-                   ve_types.String), 
-        'drum_center_azimuth':(0.0, # changes orientation of drum in space
-                               ve_types.Real), 
+                                    ve_types.Sequence3(ve_types.Real)),
+                     '3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus'),
+        'anchor':( 'center',
+                   ve_types.String,
+                   'only used when flat: same as anchor parameter of TextureStimulus',
+                   ),
+        'drum_center_azimuth':(0.0,
+                               ve_types.Real,
+                               'changes orientation of drum in space',
+                               ), 
         'drum_center_elevation':(0.0,
-                                 ve_types.Real), # changes orientation of drum in space
-        'orientation':(0.0, # 0=right, 90=up
-                       ve_types.Real)
+                                 ve_types.Real,
+                                 'changes orientation of drum in space'),
+        'orientation':(0.0,
+                       ve_types.Real,
+                       '0=right, 90=up'),
         }
     
     __slots__ = TextureStimulusBaseClass.__slots__ + (
@@ -1658,7 +1669,10 @@ class SpinningDrum(TextureStimulusBaseClass):
 
             if p.flat: # draw as flat texture on a rectange
                 lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
-                lowerleft = lowerleft[0], lowerleft[1], p.position[2]
+                if len(p.position) > 2:
+                    lowerleft = lowerleft[0], lowerleft[1], p.position[2]
+                else:
+                    lowerleft = lowerleft[0], lowerleft[1], 0.0
                 
                 # do the orientation
                 gl.glRotatef(p.orientation,0,0,1)
@@ -1666,7 +1680,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                 
                 if p.flip_image:
                     raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
-                w,h = p.texture.size # XXX was checking this... check again before CVS check in!
+                w,h = p.texture.size
 
                 # calculate texture coordinates based on current angle
                 tex_phase = p.angular_position/360.0 + 0.5 # offset to match non-flat
