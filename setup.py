@@ -66,7 +66,8 @@ if not skip_c_compilation:
                                               'src/win32_maxpriority_wrap.c']))
     elif sys.platform in ['linux2','irix','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
-                                     sources=['src/posix_maxpriority_wrap.c']))
+                                     sources=['src/posix_maxpriority.c',
+                                              'src/posix_maxpriority_wrap.c']))
 
     # _lib3ds
     lib3ds_sources = glob.glob('lib3ds/*.c')
