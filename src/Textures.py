@@ -212,7 +212,7 @@ class TextureBuffer:
             self.gl_id = gl.glGenTextures(1)
             gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
             gl.glEnable( gl.GL_TEXTURE_2D )
-        else: # special case, make you've called mipmap_level 0 beforehand
+        else: # special case, make sure you've called mipmap_level 0 beforehand
             gl.glBindTexture(gl.GL_TEXTURE_2D, self.gl_id)
             gl.glEnable( gl.GL_TEXTURE_2D )
         if self.im.mode == "RGB":
@@ -282,7 +282,7 @@ class TextureBuffer:
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MAG_FILTER,gl.GL_LINEAR)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)        
+        gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_MIN_FILTER,gl.GL_LINEAR)
         return self.gl_id
 
     def put_sub_image(self,pil_image,lower_left, size):
@@ -339,6 +339,11 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                                         }
     _mipmap_modes = [gl.GL_LINEAR_MIPMAP_LINEAR,gl.GL_LINEAR_MIPMAP_NEAREST,
                      gl.GL_NEAREST_MIPMAP_LINEAR,gl.GL_NEAREST_MIPMAP_NEAREST]
+    def __init__(self,**kw):
+        apply(VisionEgg.Core.Stimulus.__init__,(self,),kw)
+        if not self.constant_parameters.mipmaps_enabled:
+            if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
 
 class TextureStimulus(TextureStimulusBaseClass):
     parameters_and_defaults = {'on':(1,types.IntType),
