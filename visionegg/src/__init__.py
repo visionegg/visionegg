@@ -60,7 +60,7 @@ config -- Instance of Config class from Configuration module
 # Copyright (c) 2001-2002 Andrew Straw.  Distributed under the terms of the
 # GNU Lesser General Public License (LGPL).
 
-release_name = '0.9.4a4'
+release_name = '0.9.4'
 
 import Configuration # a Vision Egg module
 import string, os, sys, time, types # standard python modules
