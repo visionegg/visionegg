@@ -6,36 +6,18 @@ from VisionEgg import *
 from VisionEgg.Core import *
 from VisionEgg.Textures import *
 from OpenGL.GL import *
-from OpenGL.GLU import *
 
 def angle_as_function_of_time(t):
     return 90.0*t # rotate at 90 degrees per second
 
 def projection_matrix_f(t):
-    matrix_mode = glGetIntegerv(GL_MATRIX_MODE) # Save the GL of the matrix state
-    glMatrixMode(GL_PROJECTION)
-    glPushMatrix()
-    glLoadIdentity()
+    projection = SimplePerspectiveProjection(fov_x=55.0,aspect_ratio=(screen.size[0]/2.)/screen.size[1])
+    eye = (0.0,t*0.3+1.0,-2.0)
+    camera_look_at = (0.0,0.0,0.0)
+    camera_up = (0.0,1.0,0.0)
+    projection.look_at( eye, camera_look_at, camera_up)
+    return projection.get_matrix()
     
-    # All of the following variables don't change, so for speed they
-    # could be stored in a variable that persists when this function
-    # goes out of scope.
-    fov_x=55.0
-    z_clip_near = 0.1
-    z_clip_far=10000.0
-    aspect_ratio=float(screen.size[0]/2)/screen.size[1]
-    fov_y = fov_x / aspect_ratio
-    
-    gluPerspective(fov_y,aspect_ratio,z_clip_near,z_clip_far)
-    gluLookAt(0.0,t*0.3+1.0,-2.0, # from
-              0.0,0.0,0.0, # to
-              0.0,1.0,0.0) # up
-    results = glGetFloatv(GL_PROJECTION_MATRIX)
-    glPopMatrix()
-    if matrix_mode != GL_PROJECTION:
-        glMatrixMode(matrix_mode) # Set the matrix mode back
-    return results
-
 screen = get_default_screen()
 mid_x = screen.size[0]/2
 mid_y = screen.size[1]/2
