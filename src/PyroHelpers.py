@@ -2,15 +2,16 @@
 """
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms of the
-# GNU General Public License (GPL).
-
-import string
-__version__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
+# GNU Lesser General Public License (LGPL).
 
 import os
 import VisionEgg
+import string
+
+__version__ = VisionEgg.release_name
+__cvs__ = string.split('$Revision$')[1]
+__date__ = string.join(string.split('$Date$')[1:3], ' ')
+__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Work around Pyro configuration glitch in Mac OS X
 if 'PYRO_STORAGE' not in os.environ.keys():
@@ -19,14 +20,14 @@ if 'PYRO_STORAGE' not in os.environ.keys():
 try:
     import Pyro.core
     import Pyro.naming
-    from Pyro.errors import PyroError,NamingError
+    import Pyro.errors
 except ImportError,x:
     print "ERROR: Could not import Pyro. Download from http://pyro.sourceforge.net/"
     import sys
     sys.exit(1)
 
 import sys
-from math import *
+import math
 
 Pyro.config.PYRO_MULTITHREADED = 0 # Turn off multithreading -- kills OpenGL
 
@@ -132,7 +133,7 @@ class PyroServer:
         """Serve an object under a name"""
         try:
             self.ns.unregister(name)
-        except NamingError:
+        except Pyro.errors.NamingError:
             pass
         self.daemon.connect(object,name)
         
