@@ -30,6 +30,9 @@ from OpenGL.GLUT import *			#   only used for glutSolidTeapot
 from Numeric import * 				# Numeric Python package
 from MLab import *                              # Matlab function imitation from Numeric Python
 
+############# What function do we use to swap the buffers? ############
+swap_buffers = pygame.display.flip
+
 ####################################################################
 #
 #        Screen
@@ -380,7 +383,9 @@ class Presentation:
 
     There is no controller class.  Instead, any function which takes a
     single argument (the time elapsed since the start of a stimulus
-    presentation) can be used as a controller.
+    presentation) can be used as a controller.  (However, for a
+    controller which can be controlled from a remote computer, see the
+    PyroController class of the PyroHelpers module.)
 
     Please note that the term realtime here is a bit hopeful at this
     stage, because no OpenGL environment I know of can guarantee that
