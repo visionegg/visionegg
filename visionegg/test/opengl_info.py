@@ -53,6 +53,8 @@ height = 480
 
 size = (width,height)
 
+if sys.platform == "darwin": # bug in Mac OS X version of pygame
+    pygame.init()
 pygame.display.init()
 pygame.display.set_caption("OpenGL Test")
 
