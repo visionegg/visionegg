@@ -255,11 +255,13 @@ class BlurredDrum(SpinningDrum):
 
     def draw(self):
         self.check_textures()
-        delta_drum_angle = self.parameters.angle - self.last_drum_angle # change in position (units: degrees)
-        delta_t = self.parameters.cur_time - self.last_time
-
-        if delta_t > 0.0: # Keep using the same texture object if we haven't changed time
-            self.texture_object = self.get_texture_object(delta_drum_angle,delta_t) # sets the texture object that SpinningDrum uses
+        if self.parameters.on:
+            delta_drum_angle = self.parameters.angle - self.last_drum_angle # change in position (units: degrees)
+            delta_t = self.parameters.cur_time - self.last_time
+        
+            if delta_t > 0.0: # Keep using the same texture object if we haven't changed time
+                self.texture_object = self.get_texture_object(delta_drum_angle,delta_t) # sets the texture object that SpinningDrum uses
+                
         SpinningDrum.draw(self) # call my base class to do most of the work
         
         # Set for next cycle
