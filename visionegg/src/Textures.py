@@ -102,10 +102,10 @@ class Texture:
 
         if pixels is None: # draw default white "X" on blue background
             self.size = (256,256) # default size
-            pixels = Image.new("RGB",size,(0,0,255))
+            pixels = Image.new("RGB",self.size,(0,0,255))
             draw = ImageDraw.Draw(pixels)
             draw.line((0,0) + self.size, fill=(255,255,255))
-            draw.line((0,size.size[1]) + (self.size[0],0), fill=(255,255,255))
+            draw.line((0,self.size[1]) + (self.size[0],0), fill=(255,255,255))
 
         if type(pixels) == types.FileType:
             pixels = Image.open(pixels) # Attempt to open as an image file
@@ -159,7 +159,7 @@ class Texture:
 
         if rescale_original_to_fill_texture_object:
             if type(self.pixels) == Numeric.ArrayType:
-                raise NotImpelementedError("Automatic rescaling of Numeric arrays not implemented.")
+                raise NotImplementedError("Automatic rescaling of Numeric arrays not implemented.")
 
         # fractional coverage
         self.buf_lf = 0.0
@@ -239,7 +239,13 @@ class Texture:
 
 class TextureFromFile( Texture ):
     def __init__(self, filename ):
-        pixels = Image.open(filename)
+        try:
+            pixels = Image.open(filename)
+        except IOError,x:
+            if str(x) == "cannot identify image file":
+                raise IOError("cannot identify image file '%s'"%filename)
+            else:
+                raise
         Texture.__init__(self,pixels)
 
 class TextureObject:
@@ -428,8 +434,10 @@ class TextureObject:
                     data_format = gl.GL_RGB
                 elif data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
+                elif data.mode == 'P':
+                    raise NotImplementedError("Paletted images are not supported.")
                 else:
-                    raise RuntimeError("Couldn't determine a format for your image_data.")
+                    raise RuntimeError("Couldn't determine format for your image_data. (PIL mode = '%s')"%data.mode)
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
@@ -638,8 +646,10 @@ class TextureObject:
                     data_format = gl.GL_RGB
                 elif data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
+                elif data.mode == 'P':
+                    raise NotImplementedError("Paletted images are not supported.")
                 else:
-                    raise RuntimeError("Couldn't determine a format for your image_data.")
+                    raise RuntimeError("Couldn't determine format for your image_data. (PIL mode = '%s')"%data.mode)
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
@@ -657,7 +667,7 @@ class TextureObject:
             if not offset_tuple:
                 offset_tuple = (0,)
             if (offset_tuple[0] + data.shape[0]) > previous_mipmap_array['width']:
-                raise TextureTooLargeException("put_sub_image trying to exceed previous width.")
+                raise TextureTooLargeError("put_sub_image trying to exceed previous width.")
             raw_data = data.astype(Numeric.UnsignedInt8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
@@ -763,7 +773,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                     self.texture.load( self.texture_object,
                                        build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
-                except TextureTooLargeError,x:
+                except TextureTooLargeError:
                     self.texture.make_half_size()
                     resized = 1
             if resized:
@@ -854,7 +864,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                     self.texture.load( self.texture_object,
                                        build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
-                except TextureTooLargeError,x:
+                except TextureTooLargeError:
                     self.texture.make_half_size()
                     resized = 1
             if resized:
@@ -947,7 +957,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                     self.texture.load( self.texture_object,
                                        build_mipmaps = self.constant_parameters.mipmaps_enabled )
                     loaded_ok = 1
-                except TextureTooLargeError,x:
+                except TextureTooLargeError:
                     self.texture.make_half_size()
                     resized = 1
             if resized:
