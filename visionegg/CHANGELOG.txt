@@ -1,3 +1,20 @@
+Changes for 0.9.2:
+------------------
+
+Maximum priority (with various options) can be set on Mac OS X.
+
+Frame swap sync with vertical retrace support added to Mac OS X.
+
+Friendly binary installer for Mac OS X, especially useful since now
+Mac OS X code requires compilation.
+
+Added SYNC_SWAP, RECORD_TIMES, HIDE_MOUSE, and FRAMELESS_WINDOW
+options.
+
+Textures now use mipmaps by default.
+
+Minor: Improvements to check-config.py
+
 Changes for 0.9.1:
 ------------------
 
