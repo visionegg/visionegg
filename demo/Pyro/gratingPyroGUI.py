@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""GUI panel for control of GratingExamplePyroServer"""
+"""GUI panel for control of gratingPyroServer"""
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms
 # of the GNU Lesser General Public License (LGPL).

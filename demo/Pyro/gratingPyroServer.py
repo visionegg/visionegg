@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-"""Create sinusoidal grating stimulus and allow control with GratingExamplePyroGUI
+"""Create sinusoidal grating stimulus and allow control with gratingPyroGUI
 
 You will need to have a Pyro Name Server running on your network for
 this to work.  It comes with the Pyro distribution as a script in the
 bin directory called ns.  Run it, run this script, and then run
-GratingExamplePyroGUI.py from any computer on your network!
+gratingPyroGUI.py from any computer on your network.
 
 """
+
+# Copyright (c) 2002 Andrew Straw.  Distributed under the terms
+# of the GNU Lesser General Public License (LGPL).
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
