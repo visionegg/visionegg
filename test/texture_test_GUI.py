@@ -100,8 +100,36 @@ class TextureTestFrame(Tkinter.Frame):
         tex_buf.free()
 
     def do_resident_textures(self):
-        print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
         print "Not implemented yet!"
+        glEnable( GL_TEXTURE_2D )
+        print "Using texture from file: %s (Not really, yet)"%self.image_file.get()
+        VisionEgg.video_info.tex_compress = self.tex_compression.get()
+        orig =  VisionEgg.Texture(size=(int(self.tex_width.get()),int(self.tex_height.get()))) 
+
+        texs = []
+        tex_ids = []
+        tex_bufs = []
+        
+        done = 0
+        counter = 0
+        while not done:
+            counter = counter + 1
+            tex_ids.append( orig.load() ) 
+            tex_bufs.append( orig.get_texture_buffer() )
+
+            answers = glAreTexturesResident( tex_ids )
+            if type(answers) != type([1,2]):
+                answers = list([answers])
+            for answer in answers:
+                if answer == 0:
+                    done = 1 # loop until one of the textuers isn't resident
+            max_within_reason = 50
+            if counter > max_within_reason:
+                print "Stopping glAreTexturesResident() test -- Over %d textures are reported resident!"%max_within_reason
+                done = 1
+        print "%d textures were reported resident, but %d were not."%(counter-1,counter)
+        for buf in tex_bufs:
+            buf.free()
 
     def set_tex_compression(self):
         """Callback for tick button"""
