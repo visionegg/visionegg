@@ -1,3 +1,31 @@
+Changes for 0.9.4:
+------------------
+Major features:
+Complete electrophysiology application (see below)
+Luminance and color calibration possible
+Constant visual angle (perspective-distorted) grating stimulus added
+Constant visual angle (perspective-distorted) gaussian and circular windows added
+3D texture-mapped sphere stimulus added
+Random dot stimulus added
+Texture module re-written for ease-of-use, clarity, and support of dynamic texture updating
+Color grating stimulus added
+Support for plaids added
+Masks for gratings and textures implemented using multitexturing - uses high bit depth available there on some hardware
+Vision Egg Programmer's Manual created
+Many more minor features and bug fixes
+
+New electrophysiology application features:
+Complete application with ready-to-run experiments
+Application extendible with new experiments by modifying example experiments
+Full-screen graphics possible with "server" application, GUI client controls experiments over TCP
+Automated sequence control, including sequences-of-sequences
+Stimulus onset timing calibration / verification support
+3D position / perspective-distortion calibration support
+Parameters saved during experiments as Python or Matlab scripts
+Complete configurations can be saved and restored from file
+
+All code written for the 0.9.3 release should continue to run on the 0.9.4 release.  (There may be some slight changes in functionality due to bug fixes.)
+
 Changes for 0.9.3:
 ------------------
 
