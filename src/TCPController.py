@@ -1,16 +1,40 @@
 """Allows control of parameter values over the network.
 
-This code has not been optimized for speed, and I think it is unwise
-to attempt to change the value of controllers in realtime.  In other
-words, do not design an experiment where, on a remote computer, you
-have determined that a certain amount of time has passed, and you
-require a certain new controller value NOW.  In this case, it would be
-better to use parameter=eval_str() with an if statement involving time.
+Don't use for realtime control unless you think your network is that
+fast and reliable. Also, this code has not been optimized for speed,
+and I think it is unwise to attempt to change the value of controllers
+in realtime.  In other words, do not design an experiment where, on a
+remote computer, you have determined that a certain amount of time has
+passed, and you require a certain new controller value NOW.  In this
+case, it would be better to use parameter=eval_str() with an if
+statement involving time.
 
-The following are examples of how to change the controller for "name".
+To control parameters over a network, start a server with an instance
+of TCPServer.  The server spawns an instance of SocketListenController
+for each connected socket.  (Most commonly you will only want
+connection over a single socket.)  The instance of
+SocketListenController handles all communication for that connection
+and serves as a container and (meta) controller for instances of
+TCPController.
 
-name=const(1.0,0.0,Types.Floattype,Time_sec_absolute,Every_frame)
-name=eval_str("t*360.0","0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
+This module contains ABSOLUTELY NO SECURITY FEATURES, and could easily
+allow arbitrary execution of code on your computer. For this reason,
+if you use this module, I recommend operating behind a firewall. This
+could be an inexpensive "routing switch" used for cable modems, which
+would provide the added benefit that your local network would be
+isolated.  This would elimate all traffic not to or from computers on
+the switch and therefore reduce/eliminate packet collisions,
+incraseing latency, and providing a network performance and
+reliability. To address security concerns, you could also write code
+that implements IP address checking or other security
+features. (Hopefully contributing it back to the Vision Egg!)
+
+Classes:
+
+TCPServer -- TCP server to create SocketListenControllers upon connection
+SocketListenController -- Handle connection from remote machine, control TCPControllers
+TCPController -- Control a parameter from a network (TCP) connection
+
 """
 
 # Copyright (c) 2002 Andrew Straw.  Distributed under the terms
@@ -32,11 +56,21 @@ __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class TCPServer:
+    """TCP server creates SocketListenController upon connect
+
+    Public methods:
+
+    create_listener_once_connected -- wait and spawn listener
+
+    """
     def __init__(self,
-                 hostname="localhost",
+                 hostname="",
                  port=7834,
                  single_socket_but_reconnect_ok=0,
                  dialog_ok=1):
+        """Bind to hostname and port, but don't listen yet.
+
+        """
         server_address = (hostname,port)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(server_address)
@@ -46,6 +80,7 @@ class TCPServer:
             self.dialog_ok = 0
         
     def create_listener_once_connected(self):
+        """Wait for connection and spawn instance of SocketListenController."""
         VisionEgg.Core.message.add(
             """Awaiting connection to TCP Server at %s"""%(self.server_socket.getsockname(),),
             level=VisionEgg.Core.Message.INFO)
@@ -88,10 +123,45 @@ class TCPServer:
             return SocketListenController(client)
 
 class SocketListenController(VisionEgg.Core.Controller):
+    r"""Handle connection from remote machine, control TCPControllers.
+
+    This meta controller handles a TCP socket to control zero to many
+    instances of TCPController.  As a subclass of Controller, it gets
+    called at specified moments in time via the Presentation
+    class. When called in this way, it checks for any strings from the
+    TCP socket.  It parses this information into a command or fails
+    and sends an error. Commands are always on a single line.
+    (Although newlines can be specified via "\n" without the quotes.)
+
+    TCP commands:
+    
+    close -- close the connection
+    exit -- close the connection
+    quit -- quit the server program
+    <name>=const(...) -- assign a new ConstantController to <name>
+    <name>=eval_str(...) -- assign a new EvalStringController to <name>
+    <name>=exec_str(...) -- assign a new ExecStringController to <name>
+
+    Public methods:
+    
+    create_tcp_controller -- spawn a new TCPController
+    send_raw_text -- send text over the TCP socket
+
+    Example commands from TCP port (try with telnet):
+
+    name=const(1.0)
+    name=const("t*360.0")
+    name=exec_str("x=t*360.0")
+
+    name=const(1.0,0.0,types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
+    name=eval_str("t*360.0","0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
+    name=exec_str("x=t*360.0","x=0.0",types.FloatType,TIME_SEC_ABSOLUTE,EVERY_FRAME)
+
+    """
     re_line = re.compile(r"(?:^(.*)\n)+",re.MULTILINE)
-    re_const = re.compile(r'const\(\s?(.*)\s?(?:,\s?(.*)\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
-    re_eval_str = re.compile(r'eval_str\(\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
-    re_exec_str = re.compile(r'exec_str\(\s?(\*)?\s?"(.*)"\s?(?:,\s?"(.*)"\s?(?:,\s?(.*)\s?(?:\,\s?(.*)\s?(?:,\s?(.*)\s?)?)?)?)?\)',re.DOTALL)
+    re_const = re.compile(r'const\(\s?(.*?)\s?(?:,\s?(.*?)\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?)?\)',re.DOTALL)
+    re_eval_str = re.compile(r'eval_str\(\s?"(.*?)"\s?(?:,\s?"(.*?)"\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?a)?\)',re.DOTALL)
+    re_exec_str = re.compile(r'exec_str\(\s?(\*)?\s?"(.*?)"\s?(?:,\s?"(.*?)"\s?(?:,\s?(.*?)\s?(?:\,\s?(.*?)\s?(?:,\s?(.*?)\s?)?)?)?)?\)',re.DOTALL)
     re_x_finder = re.compile(r'\A|\Wx\s?=[^=]')
     def __init__(self,
                  socket,
@@ -99,6 +169,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                  server_socket = None, # Only needed if reconnecting ok
                  temporal_variable_type = VisionEgg.Core.Controller.TIME_SEC_ABSOLUTE,
                  eval_frequency = VisionEgg.Core.Controller.EVERY_FRAME):
+        """Instantiated by TCPServer."""
         VisionEgg.Core.Controller.__init__(self,
                                            return_type = types.NoneType,
                                            temporal_variable_type = temporal_variable_type,
@@ -126,6 +197,7 @@ class SocketListenController(VisionEgg.Core.Controller):
         self.names = {} # ( controller, name_re, parser, require_type )
 
     def send_raw_text(self,text):
+        """Send text over the TCP socket."""
         self.socket.send(text)
 
     def __check_socket(self):
@@ -163,7 +235,7 @@ class SocketListenController(VisionEgg.Core.Controller):
                     # Now act based on the command parsed
                     command = self.last_command[tcp_name]
                     if command is not None:
-                        self.__do_command(tcp_name,command,require_type)
+                        self.__do_assignment_command(tcp_name,command,require_type)
                         self.last_command[tcp_name] = None
                 # Clear any complete lines for which we don't have a tcp_name
                 self.buffer = SocketListenController.re_line.sub(self.__unknown_line,self.buffer)
@@ -202,6 +274,17 @@ class SocketListenController(VisionEgg.Core.Controller):
                               tcp_name=None,
                               initial_controller=None,
                               require_type=None):
+        """Create new instance of TCPController.
+
+        Arguments:
+
+        tcp_name -- String to reference new TCPController over TCP
+
+        Optional arguments:
+        
+        initial_controller -- Initial value of TCPController instance
+        require_type -- force this as TCPController instance's return_type
+        """
         class Parser:
             def __init__(self,tcp_name,most_recent_command):
                 self.tcp_name = tcp_name
@@ -242,7 +325,7 @@ class SocketListenController(VisionEgg.Core.Controller):
         self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
         return controller
     
-    def __do_command(self,tcp_name,command,require_type):
+    def __do_assignment_command(self,tcp_name,command,require_type):
         new_contained_controller = None
         command = string.replace(command,r"\n","\n") # allow newline encoding
         match = SocketListenController.re_const.match(command)
@@ -337,24 +420,38 @@ class SocketListenController(VisionEgg.Core.Controller):
             controller.set_value(new_contained_controller)
 
     def during_go_eval(self):
+        """Check socket and act accordingly. Called by instance of Presentation.
+
+        Overrides base class Controller method."""
         self.__check_socket()
         return None
 
     def between_go_eval(self):
+        """Check socket and act accordingly. Called by instance of Presentation.
+
+        Overrides base class Controller method."""
         self.__check_socket()
         return None   
 
 class TCPController(VisionEgg.Core.Controller):
     """Control a parameter from a network (TCP) connection.
 
-    SocketListenController"""
+    Subclass of Controller to allow control of Parameters via the
+    network.
+
+    """
     # Contains another controller...
     def __init__(self, tcp_name, contained_controller):
+        """Instantiated by SocketListenController.
+
+        Users should create instance by using method
+        create_tcp_controller of class SocketListenController."""
         self.tcp_name = tcp_name
         self.contained_controller = contained_controller
         self.__sync_mimic()
 
     def set_value(self,new_contained_controller):
+        """Called by SocketListenController."""
         self.contained_controller = new_contained_controller
         self.__sync_mimic()
 
@@ -365,9 +462,11 @@ class TCPController(VisionEgg.Core.Controller):
         self.eval_frequency = self.contained_controller.eval_frequency
         
     def during_go_eval(self):
+        """Called by Presentation. Overrides method in Controller base class."""
         self.contained_controller.temporal_variable = self.temporal_variable
         return self.contained_controller.during_go_eval()
 
     def between_go_eval(self):
+        """Called by Presentation. Overrides method in Controller base class."""
         self.contained_controller.temporal_variable = self.temporal_variable
         return self.contained_controller.between_go_eval()
