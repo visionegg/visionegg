@@ -71,7 +71,7 @@ static_checkerboard = TextureStimulus(texture=static_texture,
 
 fixation_spot = FixationSpot(center=(screen.size[0]/2,screen.size[1]/2),
                              color=(255,0,0,0),
-                             size=(2*scale,2*scale))
+                             size=(4,4))
 
 viewport = Viewport(screen=screen,
                     stimuli=[static_checkerboard,
