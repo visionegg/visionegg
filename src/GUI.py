@@ -23,14 +23,17 @@ class showexception(Tkinter.Frame):
     """A window that shows a string and has a quit button."""
     def __init__(self,exc_type, exc_value, traceback_str):
         title="Vision Egg: exception caught"
-        type_str = "Caught %s"%(str(exc_type),)
-        value_str = str(exc_value)
+
+        first_str = "This program is terminating abnormally because\nan unhandled exception was caught."
+        
+        type_value_str = "%s: %s"%(str(exc_type),str(exc_value))
         Tkinter.Frame.__init__(self,borderwidth=20)
         self.pack()
         self.winfo_toplevel().title(title)
         
-        Tkinter.Label(self,text=type_str).pack()
-        Tkinter.Label(self,text=value_str).pack()
+        Tkinter.Label(self,text=first_str).pack()
+        Tkinter.Label(self,text=type_value_str).pack()
+        Tkinter.Label(self,text="Traceback (most recent call last):").pack()
         Tkinter.Label(self,text=traceback_str).pack()
         
         b = Tkinter.Button(self,text="Quit",command=self.close_window)
@@ -147,8 +150,11 @@ class OpenScreenDialog(Tkinter.Frame):
                           text="Log file location: (stderr console)").pack()
 
         # Start button
-        Tkinter.Button(self,text="start",command=self.start).pack()
-        
+        b = Tkinter.Button(self,text="start",command=self.start)
+        b.pack()
+        b.focus_force()
+        b.bind('<Return>',self.start)
+       
     def start(self):
         
         VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ = float(self.frame_rate.get())
