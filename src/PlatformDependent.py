@@ -147,7 +147,7 @@ def set_priority(*args,**kw):
         win32_maxpriority.set_self_thread_priority(
             win32_maxpriority.THREAD_PRIORITY_HIGHEST)
         
-    elif sys.platform in ['linux','irix','posix']:
+    elif sys.platform in ['linux2','irix','posix']:
         import posix_maxpriority
 
         policy = posix_maxpriority.SCHED_FIFO

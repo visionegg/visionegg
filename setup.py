@@ -56,7 +56,7 @@ if not skip_c_compilation:
         ext_modules.append(Extension(name='_win32_maxpriority',
                                      sources=['src/win32_maxpriority.c',
                                               'src/win32_maxpriority_wrap.c']))
-    elif sys.platform in ['linux','irix','posix']:
+    elif sys.platform in ['linux2','irix','posix']:
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
                                               'src/posix_maxpriority_wrap.c']))
