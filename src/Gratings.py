@@ -106,6 +106,7 @@ class SinGrating2D(LuminanceGratingCommon):
         inc = w/float(self.parameters.num_samples)
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -142,6 +143,7 @@ class SinGrating2D(LuminanceGratingCommon):
         inc = w/float(self.parameters.num_samples)
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         return texel_data
 
@@ -153,6 +155,7 @@ class SinGrating2D(LuminanceGratingCommon):
         inc = w/float(self.parameters.num_samples)
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         raw_array = (floating_point_sin*self.max_int_val).astype(self.numeric_type)
         return raw_array
 
@@ -178,6 +181,7 @@ class SinGrating2D(LuminanceGratingCommon):
             inc = w/float(self.parameters.num_samples)
             phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
@@ -252,6 +256,7 @@ class SinGrating2DSquareSidesFast(LuminanceGratingCommon):
         inc = w/float(self.parameters.num_samples)
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -317,6 +322,7 @@ class SinGrating2DSquareSidesFast(LuminanceGratingCommon):
             inc = w/float(self.parameters.num_samples)
             phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*Numeric.arange(0.0,w,inc,'d')+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
@@ -397,6 +403,7 @@ class SinGrating2DSquareSidesSlow(LuminanceGratingCommon):
         self.__remake_phase_array()
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*self.base_phase_array+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -473,6 +480,7 @@ class SinGrating2DSquareSidesSlow(LuminanceGratingCommon):
                 self.__remake_phase_array()
             phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*-360.0 + self.parameters.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq*self.base_phase_array+(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         
             gl.glTexSubImage2D(gl.GL_TEXTURE_2D, # target
@@ -544,6 +552,7 @@ class SinGrating3D(LuminanceGratingCommon):
         inc = 360.0/float(self.parameters.num_samples)
         phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*360.0 + self.parameters.phase_at_t0
         floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
         texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -597,6 +606,7 @@ class SinGrating3D(LuminanceGratingCommon):
             inc = 360.0/float(self.parameters.num_samples)
             phase = (VisionEgg.timing_func() - self.parameters.t0_time_sec_absolute)*self.parameters.temporal_freq_hz*360.0 + self.parameters.phase_at_t0
             floating_point_sin = Numeric.sin(2.0*math.pi*self.parameters.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*self.parameters.contrast+0.5
+            floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
             texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
         
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
