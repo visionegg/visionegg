@@ -52,7 +52,7 @@ class ScrollListFrame(Tkinter.Frame):
     def __init__(self,master=None,list_of_contained_objects=None,contained_objectbject_maker=None,
                  container_class=ContainedObjectBase,
                  **cnf):
-        apply(Tkinter.Frame.__init__, (self, master,), cnf)
+        Tkinter.Frame.__init__(self, master, **cnf)
         if list_of_contained_objects is None:
             self.list = []
         else:
@@ -118,8 +118,8 @@ class ScrollListFrame(Tkinter.Frame):
         self.update_now()
 
     def delegate_hscroll(self,*args,**kw):
-        apply(self.frame.title.xview,args,kw)
-        apply(self.frame.list.xview,args,kw)
+        self.frame.title.xview(*args,**kw)
+        self.frame.list.xview(*args,**kw)
         
     def get_list_uncontained(self):
         results = []
@@ -242,7 +242,7 @@ class Loop(VisionEgg.ClassWithParameters):
                                'rest_duration_sec':(1.0,
                                                     types.FloatType)}
     def __init__(self,**kw):
-        apply(VisionEgg.ClassWithParameters.__init__,(self,),kw)
+        VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.num_done = 0
     def is_done(self):
         return self.num_done >= len(self.parameters.sequence)
@@ -277,7 +277,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
             del kw['orig_values']
         else:
             self.orig_values = None
-        return apply( tkSimpleDialog.Dialog.__init__, (self,)+args, kw )
+        return tkSimpleDialog.Dialog.__init__(*(self,)+args, **kw )
         
     def body(self,master):
         Tkinter.Label(master,
@@ -521,7 +521,7 @@ class LoopParamDialog(tkSimpleDialog.Dialog):
 def get_server():
     class ConnectWindow(Tkinter.Frame):
         def __init__(self,master=None,hostname="",port=7766,**kw):
-            apply( Tkinter.Frame.__init__, (self,master), kw)
+            Tkinter.Frame.__init__(self,master, **kw)
             self.winfo_toplevel().title("EPhysGUI Connect - Vision Egg")
             current_row = 0
             Tkinter.Message(self,\
@@ -568,7 +568,7 @@ class GammaFrame(Tkinter.Frame):
     def __init__(self,
                  master=None,
                  ephys_server=None,**kw):
-        apply(Tkinter.Frame.__init__,(self,master),kw)
+        Tkinter.Frame.__init__(self,master,**kw)
         self.winfo_toplevel().title("Gamma - Vision Egg")
         self.ephys_server = ephys_server
         
@@ -658,10 +658,14 @@ class GammaFrame(Tkinter.Frame):
         except:
             self.success_label.configure(text="Calculation error")
             raise
-        if self.ephys_server.set_gamma_ramp(red,green,blue):
-            self.success_label.configure(text="Success")
-        else:
-            self.success_label.configure(text="Failed")
+        try:
+            if self.ephys_server.set_gamma_ramp(red,green,blue):
+                self.success_label.configure(text="Success")
+            else:
+                self.success_label.configure(text="Failed: Invalid gamma values?")
+        except Exception,x:
+            self.success_label.configure(text="Failed: %s: %s"%(x.__class__,str(x)))
+            raise
 
     def set_monitor_default(self, dummy_arg=None):
         self.success_label.configure(text="Setting...")
@@ -672,10 +676,14 @@ class GammaFrame(Tkinter.Frame):
             raise
         green = red
         blue = red
-        if self.ephys_server.set_gamma_ramp(red,green,blue):
-            self.success_label.configure(text="Success")
-        else:
-            self.success_label.configure(text="Failed")
+        try:
+            if self.ephys_server.set_gamma_ramp(red,green,blue):
+                self.success_label.configure(text="Success")
+            else:
+                self.success_label.configure(text="Failed: Invalid gamma values?")
+        except Exception,x:
+            self.success_label.configure(text="Failed: %s: %s"%(x.__class__,str(x)))
+            raise
 
     def set_from_file(self):
         self.success_label.configure(text="Setting...")
@@ -704,11 +712,64 @@ class GammaFrame(Tkinter.Frame):
         if len(gamma_values) != 256:
             self.success_label.configure(text="File error")
             raise RuntimeError("expected 256 gamma entries")
-        red, green, blue = apply(zip,gamma_values)
-        if self.ephys_server.set_gamma_ramp(red,green,blue):
-            self.success_label.configure(text="Success")
-        else:
-            self.success_label.configure(text="Failed")
+        red, green, blue = zip(*gamma_values)
+        try:
+            if self.ephys_server.set_gamma_ramp(red,green,blue):
+                self.success_label.configure(text="Success")
+            else:
+                self.success_label.configure(text="Failed: Invalid gamma values?")
+        except Exception,x:
+            self.success_label.configure(text="Failed: %s: %s"%(x.__class__,str(x)))
+            raise
+            
+class ImageSequenceLauncher(Tkinter.Toplevel):
+    def __init__(self,master=None,ephys_server=None,**cnf):
+        Tkinter.Toplevel.__init__(self,master,**cnf)
+        self.ephys_server = ephys_server
+
+        row = 0
+        Tkinter.Label(self,text="Frames per second").grid(row=row,column=0)
+        self.fps_var = Tkinter.DoubleVar()
+        self.fps_var.set(12.0)
+        Tkinter.Entry(self,textvariable=self.fps_var).grid(row=row,column=1)
+        row += 1
+        Tkinter.Label(self,text="Filename base").grid(row=row,column=0)
+        self.filename_base = Tkinter.StringVar()
+        self.filename_base.set("im")
+        Tkinter.Entry(self,textvariable=self.filename_base).grid(row=row,column=1)
+        row += 1
+        Tkinter.Label(self,text="Filename suffix").grid(row=row,column=0)
+        self.filename_suffix = Tkinter.StringVar()
+        self.filename_suffix.set(".tif")
+        Tkinter.Entry(self,textvariable=self.filename_suffix).grid(row=row,column=1)
+        row += 1
+        Tkinter.Label(self,text="Save directory on server").grid(row=row,column=0)
+        self.server_save_dir = Tkinter.StringVar()
+        self.server_save_dir.set(".")
+        Tkinter.Entry(self,textvariable=self.server_save_dir).grid(row=row,column=1)
+        self.ephys_server = ephys_server
+        row += 1
+        self.make_new_dir = Tkinter.BooleanVar()
+        self.make_new_dir.set(0)
+        Tkinter.Checkbutton(self,
+                            text="OK to make new directory on server",
+                            variable=self.make_new_dir).grid(row=row,column=0,columnspan=2)
+        row += 1
+        Tkinter.Button(self,text="Save movie",command=self.do_it).grid(row=row,column=0,columnspan=2)
+        self.focus_set()
+        self.grab_set()
+    def do_it(self):
+        fps = self.fps_var.get()
+        filename_base = self.filename_base.get()
+        filename_suffix = self.filename_suffix.get()
+        server_save_dir = self.server_save_dir.get()
+        make_new_dir = self.make_new_dir.get()
+        self.ephys_server.save_image_sequence(fps=fps,
+                                              filename_base=filename_base,
+                                              filename_suffix=filename_suffix,
+                                              save_dir=server_save_dir,
+                                              make_new_dir=make_new_dir)
+        self.destroy()
         
 class AppWindow(Tkinter.Frame):
     def __init__(self,
@@ -718,7 +779,7 @@ class AppWindow(Tkinter.Frame):
                  server_port=7766,
                  **cnf):
         # create myself
-        apply(Tkinter.Frame.__init__, (self,master), cnf)
+        Tkinter.Frame.__init__(self,master, **cnf)
         self.winfo_toplevel().title("EPhysGUI - Vision Egg")
 
         self.client_list = client_list
@@ -746,8 +807,10 @@ class AppWindow(Tkinter.Frame):
         self.bar.file_menu = Tkinter.Menu(self.bar, name="file_menu")
         self.bar.add_cascade(label="File",menu=self.bar.file_menu)
 
+        self.bar.file_menu.add_command(label='Save image sequence...', command=self.save_image_sequence)
         self.bar.file_menu.add_command(label='Save configuration file...', command=self.save_config)
         self.bar.file_menu.add_command(label='Load configuration file...', command=self.load_config)
+        self.bar.file_menu.add_command(label='Load auto-saved .py parameter file...', command=self.load_params)
         self.bar.file_menu.add_command(label='Quit', command=self.quit)
         
         stimkey = self.ephys_server.get_stimkey()
@@ -879,7 +942,7 @@ class AppWindow(Tkinter.Frame):
 
         self.stim_frame = control_frame_klass(self,suppress_go_buttons=1)
         self.stim_frame.connect(self.server_hostname,self.server_port)
-        apply( self.stim_frame.grid, [], self.stim_frame_cnf )
+        self.stim_frame.grid( **self.stim_frame_cnf )
         
         global loopable_variables
         loopable_variables = self.stim_frame.get_loopable_variable_names()
@@ -889,9 +952,11 @@ class AppWindow(Tkinter.Frame):
             del self.loop_frame
         self.loop_frame = ScrollListFrame(master=self,
                                           container_class=LoopContainedObject)
-        apply( self.loop_frame.grid, [], self.loop_frame_cnf )
+        self.loop_frame.grid( **self.loop_frame_cnf )
 
         self.autosave_basename.set( self.stim_frame.get_shortname() )
+        
+        self.stimulus_tk_var.set( self.stim_frame.get_shortname() ) # set menuitem
 
         self.progress.labelText = "Ready"
         self.progress.updateProgress(0)
@@ -931,11 +996,14 @@ class AppWindow(Tkinter.Frame):
             self.ephys_server.get_stimkey() # wait for server to load
 
             self.switch_to_stimkey( new_stimkey)
-
+            
             #restore cursor
             root["cursor"] = old_cursor
             root.update()
             
+    def save_image_sequence(self):
+        ImageSequenceLauncher(self,ephys_server=self.ephys_server)
+        
     def save_config(self):
         filename = tkFileDialog.asksaveasfilename(
             parent=self,
@@ -965,13 +1033,35 @@ class AppWindow(Tkinter.Frame):
         load_dict = pickle.load(fd)
         if load_dict['stim_type'] != self.stim_frame.get_shortname():
             self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
-            #raise RuntimeError("Configuration file for a different stimulus type.")
         self.loop_frame.list = load_dict['loop_list']
         self.loop_frame.update_now()
         self.stim_frame.set_parameters_dict( load_dict['stim_frame_dict'] )
         self.autosave.set(load_dict['autosave'])
         self.autosave_dir.set(load_dict['autosave_dir'])
         self.autosave_basename.set(load_dict['autosave_basename'])
+        
+        self.stim_frame.update_tk_vars()
+
+    def load_params(self):
+        filename = tkFileDialog.askopenfilename(
+            parent=self,
+            defaultextension=".py",
+            filetypes=[('Auto-saved parameter file','*.py')])
+        if not filename:
+            return
+        locals = {}
+        load_dict = {'__do_not_plot__':1}
+        execfile(filename,locals,load_dict) # execute the file
+        if load_dict['stim_type'] != self.stim_frame.get_shortname():
+            self.change_stimulus(new_stimkey=load_dict['stim_type']+"_server")
+        self.loop_frame.list = [] # clear loop list
+        self.loop_frame.update_now()
+        new_params = {}
+        for param_name in dir(self.stim_frame.meta_params):
+            if param_name[:2] != "__":
+                new_params[param_name] = load_dict[param_name]
+        self.stim_frame.set_parameters_dict( new_params )
+        self.autosave_basename.set(load_dict['stim_type'])
         
         self.stim_frame.update_tk_vars()
 
@@ -1062,7 +1152,7 @@ class AppWindow(Tkinter.Frame):
             
             class LoopInfoFrame(Tkinter.Frame):
                 def __init__(self, master=None, **kw):
-                    apply(Tkinter.Frame.__init__,(self,master),kw)
+                    Tkinter.Frame.__init__(self,master,**kw)
                     Tkinter.Label(self, 
                         text="Doing sequence").grid(row=0,column=0)
                     self.status_tk_var = Tkinter.StringVar()
@@ -1071,6 +1161,7 @@ class AppWindow(Tkinter.Frame):
                     self.cancel_asap = 0
                     Tkinter.Button(self,
                         text="Cancel",command=self.cancel).grid(row=2,column=0)
+                    self.focus_set()
                     self.grab_set()
                 def cancel(self, dummy_arg=None):
                     self.cancel_asap = 1
@@ -1183,19 +1274,19 @@ class AppWindow(Tkinter.Frame):
     def quit(self):
         self.ephys_server.set_quit_status(1)
         # call parent class
-        apply(Tkinter.Frame.quit, (self,))
+        Tkinter.Frame.quit(self)
 
     def destroy(self):
         try:
             self.ephys_server.set_quit_status(1)
         except:
             pass
-        apply(Tkinter.Frame.destroy, (self,))
+        Tkinter.Frame.destroy(self)
         
 class BarButton(Tkinter.Menubutton):
     # Taken from Guido van Rossum's Tkinter svkill demo
         def __init__(self, master=None, **cnf):
-            apply(Tkinter.Menubutton.__init__, (self, master), cnf)
+            Tkinter.Menubutton.__init__(self, master, **cnf)
             self.pack(side=Tkinter.LEFT)
             self.menu = Tkinter.Menu(self, name='menu', tearoff=0)
             self['menu'] = self.menu
