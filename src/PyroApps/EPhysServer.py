@@ -26,12 +26,16 @@ import VisionEgg.PyroApps.FlatGratingServer
 import VisionEgg.PyroApps.SphereGratingServer
 import VisionEgg.PyroApps.SpinningDrumServer
 import VisionEgg.PyroApps.GridServer
+import VisionEgg.PyroApps.ColorCalServer
+
 server_modules = [ VisionEgg.PyroApps.TargetServer,
                    VisionEgg.PyroApps.MouseTargetServer,
                    VisionEgg.PyroApps.FlatGratingServer,
                    VisionEgg.PyroApps.SphereGratingServer,
                    VisionEgg.PyroApps.SpinningDrumServer,
-                   VisionEgg.PyroApps.GridServer ]
+                   VisionEgg.PyroApps.GridServer,
+                   VisionEgg.PyroApps.ColorCalServer,
+                   ]
 
 # 3D screen positioning parameters
 from VisionEgg.PyroApps.ScreenPositionServer import ScreenPositionMetaController
