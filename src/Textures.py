@@ -13,8 +13,15 @@ import VisionEgg
 import VisionEgg.Core
 import Image, ImageDraw                         # Python Imaging Library packages
 import math, types, os
-import OpenGL.GL as gl
 import Numeric
+import OpenGL.GL as gl
+
+import OpenGL.GL.ARB.multitexture
+OpenGL.GL.ARB.multitexture.glInitMultitextureARB()
+for attr in dir(OpenGL.GL.ARB.multitexture):
+    # put attributes from multitexture module in "gl" module dictionary - similar to OpenGL apps in C
+    if attr[0:2] != "__":
+        setattr(gl,attr,getattr(OpenGL.GL.ARB.multitexture,attr))
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
@@ -214,17 +221,20 @@ class Texture:
                     raise RuntimeError("Unexpected shape for self.pixels")
             else:
                 if rescale_original_to_fill_texture_object:
-                    buffer = self.pixels.resize((width_pow2,height_pow2),Image.BICUBIC)
-                    
+                    # reset coverage values
+                    self.buf_lf = 0.0
+                    self.buf_rf = 1.0
+                    self.buf_bf = 0.0
+                    self.buf_tf = 1.0
+
                     self._buf_l = 0
                     self._buf_r = width_pow2
                     self._buf_t = 0
                     self._buf_b = height_pow2
                     
-                    self.buf_lf = 0.0
-                    self.buf_rf = 1.0
-                    self.buf_bf = 0.0
-                    self.buf_tf = 1.0
+                    buffer = self.pixels.resize((width_pow2,height_pow2),Image.BICUBIC)
+
+                    self.size = (width_pow2, height_pow2)
                 else:
                     buffer = Image.new(self.pixels.mode,(width_pow2, height_pow2))
                     buffer.paste( self.pixels, (0,height_pow2-height,width,height_pow2))
@@ -282,9 +292,16 @@ class TextureObject:
                             'positive_y', 'negative_y',
                             'positive_z', 'negative_z']
     
-    def __init__(self,dimensions=2):
+    def __init__(self,
+                 dimensions = 2,
+                 multitexture_unit_num = None): # None if no multitexturing
         if dimensions not in [1,2,3,'cube']:
             raise ValueError("TextureObject dimensions must be 1,2,3, or 'cube'")
+        if multitexture_unit_num is None:
+            self.multitexture_unit = None
+        else:
+            attr_name = "GL_TEXTURE%d_ARB"%multitexture_unit_num
+            self.multitexture_unit = getattr(gl,attr_name)
         # default OpenGL values for these values
         self.min_filter = gl.GL_NEAREST_MIPMAP_LINEAR
         self.mag_filter = gl.GL_LINEAR
@@ -319,35 +336,47 @@ class TextureObject:
         gl.glDeleteTextures(self.gl_id)
 
     def set_min_filter(self, filter):
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_MIN_FILTER,filter)
         self.min_filter = filter
 
     def set_mag_filter(self, filter):
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_MAG_FILTER, filter)
         self.mag_filter = filter
 
     def set_wrap_mode_s(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_S, wrap_mode)
         self.wrap_mode_s = wrap_mode
 
     def set_wrap_mode_t(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_T, wrap_mode)
         self.wrap_mode_t = wrap_mode
 
     def set_wrap_mode_r(self, wrap_mode):
         """Set to GL_CLAMP, GL_CLAMP_TO_EDGE, GL_REPEAT, or GL_CLAMP_TO_BORDER"""
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteri( self.target, gl.GL_TEXTURE_WRAP_R, wrap_mode)
         self.wrap_mode_r = wrap_mode
 
     def set_border_color(self, border_color):
         """Set to a sequence of 4 floats in the range 0.0 to 1.0"""
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture( self.target, self.gl_id)
         gl.glTexParameteriv( self.target, gl.GL_TEXTURE_BORDER_COLOR, border_color)
         self.border_color = border_color
@@ -421,6 +450,8 @@ class TextureObject:
             raise TypeError("Expecting Numeric array or PIL image")
 
         # make myself the active texture
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
 
         # create local mipmap_array data
@@ -640,6 +671,8 @@ class TextureObject:
             raise TypeError("Expecting Numeric array or PIL image")
 
         # make myself the active texture
+        if self.multitexture_unit:
+            gl.glActiveTextureARB(self.multitexture_unit)
         gl.glBindTexture(self.target, self.gl_id)
 
         if self.dimensions != 'cube':
