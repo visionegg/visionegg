@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-DEBUG = 0
-
 import unittest
 import VisionEgg
 import VisionEgg.Core
@@ -19,10 +17,6 @@ import Image
 import ImageDraw
 import os
 import time
-
-if DEBUG:
-    import VisionEgg.GLTrace
-    VisionEgg.Core.gl = VisionEgg.GLTrace
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -165,13 +159,9 @@ class VETestCase(unittest.TestCase):
 
     def test_core_screen_query_refresh_rate(self):
         fps = self.screen.query_refresh_rate()
-        if DEBUG:
-            print fps,"= self.screen.query_refresh_rate()"
 
     def test_core_screen_measure_refresh_rate(self):
         fps = self.screen.measure_refresh_rate()
-        if DEBUG:
-            print fps,"= self.screen.measure_refresh_rate()"
 
     def test_core_refresh_rates_match(self):
         fps1 = self.screen.query_refresh_rate()
@@ -226,9 +216,6 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.draw()
 
     def test_texture_pil(self):
-        if DEBUG:
-            print "test_texture_pil",'*'*80
-        
         width, height = self.screen.size
         orig = Image.new("RGB",(width,height),(255,0,0))
         orig_draw = ImageDraw.Draw(orig)
@@ -257,9 +244,6 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.draw()
 
     def test_texture_stimulus_pil_rgb(self):
-        if DEBUG:
-            print "test_texture_stimulus_pil_rgb",'*'*80
-
         width, height = self.screen.size
         orig = Image.new("RGB",(width,height),(0,255,0))
         orig_draw = ImageDraw.Draw(orig)
@@ -283,9 +267,6 @@ class VETestCase(unittest.TestCase):
         self.failUnless(result.tostring()==orig.tostring(),'exact texture stimulus reproduction with PIL RGB textures failed')
 
     def test_texture_stimulus_pil_rgba(self):
-        if DEBUG:
-            print "test_texture_stimulus_pil_rgba",'*'*80
-
         width, height = self.screen.size
         
         # Note: all alpha should be 255 (=OpenGL 1.0) for this test to
@@ -317,9 +298,6 @@ class VETestCase(unittest.TestCase):
         self.failUnless(result.tostring()==orig.tostring(),'exact texture stimulus reproduction with PIL RGBA textures failed')
 
     def test_texture_stimulus_numpy_rgb(self):
-        if DEBUG:
-            print "test_texture_stimulus_numpy_rgb",'*'*80
-        
         width, height = self.screen.size
 
         orig = Numeric.zeros((height,width,3),Numeric.UnsignedInt8)
@@ -335,8 +313,6 @@ class VETestCase(unittest.TestCase):
         texture_stimulus = VisionEgg.Textures.TextureStimulus(
             texture = VisionEgg.Textures.Texture(orig),
             internal_format = gl.GL_RGB,
-            texture_min_filter = gl.GL_NEAREST, # XXX shouldn't have to do this!
-            texture_mag_filter = gl.GL_NEAREST, # XXX shouldn't have to do this!
             position = (0,0),
             anchor = 'lowerleft',
             mipmaps_enabled = False, # not (yet?) supported for Numeric arrays
@@ -345,28 +321,12 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.parameters.stimuli = [ texture_stimulus ]
         self.ortho_viewport.draw()
         result = self.screen.get_framebuffer_as_array(format=gl.GL_RGB)
-        if DEBUG:
-            print "low low"
-            print orig[:10,:10,0]
-            print result[:10,:10,0]
-            print "low high"
-            print orig[:10,-10:,0]
-            print result[:10,-10:,0]
-            print "high low"
-            print orig[-10:,:10,0]
-            print result[-10:,:10,0]
-            print "high high"
-            print orig[-10:,-10:,0]
-            print result[-10:,-10:,0]
         orig_test = orig.astype(Numeric.Int) # allow signed addition
         result_test = result.astype(Numeric.Int) # allow signed addition
         abs_diff = sum(abs(Numeric.ravel(orig_test) - Numeric.ravel(result_test)))
         self.failUnless(abs_diff == 0,'exact texture reproduction with Numeric RGB textures failed')
         
     def test_texture_stimulus_numpy_rgba(self):
-        if DEBUG:
-            print "test_texture_stimulus_numpy_rgba",'*'*80
-        
         width, height = self.screen.size
 
         orig = Numeric.zeros((height,width,4),Numeric.UnsignedInt8)
@@ -393,8 +353,6 @@ class VETestCase(unittest.TestCase):
         texture_stimulus = VisionEgg.Textures.TextureStimulus(
             texture = VisionEgg.Textures.Texture(orig),
             internal_format = gl.GL_RGBA,
-            texture_min_filter = gl.GL_NEAREST, # XXX shouldn't have to do this!
-            texture_mag_filter = gl.GL_NEAREST, # XXX shouldn't have to do this!
             position = (0,0),
             anchor = 'lowerleft',
             mipmaps_enabled = False, # not (yet?) supported for Numeric arrays
@@ -404,22 +362,11 @@ class VETestCase(unittest.TestCase):
         self.ortho_viewport.draw()
         result = self.screen.get_framebuffer_as_array(format=gl.GL_RGBA)
 
-        if DEBUG:
-            print "low low"
-            print orig[:10,:10,0]
-            print result[:10,:10,0]
-            print "low high"
-            print orig[:10,-10:,0]
-            print result[:10,-10:,0]
-            print "high low"
-            print orig[-10:,:10,0]
-            print result[-10:,:10,0]
-            print "high high"
-            print orig[-10:,-10:,0]
-            print result[-10:,-10:,0]
         orig_test = orig.astype(Numeric.Int) # allow signed addition
         result_test = result.astype(Numeric.Int) # allow signed addition
+
         abs_diff = sum(abs(Numeric.ravel(orig_test) - Numeric.ravel(result_test)))
+        
         self.failUnless(abs_diff == 0,'exact texture reproduction with Numeric RGBA textures failed')
         
 def suite():
