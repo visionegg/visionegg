@@ -1353,7 +1353,7 @@ class ExecStringController(Controller):
                 exec during_go_exec_string in self.eval_globals,eval_locals
                 test_result = eval_locals['x']
             else:
-                exec during_go_exec_string in self.eval_globals,eval_locals
+                exec during_go_exec_string
                 test_result = x
             kw['return_type'] = type(test_result)
         
