@@ -15,6 +15,13 @@ from VisionEgg.Text import *
 from math import *
 import pygame
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+
 #################################
 #  Initialize the various bits  #
 #################################
@@ -57,40 +64,40 @@ target_w = 50.0
 target_h = 10.0
 
 # key state
-up = 0
-down = 0
-left = 0
-right = 0
+up = False
+down = False
+left = False
+right = False
 
 # The main loop below is an alternative to using the
-# VisionEgg.Core.Presentation class.
+# VisionEgg.FlowControl.Presentation class.
 
-quit_now = 0
+quit_now = False
 frame_timer = FrameTimer()
 while not quit_now:
     for event in pygame.event.get():
         if event.type == pygame.locals.QUIT:
-            quit_now = 1
+            quit_now = True
         elif event.type == pygame.locals.KEYDOWN:
             if event.key == pygame.locals.K_ESCAPE:
-                quit_now = 1
+                quit_now = True
             elif event.key == pygame.locals.K_UP:
-                up = 1
+                up = True
             elif event.key == pygame.locals.K_DOWN:
-                down = 1
+                down = True
             elif event.key == pygame.locals.K_RIGHT:
-                right = 1
+                right = True
             elif event.key == pygame.locals.K_LEFT:
-                left = 1
+                left = True
         elif event.type == pygame.locals.KEYUP:
             if event.key == pygame.locals.K_UP:
-                up = 0
+                up = False
             elif event.key == pygame.locals.K_DOWN:
-                down = 0
+                down = False
             elif event.key == pygame.locals.K_RIGHT:
-                right = 0
+                right = False
             elif event.key == pygame.locals.K_LEFT:
-                left = 0
+                left = False
 
     just_current_pos = mouse_position
     (x,y) = pygame.mouse.get_pos()
