@@ -30,42 +30,8 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                                'slices':(30,types.IntType),
                                'stacks':(30,types.IntType)}
 
-    def __init__(self,texture=None,shrink_texture_ok=0,**kw):
+    def __init__(self,**kw):
         apply(VisionEgg.Textures.TextureStimulusBaseClass.__init__,(self,),kw)
-
-        # Create an OpenGL texture object this instance "owns"
-        self.texture_object = VisionEgg.Textures.TextureObject(dimensions=2)
-
-        # Get texture data that goes into texture object
-        if not isinstance(texture,VisionEgg.Textures.Texture):
-            texture = VisionEgg.Textures.Texture(texture)
-        self.texture = texture
-
-        if not shrink_texture_ok:
-            # send texture to OpenGL
-            self.texture.load( self.texture_object,
-                               build_mipmaps = self.constant_parameters.mipmaps_enabled )
-        else:
-            max_dim = gl.glGetIntegerv( gl.GL_MAX_TEXTURE_SIZE )
-            resized = 0
-            while max(self.texture.size) > max_dim:
-                self.texture.make_half_size()
-                resized = 1
-            loaded_ok = 0
-            while not loaded_ok:
-                try:
-                    # send texture to OpenGL
-                    self.texture.load( self.texture_object,
-                                       build_mipmaps = self.constant_parameters.mipmaps_enabled )
-                    loaded_ok = 1
-                except VisionEgg.Textures.TextureTooLargeError,x:
-                    self.texture.make_half_size()
-                    resized = 1
-                    if resized:
-                        VisionEgg.Core.message.add(
-                            "Resized texture in %s to %d x %d"%(
-                            str(self),self.texture.size[0],self.texture.size[1]),VisionEgg.Core.Message.WARNING)
-                                                            
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
         
@@ -73,13 +39,13 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
 
-        s_gain = self.texture.buf_rf - self.texture.buf_lf
-        t_gain = self.texture.buf_bf - self.texture.buf_tf
-
-        s_offs = self.texture.buf_lf
-        t_offs = self.texture.buf_tf
-        
         p = self.parameters
+
+        s_gain = p.texture.buf_rf - p.texture.buf_lf
+        t_gain = p.texture.buf_bf - p.texture.buf_tf
+
+        s_offs = p.texture.buf_lf
+        t_offs = p.texture.buf_tf
 
         gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
         gl.glBegin(gl.GL_QUADS)
@@ -380,7 +346,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                                'window_center_azimuth':(0.0,types.FloatType),
                                'opaque_color':((0.5,0.5,0.5,0.0),types.TupleType),
                                # changing these parameters causes re-drawing of the texture object and may cause frame skipping
-                               'window_shape':('gaussian',types.StringType),
+                               'window_shape':('gaussian',types.StringType), # can be 'circle' or 'gaussian'
                                'window_shape_radius_parameter':(36.0,types.FloatType), # radius (degrees) for circle, sigma (degrees) for gaussian
                                'num_s_samples':(512, types.IntType), # number of horizontal spatial samples, should be a power of 2
                                'num_t_samples':(512, types.IntType), # number of vertical spatial samples, should be a power of 2
