@@ -128,11 +128,11 @@ class EPhysServer(  Pyro.core.ObjBase ):
     def set_next_stimkey(self,stimkey):
         self.stimkey = stimkey
 
-    def save_image_sequence(self,fps=12.0,filename_base="im",filename_suffix=".tif",save_dir=".",make_new_dir=0):
+    def get_cwd(self):
+        return os.path.abspath(os.curdir)
+
+    def save_image_sequence(self,fps=12.0,filename_base="im",filename_suffix=".tif",save_dir="."):
         try:
-            if make_new_dir:
-                if not os.path.isdir(save_dir):
-                    raise NotImplementedError("")
             self.presentation.export_movie_go(frames_per_sec=fps,
                                               filename_base=filename_base,
                                               filename_suffix=filename_suffix,
