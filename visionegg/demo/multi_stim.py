@@ -203,4 +203,3 @@ while not pygame.event.peek((pygame.locals.QUIT,
                       anchor='center',
                       )
     swap_buffers() # display the frame we've drawn in back buffer
-    pygame.event.pump() # make sure peek has up-to-date info
