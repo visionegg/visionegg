@@ -76,13 +76,16 @@ if not skip_c_compilation:
                                  extra_link_args=extra_link_args
                                  ))
     if sys.platform == "darwin":
+        # VBL synchronization stuff
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
-                                     include_dirs=['/System/Library/Frameworks/OpenGL.framework/Headers',
-                                                   '/System/Library/Frameworks/Cocoa.framework/Headers',
-                                                   ],
-                                     extra_link_args=['-framework','OpenGL'],
-                                     ))
+                                     extra_compile_args=['-framework','OpenGL'],
+                                     extra_link_args=['-framework','OpenGL']))
+        # Cocoa application stuff
+        ext_modules.append(Extension(name='_darwin_app_stuff',
+                                     sources=['src/darwin_app_stuff.m',
+                                              'src/darwin_app_stuff_wrap.c'],
+                                     extra_link_args=['-framework','Cocoa']))
 
     if sys.platform == 'linux2':
         ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
@@ -120,8 +123,8 @@ data_files = organize_script_dirs(scripts)
 data_files.append( ('VisionEgg/data',['data/panorama.jpg']) )
 data_files.append( ('VisionEgg/data',['data/mercator.png']) )
 data_files.append( ('VisionEgg/data',['data/visionegg.bmp']) )
+data_files.append( ('VisionEgg/data',['data/visionegg.tif']) )
 data_files.append( ('VisionEgg/demo',['demo/README.txt']) )
-data_files.append( ('VisionEgg/demo/calibrate',['demo/calibrate/README.txt']) )
 data_files.append( ('VisionEgg/demo/tcp',['demo/tcp/README.txt']) )
 data_files.append( ('VisionEgg',['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
 
