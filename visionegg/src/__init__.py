@@ -1,14 +1,17 @@
 """The Vision Egg package.
 
+See the "Core" module for the fundamental Vision Egg classes.
+
 The Vision Egg is a programming library (with demo applications) that
 uses standard, inexpensive computer graphics cards to produce visual
 stimuli for vision research experiments.
 
-Today's computer graphics cards, thanks to the demands of computer
-gamers, are capable of drawing very complex scenes in a very short
-amount of time. The Vision Egg allows the vision scientist (or anyone
-else) to program these cards using OpenGL, the standard in computer
-graphics programming. Potentially difficult tasks, such as initializing
+Today's consumer computer graphics cards, thanks to the demands of
+computer gamers, are capable of drawing and updating computer graphics
+suitable for producing research-quality visual stimuli. The Vision Egg
+allows the vision scientist (or anyone else) to program these cards
+using OpenGL, the standard in computer graphics
+programming. Potentially difficult tasks, such as initializing
 graphics, getting precise timing information, controlling stimulus
 parameters in real-time, and synchronizing with data acquisition are
 greatly eased by routines within the Vision Egg.
@@ -16,19 +19,21 @@ greatly eased by routines within the Vision Egg.
 Modules:
 
 Core -- Core Vision Egg functionality
-TCPController -- Allows control of parameter values over the network
-PlatformDependent -- Attempt to isolate platform dependencies in one place
+Configuration -- Load config values
 Daq -- Definition of data acquisition and triggering interfaces
 DaqLPT -- Data acquisition and triggering over the parallel port
 DaqOverTCP -- Implements data acquisition over TCP
-Configuration -- Load config values from environment, config file, or defaults
+GUI -- Graphical user interface classes and functions
 Gratings -- Grating stimuli
+Lib3DS -- Load .3DS files
+MoreStimuli -- Assorted stimuli
+PlatformDependent -- Set priority and other functions
+PyroHelpers -- Python Remote Objects support
+SphereMap -- Stimuli drawn as texture maps on inside of sphere
+TCPController -- Allows control of parameter values over the network
 Textures -- Texture (images mapped onto polygons) stimuli
 Text -- Text stimuli
-MoreStimuli -- Assorted stimuli
-GUI -- Graphical user interface classes and functions
-PyroHelpers -- Python Remote Objects support
-__init__ -- Loaded with "import VisionEgg"
+__init__ -- Loaded with "import VisionEgg" (This module)
 
 Classes:
 
@@ -37,10 +42,10 @@ ClassWithParameters -- Base class for any class that uses parameters
 
 Functions:
 
-recursive_base_class_finder -- A function to find all base classes
-timing_func -- Most accurate timing function available on a platform
-get_type -- Get the type or class of argument
-assert_type -- Verify the type of an instance
+recursive_base_class_finder() -- A function to find all base classes
+timing_func() -- Most accurate timing function available on a platform
+get_type() -- Get the type or class of argument
+assert_type() -- Verify the type of an instance
 
 Public variables:
 
