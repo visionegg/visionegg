@@ -115,7 +115,7 @@ class Screen(VisionEgg.ClassWithParameters):
     maxpriority   -- raise priority? (platform dependent) (Boolean)
                      Default: 0
     preferred_bpp -- preferred bits per pixel (bit depth) (UnsignedInteger)
-                     Default: 32
+                     Default: 0
     size          -- size (units: pixels) (Sequence2 of Real)
                      Default: (640, 480)
     sync_swap     -- synchronize buffer swaps to vertical sync? (Boolean)
@@ -154,7 +154,7 @@ class Screen(VisionEgg.ClassWithParameters):
                      'synchronize buffer swaps to vertical sync?'),
         })
     
-    __slots__ = VisionEgg.ClassWithParameters.__slots__ + (
+    __slots__ = (
         'red_bits',
         'green_bits',
         'blue_bits',
@@ -703,8 +703,6 @@ class Projection(VisionEgg.ClassWithParameters):
                    'matrix specifying projection'),
         })
     
-    __slots__ = VisionEgg.ClassWithParameters.__slots__    
-                               
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
@@ -843,8 +841,6 @@ class OrthographicProjection(Projection):
                         [0 0 0 1]]
     """
 
-    __slots__ = Projection.__slots__
-    
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
         """Create an orthographic projection.
 
@@ -884,8 +880,6 @@ class OrthographicProjectionNoZClip(Projection):
                         [0 0 0 1]]
     """
     
-    __slots__ = Projection.__slots__
-    
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0):
         """Create an orthographic projection without Z clipping.
 
@@ -915,8 +909,6 @@ class SimplePerspectiveProjection(Projection):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
-    __slots__ = Projection.__slots__
     
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
@@ -954,8 +946,6 @@ class PerspectiveProjection(Projection):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
-    __slots__ = Projection.__slots__
     
     def __init__(self,left,right,bottom,top,near,far):
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
@@ -1051,8 +1041,6 @@ class Stimulus(VisionEgg.ClassWithParameters):
     glGetIntegerv(GL_ALPHA_BITS) and raise an exception if it is not
     available.
     """
-
-    __slots__ = VisionEgg.ClassWithParameters.__slots__
 
     def __init__(self,**kw):
         """Instantiate and get ready to draw.
@@ -1158,10 +1146,10 @@ class Viewport(VisionEgg.ClassWithParameters):
                      VisionEgg.ParameterDefinition.DEPRECATED), 
         })
 
-    __slots__ = VisionEgg.ClassWithParameters.__slots__ + (
+    __slots__ = (
         '_is_drawing',
         )
-    
+
     def __init__(self,**kw):
         """Create a new instance.
 
@@ -1315,8 +1303,6 @@ class FixationSpot(Stimulus):
                     'position in eye coordinates',
                     VisionEgg.ParameterDefinition.DEPRECATED),
         })
-    
-    __slots__ = Stimulus.__slots__
     
     def __init__(self,**kw):
         Stimulus.__init__(self,**kw)

@@ -78,7 +78,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
                      'precision with which grating is calculated and sent to OpenGL'),
         })
     
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         'gl_internal_format',
         'format',
         'gl_type',
@@ -123,7 +123,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
                      'precision with which grating is calculated and sent to OpenGL'),
         })
     
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         'gl_internal_format',
         'format',
         'gl_type',
@@ -131,7 +131,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
         'max_int_val',
         'cached_bit_depth',
         )
-
+    
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
         p = self.parameters # shorthand
@@ -252,7 +252,7 @@ class SinGrating2D(LuminanceGratingCommon):
                   VisionEgg.ParameterDefinition.DEPRECATED),
         })
     
-    __slots__ = LuminanceGratingCommon.__slots__ + (
+    __slots__ = (
         '_texture_object_id',
         '_last_phase',
         )

@@ -144,7 +144,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                        ve_types.String),
         }
     
-    __slots__ = VisionEgg.Core.Stimulus.__slots__ + (
+    __slots__ = (
         'cached_minor_lines_display_list',
         'cached_major_lines_display_list',
         'text_viewport',
@@ -420,13 +420,13 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
         'stacks':(30,
                   ve_types.UnsignedInteger)}
 
-    __slots__ = VisionEgg.Textures.TextureStimulusBaseClass.__slots__ + (
+    __slots__ = (
         'cached_display_list',
         '_cached_radius',
         '_cached_slices',
         '_cached_stacks',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Textures.TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
@@ -632,7 +632,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                   ve_types.UnsignedInteger),
         }
     
-    __slots__ = VisionEgg.Gratings.LuminanceGratingCommon.__slots__ + (
+    __slots__ = (
         'texture_object_id',
         'cached_display_list_id',
         '_cached_num_samples',
@@ -914,7 +914,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                   ve_types.UnsignedInteger),
         }
     
-    __slots__ = VisionEgg.Gratings.LuminanceGratingCommon.__slots__ + (
+    __slots__ = (
         'texture_object_id',
         'windowed_display_list_id',
         'opaque_display_list_id',
