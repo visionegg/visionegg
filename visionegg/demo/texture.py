@@ -7,7 +7,7 @@ from VisionEgg.Core import *
 from VisionEgg.Textures import *
 
 filename = os.path.join(config.VISIONEGG_SYSTEM_DIR,"data/panorama.jpg")
-texture = TextureFromFile(filename)
+texture = Texture(filename)
 
 screen = get_default_screen()
 
