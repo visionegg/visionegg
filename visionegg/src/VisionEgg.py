@@ -538,7 +538,7 @@ class SpinningDrum(Stimulus):
         drum_contrast = self.drum_contrast_function(self.cur_time)
 
         glRotatef(drum_rotation,0.0,1.0,0.0)
-        glColor(0.0,0.0,1.0,drum_contrast) # Set the polygons' fragment color
+        glColor(0.5,0.5,0.5,drum_contrast) # Set the polygons' fragment color
         glBindTexture(GL_TEXTURE_2D, self.drum_texture_object) # make sure to texture polygon
         glCallList(self.drum_display_list)
 
