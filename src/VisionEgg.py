@@ -73,6 +73,17 @@ except:
 
 ####################################################################
 #
+#        What is the best timing function?
+#
+####################################################################
+
+if sys.platform == 'win32':
+    timing_func = time.clock
+else:
+    timing_func = time.time    
+
+####################################################################
+#
 #        Error handling
 #
 ####################################################################
@@ -592,11 +603,11 @@ class Stimulus:
         for daq in self.daqs:
             daq.go()
         
-        self.start_time_absolute = time.time()
+        self.start_time_absolute = timing_func()
         self.cur_time = 0.0
         while (self.cur_time <= self.duration_sec):
             self.draw_GL_scene()
-            cur_time_absolute = time.time()
+            cur_time_absolute = timing_func()
             self.cur_time = cur_time_absolute-self.start_time_absolute
         self.stimulus_done()
 
@@ -671,7 +682,7 @@ class SpinningDrum(Stimulus):
         if self.fixation_spot_on: # draw fixation target
             self.draw_fixation_spot()
             
-        self.drawTimes.append(time.time())
+        self.drawTimes.append(timing_func())
         if self.swap_buffers:
             swap_buffers()
 
