@@ -20,6 +20,7 @@ Model3DS -- A 3D model from a .3ds file
 import os, types, string
 import VisionEgg
 import VisionEgg.Core
+import VisionEgg.ParameterTypes as ve_types
 import VisionEgg.Textures
 import VisionEgg._lib3ds # helper functions in C
 import OpenGL.GL
@@ -31,19 +32,38 @@ __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
+# Use Python's bool constants if available, make aliases if not
+try:
+    True
+except NameError:
+    True = 1==1
+    False = 1==0
+    
 class Model3DS(VisionEgg.Core.Stimulus):
     """Model3DS -- A 3D model from a .3ds file"""
-    parameters_and_defaults = {'scale':(Numeric.array((1.0, 1.0, 1.0),'f'),Numeric.ArrayType),
-                               'position':(Numeric.array((0.0, 0.0, 0.0),'f'),Numeric.ArrayType),
-                               'orient_angle':(0.0,types.FloatType),
-                               'orient_axis':(Numeric.array((0.0, 1.0, 0.0),'f'),Numeric.ArrayType)}
-    constant_parameters_and_defaults = {'filename':(None,types.StringType),
-                                        'texture_mag_filter':(gl.GL_LINEAR,types.IntType),
-                                        'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,types.IntType),
-                                        'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,types.IntType),
-                                        'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,types.IntType),
-                                        'mipmaps_enabled':(1,types.IntType),
-                                        'shrink_texture_ok':(0,types.IntType), # boolean
+    parameters_and_defaults = {'scale':((1.0, 1.0, 1.0),
+                                        ve_types.Sequence3(ve_types.Real)),
+                               'position':((0.0, 0.0, 0.0),
+                                           ve_types.Sequence3(ve_types.Real)),
+                               'orient_angle':(0.0,
+                                               ve_types.Real),
+                               'orient_axis':((0.0, 1.0, 0.0),
+                                              ve_types.Sequence3(ve_types.Real)),
+                               }
+    constant_parameters_and_defaults = {'filename':(None,
+                                                    ve_types.String),
+                                        'texture_mag_filter':(gl.GL_LINEAR,
+                                                              ve_types.Integer),
+                                        'texture_min_filter':(gl.GL_LINEAR_MIPMAP_LINEAR,
+                                                              ve_types.Integer),
+                                        'texture_wrap_s':(gl.GL_CLAMP_TO_EDGE,
+                                                          ve_types.Integer),
+                                        'texture_wrap_t':(gl.GL_CLAMP_TO_EDGE,
+                                                          ve_types.Integer),
+                                        'mipmaps_enabled':(True,
+                                                           ve_types.Boolean),
+                                        'shrink_texture_ok':(False,
+                                                             ve_types.Boolean), # boolean
                                         }
     def __init__(self,**kw):
         # Initialize base class
