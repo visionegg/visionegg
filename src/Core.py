@@ -2261,7 +2261,7 @@ def check_gl_assumptions():
     for gl_variable,required_value,failure_callback in gl_assumptions:
         # Code required for each variable to be checked
         if gl_variable == "__SPECIAL__":
-            if value == "linux_nvidia_or_new_ATI":
+            if required_value == "linux_nvidia_or_new_ATI":
                 ok = 0
                 vendor = gl.glGetString(gl.GL_VENDOR)
                 renderer = gl.glGetString(gl.GL_RENDERER)
