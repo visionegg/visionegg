@@ -1,0 +1,61 @@
+The following are my own impressions of how the Vision Egg performs on
+various computer systems I have had the opportunity to use. They
+represent my own experience, and are necessarily limited.  We are
+always interested in your own experiences, and we'd love to hear
+reports on the mailing list.
+
+\subsection{Choosing an operating system}
+
+Before we discuss hardware, a brief overview of operating systems.
+The Vision Egg runs on SGI, Windows, Linux, and Mac OS X systems, but
+each of these systems has important differences.
+
+SGI machines are the premiere hardware on which the Vision Egg is
+known to run. The most important features available on SGIs are 12-bit
+luminance control, a realtime kernel scheduler called REACT that
+eliminates the worry of dropped frames, and a hardware accumulation
+buffer.
+
+On commodity hardware, Windows (2000 Pro) is the best operating system
+for running experiments. The kernel scheduler rarely, if ever, causes
+frame-skipping, OpenGL video drivers are usually well-behaved, there's
+a great program called PowerStrip which can create and fine tune video
+modes, and the parallel port is available for inexpensive digital
+input and output.
+
+Linux running on x86 hardware offers lots of great features for the
+programmer, but I have has some trouble with the kernel scheduler (in
+2.4.12-smp and 2.4.17 linux) causing frame-skipping on the same
+machines that do fine under Windows. Also, I have observed nVidia
+video driver bugs at 200 Hz frame rates. However, ease of development
+and the wealth of programming tools keep linux as the favored
+operating system for development. The parallel port is also available
+for inexpensive digital input and output. Unfortunately, I believe
+that hardware accelerated OpenGL is not possible on the latest ATI
+Radeon cards without commercial drivers.  I do not know the quality of
+these drivers.
+
+Mac OS X (version 10.1.4) is best used only for development and
+testing because its scheduler frequently causes frame skipping.  The
+Tcl/Tk based GUI module Tkinter is also full of bugs on Mac OS
+X. Hopefully these problems will be addressed as Mac OS X matures.
+
+As a side note, Mac OS Classic would be great as a Vision Egg
+platform. Its is a ``cooperative multitasking'' operating system,
+which would not be multitasking at all if the Vision Egg didn't yield
+control to the scheduler. Now, if only someone would port the Python
+OpenGL binding!
+
+\subsection{Data acquisition}
+
+WRITE PARALLEL PORT DAQ
+
+To date, the only data acquisition hardware with an open source Vision
+Egg interface is a MacAdios card.  
+
+That code runs the card in a separate, dedicated data-acquisition
+computer and communicates over the computer network via the
+\class{DaqOverTCP} subclass of the \class{Daq} class. Using this
+system, triggering data acquisition from the stimulus generation
+signal is possible, as well as triggering stimulus generation from
+external hardware.
