@@ -6,20 +6,18 @@ from VisionEgg.AppHelper import *
 from VisionEgg.MoreStimuli import *
 from VisionEgg.MotionBlur import *
 
-target_velocity = 25.0
-drum_max_speed = 50.0 # degrees per second
-
+# Define several "controller" functions
 def x_as_function_of_time(t):
-    return target_velocity*sin(0.1*2.0*math.pi*t)
+    return 25.0*sin(0.1*2.0*math.pi*t)
 
 def y_as_function_of_time(t):
-    return target_velocity*sin(0.1*2.0*math.pi*t)
+    return 25.0*sin(0.1*2.0*math.pi*t)
 
 def orientation(dummy):
     return 135.0
 
 def angle_as_function_of_time(t):
-    return drum_max_speed*math.cos(0.2*2*math.pi*t) # rotate at 90 degrees per second
+    return 50.0*math.cos(0.2*2*math.pi*t)
 
 def one_during_experiment(t):
     if t < 0.0:
@@ -37,7 +35,7 @@ try:
 except:
     texture = Texture(size=(256,16)) # otherwise, generate one
 
-drum = BlurredDrum(max_speed=drum_max_speed, texture=texture)
+drum = BlurredDrum(max_speed=20.0*math.pi, texture=texture)
 drum.init_gl()
 viewport.add_stimulus(drum)
 viewport.add_stimulus(target) # add target after drum so it is drawn on top
