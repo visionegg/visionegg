@@ -22,7 +22,7 @@ screen = get_default_screen()
 # Create an instance of the Target2D class with appropriate parameters
 target = Target2D(size  = (25.0,10.0),
                   color      = (1.0,1.0,1.0,1.0), # Set the target color (RGBA) black
-                  orientation = 45.0)
+                  orientation = -45.0)
 
 # Create a viewport for the target
 target_viewport = Viewport(screen=screen, stimuli=[target])
@@ -81,7 +81,7 @@ drum_angle_controller = FunctionController(during_go_func=get_drum_angle)
 #  Connect the controllers with the variables they control  #
 #############################################################
 
-p.add_controller(target,'center', target_position_controller )
+p.add_controller(target,'position', target_position_controller )
 p.add_controller(drum,'angular_position', drum_angle_controller )
 
 #######################
