@@ -29,6 +29,8 @@ def set_icon( name ):
     if sys.platform == 'darwin':
         import darwin_app_stuff
         darwin_app_stuff.set_icon( name )
+    else:
+        raise NotImplmentedError("set_icon not currently supported on this platform.")
 
 def set_priority(*args,**kw):
     """Set the priority of the Vision Egg application.
