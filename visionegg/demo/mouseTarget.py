@@ -129,19 +129,18 @@ def keyup(event):
         right = 0
     elif event.key == pygame.locals.K_LEFT:
         left = 0
-        
-handle_event_callbacks = [(pygame.locals.QUIT, quit),
-                          (pygame.locals.KEYDOWN, keydown),
-                          (pygame.locals.KEYUP, keyup)]
 
 # Create an instance of the Presentation class.  This contains the
 # the Vision Egg's runtime control abilities.
 p = Presentation(go_duration=('forever',),
-                 viewports=[viewport],
-                 handle_event_callbacks=handle_event_callbacks)
+                 viewports=[viewport])
 
 def quit(event):
     p.parameters.go_duration = (0,'frames')
+
+p.parameters.handle_event_callbacks = [(pygame.locals.QUIT, quit),
+                                       (pygame.locals.KEYDOWN, keydown),
+                                       (pygame.locals.KEYUP, keyup)]
 
 #############################################################
 #  Connect the controllers with the variables they control  #
