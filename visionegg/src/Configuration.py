@@ -37,7 +37,7 @@ the environment variable VISIONEGG_CONFIG_FILE.  """
 ####################################################################
 
 defaults= {
-    'VISIONEGG_GUI_INIT':             0,
+    'VISIONEGG_GUI_INIT':             1,
     'VISIONEGG_SCREEN_W':             640,
     'VISIONEGG_SCREEN_H':             480,
     'VISIONEGG_FULLSCREEN':           0,
@@ -50,7 +50,8 @@ defaults= {
     'VISIONEGG_REQUEST_ALPHA_BITS':   8,
     'VISIONEGG_TKINTER_OK':           1,
     'VISIONEGG_MESSAGE_LEVEL':        1,
-    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" means sys.stdout
+    'VISIONEGG_GUI_ON_ERROR':         1,
+    'VISIONEGG_LOG_FILE':             'VisionEgg.log', # "" means sys.stderr
     }
 
 ####################################################################
@@ -67,7 +68,7 @@ __version__ = VisionEgg.release_name
 __cvs__ = string.split('$Revision$')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-__credits__ = 'Thanks to Irmen de Jong. I took most of this code from his Pyro project.'
+__credits__ = 'Thanks to Irmen de Jong. These ideas came from his Pyro project.'
 
 class Config:
     def __init__(self):
