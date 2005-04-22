@@ -1,6 +1,7 @@
 # The Vision Egg: DaqLPT
 #
 # Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2005 Hubertus Becker
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -81,8 +82,10 @@ class LPTInput(VisionEgg.Daq.Input):
         oddities. Bits 0 and 1 are designated reserved. Others are
         "active low"; they show a logic 0 when +5v is applied.
 
+        bit3 = value & 0x08
         bit4 = value & 0x10
         bit5 = value & 0x20
+        bit6 = value & 0x40
         """
         return raw_lpt_module.inp(self.channel.device.base_address+1)
 
@@ -186,12 +189,18 @@ class LPTTriggerInController(VisionEgg.FlowControl.Controller):
                 raise ValueError("lpt_device must be instance of LPTDevice.")
             self.device = lpt_device
         self.device.add_channel(self.trigger_in_channel)
-        if pin==13:
+        if pin==15:
+            bit = 3
+        elif pin==13:
             bit = 4
         elif pin==12:
             bit = 5
+        elif pin==10:
+            bit = 6
+        elif pin==11:
+            bit = 7
         else:
-            raise ValueError("Only pins 12 and 13 supported at this time.")
+            raise ValueError("Only pins 10, 11, 12, 13 and 15 supported at this time.")
         self.mask = 2**bit
     def during_go_eval(self):
         return 1
