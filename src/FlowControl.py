@@ -208,11 +208,23 @@ class Presentation(VisionEgg.ClassWithParameters):
         If controller is None, all controllers affecting the
         specified parameter are removed.
 
-        If class_with_parameters and paramter_name are None, the controller is removed completely
+        If class_with_parameters and paramter_name are None, the
+        controller is removed completely
+
+        If class_with_parameters, paramter_name, and controller are
+        all None, all controllers are removed.
+
         """
+        
         if class_with_parameters is None and parameter_name is None:
-            if not isinstance(controller,Controller):
-                raise TypeError("When deleting a controller, but specify an instance of VisionEgg.FlowControl.Controller class!")
+            if not isinstance(controller,Controller) and controller != None:
+                
+                raise TypeError( "When deleting a controller, specify an "
+                                 "instance of VisionEgg.FlowControl.Controller class!")
+            
+            if Controller == None: #Added by Tony, May30/2005
+                self.controllers = []
+            
             i = 0
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
@@ -229,7 +241,8 @@ class Presentation(VisionEgg.ClassWithParameters):
             i = 0
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
-                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name:
+                if (orig_parameters == class_with_parameters.parameters and
+                    orig_parameter_name == parameter_name):
                     controller = self.controllers[i][2]
                     if controller.temporal_variables & (FRAMES_SINCE_GO|FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
@@ -241,7 +254,9 @@ class Presentation(VisionEgg.ClassWithParameters):
             i = 0
             while i < len(self.controllers):
                 orig_parameters,orig_parameter_name,orig_controller = self.controllers[i]
-                if orig_parameters == class_with_parameters.parameters and orig_parameter_name == parameter_name and orig_controller == controller:
+                if (orig_parameters == class_with_parameters.parameters and
+                    orig_parameter_name == parameter_name and
+                    orig_controller == controller):
                     if controller.temporal_variables & (FRAMES_SINCE_GO|FRAMES_ABSOLUTE):
                         self.num_frame_controllers = self.num_frame_controllers - 1
                 else:
