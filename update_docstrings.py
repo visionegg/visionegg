@@ -7,12 +7,14 @@ import re
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Daq
+import VisionEgg.DaqKeyboard
 import VisionEgg.Dots
 import VisionEgg.FlowControl
 import VisionEgg.GLTrace
 import VisionEgg.Gratings
 import VisionEgg.Lib3DS
 import VisionEgg.MoreStimuli
+import VisionEgg.ResponseControl
 import VisionEgg.SphereMap
 import VisionEgg.Text
 import VisionEgg.Textures
@@ -20,11 +22,13 @@ import VisionEgg.Textures
 mods = [VisionEgg,
         VisionEgg.Core,
         VisionEgg.Daq,
+        VisionEgg.DaqKeyboard,
         VisionEgg.Dots,
         VisionEgg.FlowControl,
         VisionEgg.Gratings,
         VisionEgg.Lib3DS,
         VisionEgg.MoreStimuli,
+        VisionEgg.ResponseControl,
         VisionEgg.SphereMap,
         VisionEgg.Text,
         VisionEgg.Textures,
