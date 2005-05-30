@@ -104,30 +104,32 @@ class Screen(VisionEgg.ClassWithParameters):
 
     Constant Parameters
     ===================
-    alpha_bits    -- number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS (UnsignedInteger)
-                     Default: (determined at runtime)
-    blue_bits     -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
-                     Default: (determined at runtime)
-    frameless     -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
-                     Default: (determined at runtime)
-    fullscreen    -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
-                     Default: (determined at runtime)
-    green_bits    -- number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS (UnsignedInteger)
-                     Default: (determined at runtime)
-    hide_mouse    -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
-                     Default: (determined at runtime)
-    is_stereo     -- allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO (Boolean)
-                     Default: (determined at runtime)
-    maxpriority   -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
-                     Default: (determined at runtime)
-    preferred_bpp -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
-                     Default: (determined at runtime)
-    red_bits      -- number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS (UnsignedInteger)
-                     Default: (determined at runtime)
-    size          -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
-                     Default: (determined at runtime)
-    sync_swap     -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
-                     Default: (determined at runtime)
+    alpha_bits          -- number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS (UnsignedInteger)
+                           Default: (determined at runtime)
+    blue_bits           -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
+                           Default: (determined at runtime)
+    frameless           -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
+                           Default: (determined at runtime)
+    fullscreen          -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
+                           Default: (determined at runtime)
+    green_bits          -- number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS (UnsignedInteger)
+                           Default: (determined at runtime)
+    hide_mouse          -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
+                           Default: (determined at runtime)
+    is_stereo           -- allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO (Boolean)
+                           Default: (determined at runtime)
+    maxpriority         -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
+                           Default: (determined at runtime)
+    multisample_samples -- preferred number of multisamples for FSAA (UnsignedInteger)
+                           Default: (determined at runtime)
+    preferred_bpp       -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
+                           Default: (determined at runtime)
+    red_bits            -- number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS (UnsignedInteger)
+                           Default: (determined at runtime)
+    size                -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
+                           Default: (determined at runtime)
+    sync_swap           -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
+                           Default: (determined at runtime)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
@@ -174,6 +176,9 @@ class Screen(VisionEgg.ClassWithParameters):
         'is_stereo':(None,
                      ve_types.Boolean,
                      'allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO'),
+        'multisample_samples':(None, # support added by Mark Halko
+                               ve_types.UnsignedInteger,
+                               'preferred number of multisamples for FSAA'),
         })
     
     __slots__ = (
@@ -214,7 +219,9 @@ class Screen(VisionEgg.ClassWithParameters):
             cp.alpha_bits = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
         if cp.is_stereo is None:
             cp.is_stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
-            
+        if cp.multisample_samples is None:
+             cp.multisample_samples = VisionEgg.config.VISIONEGG_MULTISAMPLE_SAMPLES
+
         if VisionEgg.config.SYNCLYNC_PRESENT:
             global synclync # import into global namespace
             import synclync
@@ -243,6 +250,10 @@ class Screen(VisionEgg.ClassWithParameters):
             pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,cp.blue_bits)
             pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,cp.alpha_bits)
 	    pygame.display.gl_set_attribute(pygame.locals.GL_STEREO,cp.is_stereo)
+            #Request FSAA
+            if cp.multisample_samples > 0 :
+                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS,1)
+                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLESAMPLES,cp.multisample_samples)
         else:
             logger.debug("Could not request or query exact bit depths, "
                          "alpha or stereo because you need "
@@ -353,6 +364,16 @@ class Screen(VisionEgg.ClassWithParameters):
         # when closing the screen.
         self.__cursor_visible_func__ = pygame.mouse.set_visible
         self.__pygame_quit__ = pygame.quit
+
+        #Check FSAA requests
+        if cp.multisample_samples>0 :
+            if hasattr(pygame.display,"gl_set_attribute"):
+                got_ms_buf = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS)
+                got_ms_samp = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLESAMPLES)
+                if got_ms_samp < cp.multisample_samples :
+                    logger.warning("Video system reports %d multisample samples, "
+                                   "while you requested %d.  FSAA requires "
+                                   "SDL > 1.2.6, check that it is installed."%(got_ms_samp, cp.multisample_samples))
 
         # Attempt to synchronize buffer swapping with vertical sync again
         if cp.sync_swap:
