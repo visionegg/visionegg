@@ -22,6 +22,15 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import types, warnings
 
+# Allow use of numarray without requiring numarray
+import Numeric
+array_types = [Numeric.ArrayType]
+try:
+    import numarray
+    array_types.append( numarray.numarraycore.NumArray )
+except ImportError:
+    pass
+
 # Use Python's bool constants if available, make aliases if not
 try:
     True
@@ -175,8 +184,15 @@ class Real(ParameterTypeDef):
     def verify(is_real):
         if type(is_real) in (int, float):
             return True
-        else:
-            return False
+        elif type(is_real) in array_types:
+            # scalars can be Numeric arrays
+            if len(is_real.shape)==0:
+                try:
+                    float(is_real)
+                    return True
+                except:
+                    return False
+        return False
     verify = staticmethod(verify)
     
 class Sequence(ParameterTypeDef):
