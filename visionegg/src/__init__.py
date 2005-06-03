@@ -88,7 +88,7 @@ logger.setLevel( logging.INFO )
 log_formatter = logging.Formatter('%(asctime)s (%(process)d) %(levelname)s: %(message)s')
 _default_logging_started = False
 
-def start_default_logging():
+def start_default_logging(maxBytes=100000):
     """Create and add log handlers"""
     global _default_logging_started
     if _default_logging_started:
@@ -102,7 +102,7 @@ def start_default_logging():
     if config.VISIONEGG_LOG_FILE:
         if hasattr(logging, 'handlers'):
             log_handler_logfile = logging.handlers.RotatingFileHandler( config.VISIONEGG_LOG_FILE,
-                                                                        maxBytes=100000 )
+                                                                        maxBytes=maxBytes )
         else:
             log_handler_logfile = logging.FileHandler( config.VISIONEGG_LOG_FILE )
         log_handler_logfile.setFormatter( log_formatter )
