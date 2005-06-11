@@ -58,6 +58,7 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 defaults= {
     'VISIONEGG_ALWAYS_START_LOGGING': 0,
+    'VISIONEGG_DOUBLE_BUFFER':        1,
     'VISIONEGG_FRAMELESS_WINDOW':     0,
     'VISIONEGG_FULLSCREEN':           0,
     'VISIONEGG_GUI_INIT':             1,
@@ -106,7 +107,11 @@ class Config:
             self.VISIONEGG_SYSTEM_DIR = os.curdir
             self.VISIONEGG_USER_DIR = os.curdir
         else:
-            self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
+            # non-standard VisionEgg installations
+            try:
+                self.VISIONEGG_SYSTEM_DIR = os.environ['VISIONEGG_SYSTEM_DIR']
+            except KeyError:
+                self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
             user_dir = os.path.expanduser("~")
             self.VISIONEGG_USER_DIR = os.path.join(user_dir,"VisionEgg")
 
