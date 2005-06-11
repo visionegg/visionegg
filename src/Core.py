@@ -146,6 +146,9 @@ class Screen(VisionEgg.ClassWithParameters):
         'fullscreen':(None,
                       ve_types.Boolean,
                       'use full screen? Can be set with VISIONEGG_FULLSCREEN'),
+        'double_buffer':(None,
+                         ve_types.Boolean,
+                         'use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER'),
         'preferred_bpp':(None,
                          ve_types.UnsignedInteger,
                          'preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP'),
@@ -197,6 +200,8 @@ class Screen(VisionEgg.ClassWithParameters):
         if cp.size is None:
             cp.size = (VisionEgg.config.VISIONEGG_SCREEN_W,
                        VisionEgg.config.VISIONEGG_SCREEN_H)
+        if cp.double_buffer is None:
+            cp.double_buffer = VisionEgg.config.VISIONEGG_DOUBLE_BUFFER
         if cp.fullscreen is None:
             cp.fullscreen = VisionEgg.config.VISIONEGG_FULLSCREEN
         if cp.preferred_bpp is None:
@@ -269,10 +274,11 @@ class Screen(VisionEgg.ClassWithParameters):
                          "need this feature.")
         pygame.display.set_caption("Vision Egg")
         
-        flags = pygame.locals.OPENGL | pygame.locals.DOUBLEBUF
+        flags = pygame.locals.OPENGL
+        if cp.double_buffer:
+            flags = flags | pygame.locals.DOUBLEBUF
         if cp.fullscreen:
             flags = flags | pygame.locals.FULLSCREEN
-
         if cp.frameless:
             flags = flags | pygame.locals.NOFRAME
 
