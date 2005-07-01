@@ -52,7 +52,14 @@ classifiers = [
     ]
 
 from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext
+try:
+    from Pyrex.Distutils import build_ext
+    have_Pyrex = True
+except ImportError:
+    from distutils.command.build_ext import build_ext
+    have_Pyrex = False
+    print 'WARNING: Pyrex not installed, assuming previously generated .c files are up to date'
+    
 from distutils.errors import CCompilerError
 import distutils.command.sdist
 from distutils import dir_util
@@ -114,6 +121,15 @@ if not skip_c_compilation:
         ext_modules.append(Extension(name='_win32_getrefresh',
                                      sources=[os.path.join('src','win32_getrefresh.c'),
                                               os.path.join('src','win32_getrefresh_wrap.c')],
+                                     libraries=['User32'],
+                                     ))
+        if have_Pyrex:
+            vretrace_source = 'win32_vretrace.pyx'
+        else:
+            vretrace_source = 'win32_vretrace.c'
+        ext_modules.append(Extension(name='win32_vretrace',
+                                     sources=[os.path.join('src',vretrace_source),
+                                              os.path.join('src','win32_load_driver.c')],
                                      libraries=['User32'],
                                      ))
     elif sys.platform.startswith('linux') or sys.platform.startswith('irix'):
