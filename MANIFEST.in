@@ -4,6 +4,7 @@ include README.txt
 include README-DEMOS.txt
 include MANIFEST.in
 include VisionEgg.cfg
+include src/*.pyx
 include src/*.c
 include src/*.m
 include src/*.h
