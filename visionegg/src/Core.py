@@ -1416,7 +1416,7 @@ class FixationSpot(Stimulus):
 
 class FrameTimer:
     """Time inter frame intervals and compute frames per second."""
-    def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0):
+    def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0,save_all_frametimes=False):
         """Create instance of FrameTimer."""
         self.bins = Numeric.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
         self.bin_width_msec = float(bin_width_msec)
@@ -1428,7 +1428,10 @@ class FrameTimer:
         self.running_average_num_frames = running_average_num_frames
         if self.running_average_num_frames:
             self.last_n_frame_times_sec = [None]*self.running_average_num_frames
-        
+        self.save_all_frametimes = save_all_frametimes
+        if self.save_all_frametimes:
+            self.all_frametimes = []
+                    
     def tick(self):
         """Declare a frame has just been drawn."""
         true_time_now = VisionEgg.true_time_func()
@@ -1445,6 +1448,15 @@ class FrameTimer:
         else:
             self.first_tick_sec = true_time_now
         self._true_time_last_frame = true_time_now # set for next frame
+
+        if self.save_all_frametimes:
+            self.all_frametimes.append( true_time_now )
+
+    def get_all_frametimes(self):
+        if self.save_all_frametimes:
+            return self.all_frametimes
+        else:
+            raise ValueError("must set save_all_frametimes")
 
     def get_longest_frame_duration_sec(self):
         return self.longest_frame_draw_time_sec
@@ -1582,7 +1594,7 @@ def init_gl_extension(prefix,name):
         setattr(gl,gl_attr_name,attr)
         
     if watched:
-        VisionEgg.GLTrace.attach() # (re)scan namespace
+        VisionEgg.GLTrace.gl_trace_attach() # (re)scan namespace
         gl = VisionEgg.GLTrace # reinstall GLTrace
     return True # success!
             
