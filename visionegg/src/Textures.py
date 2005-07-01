@@ -1252,11 +1252,8 @@ class Mask2D(VisionEgg.ClassWithParameters):
         # reset active texture unit to 0
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         
-    def draw_masked_quad(self,lt,rt,bt,tt,le,re,be,te,depth):
-
-        # The *t parameters are the texture coordinates. The *e
-        # parameters are the eye coordinates for the vertices of the
-        # quad.
+    def draw_masked_quad_3d(self,lt,rt,bt,tt,v1,v2,v3,v4):
+        # The *t parameters are the texture coordinates.
         
         # By the time this method is called, GL_TEXTURE0_ARB should be
         # loaded as the texture object to be masked.
@@ -1270,23 +1267,33 @@ class Mask2D(VisionEgg.ClassWithParameters):
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,0.0)
-        gl.glVertex3f(le,be,depth)
+        gl.glVertex3f(*v1)
         
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,0.0)
-        gl.glVertex3f(re,be,depth)
+        gl.glVertex3f(*v2)
         
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,1.0)
-        gl.glVertex3f(re,te,depth)
+        gl.glVertex3f(*v3)
         
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,1.0)
-        gl.glVertex3f(le,te,depth)
+        gl.glVertex3f(*v4)
         
         gl.glEnd() # GL_QUADS
         gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # return to 1st texture unit
+        
+    def draw_masked_quad(self,lt,rt,bt,tt,le,re,be,te,depth):
+        # The *t parameters are the texture coordinates. The *e
+        # parameters are the eye coordinates for the vertices of the
+        # quad.
+        v1 = (le,be,depth)
+        v2 = (re,be,depth)
+        v3 = (re,te,depth)
+        v4 = (le,te,depth)
+        self.draw_masked_quad_3d(lt,rt,bt,tt,v1,v2,v3,v4)
         
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle.
@@ -1408,59 +1415,64 @@ class TextureStimulus(TextureStimulusBaseClass):
             
             # Clear the modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
+            gl.glPushMatrix()
+            try:
+                gl.glLoadIdentity()
 
-            if p.depth_test:
-                gl.glEnable(gl.GL_DEPTH_TEST)
-            else:
-                gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glEnable( gl.GL_TEXTURE_2D )
-            
-            # allow max_alpha value to control blending
-            gl.glEnable( gl.GL_BLEND )
-            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
+                if p.depth_test:
+                    gl.glEnable(gl.GL_DEPTH_TEST)
+                else:
+                    gl.glDisable(gl.GL_DEPTH_TEST)
+                gl.glEnable( gl.GL_TEXTURE_2D )
 
-            if not self.constant_parameters.mipmaps_enabled:
-                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
-                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            self.texture_object.set_min_filter( p.texture_min_filter )
-            self.texture_object.set_mag_filter( p.texture_mag_filter )
-            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
-            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
-            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
+                # allow max_alpha value to control blending
+                gl.glEnable( gl.GL_BLEND )
+                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
 
-            translate_vector = p.position
-            if len(translate_vector) == 2:
-                translate_vector = translate_vector[0], translate_vector[1], 0
-            gl.glTranslate(*translate_vector)
-            gl.glRotate(p.angle,0,0,1)
+                if not self.constant_parameters.mipmaps_enabled:
+                    if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                        raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+                self.texture_object.set_min_filter( p.texture_min_filter )
+                self.texture_object.set_mag_filter( p.texture_mag_filter )
+                self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+                self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
-            gl.glColorf(p.color[0],p.color[1],p.color[2],p.max_alpha)
+                translate_vector = p.position
+                if len(translate_vector) == 2:
+                    translate_vector = translate_vector[0], translate_vector[1], 0
+                gl.glTranslate(*translate_vector)
+                gl.glRotate(p.angle,0,0,1)
 
-            l = lowerleft[0] - p.position[0]
-            r = l + size[0]
-            b = lowerleft[1] - p.position[1]
-            t = b + size[1]
+                gl.glColorf(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
-            tex.update()
+                l = lowerleft[0] - p.position[0]
+                r = l + size[0]
+                b = lowerleft[1] - p.position[1]
+                t = b + size[1]
 
-            if p.mask:
-                p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
-                                        l,r,b,t,0.0) # l,r,b,t in eye coordinates
-            else:
-                gl.glBegin(gl.GL_QUADS)
-                gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                gl.glVertex2f(l,b)
+                tex.update()
 
-                gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                gl.glVertex2f(r,b)
+                if p.mask:
+                    p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
+                                            l,r,b,t,0.0) # l,r,b,t in eye coordinates
+                else:
+                    gl.glBegin(gl.GL_QUADS)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                    gl.glVertex2f(l,b)
 
-                gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                gl.glVertex2f(r,t)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                    gl.glVertex2f(r,b)
 
-                gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                gl.glVertex2f(l,t)
-                gl.glEnd() # GL_QUADS
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                    gl.glVertex2f(r,t)
+
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                    gl.glVertex2f(l,t)
+                    gl.glEnd() # GL_QUADS
+            finally:
+                gl.glMatrixMode(gl.GL_MODELVIEW)
+                gl.glPopMatrix()
 
 class TextureStimulus3D(TextureStimulusBaseClass):
     """A textured rectangle placed arbitrarily in 3 space.
@@ -1535,43 +1547,48 @@ class TextureStimulus3D(TextureStimulusBaseClass):
         if p.on:
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
+            gl.glPushMatrix()
+            try:
+                gl.glLoadIdentity()
 
-            if p.depth_test:
-                gl.glEnable(gl.GL_DEPTH_TEST)
-            else:
-                gl.glDisable(gl.GL_DEPTH_TEST)
+                if p.depth_test:
+                    gl.glEnable(gl.GL_DEPTH_TEST)
+                else:
+                    gl.glDisable(gl.GL_DEPTH_TEST)
 
-            gl.glDisable(gl.GL_BLEND)
-            gl.glEnable(gl.GL_TEXTURE_2D)
-            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
+                gl.glDisable(gl.GL_BLEND)
+                gl.glEnable(gl.GL_TEXTURE_2D)
+                gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
 
-            if not self.constant_parameters.mipmaps_enabled:
-                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
-                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            self.texture_object.set_min_filter( p.texture_min_filter )
-            self.texture_object.set_mag_filter( p.texture_mag_filter )
-            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
-            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
-                                                                                                    
-            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+                if not self.constant_parameters.mipmaps_enabled:
+                    if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                        raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+                self.texture_object.set_min_filter( p.texture_min_filter )
+                self.texture_object.set_mag_filter( p.texture_mag_filter )
+                self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+                self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
-            tex = self.parameters.texture
-            tex.update()
-            
-            gl.glBegin(gl.GL_QUADS)
-            gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-            gl.glVertex(*p.lowerleft)
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
-            gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-            gl.glVertex(*p.lowerright)
+                tex = self.parameters.texture
+                tex.update()
 
-            gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-            gl.glVertex(*p.upperright)
+                gl.glBegin(gl.GL_QUADS)
+                gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                gl.glVertex(*p.lowerleft)
 
-            gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-            gl.glVertex(*p.upperleft)
-            gl.glEnd() # GL_QUADS
+                gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                gl.glVertex(*p.lowerright)
+
+                gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                gl.glVertex(*p.upperright)
+
+                gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                gl.glVertex(*p.upperleft)
+                gl.glEnd() # GL_QUADS
+            finally:
+                gl.glMatrixMode(gl.GL_MODELVIEW)
+                gl.glPopMatrix()
                 
 ####################################################################
 #
@@ -1727,125 +1744,130 @@ class SpinningDrum(TextureStimulusBaseClass):
             
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
+            gl.glPushMatrix()
+            try:
+                gl.glLoadIdentity()
 
-            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+                gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
-            if not self.constant_parameters.mipmaps_enabled:
-                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
-                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-            self.texture_object.set_min_filter( p.texture_min_filter )
-            self.texture_object.set_mag_filter( p.texture_mag_filter )
-            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
-            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
+                if not self.constant_parameters.mipmaps_enabled:
+                    if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                        raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+                self.texture_object.set_min_filter( p.texture_min_filter )
+                self.texture_object.set_mag_filter( p.texture_mag_filter )
+                self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+                self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
-            if p.flat: # draw as flat texture on a rectange
-                lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
+                if p.flat: # draw as flat texture on a rectange
+                    lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.texture.size)
 
-                translate_vector = p.position
-                if len(translate_vector) == 2:
-                    translate_vector = translate_vector[0], translate_vector[1], 0
-                gl.glTranslate(*translate_vector)
-                gl.glRotatef(p.orientation,0,0,1)
-                
-                if p.flip_image:
-                    raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
-                w,h = p.texture.size
+                    translate_vector = p.position
+                    if len(translate_vector) == 2:
+                        translate_vector = translate_vector[0], translate_vector[1], 0
+                    gl.glTranslate(*translate_vector)
+                    gl.glRotatef(p.orientation,0,0,1)
 
-                # calculate texture coordinates based on current angle
-                tex_phase = p.angular_position/360.0 + 0.5 # offset to match non-flat
-                tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
-                
-                TINY = 1.0e-10
-                tex = p.texture
-                tex.update()
+                    if p.flip_image:
+                        raise NotImplementedError("flip_image not yet supported for flat spinning drums.")
+                    w,h = p.texture.size
 
-                if p.flat_size is None:
-                    size = tex.size
-                else:
-                    size = p.flat_size
+                    # calculate texture coordinates based on current angle
+                    tex_phase = p.angular_position/360.0 + 0.5 # offset to match non-flat
+                    tex_phase = tex_phase % 1.0 # make 0 <= tex_phase < 1.0
 
-                l = lowerleft[0] - p.position[0]
-                r = l + size[0]
-                b = lowerleft[1] - p.position[1]
-                t = b + size[1]
+                    TINY = 1.0e-10
+                    tex = p.texture
+                    tex.update()
 
-                #tex_phase = 0.0
-                if tex_phase < TINY: # it's effectively zero
+                    if p.flat_size is None:
+                        size = tex.size
+                    else:
+                        size = p.flat_size
 
-                    gl.glBegin(gl.GL_QUADS)
-                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                    gl.glVertex2f(l,b)
+                    l = lowerleft[0] - p.position[0]
+                    r = l + size[0]
+                    b = lowerleft[1] - p.position[1]
+                    t = b + size[1]
 
-                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                    gl.glVertex2f(r,b)
+                    #tex_phase = 0.0
+                    if tex_phase < TINY: # it's effectively zero
 
-                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                    gl.glVertex2f(r,t)
+                        gl.glBegin(gl.GL_QUADS)
+                        gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                        gl.glVertex2f(l,b)
 
-                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                    gl.glVertex2f(l,t)
-                    gl.glEnd() # GL_QUADS
+                        gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                        gl.glVertex2f(r,b)
 
-                else:
-                    # Convert tex_phase into texture buffer fraction
-                    buf_break_f = ( (tex.buf_rf - tex.buf_lf) * (1.0-tex_phase) ) + tex.buf_lf
+                        gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                        gl.glVertex2f(r,t)
 
-                    # Convert tex_phase into object coords value
-                    quad_x_break = (r-l) * tex_phase + l
-##                    quad_x_break = w * tex_phase
+                        gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                        gl.glVertex2f(l,t)
+                        gl.glEnd() # GL_QUADS
 
-                    gl.glBegin(gl.GL_QUADS)
+                    else:
+                        # Convert tex_phase into texture buffer fraction
+                        buf_break_f = ( (tex.buf_rf - tex.buf_lf) * (1.0-tex_phase) ) + tex.buf_lf
 
-                    # First quad
+                        # Convert tex_phase into object coords value
+                        quad_x_break = (r-l) * tex_phase + l
+    ##                    quad_x_break = w * tex_phase
 
-                    gl.glTexCoord2f(buf_break_f,tex.buf_bf)
-                    gl.glVertex2f(l,b)
+                        gl.glBegin(gl.GL_QUADS)
 
-                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                    gl.glVertex2f(quad_x_break,b)
+                        # First quad
 
-                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                    gl.glVertex2f(quad_x_break,t)
+                        gl.glTexCoord2f(buf_break_f,tex.buf_bf)
+                        gl.glVertex2f(l,b)
 
-                    gl.glTexCoord2f(buf_break_f,tex.buf_tf)
-                    gl.glVertex2f(l,t)
+                        gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                        gl.glVertex2f(quad_x_break,b)
 
-                    # Second quad
+                        gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                        gl.glVertex2f(quad_x_break,t)
 
-                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                    gl.glVertex2f(quad_x_break,b)
+                        gl.glTexCoord2f(buf_break_f,tex.buf_tf)
+                        gl.glVertex2f(l,t)
 
-                    gl.glTexCoord2f(buf_break_f,tex.buf_bf)
-                    gl.glVertex2f(r,b)
+                        # Second quad
 
-                    gl.glTexCoord2f(buf_break_f,tex.buf_tf)
-                    gl.glVertex2f(r,t)
+                        gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                        gl.glVertex2f(quad_x_break,b)
 
-                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                    gl.glVertex2f(quad_x_break,t)
-                    gl.glEnd() # GL_QUADS
+                        gl.glTexCoord2f(buf_break_f,tex.buf_bf)
+                        gl.glVertex2f(r,b)
 
-            else: # draw as cylinder
-                gl.glTranslatef(p.position[0],p.position[1],p.position[2])
+                        gl.glTexCoord2f(buf_break_f,tex.buf_tf)
+                        gl.glVertex2f(r,t)
 
-                # center the drum on new coordinates
-                gl.glRotatef(p.drum_center_azimuth,0,-1,0)
-                gl.glRotatef(p.drum_center_elevation,1,0,0)
+                        gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                        gl.glVertex2f(quad_x_break,t)
+                        gl.glEnd() # GL_QUADS
 
-                # do the orientation
-                gl.glRotatef(p.orientation,0,0,1)
-                
-                # turn the coordinate system so we don't have to deal with
-                # figuring out where to draw the texture relative to drum
-                gl.glRotatef(p.angular_position,0,-1,0)
+                else: # draw as cylinder
+                    gl.glTranslatef(p.position[0],p.position[1],p.position[2])
 
-                if p.num_sides != self.cached_display_list_num_sides:
-                    self.rebuild_display_list()
-                if not p.flip_image:
-                    gl.glCallList(self.cached_display_list_normal)
-                else:
-                    gl.glCallList(self.cached_display_list_mirror)
+                    # center the drum on new coordinates
+                    gl.glRotatef(p.drum_center_azimuth,0,-1,0)
+                    gl.glRotatef(p.drum_center_elevation,1,0,0)
+
+                    # do the orientation
+                    gl.glRotatef(p.orientation,0,0,1)
+
+                    # turn the coordinate system so we don't have to deal with
+                    # figuring out where to draw the texture relative to drum
+                    gl.glRotatef(p.angular_position,0,-1,0)
+
+                    if p.num_sides != self.cached_display_list_num_sides:
+                        self.rebuild_display_list()
+                    if not p.flip_image:
+                        gl.glCallList(self.cached_display_list_normal)
+                    else:
+                        gl.glCallList(self.cached_display_list_mirror)
+            finally:
+                gl.glMatrixMode(gl.GL_MODELVIEW)                
+                gl.glPopMatrix()
 
     def rebuild_display_list(self):
         # (Re)build the display list
