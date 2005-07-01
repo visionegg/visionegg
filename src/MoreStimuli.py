@@ -127,56 +127,21 @@ class Target2D(VisionEgg.Core.Stimulus):
             # calculate center
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
-            gl.glTranslate(center[0],center[1],0.0)
-            gl.glRotate(p.orientation,0.0,0.0,1.0)
+            gl.glPushMatrix()
+            try:
+                gl.glLoadIdentity()
+                gl.glTranslate(center[0],center[1],0.0)
+                gl.glRotate(p.orientation,0.0,0.0,1.0)
 
-            gl.glColorf(*p.color)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
-            gl.glEnable(gl.GL_BLEND)
-
-            w = p.size[0]/2.0
-            h = p.size[1]/2.0
-            
-            gl.glBegin(gl.GL_QUADS)
-            gl.glVertex3f(-w,-h, 0.0)
-            gl.glVertex3f( w,-h, 0.0)
-            gl.glVertex3f( w, h, 0.0)
-            gl.glVertex3f(-w, h, 0.0)
-            gl.glEnd() # GL_QUADS
-            
-            if p.anti_aliasing:
-                if not self._gave_alpha_warning:
-                    if len(p.color) > 3 and p.color[3] != 1.0:
-                        logger = logging.getLogger('VisionEgg.MoreStimuli')
-                        logger.warning("The parameter anti_aliasing is "
-                                       "set to true in the Target2D "
-                                       "stimulus class, but the color "
-                                       "parameter specifies an alpha "
-                                       "value other than 1.0.  To "
-                                       "acheive anti-aliasing, ensure "
-                                       "that the alpha value for the "
-                                       "color parameter is 1.0.")
-                        self._gave_alpha_warning = 1
-
-                # We've already drawn a filled polygon (aliased), now
-                # redraw the outline of the polygon (with
-                # anti-aliasing).  (Using GL_POLYGON_SMOOTH results in
-                # artifactual lines where triangles were joined to
-                # create quad, at least on some OpenGL
-                # implementations.)
-
-                # Calculate coverage value for each pixel of outline
-                # and store as alpha
-                gl.glEnable(gl.GL_LINE_SMOOTH)
-                # Now specify how to use the alpha value
+                gl.glColorf(*p.color)
+                gl.glDisable(gl.GL_DEPTH_TEST)
+                gl.glDisable(gl.GL_TEXTURE_2D)
                 gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
                 gl.glEnable(gl.GL_BLEND)
 
-                # Draw a second polygon in line mode, so the edges are anti-aliased
-                gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
+                w = p.size[0]/2.0
+                h = p.size[1]/2.0
+
                 gl.glBegin(gl.GL_QUADS)
                 gl.glVertex3f(-w,-h, 0.0)
                 gl.glVertex3f( w,-h, 0.0)
@@ -184,9 +149,49 @@ class Target2D(VisionEgg.Core.Stimulus):
                 gl.glVertex3f(-w, h, 0.0)
                 gl.glEnd() # GL_QUADS
 
-                # Set the polygon mode back to fill mode
-                gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL)
-                gl.glDisable(gl.GL_LINE_SMOOTH)
+                if p.anti_aliasing:
+                    if not self._gave_alpha_warning:
+                        if len(p.color) > 3 and p.color[3] != 1.0:
+                            logger = logging.getLogger('VisionEgg.MoreStimuli')
+                            logger.warning("The parameter anti_aliasing is "
+                                           "set to true in the Target2D "
+                                           "stimulus class, but the color "
+                                           "parameter specifies an alpha "
+                                           "value other than 1.0.  To "
+                                           "acheive anti-aliasing, ensure "
+                                           "that the alpha value for the "
+                                           "color parameter is 1.0.")
+                            self._gave_alpha_warning = 1
+
+                    # We've already drawn a filled polygon (aliased), now
+                    # redraw the outline of the polygon (with
+                    # anti-aliasing).  (Using GL_POLYGON_SMOOTH results in
+                    # artifactual lines where triangles were joined to
+                    # create quad, at least on some OpenGL
+                    # implementations.)
+
+                    # Calculate coverage value for each pixel of outline
+                    # and store as alpha
+                    gl.glEnable(gl.GL_LINE_SMOOTH)
+                    # Now specify how to use the alpha value
+                    gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
+                    gl.glEnable(gl.GL_BLEND)
+
+                    # Draw a second polygon in line mode, so the edges are anti-aliased
+                    gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
+                    gl.glBegin(gl.GL_QUADS)
+                    gl.glVertex3f(-w,-h, 0.0);
+                    gl.glVertex3f( w,-h, 0.0);
+                    gl.glVertex3f( w, h, 0.0);
+                    gl.glVertex3f(-w, h, 0.0);
+                    gl.glEnd() # GL_QUADS
+
+                    # Set the polygon mode back to fill mode
+                    gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL)
+                    gl.glDisable(gl.GL_LINE_SMOOTH)
+            finally:
+                gl.glMatrixMode(gl.GL_MODELVIEW)
+                gl.glPopMatrix()
 
 class Rectangle3D(VisionEgg.Core.Stimulus):
     """Solid color rectangle positioned explicitly by four vertices.
@@ -238,9 +243,25 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
         p = self.parameters # shorthand
         if p.on:
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
+            gl.glPushMatrix()
+            try:
+                gl.glLoadIdentity()
 
-            gl.glColorf(*p.color)
+                gl.glColorf(*p.color)
+
+                gl.glDisable(gl.GL_TEXTURE_2D)
+                gl.glDisable(gl.GL_DEPTH_TEST)
+                gl.glDisable(gl.GL_BLEND)
+
+                gl.glBegin(gl.GL_QUADS)
+                gl.glVertex(*p.vertex1)
+                gl.glVertex(*p.vertex2)
+                gl.glVertex(*p.vertex3)
+                gl.glVertex(*p.vertex4)
+                gl.glEnd() # GL_QUADS
+            finally:
+                gl.glMatrixMode(gl.GL_MODELVIEW)                
+                gl.glPopMatrix()
                 
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
