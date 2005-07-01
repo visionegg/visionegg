@@ -53,7 +53,12 @@ import sys
 # functions are useful.
 
 if sys.platform == 'win32':
-    import winioport as raw_lpt_module
+    try:
+        # Dincer Aydin's module http://www.geocities.com/dinceraydin
+        import winioport as raw_lpt_module 
+    except ImportError:
+        # Andrew Straw's module http://www.its.caltech.edu/~astraw/coding.html
+        import dlportio as raw_lpt_module
 elif sys.platform.startswith('linux'):
     import VisionEgg._raw_lpt_linux as raw_lpt_module
 elif sys.platform.startswith('irix'):
