@@ -108,6 +108,8 @@ class Screen(VisionEgg.ClassWithParameters):
                            Default: (determined at runtime)
     blue_bits           -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
                            Default: (determined at runtime)
+    double_buffer       -- use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER (Boolean)
+                           Default: (determined at runtime)
     frameless           -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
                            Default: (determined at runtime)
     fullscreen          -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
