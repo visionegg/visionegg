@@ -135,5 +135,14 @@ def gl_trace_attach():
             if not attr_name.startswith('__') and not attr_name.startswith('__'):
                 if type(getattr(gl,attr_name)) == int:
                     gl_constants[getattr(gl,attr_name)] = attr_name
-
+    if not hasattr(gl,'GL_CLAMP_TO_EDGE'):
+        # XXX This hack requires opengl >= 1.2. See Core.py for more info.
+        globals()['GL_CLAMP_TO_EDGE'] = 0x812F
+    if hasattr(gl,'glActiveTexture'):
+        # XXX Another, similar hack.
+        globals()['glActiveTextureARB'] = gl.glActiveTexture
+        globals()['glMultiTexCoord2fARB'] = gl.glMultiTexCoord2f
+        globals()['GL_TEXTURE0_ARB'] = gl.GL_TEXTURE0
+        globals()['GL_TEXTURE1_ARB'] = gl.GL_TEXTURE1
+    
 gl_trace_attach() # attach when imported
