@@ -463,8 +463,8 @@ def _get_lowerleft(position,anchor,size):
         else: z = 0.0
         if len(position) > 3: w = position[3]
         else: w = 1.0
-        if z != 0.0: raise ValueError("z coordinate (other than 0.0) specificed where anchor not 'lowerleft' -- cannot compute")
-        if w != 1.0: raise ValueError("w coordinate (other than 1.0) specificed where anchor not 'lowerleft' -- cannot compute")
+        if z != 0.0: warnings.warn( "z coordinate (other than 0.0) specificed where anchor not 'lowerleft' -- cannot compute")
+        if w != 1.0: warnings.warn("w coordinate (other than 1.0) specificed where anchor not 'lowerleft' -- cannot compute")
         if anchor == 'center':
             lowerleft = (position[0] - size[0]/2.0, position[1] - size[1]/2.0)
         elif anchor == 'lowerright':
