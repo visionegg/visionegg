@@ -1291,10 +1291,10 @@ class Viewport(VisionEgg.ClassWithParameters):
         x,y = lowerleft
         w,h = p.size
         n,f = p.depth_range
-        
+
         # clamp n and f
-        n = max(1.0,min(0.0,n))
-        f = max(1.0,min(0.0,f))
+        n = min(1.0,max(0.0,n))
+        f = min(1.0,max(0.0,f)) 
 
         ox = x + w/2.0
         oy = y + h/2.0
