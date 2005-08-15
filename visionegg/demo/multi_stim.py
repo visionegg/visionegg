@@ -157,7 +157,7 @@ def angle_as_function_of_time(t):
     return 90.0*t % 360.0 # rotate at 90 degrees per second (wrap at 360)
 
 def cam_matrix_f(t):
-    cam_matrix = Projection()
+    cam_matrix = ModelView()
     eye = (0.0,sin(t*0.3)+2.0,-2.0)
     camera_look_at = (0.0,0.0,0.0)
     camera_up = (0.0,1.0,0.0)
