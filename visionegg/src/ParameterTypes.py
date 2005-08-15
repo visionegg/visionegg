@@ -1,6 +1,8 @@
 # The Vision Egg: ParameterTypes
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2003 Andrew Straw
+# Copyright (C) 2005 California Insitute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -88,6 +90,7 @@ class AnyOf(ParameterTypeDef):
         return self.item_types
 
 class NoneMC(type):
+    """metaclass for NoneType"""
     def __str__(self):
         return 'None'
     
@@ -98,6 +101,7 @@ class NoneType(ParameterTypeDef):
     verify = staticmethod(verify)
 
 class BooleanMC(type):
+    """metaclass for Boolean"""
     def __str__(self):
         return 'Boolean'
     
@@ -111,6 +115,7 @@ class Boolean(ParameterTypeDef):
     verify = staticmethod(verify)
 
 class CallableMC(type):
+    """metaclass for Callable"""
     def __str__(self):
         return 'Callable'
     
@@ -121,16 +126,19 @@ class Callable(ParameterTypeDef):
     verify = staticmethod(verify)
 
 class AnyClassMC(type):
+    """metaclass for AnyClass"""
     def __str__(self):
         return 'AnyClass'
     
 class AnyClass(ParameterTypeDef):
+    """parameter is a class"""
     __metaclass__ = AnyClassMC
     def verify(is_class):
         return type(is_class) == types.ClassType
     verify = staticmethod(verify)
     
 class SubClass(ParameterTypeDef):
+    """parameter is derived from base_class"""
     def __init__(self,base_class):
         if type(base_class) != types.ClassType:
             raise TypeError("base_class must be ClassType")
@@ -143,6 +151,7 @@ class SubClass(ParameterTypeDef):
         return 'SubClass of %s'%str(self.base_class)
 
 class Instance(ParameterTypeDef):
+    """parameter is an instance of class_type"""
     def __init__(self,class_type):
         if type(class_type) not in (types.ClassType, types.TypeType):
             raise TypeError("expected a class type")
@@ -154,6 +163,7 @@ class Instance(ParameterTypeDef):
         return isinstance(is_instance,self.class_type)
 
 class IntegerMC(type):
+    """metaclass for Integer"""
     def __str__(self):
         return 'Integer'
     
@@ -164,6 +174,7 @@ class Integer(ParameterTypeDef):
     verify = staticmethod(verify)
 
 class UnsignedIntegerMC(IntegerMC):
+    """metaclass for UnsignedInteger"""
     def __str__(self):
         return 'UnsignedInteger'
     
@@ -176,6 +187,7 @@ class UnsignedInteger(Integer):
     verify = staticmethod(verify)
 
 class RealMC(type):
+    """metaclass for Real"""
     def __str__(self):
         return 'Real'
     
@@ -264,6 +276,7 @@ class Sequence4x4(Sequence4):
         return True
 
 class StringMC(type):
+    """metaclass for String"""
     def __str__(self):
         return 'String'
     
@@ -277,6 +290,7 @@ class String(ParameterTypeDef):
     verify = staticmethod(verify)
     
 class UnicodeMC(type):
+    """metaclass for Unicode"""
     def __str__(self):
         return 'Unicode'
     
