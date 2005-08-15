@@ -1,6 +1,8 @@
 # The Vision Egg: Dots
 #
 # Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2005 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -250,20 +252,16 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:            
-                gl.glLoadIdentity()
+            
+            gl.glDisable(gl.GL_TEXTURE_2D)
 
-                gl.glDisable(gl.GL_TEXTURE_2D)
-
-                if p.depth is None:
-                    depth = 0.0
-                else:
-                    gl.glEnable(gl.GL_DEPTH_TEST)
-                    depth = p.depth
-                zs = (depth,)*len(xs) # make N tuple with repeat value of depth
-                draw_dots(xs,ys,zs)
-                if p.anti_aliasing:
-                    gl.glDisable( gl.GL_POINT_SMOOTH ) # turn off
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            if p.depth is None:
+                depth = 0.0
+            else:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+                depth = p.depth
+            zs = (depth,)*len(xs) # make N tuple with repeat value of depth
+            draw_dots(xs,ys,zs)
+            if p.anti_aliasing:
+                gl.glDisable( gl.GL_POINT_SMOOTH ) # turn off
+            gl.glPopMatrix()

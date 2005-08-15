@@ -1,6 +1,8 @@
 # The Vision Egg: SphereMap
 #
 # Copyright (C) 2001-2004 Andrew Straw.
+# Copyright (C) 2005 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -198,59 +200,51 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         els_major = Numeric.arange(-90.0,90.0,cp.el_major_spacing)
         els_minor = Numeric.arange(-90.0,90.0,cp.el_minor_spacing)
 
-        gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glPushMatrix()
-        try:
-            gl.glLoadIdentity()
+        gl.glNewList(self.cached_minor_lines_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_LINES)
+        # az minor
+        for az in azs_minor:
+            if az in azs_major:
+                continue # draw only once as major
+            draw_half_great_circle(az)
+        for el in els_minor:
+            if el in els_major:
+                continue # draw only once as major
+            draw_iso_elevation_circle(el)
+        gl.glEnd()
+        gl.glEndList()
 
-            gl.glNewList(self.cached_minor_lines_display_list,gl.GL_COMPILE)
-            gl.glBegin(gl.GL_LINES)
-            # az minor
-            for az in azs_minor:
-                if az in azs_major:
-                    continue # draw only once as major
-                draw_half_great_circle(az)
-            for el in els_minor:
-                if el in els_major:
-                    continue # draw only once as major
-                draw_iso_elevation_circle(el)
-            gl.glEnd()
-            gl.glEndList()
+        gl.glNewList(self.cached_major_lines_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_LINES)
+        for az in azs_major:
+            draw_half_great_circle(az)
+        for el in els_major:
+            draw_iso_elevation_circle(el)
+        gl.glEnd()
+        gl.glEndList()
 
-            gl.glNewList(self.cached_major_lines_display_list,gl.GL_COMPILE)
-            gl.glBegin(gl.GL_LINES)
-            for az in azs_major:
-                draw_half_great_circle(az)
+        if cp.use_text:
+            self.labels = []
+            self.labels_xyz = []
+            els_major = list(els_major)+[90.0] # make sure we have north pole
             for el in els_major:
-                draw_iso_elevation_circle(el)
-            gl.glEnd()
-            gl.glEndList()
+                for az in azs_major:
+                    theta = -(el-90) / 180.0 * math.pi
+                    phi = (az-90.0)/180.0*math.pi
+                    x,y,z = get_xyz(theta,phi,cp.radius)
+                    self.labels_xyz.append((x,y,z))
+                    self.labels.append(
+                        VisionEgg.Text.Text( text = '%.0f, %.0f'%(az,el),
+                                             font_size = cp.font_size,
+                                             color = cp.text_color,
+                                             anchor = cp.text_anchor,
+                                             )
+                        )
+                    if (el == -90) or (el == 90):
+                        self.labels[-1].parameters.text = 'x, %.0f'%(el,)
+                        break # only one label at the poles
 
-            if cp.use_text:
-                self.labels = []
-                self.labels_xyz = []
-                els_major = list(els_major)+[90.0] # make sure we have north pole
-                for el in els_major:
-                    for az in azs_major:
-                        theta = -(el-90) / 180.0 * math.pi
-                        phi = (az-90.0)/180.0*math.pi
-                        x,y,z = get_xyz(theta,phi,cp.radius)
-                        self.labels_xyz.append((x,y,z))
-                        self.labels.append(
-                            VisionEgg.Text.Text( text = '%.0f, %.0f'%(az,el),
-                                                 font_size = cp.font_size,
-                                                 color = cp.text_color,
-                                                 anchor = cp.text_anchor,
-                                                 )
-                            )
-                        if (el == -90) or (el == 90):
-                            self.labels[-1].parameters.text = 'x, %.0f'%(el,)
-                            break # only one label at the poles
-
-                self.labels_xyz = Numeric.array(self.labels_xyz)
-        finally:
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPopMatrix()
+            self.labels_xyz = Numeric.array(self.labels_xyz)
 
     def draw(self):
         p = self.parameters
@@ -261,111 +255,106 @@ class AzElGrid(VisionEgg.Core.Stimulus):
             gl.glDisable( gl.GL_TEXTURE_2D )  # Make sure textures are not drawn
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:
-                gl.glLoadIdentity()
+            gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
 
-                gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
-                gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
+            if p.anti_aliasing:
+                if len(p.minor_line_color) == 4 and not self._gave_alpha_warning:
+                    if p.minor_line_color[3] != 1.0:
+                        logger = logging.getLogger('VisionEgg.SphereMap')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the AzElGrid "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive the best anti-aliasing, "
+                                       "ensure that the alpha value for "
+                                       "the color parameter is 1.0.")
+                        self._gave_alpha_warning = 1
+                if len(p.major_line_color) == 4 and not self._gave_alpha_warning:
+                    if p.major_line_color[3] != 1.0:
+                        logger = logging.getLogger('VisionEgg.SphereMap')
+                        logger.warning("The parameter anti_aliasing is "
+                                       "set to true in the AzElGrid "
+                                       "stimulus class, but the color "
+                                       "parameter specifies an alpha "
+                                       "value other than 1.0.  To "
+                                       "acheive the best anti-aliasing, "
+                                       "ensure that the alpha value for "
+                                       "the color parameter is 1.0.")
+                        self._gave_alpha_warning = 1
+                gl.glEnable( gl.GL_LINE_SMOOTH )
+                # allow max_alpha value to control blending
+                gl.glEnable( gl.GL_BLEND )
+                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
+            else:
+                gl.glDisable( gl.GL_BLEND )
 
-                if p.anti_aliasing:
-                    if len(p.minor_line_color) == 4 and not self._gave_alpha_warning:
-                        if p.minor_line_color[3] != 1.0:
-                            logger = logging.getLogger('VisionEgg.SphereMap')
-                            logger.warning("The parameter anti_aliasing is "
-                                           "set to true in the AzElGrid "
-                                           "stimulus class, but the color "
-                                           "parameter specifies an alpha "
-                                           "value other than 1.0.  To "
-                                           "acheive the best anti-aliasing, "
-                                           "ensure that the alpha value for "
-                                           "the color parameter is 1.0.")
-                            self._gave_alpha_warning = 1
-                    if len(p.major_line_color) == 4 and not self._gave_alpha_warning:
-                        if p.major_line_color[3] != 1.0:
-                            logger = logging.getLogger('VisionEgg.SphereMap')
-                            logger.warning("The parameter anti_aliasing is "
-                                           "set to true in the AzElGrid "
-                                           "stimulus class, but the color "
-                                           "parameter specifies an alpha "
-                                           "value other than 1.0.  To "
-                                           "acheive the best anti-aliasing, "
-                                           "ensure that the alpha value for "
-                                           "the color parameter is 1.0.")
-                            self._gave_alpha_warning = 1
-                    gl.glEnable( gl.GL_LINE_SMOOTH )
-                    # allow max_alpha value to control blending
-                    gl.glEnable( gl.GL_BLEND )
-                    gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-                else:
-                    gl.glDisable( gl.GL_BLEND )
+            gl.glColorf(p.minor_line_color)
+            gl.glLineWidth(p.minor_line_width)
+            gl.glCallList(self.cached_minor_lines_display_list)
 
-                gl.glColorf(p.minor_line_color)
-                gl.glLineWidth(p.minor_line_width)
-                gl.glCallList(self.cached_minor_lines_display_list)
+            gl.glColorf(p.major_line_color)
+            gl.glLineWidth(p.major_line_width)
+            gl.glCallList(self.cached_major_lines_display_list)
 
-                gl.glColorf(p.major_line_color)
-                gl.glLineWidth(p.major_line_width)
-                gl.glCallList(self.cached_major_lines_display_list)
+            if p.anti_aliasing:
+                gl.glDisable( gl.GL_LINE_SMOOTH ) # turn off
 
-                if p.anti_aliasing:
-                    gl.glDisable( gl.GL_LINE_SMOOTH ) # turn off
+            if cp.use_text:
+                my_view = p.my_viewport
+                if (my_view is None) or (not my_view._is_drawing):
+                    raise ValueError('use_text is True, but my_viewport not (properly) assigned')
 
-                if cp.use_text:
-                    my_view = p.my_viewport
-                    if (my_view is None) or (not my_view._is_drawing):
-                        raise ValueError('use_text is True, but my_viewport not (properly) assigned')
+                if self.text_viewport is None or self.text_viewport_orig != my_view:
+                    # make viewport for text (uses default orthographic projection)
+                    vp = my_view.parameters
+                    self.text_viewport = VisionEgg.Core.Viewport(screen=vp.screen,
+                                                                 position=vp.position,
+                                                                 size=vp.size,
+                                                                 anchor=vp.anchor,
+                                                                 )
+                    lowerleft = VisionEgg._get_lowerleft(vp.position,vp.anchor,vp.size)
+                    self.text_viewport.parameters.projection.stateless_translate(-lowerleft[0],-lowerleft[1],0)
+                    self.text_viewport_orig = p.my_viewport # in case my_viewport changes, change text_viewport
 
-                    if self.text_viewport is None or self.text_viewport_orig != my_view:
-                        # make viewport for text (uses default orthographic projection)
-                        vp = my_view.parameters
-                        self.text_viewport = VisionEgg.Core.Viewport(screen=vp.screen,
-                                                                     position=vp.position,
-                                                                     size=vp.size,
-                                                                     anchor=vp.anchor,
-                                                                     )
-                        lowerleft = VisionEgg._get_lowerleft(vp.position,vp.anchor,vp.size)
-                        self.text_viewport.parameters.projection.stateless_translate(-lowerleft[0],-lowerleft[1],0)
-                        self.text_viewport_orig = p.my_viewport # in case my_viewport changes, change text_viewport
+                # draw text labels
+                my_proj = my_view.parameters.projection
 
-                    # draw text labels
-                    my_proj = my_view.parameters.projection
+                xyz = self.labels_xyz
 
-                    xyz = self.labels_xyz
+                t = VisionEgg.ThreeDeeMath.TransformMatrix()
+                t.rotate( p.center_azimuth,0.0,-1.0,0.0  ) # acheive same transforms as the lines
+                t.rotate( p.center_elevation,1.0,0.0,0.0 )
 
-                    t = VisionEgg.ThreeDeeMath.TransformMatrix()
-                    t.rotate( p.center_azimuth,0.0,-1.0,0.0  ) # acheive same transforms as the lines
-                    t.rotate( p.center_elevation,1.0,0.0,0.0 )
+                xyz = t.transform_vertices(self.labels_xyz)
 
-                    xyz = t.transform_vertices(self.labels_xyz)
-
-                    clip = my_proj.eye_2_clip(xyz)
-                    try:
-                        # this is much faster when no OverflowError...
-                        window_coords = my_view.clip_2_window(clip)
-                        all_at_once = True
-                    except OverflowError:
-                        all_at_once = False
-                    draw_labels = []
-                    for i in range(len(self.labels)):
-                        if clip[i,3] < 0: continue # this vertex is not on screen
-                        label = self.labels[i]
-                        if all_at_once:
-                            this_pos = window_coords[i,:2]
-                        else:
-                            try:
-                                window_coords = my_view.clip_2_window(clip[i,:])
-                            except OverflowError:
-                                continue # not much we can do with this vertex, either
-                            this_pos = window_coords[:2]
-                        label.parameters.position = (this_pos[0] + p.text_offset[0],
-                                                     this_pos[1] + p.text_offset[1])
-                        draw_labels.append(label)
-                    self.text_viewport.parameters.stimuli = draw_labels
-                    self.text_viewport.draw()
-                    my_view.make_current() # restore viewport
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+                clip = my_proj.eye_2_clip(xyz)
+                try:
+                    # this is much faster when no OverflowError...
+                    window_coords = my_view.clip_2_window(clip)
+                    all_at_once = True
+                except OverflowError:
+                    all_at_once = False
+                draw_labels = []
+                for i in range(len(self.labels)):
+                    if clip[i,3] < 0: continue # this vertex is not on screen
+                    label = self.labels[i]
+                    if all_at_once:
+                        this_pos = window_coords[i,:2]
+                    else:
+                        try:
+                            window_coords = my_view.clip_2_window(clip[i,:])
+                        except OverflowError:
+                            continue # not much we can do with this vertex, either
+                        this_pos = window_coords[:2]
+                    label.parameters.position = (this_pos[0] + p.text_offset[0],
+                                                 this_pos[1] + p.text_offset[1])
+                    draw_labels.append(label)
+                self.text_viewport.parameters.stimuli = draw_labels
+                self.text_viewport.draw()
+                my_view.make_current() # restore viewport
+            gl.glPopMatrix()
 
 class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     """Mercator mapping of rectangular texture onto sphere.
@@ -443,70 +432,62 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
         self.__rebuild_display_list()
         
     def __rebuild_display_list(self):
-        gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glPushMatrix()
-        try:
-            gl.glLoadIdentity()
+        p = self.parameters
 
-            p = self.parameters
+        s_gain = p.texture.buf_rf - p.texture.buf_lf
+        t_gain = p.texture.buf_bf - p.texture.buf_tf
 
-            s_gain = p.texture.buf_rf - p.texture.buf_lf
-            t_gain = p.texture.buf_bf - p.texture.buf_tf
+        s_offs = p.texture.buf_lf
+        t_offs = p.texture.buf_tf
 
-            s_offs = p.texture.buf_lf
-            t_offs = p.texture.buf_tf
+        gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
+        gl.glBegin(gl.GL_QUADS)
 
-            gl.glNewList(self.cached_display_list,gl.GL_COMPILE)
-            gl.glBegin(gl.GL_QUADS)
+        for stack in range(p.stacks):
+            stack_upper_frac = float(stack+1)/p.stacks
+            stack_lower_frac = float(stack)/p.stacks
+            theta_upper = stack_upper_frac * math.pi
+            theta_lower = stack_lower_frac * math.pi
+            y_upper = p.radius * math.cos( theta_upper )
+            w_upper = p.radius * math.sin( theta_upper )
+            y_lower = p.radius * math.cos( theta_lower )
+            w_lower = p.radius * math.sin( theta_lower )
+            for slice in range(p.slices):
+                slice_start_frac = float(slice)/p.slices
+                slice_stop_frac = float(slice+1)/p.slices
+                phi_start = slice_start_frac * 2 * math.pi
+                phi_stop = slice_stop_frac * 2 * math.pi
+                x_start_upper = w_upper * math.cos(phi_start)
+                x_start_lower = w_lower * math.cos(phi_start)
+                x_stop_upper = w_upper * math.cos(phi_stop)
+                x_stop_lower = w_lower * math.cos(phi_stop)
+                z_start_upper = w_upper * math.sin(phi_start)
+                z_start_lower = w_lower * math.sin(phi_start)
+                z_stop_upper = w_upper * math.sin(phi_stop)
+                z_stop_lower = w_lower * math.sin(phi_stop)                
 
-            for stack in range(p.stacks):
-                stack_upper_frac = float(stack+1)/p.stacks
-                stack_lower_frac = float(stack)/p.stacks
-                theta_upper = stack_upper_frac * math.pi
-                theta_lower = stack_lower_frac * math.pi
-                y_upper = p.radius * math.cos( theta_upper )
-                w_upper = p.radius * math.sin( theta_upper )
-                y_lower = p.radius * math.cos( theta_lower )
-                w_lower = p.radius * math.sin( theta_lower )
-                for slice in range(p.slices):
-                    slice_start_frac = float(slice)/p.slices
-                    slice_stop_frac = float(slice+1)/p.slices
-                    phi_start = slice_start_frac * 2 * math.pi
-                    phi_stop = slice_stop_frac * 2 * math.pi
-                    x_start_upper = w_upper * math.cos(phi_start)
-                    x_start_lower = w_lower * math.cos(phi_start)
-                    x_stop_upper = w_upper * math.cos(phi_stop)
-                    x_stop_lower = w_lower * math.cos(phi_stop)
-                    z_start_upper = w_upper * math.sin(phi_start)
-                    z_start_lower = w_lower * math.sin(phi_start)
-                    z_stop_upper = w_upper * math.sin(phi_stop)
-                    z_stop_lower = w_lower * math.sin(phi_stop)                
+                tex_l = slice_start_frac*s_gain+s_offs
+                tex_r = slice_stop_frac*s_gain+s_offs
+                tex_b = stack_lower_frac*t_gain+t_offs
+                tex_t = stack_upper_frac*t_gain+t_offs
 
-                    tex_l = slice_start_frac*s_gain+s_offs
-                    tex_r = slice_stop_frac*s_gain+s_offs
-                    tex_b = stack_lower_frac*t_gain+t_offs
-                    tex_t = stack_upper_frac*t_gain+t_offs
+                gl.glTexCoord2f(tex_l,tex_t)
+                gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
-                    gl.glTexCoord2f(tex_l,tex_t)
-                    gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
+                gl.glTexCoord2f(tex_r,tex_t)
+                gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
 
-                    gl.glTexCoord2f(tex_r,tex_t)
-                    gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
+                gl.glTexCoord2f(tex_r,tex_b)
+                gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
 
-                    gl.glTexCoord2f(tex_r,tex_b)
-                    gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
+                gl.glTexCoord2f(tex_l,tex_b)
+                gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
 
-                    gl.glTexCoord2f(tex_l,tex_b)
-                    gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
-
-            gl.glEnd()
-            gl.glEndList()
-            self._cached_radius = p.radius
-            self._cached_slices = p.slices
-            self._cached_stacks = p.stacks
-        finally:
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPopMatrix()
+        gl.glEnd()
+        gl.glEndList()
+        self._cached_radius = p.radius
+        self._cached_slices = p.slices
+        self._cached_stacks = p.stacks
 
     def draw(self):
     	"""Redraw the scene on every frame.
@@ -545,27 +526,22 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:
-                gl.glLoadIdentity()
+            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
-                gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+            if not self.constant_parameters.mipmaps_enabled:
+                if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
+                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
-                if not self.constant_parameters.mipmaps_enabled:
-                    if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
-                        raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-                self.texture_object.set_min_filter( p.texture_min_filter )
-                self.texture_object.set_mag_filter( p.texture_mag_filter )
-                self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
-                self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
+            # center the texture map
+            gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
 
-                # center the texture map
-                gl.glRotatef(p.center_azimuth,0.0,-1.0,0.0)
-                gl.glRotatef(p.center_elevation,1.0,0.0,0.0)
-
-                gl.glCallList(self.cached_display_list)
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            gl.glCallList(self.cached_display_list)
+            gl.glPopMatrix()
 
 class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     """Map 2D sinusoidal grating onto sphere.
@@ -744,64 +720,56 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         self._cached_num_samples = p.num_samples
 
     def __rebuild_display_list(self):
-        gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glPushMatrix()
-        try:
-            gl.glLoadIdentity()
+        gl.glNewList(self.cached_display_list_id,gl.GL_COMPILE)
 
-            gl.glNewList(self.cached_display_list_id,gl.GL_COMPILE)
+        p = self.parameters
+        gl.glBegin(gl.GL_QUADS)
 
-            p = self.parameters
-            gl.glBegin(gl.GL_QUADS)
+        for stack in range(p.stacks):
+            stack_upper_frac = float(stack+1)/p.stacks
+            stack_lower_frac = float(stack)/p.stacks
+            theta_upper = stack_upper_frac * math.pi
+            theta_lower = stack_lower_frac * math.pi
+            y_upper = p.radius * math.cos( theta_upper )
+            w_upper = p.radius * math.sin( theta_upper )
+            y_lower = p.radius * math.cos( theta_lower )
+            w_lower = p.radius * math.sin( theta_lower )
+            for slice in range(p.slices):
+                slice_start_frac = float(slice)/p.slices
+                slice_stop_frac = float(slice+1)/p.slices
+                phi_start = slice_start_frac * 2 * math.pi
+                phi_stop = slice_stop_frac * 2 * math.pi
+                x_start_upper = w_upper * math.cos(phi_start)
+                x_start_lower = w_lower * math.cos(phi_start)
+                x_stop_upper = w_upper * math.cos(phi_stop)
+                x_stop_lower = w_lower * math.cos(phi_stop)
+                z_start_upper = w_upper * math.sin(phi_start)
+                z_start_lower = w_lower * math.sin(phi_start)
+                z_stop_upper = w_upper * math.sin(phi_stop)
+                z_stop_lower = w_lower * math.sin(phi_stop)                
 
-            for stack in range(p.stacks):
-                stack_upper_frac = float(stack+1)/p.stacks
-                stack_lower_frac = float(stack)/p.stacks
-                theta_upper = stack_upper_frac * math.pi
-                theta_lower = stack_lower_frac * math.pi
-                y_upper = p.radius * math.cos( theta_upper )
-                w_upper = p.radius * math.sin( theta_upper )
-                y_lower = p.radius * math.cos( theta_lower )
-                w_lower = p.radius * math.sin( theta_lower )
-                for slice in range(p.slices):
-                    slice_start_frac = float(slice)/p.slices
-                    slice_stop_frac = float(slice+1)/p.slices
-                    phi_start = slice_start_frac * 2 * math.pi
-                    phi_stop = slice_stop_frac * 2 * math.pi
-                    x_start_upper = w_upper * math.cos(phi_start)
-                    x_start_lower = w_lower * math.cos(phi_start)
-                    x_stop_upper = w_upper * math.cos(phi_stop)
-                    x_stop_lower = w_lower * math.cos(phi_stop)
-                    z_start_upper = w_upper * math.sin(phi_start)
-                    z_start_lower = w_lower * math.sin(phi_start)
-                    z_stop_upper = w_upper * math.sin(phi_stop)
-                    z_stop_lower = w_lower * math.sin(phi_stop)                
+                tex_l = slice_start_frac
+                tex_r = slice_stop_frac
+                tex_b = 0.0#stack_lower_frac
+                tex_t = 1.0#stack_upper_frac
 
-                    tex_l = slice_start_frac
-                    tex_r = slice_stop_frac
-                    tex_b = 0.0#stack_lower_frac
-                    tex_t = 1.0#stack_upper_frac
+                gl.glTexCoord2f(tex_l,tex_t)
+                gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
-                    gl.glTexCoord2f(tex_l,tex_t)
-                    gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
+                gl.glTexCoord2f(tex_r,tex_t)
+                gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
 
-                    gl.glTexCoord2f(tex_r,tex_t)
-                    gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
+                gl.glTexCoord2f(tex_r,tex_b)
+                gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
 
-                    gl.glTexCoord2f(tex_r,tex_b)
-                    gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
+                gl.glTexCoord2f(tex_l,tex_b)
+                gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
 
-                    gl.glTexCoord2f(tex_l,tex_b)
-                    gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
-
-            gl.glEnd()
-            gl.glEndList()
-            self._cached_radius = p.radius
-            self._cached_slices = p.slices
-            self._cached_stacks = p.stacks
-        finally:
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPopMatrix()
+        gl.glEnd()
+        gl.glEndList()
+        self._cached_radius = p.radius
+        self._cached_slices = p.slices
+        self._cached_stacks = p.stacks
 
     def draw(self):
     	"""Redraw the scene on every frame.
@@ -864,22 +832,17 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:
-                gl.glLoadIdentity()
+            # center the grating
+            gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
 
-                # center the grating
-                gl.glRotatef(p.grating_center_azimuth,0.0,-1.0,0.0)
-                gl.glRotatef(p.grating_center_elevation,1.0,0.0,0.0)
+            # do the orientation
+            gl.glRotatef(p.orientation,0.0,0.0,1.0)
 
-                # do the orientation
-                gl.glRotatef(p.orientation,0.0,0.0,1.0)
+            gl.glCallList(self.cached_display_list_id)
 
-                gl.glCallList(self.cached_display_list_id)
-
-                gl.glDisable( gl.GL_TEXTURE_1D )
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            gl.glDisable( gl.GL_TEXTURE_1D )
+            gl.glPopMatrix()
                 
 class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     """This draws an opaque sphere with a single window in it.
@@ -1105,111 +1068,107 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     def __rebuild_display_lists(self):
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPushMatrix()
-        try:
-            gl.glLoadIdentity()
 
-            p = self.parameters
+        p = self.parameters
 
-            if p.window_shape == 'lat-long rectangle':
-                self._texture_s_is_azimuth = True
-            else:
-                self._texture_s_is_azimuth = False
+        if p.window_shape == 'lat-long rectangle':
+            self._texture_s_is_azimuth = True
+        else:
+            self._texture_s_is_azimuth = False
 
-            gl.glNewList(self.windowed_display_list_id,gl.GL_COMPILE)
+        gl.glNewList(self.windowed_display_list_id,gl.GL_COMPILE)
 
-            gl.glBegin(gl.GL_QUADS)
+        gl.glBegin(gl.GL_QUADS)
 
-            for stack in range(p.stacks):
-                stack_upper_frac = float(stack+1)/p.stacks
-                stack_lower_frac = float(stack)/p.stacks
-                theta_upper = stack_upper_frac * math.pi
-                theta_lower = stack_lower_frac * math.pi
-                y_upper = p.radius * math.cos( theta_upper )
-                w_upper = p.radius * math.sin( theta_upper )
-                y_lower = p.radius * math.cos( theta_lower )
-                w_lower = p.radius * math.sin( theta_lower )
-                for slice in range(p.slices/2,p.slices): # only do half of sphere (other half has no window)
-                    slice_start_frac = float(slice)/p.slices
-                    slice_stop_frac = float(slice+1)/p.slices
-                    phi_start = slice_start_frac * 2 * math.pi
-                    phi_stop = slice_stop_frac * 2 * math.pi
-                    x_start_upper = w_upper * math.cos(phi_start)
-                    x_start_lower = w_lower * math.cos(phi_start)
-                    x_stop_upper = w_upper * math.cos(phi_stop)
-                    x_stop_lower = w_lower * math.cos(phi_stop)
-                    z_start_upper = w_upper * math.sin(phi_start)
-                    z_start_lower = w_lower * math.sin(phi_start)
-                    z_stop_upper = w_upper * math.sin(phi_stop)
-                    z_stop_lower = w_lower * math.sin(phi_stop)                
+        for stack in range(p.stacks):
+            stack_upper_frac = float(stack+1)/p.stacks
+            stack_lower_frac = float(stack)/p.stacks
+            theta_upper = stack_upper_frac * math.pi
+            theta_lower = stack_lower_frac * math.pi
+            y_upper = p.radius * math.cos( theta_upper )
+            w_upper = p.radius * math.sin( theta_upper )
+            y_lower = p.radius * math.cos( theta_lower )
+            w_lower = p.radius * math.sin( theta_lower )
+            for slice in range(p.slices/2,p.slices): # only do half of sphere (other half has no window)
+                slice_start_frac = float(slice)/p.slices
+                slice_stop_frac = float(slice+1)/p.slices
+                phi_start = slice_start_frac * 2 * math.pi
+                phi_stop = slice_stop_frac * 2 * math.pi
+                x_start_upper = w_upper * math.cos(phi_start)
+                x_start_lower = w_lower * math.cos(phi_start)
+                x_stop_upper = w_upper * math.cos(phi_stop)
+                x_stop_lower = w_lower * math.cos(phi_stop)
+                z_start_upper = w_upper * math.sin(phi_start)
+                z_start_lower = w_lower * math.sin(phi_start)
+                z_stop_upper = w_upper * math.sin(phi_stop)
+                z_stop_lower = w_lower * math.sin(phi_stop)                
 
-                    o = 0.5
-                    g = 0.5 / p.radius
+                o = 0.5
+                g = 0.5 / p.radius
 
-                    if self._texture_s_is_azimuth:
-                        tex_s_start = slice_start_frac*2-1
-                        tex_s_stop = slice_stop_frac*2-1
-                    else:
-                        tex_s_start = x_start_upper*g+o
-                        tex_s_stop = x_stop_upper*g+o
+                if self._texture_s_is_azimuth:
+                    tex_s_start = slice_start_frac*2-1
+                    tex_s_stop = slice_stop_frac*2-1
+                else:
+                    tex_s_start = x_start_upper*g+o
+                    tex_s_stop = x_stop_upper*g+o
 
-                    gl.glTexCoord2f(tex_s_start,y_upper*g+o)
-                    gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
+                gl.glTexCoord2f(tex_s_start,y_upper*g+o)
+                gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
-                    gl.glTexCoord2f(tex_s_stop,y_upper*g+o)
-                    gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
+                gl.glTexCoord2f(tex_s_stop,y_upper*g+o)
+                gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
 
-                    gl.glTexCoord2f(tex_s_stop,y_lower*g+o)
-                    gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
+                gl.glTexCoord2f(tex_s_stop,y_lower*g+o)
+                gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
 
-                    gl.glTexCoord2f(tex_s_start,y_lower*g+o)
-                    gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
+                gl.glTexCoord2f(tex_s_start,y_lower*g+o)
+                gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
 
-            gl.glEnd()
-            gl.glEndList()
+        gl.glEnd()
+        gl.glEndList()
 
-            gl.glNewList(self.opaque_display_list_id,gl.GL_COMPILE)
+        gl.glNewList(self.opaque_display_list_id,gl.GL_COMPILE)
 
-            gl.glBegin(gl.GL_QUADS)
+        gl.glBegin(gl.GL_QUADS)
 
-            for stack in range(p.stacks):
-                stack_upper_frac = float(stack+1)/p.stacks
-                stack_lower_frac = float(stack)/p.stacks
-                theta_upper = stack_upper_frac * math.pi
-                theta_lower = stack_lower_frac * math.pi
-                y_upper = p.radius * math.cos( theta_upper )
-                w_upper = p.radius * math.sin( theta_upper )
-                y_lower = p.radius * math.cos( theta_lower )
-                w_lower = p.radius * math.sin( theta_lower )
-                for slice in range(p.slices/2): # half of sphere with no window
-                    slice_start_frac = float(slice)/p.slices
-                    slice_stop_frac = float(slice+1)/p.slices
-                    phi_start = slice_start_frac * 2 * math.pi
-                    phi_stop = slice_stop_frac * 2 * math.pi
-                    x_start_upper = w_upper * math.cos(phi_start)
-                    x_start_lower = w_lower * math.cos(phi_start)
-                    x_stop_upper = w_upper * math.cos(phi_stop)
-                    x_stop_lower = w_lower * math.cos(phi_stop)
-                    z_start_upper = w_upper * math.sin(phi_start)
-                    z_start_lower = w_lower * math.sin(phi_start)
-                    z_stop_upper = w_upper * math.sin(phi_stop)
-                    z_stop_lower = w_lower * math.sin(phi_stop)                
+        for stack in range(p.stacks):
+            stack_upper_frac = float(stack+1)/p.stacks
+            stack_lower_frac = float(stack)/p.stacks
+            theta_upper = stack_upper_frac * math.pi
+            theta_lower = stack_lower_frac * math.pi
+            y_upper = p.radius * math.cos( theta_upper )
+            w_upper = p.radius * math.sin( theta_upper )
+            y_lower = p.radius * math.cos( theta_lower )
+            w_lower = p.radius * math.sin( theta_lower )
+            for slice in range(p.slices/2): # half of sphere with no window
+                slice_start_frac = float(slice)/p.slices
+                slice_stop_frac = float(slice+1)/p.slices
+                phi_start = slice_start_frac * 2 * math.pi
+                phi_stop = slice_stop_frac * 2 * math.pi
+                x_start_upper = w_upper * math.cos(phi_start)
+                x_start_lower = w_lower * math.cos(phi_start)
+                x_stop_upper = w_upper * math.cos(phi_stop)
+                x_stop_lower = w_lower * math.cos(phi_stop)
+                z_start_upper = w_upper * math.sin(phi_start)
+                z_start_lower = w_lower * math.sin(phi_start)
+                z_stop_upper = w_upper * math.sin(phi_stop)
+                z_stop_lower = w_lower * math.sin(phi_stop)                
 
-                    gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
+                gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
-                    gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
+                gl.glVertex3f(x_stop_upper, y_upper, z_stop_upper)
 
-                    gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
+                gl.glVertex3f(x_stop_lower, y_lower, z_stop_lower)
 
-                    gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
+                gl.glVertex3f(x_start_lower, y_lower, z_start_lower)
 
-            gl.glEnd()
-            gl.glEndList()
-            self._cached_radius = p.radius
-            self._cached_slices = p.slices
-            self._cached_stacks = p.stacks
-        finally:
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPopMatrix()
+        gl.glEnd()
+        gl.glEndList()
+        self._cached_radius = p.radius
+        self._cached_slices = p.slices
+        self._cached_stacks = p.stacks
+        gl.glPopMatrix()
         
     def draw(self):
     	"""Redraw the scene on every frame.
@@ -1248,16 +1207,12 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:            
-                gl.glLoadIdentity()
 
-                # do the window position
-                gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
-                gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
+            # do the window position
+            gl.glRotatef(p.window_center_azimuth,0.0,-1.0,0.0)
+            gl.glRotatef(p.window_center_elevation,1.0,0.0,0.0)
 
-                gl.glCallList(self.windowed_display_list_id)
-                gl.glCallList(self.opaque_display_list_id)
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            gl.glCallList(self.windowed_display_list_id)
+            gl.glCallList(self.opaque_display_list_id)
+            gl.glPopMatrix()
 

@@ -1,6 +1,8 @@
 # The Vision Egg: Gratings
 #
 # Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2005 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -356,97 +358,94 @@ class SinGrating2D(LuminanceGratingCommon):
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            try:
-                gl.glLoadIdentity()
-                # Rotate about the center of the texture
-                gl.glTranslate(center[0],
-                               center[1],
-                               0)
-                gl.glRotate(p.orientation,0,0,1)
+            
+            # Rotate about the center of the texture
+            gl.glTranslate(center[0],
+                           center[1],
+                           0)
+            gl.glRotate(p.orientation,0,0,1)
 
-                if p.depth is None:
-                    gl.glDisable(gl.GL_DEPTH_TEST)
-                    depth = 0.0
-                else:
-                    gl.glEnable(gl.GL_DEPTH_TEST)
-                    depth = p.depth
+            if p.depth is None:
+                gl.glDisable(gl.GL_DEPTH_TEST)
+                depth = 0.0
+            else:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+                depth = p.depth
 
-                # allow max_alpha value to control blending
-                gl.glEnable( gl.GL_BLEND )
-                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
+            # allow max_alpha value to control blending
+            gl.glEnable( gl.GL_BLEND )
+            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 
-                if p.color2:
-                    gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
-                    gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
-                    ## alpha is ignored because the texture base internal format is luminance
-                else:
-                    gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
+            if p.color2:
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_BLEND)
+                gl.glTexEnvfv(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_COLOR, p.color2)
+                ## alpha is ignored because the texture base internal format is luminance
+            else:
+                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
-                if p.t0_time_sec_absolute is None and not p.ignore_time:
-                    p.t0_time_sec_absolute = VisionEgg.time_func()
+            if p.t0_time_sec_absolute is None and not p.ignore_time:
+                p.t0_time_sec_absolute = VisionEgg.time_func()
 
-                w = p.size[0]
-                inc = w/float(p.num_samples)
-                if p.ignore_time:
-                    phase = p.phase_at_t0
-                else:
-                    t_var = VisionEgg.time_func() - p.t0_time_sec_absolute
-                    phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
-                if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
-                    self._last_phase = phase # we're re-drawing the phase at this angle
-                    floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-                    floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                    texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+            w = p.size[0]
+            inc = w/float(p.num_samples)
+            if p.ignore_time:
+                phase = p.phase_at_t0
+            else:
+                t_var = VisionEgg.time_func() - p.t0_time_sec_absolute
+                phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
+            if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
+                self._last_phase = phase # we're re-drawing the phase at this angle
+                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+                floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
 
-                    gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
-                                       0,                # level
-                                       0,                # x offset
-                                       p.num_samples,    # width
-                                       self.format,      # format of new texel data
-                                       self.gl_type,     # type of new texel data
-                                       texel_data)       # new texel data
+                gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
+                                   0,                # level
+                                   0,                # x offset
+                                   p.num_samples,    # width
+                                   self.format,      # format of new texel data
+                                   self.gl_type,     # type of new texel data
+                                   texel_data)       # new texel data
 
-                h_w = p.size[0]/2.0
-                h_h = p.size[1]/2.0
+            h_w = p.size[0]/2.0
+            h_h = p.size[1]/2.0
 
-                l = -h_w
-                r = h_w
-                b = -h_h
-                t = h_h
+            l = -h_w
+            r = h_w
+            b = -h_h
+            t = h_h
 
-                # in the case of only color1,
-                # the texel data multiplies color1 to produce a color
+            # in the case of only color1,
+            # the texel data multiplies color1 to produce a color
 
-                # with color2,
-                # the texel data linearly interpolates between color1 and color2
+            # with color2,
+            # the texel data linearly interpolates between color1 and color2
 
-                gl.glColorf(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
+            gl.glColorf(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
 
-                if p.mask:
-                    p.mask.draw_masked_quad(0.0,1.0,0.0,1.0, # l,r,b,t for texture coordinates
-                                            l,r,b,t, # l,r,b,t in eye coordinates
-                                            depth ) # also in eye coordinates
-                else:
-                    # draw unmasked quad
-                    gl.glBegin(gl.GL_QUADS)
+            if p.mask:
+                p.mask.draw_masked_quad(0.0,1.0,0.0,1.0, # l,r,b,t for texture coordinates
+                                        l,r,b,t, # l,r,b,t in eye coordinates
+                                        depth ) # also in eye coordinates
+            else:
+                # draw unmasked quad
+                gl.glBegin(gl.GL_QUADS)
 
-                    gl.glTexCoord2f(0.0,0.0)
-                    gl.glVertex3f(l,b,depth)
+                gl.glTexCoord2f(0.0,0.0)
+                gl.glVertex3f(l,b,depth)
 
-                    gl.glTexCoord2f(1.0,0.0)
-                    gl.glVertex3f(r,b,depth)
+                gl.glTexCoord2f(1.0,0.0)
+                gl.glVertex3f(r,b,depth)
 
-                    gl.glTexCoord2f(1.0,1.0)
-                    gl.glVertex3f(r,t,depth)
+                gl.glTexCoord2f(1.0,1.0)
+                gl.glVertex3f(r,t,depth)
 
-                    gl.glTexCoord2f(0.0,1.0)
-                    gl.glVertex3f(l,t,depth)
-                    gl.glEnd() # GL_QUADS
+                gl.glTexCoord2f(0.0,1.0)
+                gl.glVertex3f(l,t,depth)
+                gl.glEnd() # GL_QUADS
 
-                gl.glDisable(gl.GL_TEXTURE_1D)
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            gl.glDisable(gl.GL_TEXTURE_1D)
+            gl.glPopMatrix()
 
 class SinGrating3D(LuminanceGratingCommon):
     """Sine wave grating stimulus texture mapped onto quad in 3D

@@ -156,15 +156,15 @@ legends.append(
 def angle_as_function_of_time(t):
     return 90.0*t % 360.0 # rotate at 90 degrees per second (wrap at 360)
 
-def projection_matrix_f(t):
-    projection = SimplePerspectiveProjection(fov_x=55.0,aspect_ratio=float(width)/height)
+def cam_matrix_f(t):
+    cam_matrix = Projection()
     eye = (0.0,sin(t*0.3)+2.0,-2.0)
     camera_look_at = (0.0,0.0,0.0)
     camera_up = (0.0,1.0,0.0)
-    projection.look_at( eye, camera_look_at, camera_up)
-    return projection.get_matrix()
+    cam_matrix.look_at( eye, camera_look_at, camera_up)
+    return cam_matrix.get_matrix()
 
-drum_projection = SimplePerspectiveProjection() # Parameters set in realtime, so no need to specify here
+drum_camera_matrix = ModelView()
 
 ##########
 #  Gabor #
@@ -298,7 +298,10 @@ drum_viewport = Viewport( screen     = screen,
                           position   = (x2-width/2,y2-height/2),
                           anchor     = 'lowerleft',
                           size       = (width,height),
-                          projection = drum_projection,
+                          projection = SimplePerspectiveProjection(
+    fov_x=55.0,
+    aspect_ratio=float(width)/height),
+                          camera_matrix = drum_camera_matrix,
                           stimuli    = [drum])
 
 ##############################################################
@@ -315,10 +318,10 @@ while not quit_now:
             quit_now = 1
     t = VisionEgg.time_func()
     
-    # update parameters (can be done with VisionEgg.FlowControl.Controllers)
+    # update parameters (could also be done with VisionEgg.FlowControl.Controllers)
     color_grating.parameters.pedestal = pedestal_func(t)
     drum.parameters.angular_position = angle_as_function_of_time(t)
-    drum_projection.parameters.matrix = projection_matrix_f(t)
+    drum_camera_matrix.parameters.matrix = cam_matrix_f(t)
 
     # do drawing, etc.  (can be done with Presentation.go() method)
     screen.clear() # clear the back buffer

@@ -1,7 +1,7 @@
 # The Vision Egg: Textures
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004 California Institute of Technology
+# Copyright (C) 2004-2005 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -1417,8 +1417,6 @@ class TextureStimulus(TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
             try:
-                gl.glLoadIdentity()
-
                 if p.depth_test:
                     gl.glEnable(gl.GL_DEPTH_TEST)
                 else:
@@ -1471,7 +1469,6 @@ class TextureStimulus(TextureStimulusBaseClass):
                     gl.glVertex2f(l,t)
                     gl.glEnd() # GL_QUADS
             finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
                 gl.glPopMatrix()
 
 class TextureStimulus3D(TextureStimulusBaseClass):
@@ -1545,50 +1542,41 @@ class TextureStimulus3D(TextureStimulusBaseClass):
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
             self._reload_texture()
         if p.on:
-            # Clear the modeview matrix
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPushMatrix()
-            try:
-                gl.glLoadIdentity()
+            if p.depth_test:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+            else:
+                gl.glDisable(gl.GL_DEPTH_TEST)
 
-                if p.depth_test:
-                    gl.glEnable(gl.GL_DEPTH_TEST)
-                else:
-                    gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glDisable(gl.GL_BLEND)
+            gl.glEnable(gl.GL_TEXTURE_2D)
+            gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
 
-                gl.glDisable(gl.GL_BLEND)
-                gl.glEnable(gl.GL_TEXTURE_2D)
-                gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
+            if not self.constant_parameters.mipmaps_enabled:
+                if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
+                    raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
+            self.texture_object.set_min_filter( p.texture_min_filter )
+            self.texture_object.set_mag_filter( p.texture_mag_filter )
+            self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
+            self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
-                if not self.constant_parameters.mipmaps_enabled:
-                    if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
-                        raise RuntimeError("Specified a mipmap mode in texture_min_filter, but mipmaps not enabled.")
-                self.texture_object.set_min_filter( p.texture_min_filter )
-                self.texture_object.set_mag_filter( p.texture_mag_filter )
-                self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
-                self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
-                gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+            tex = self.parameters.texture
+            tex.update()
 
-                tex = self.parameters.texture
-                tex.update()
+            gl.glBegin(gl.GL_QUADS)
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+            gl.glVertex(*p.lowerleft)
 
-                gl.glBegin(gl.GL_QUADS)
-                gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                gl.glVertex(*p.lowerleft)
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+            gl.glVertex(*p.lowerright)
 
-                gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                gl.glVertex(*p.lowerright)
+            gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+            gl.glVertex(*p.upperright)
 
-                gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                gl.glVertex(*p.upperright)
-
-                gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                gl.glVertex(*p.upperleft)
-                gl.glEnd() # GL_QUADS
-            finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)
-                gl.glPopMatrix()
+            gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+            gl.glVertex(*p.upperleft)
+            gl.glEnd() # GL_QUADS
                 
 ####################################################################
 #
@@ -1746,8 +1734,6 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
             try:
-                gl.glLoadIdentity()
-
                 gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
                 if not self.constant_parameters.mipmaps_enabled:

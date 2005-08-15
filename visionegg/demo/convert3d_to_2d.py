@@ -35,26 +35,26 @@ rect = TextureStimulus3D(texture=texture,
                          )
 
 viewport2D = Viewport(screen=screen)
-projection2D = viewport2D.parameters.projection
-
-# This gets updated in the function below
-projection3D = SimplePerspectiveProjection(fov_x=90.0)
+camera_matrix = ModelView()
 
 def update(t):
-    projection = SimplePerspectiveProjection(fov_x=90.0)
-    projection.translate(0,0,-1)
-    projection.rotate(36.0*t,0.0,1.0,0)
-    projection3D.parameters.matrix = projection.get_matrix()
+    new_camera_matrix = ModelView()
+    new_camera_matrix.stateless_translate(0,0,-1)
+    new_camera_matrix.stateless_rotate(36.0*t,0.0,1.0,0)
+    camera_matrix.parameters.matrix = new_camera_matrix.get_matrix()
+    eye_coords = camera_matrix.apply_to_vertices( vertices )
     for i in range(len(vertex_labels)):
-        vertex = vertices[i]
         text = vertex_labels[i]
-        window_coords = viewport3D.eye_2_window(vertex)
+        eye_coord_vertex = eye_coords[i]
+        window_coords = viewport3D.eye_2_window(eye_coord_vertex) # eye to window
         text.parameters.text='<- %.1f, %.1f'%(window_coords[0],window_coords[1])
         text.parameters.position = window_coords[0],window_coords[1]
 
-viewport3D = Viewport(screen=screen,
-              projection=projection3D,
-              stimuli=[rect])
+viewport3D = Viewport(
+    screen=screen,
+    projection=SimplePerspectiveProjection(fov_x=90.0),
+    camera_matrix=camera_matrix,
+    stimuli=[rect])
     
 vertex_labels = []
 for vertex in vertices:
