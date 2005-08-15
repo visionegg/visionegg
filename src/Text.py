@@ -1,6 +1,8 @@
 # The Vision Egg: Text
 #
 # Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2005 California Institute of Technology
+#
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -257,20 +259,16 @@ if have_glut:
 
                 gl.glMatrixMode(gl.GL_MODELVIEW)
                 gl.glPushMatrix()
-                try:
-                    gl.glLoadIdentity()
-                    gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
+                gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
 
-                    c = self.parameters.color
-                    gl.glColorf(*c)
-                    gl.glDisable(gl.GL_TEXTURE_2D)
+                c = self.parameters.color
+                gl.glColorf(*c)
+                gl.glDisable(gl.GL_TEXTURE_2D)
 
-                    gl.glRasterPos3f(0.0,0.0,0.0)
-                    for char in self.parameters.text:
-                        glut.glutBitmapCharacter(self.parameters.font,ord(char))
-                finally:
-                    gl.glMatrixMode(gl.GL_MODELVIEW)
-                    gl.glPopMatrix()
+                gl.glRasterPos3f(0.0,0.0,0.0)
+                for char in self.parameters.text:
+                    glut.glutBitmapCharacter(self.parameters.font,ord(char))
+                gl.glPopMatrix()
 
     class StrokeText(GlutTextBase):
         """DEPRECATED. Text rendered by GLUT using stroke fonts.
@@ -321,34 +319,30 @@ if have_glut:
 
                 gl.glMatrixMode(gl.GL_MODELVIEW)
                 gl.glPushMatrix()
-                try:
-                    gl.glLoadIdentity()
-                    gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
-                    gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
+                gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
+                gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
-                    c = self.parameters.color
-                    gl.glColorf(*c)
+                c = self.parameters.color
+                gl.glColorf(*c)
 
-                    gl.glLineWidth(self.parameters.linewidth)
+                gl.glLineWidth(self.parameters.linewidth)
 
-                    if self.parameters.anti_aliasing:
-                        gl.glEnable(gl.GL_BLEND)
-                        gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
-                        gl.glEnable(gl.GL_LINE_SMOOTH)
-                    else:
-                        gl.glDisable(gl.GL_BLEND)
+                if self.parameters.anti_aliasing:
+                    gl.glEnable(gl.GL_BLEND)
+                    gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
+                    gl.glEnable(gl.GL_LINE_SMOOTH)
+                else:
+                    gl.glDisable(gl.GL_BLEND)
 
-        ##            # This code successfully draws a box...
-        ##            gl.glBegin(gl.GL_QUADS)
-        ##            gl.glVertex2f(0.0,0.0)
-        ##            gl.glVertex2f(0.0,0.1)
-        ##            gl.glVertex2f(0.1,0.1)
-        ##            gl.glVertex2f(0.1,0.0)
-        ##            gl.glEnd()
+    ##            # This code successfully draws a box...
+    ##            gl.glBegin(gl.GL_QUADS)
+    ##            gl.glVertex2f(0.0,0.0)
+    ##            gl.glVertex2f(0.0,0.1)
+    ##            gl.glVertex2f(0.1,0.1)
+    ##            gl.glVertex2f(0.1,0.0)
+    ##            gl.glEnd()
 
-                    # But this code does not draw the string!?!
-                    for char in self.parameters.text:
-                        glut.glutStrokeCharacter(self.parameters.font,ord(char))
-                finally:
-                    gl.glMatrixMode(gl.GL_MODELVIEW)
-                    gl.glPopMatrix()
+                # But this code does not draw the string!?!
+                for char in self.parameters.text:
+                    glut.glutStrokeCharacter(self.parameters.font,ord(char))
+                gl.glPopMatrix()

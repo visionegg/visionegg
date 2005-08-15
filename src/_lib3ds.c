@@ -2,11 +2,13 @@
  * This is the C source code for interfacing with the Vision Egg with
  * the lib3ds library
  *
- * Copyright (c) 2002 Andrew Straw.  Distributed under the terms of
- * the GNU Lesser General Public License (LGPL).
+ * Copyright (C) 2002 Andrew Straw
+ * Copyright (C) 2005 California Institute of Technology
  *
- * $Revision$
- * $Date$
+ * Distributed under the terms of the GNU Lesser General Public
+ * License (LGPL).
+ *
+ * $Id$
  * Author = Andrew Straw <astraw@users.sourceforge.net>
  *
  */
@@ -104,7 +106,7 @@ static PyObject *draw(PyObject *self, PyObject *args)
   }
 
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  glPushMatrix();
   glTranslatef(pos_x,pos_y,pos_z);
   glRotatef(orient_angle,orient_x,orient_y,orient_z);
   glRotatef(-90, 1.0,0,0);
@@ -116,6 +118,8 @@ static PyObject *draw(PyObject *self, PyObject *args)
       PY_CHECK(render_node(file,tex_dict,p),__LINE__);
     }
   }
+
+  glPopMatrix();
 
   //glDisable(GL_LIGHTING);
 

@@ -1,7 +1,7 @@
 # The Vision Egg: Core
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004 California Institute of Technology
+# Copyright (C) 2004-2005 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -744,9 +744,9 @@ class Screen(VisionEgg.ClassWithParameters):
                 continue
             gamma_values.append( map(int, line.split() ) )
             if len(gamma_values[-1]) != 3:
-                raise FileError("expected 3 values per gamma entry")
+                raise ValueError("expected 3 values per gamma entry")
         if len(gamma_values) != 256:
-            raise FileError("expected 256 gamma entries")
+            raise ValueError("expected 256 gamma entries")
         red, green, blue = zip(*gamma_values)
         return red,green,blue
             
@@ -760,15 +760,11 @@ def get_default_screen():
 #
 ####################################################################
 
-class Projection(VisionEgg.ClassWithParameters):
+class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     """Converts stimulus coordinates to viewport coordinates.
 
     This is an abstract base class which should be subclassed for
     actual use.
-
-    This class is largely convenience for using OpenGL's
-    PROJECTION_MATRIX.
-
 
     Parameters
     ==========
@@ -778,32 +774,57 @@ class Projection(VisionEgg.ClassWithParameters):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
+
+    # WARNING: This implementation should really get cleaned up and
+    # NOT use OpenGL except when purposefully setting matrices.
+    
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'matrix':( Numeric.identity(4), # 4x4 identity matrix
                    ve_types.Sequence4x4(ve_types.Real),
                    'matrix specifying projection'),
         })
     
+    __slots__ = (
+        'projection_type',
+        )
+    
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
+        self.projection_type = None # derived class must override
+
+    def _get_matrix_type(self):
+        if self.projection_type == gl.GL_PROJECTION:
+            return gl.GL_PROJECTION_MATRIX
+        elif self.projection_type == gl.GL_MODELVIEW:
+            return gl.GL_MODELVIEW_MATRIX
+
+    def apply_to_gl(self):
+        """Set the OpenGL projection matrix."""
+        gl.glMatrixMode(self.projection_type)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
+
+    def set_gl_modelview(self):
+        """Set the OpenGL modelview matrix."""
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
 
     def set_gl_projection(self):
         """Set the OpenGL projection matrix."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
 
     def push_and_set_gl_projection(self):
         """Set the OpenGL projection matrix, pushing current projection matrix to stack."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix()
         gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
 
     def translate(self,x,y,z):
         """Compose a translation and set the OpenGL projection matrix."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glTranslatef(x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        self.parameters.matrix = gl.glGetFloatv(self._get_matrix_type())
 
     def stateless_translate(self,x,y,z):
         """Compose a translation without changing OpenGL state."""
@@ -813,10 +834,10 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def rotate(self,angle_degrees,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glRotatef(angle_degrees,x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        self.parameters.matrix = gl.glGetFloatv(self._get_matrix_type())
 
     def stateless_rotate(self,angle_degrees,x,y,z):
         """Compose a rotation without changing OpenGL state."""
@@ -826,10 +847,10 @@ class Projection(VisionEgg.ClassWithParameters):
 
     def scale(self,x,y,z):
         """Compose a rotation and set the OpenGL projection matrix."""
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
         gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
         gl.glScalef(x,y,z)
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        self.parameters.matrix = gl.glGetFloatv(self._get_matrix_type())
 
     def stateless_scale(self,x,y,z):
         """Compose a rotation without changing OpenGL state."""
@@ -863,11 +884,16 @@ class Projection(VisionEgg.ClassWithParameters):
                            [side[2], new_up[2], -forward[2], 0.0],
                            [    0.0,       0.0,         0.0, 1.0]])
         # XXX This should get optimized -- don't do it in OpenGL
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
-        gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
-        gl.glMultMatrixf(m)
-        gl.glTranslatef(-eye[0],-eye[1],-eye[2])
-        self.parameters.matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix() # save current matrix
+        try:
+            gl.glLoadMatrixf(self.parameters.matrix) # Need PyOpenGL >= 2.0
+            gl.glMultMatrixf(m)
+            gl.glTranslatef(-eye[0],-eye[1],-eye[2])
+            self.parameters.matrix = gl.glGetFloatv(self._get_matrix_type())
+        finally:
+            gl.glPopMatrix() # save current matrix
+        
     def eye_2_clip(self,eye_coords_vertex):
         """Transform eye coordinates to clip coordinates"""
         m = Numeric.array(self.parameters.matrix)
@@ -888,6 +914,50 @@ class Projection(VisionEgg.ClassWithParameters):
     def eye_2_norm_device(self,eye_coords_vertex):
         """Transform eye coordinates to normalized device coordinates"""
         return self.clip_2_norm_device(self.eye_2_clip(eye_coords_vertex))
+    
+    def apply_to_vertex(self,vertex):
+        """Perform multiplication on vertex to get transformed result"""
+        M = VisionEgg.ThreeDeeMath.TransformMatrix(matrix=self.parameters.matrix)
+        r = M.transform_vertices([vertex])
+        return r[0]
+
+    def apply_to_vertices(self,vertices):
+        """Perform multiplication on vertex to get transformed result"""
+        M = VisionEgg.ThreeDeeMath.TransformMatrix(matrix=self.parameters.matrix)
+        r = M.transform_vertices(vertices)
+        return r
+
+class Projection(ProjectionBaseClass):
+    """for use of OpenGL PROJECTION_MATRIX
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
+    
+    def __init__(self,*args,**kw):
+        ProjectionBaseClass.__init__(self,*args,**kw)
+        self.projection_type = gl.GL_PROJECTION
+    
+class ModelView(ProjectionBaseClass):
+    """for use of OpenGL MODELVIEW_MATRIX
+
+    Parameters
+    ==========
+    matrix -- matrix specifying projection (Sequence4x4 of Real)
+              Default: [[1 0 0 0]
+                        [0 1 0 0]
+                        [0 0 1 0]
+                        [0 0 0 1]]
+    """
+    
+    def __init__(self,*args,**kw):
+        ProjectionBaseClass.__init__(self,*args,**kw)
+        self.projection_type = gl.GL_MODELVIEW
     
 class OrthographicProjection(Projection):
     """An orthographic projection.
@@ -971,7 +1041,6 @@ class SimplePerspectiveProjection(Projection):
     """
     
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
-        gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
         matrix = self._compute_matrix(fov_x,z_clip_near,z_clip_far,aspect_ratio)
         Projection.__init__(self,**{'matrix':matrix})
 
@@ -1008,10 +1077,13 @@ class PerspectiveProjection(Projection):
     """
     
     def __init__(self,left,right,bottom,top,near,far):
+        # XXX right now this is done in OpenGL, we should do it ourselves
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
+        gl.glPushMatrix()
         gl.glLoadIdentity() # Clear the projection matrix
         gl.glFrustum(left,right,bottom,top,near,far) # Let GL create a matrix and compose it
         matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
+        gl.glPopMatrix()
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
@@ -1162,20 +1234,22 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     Parameters
     ==========
-    anchor      -- How position parameter is interpreted (String)
-                   Default: lowerleft
-    depth_range -- depth range (in object units) for rendering (Sequence2 of Real)
-                   Default: (0, 1)
-    position    -- Position (in pixel units) within the screen (Sequence2 of Real)
-                   Default: (0, 0)
-    projection  -- projection for coordinate transforms (Instance of <class 'VisionEgg.Core.Projection'>)
-                   Default: (determined at runtime)
-    screen      -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
-                   Default: (determined at runtime)
-    size        -- Size (in pixel units) (Sequence2 of Real)
-                   Default: (determined at runtime)
-    stimuli     -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
-                   Default: (determined at runtime)
+    anchor        -- How position parameter is interpreted (String)
+                     Default: lowerleft
+    camera_matrix -- extrinsic camera parameter matrix (position and orientation) (Instance of <class 'VisionEgg.Core.ModelView'>)
+                     Default: (determined at runtime)
+    depth_range   -- depth range (in object units) for rendering (Sequence2 of Real)
+                     Default: (0, 1)
+    position      -- Position (in pixel units) within the screen (Sequence2 of Real)
+                     Default: (0, 0)
+    projection    -- intrinsic camera parameter matrix (field of view, focal length, aspect ratio) (Instance of <class 'VisionEgg.Core.Projection'>)
+                     Default: (determined at runtime)
+    screen        -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
+                     Default: (determined at runtime)
+    size          -- Size (in pixel units) (Sequence2 of Real)
+                     Default: (determined at runtime)
+    stimuli       -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
+                     Default: (determined at runtime)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
@@ -1194,16 +1268,19 @@ class Viewport(VisionEgg.ClassWithParameters):
         'size':(None, # will use screen.size if not specified
                 ve_types.Sequence2(ve_types.Real),
                 'Size (in pixel units)'),
-        'projection':(None, # instance of VisionEgg.Core.Projection
+        'projection':(None,
                       ve_types.Instance(Projection),
-                      'projection for coordinate transforms'),
+                      'intrinsic camera parameter matrix (field of view, focal length, aspect ratio)'),
+        'camera_matrix':(None,
+                         ve_types.Instance(ModelView),
+                         'extrinsic camera parameter matrix (position and orientation)'),
         'stimuli':(None,
                    ve_types.Sequence(ve_types.Instance(Stimulus)),
                    'sequence of stimuli to draw in screen'),
         'lowerleft':(None,  # DEPRECATED -- don't use
                      ve_types.Sequence2(ve_types.Real),
                      'position (in pixel units) of lower-left viewport corner',
-                     VisionEgg.ParameterDefinition.DEPRECATED), 
+                     VisionEgg.ParameterDefinition.DEPRECATED),
         })
 
     __slots__ = (
@@ -1236,6 +1313,8 @@ class Viewport(VisionEgg.ClassWithParameters):
         if p.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             p.projection = self.make_new_pixel_coord_projection()
+        if p.camera_matrix is None:
+            p.camera_matrix = ModelView()
         if p.stimuli is None:
             p.stimuli = []
         self._is_drawing = False
@@ -1268,7 +1347,8 @@ class Viewport(VisionEgg.ClassWithParameters):
                       p.size[1])
         gl.glDepthRange(p.depth_range[0],p.depth_range[1])
 
-        p.projection.set_gl_projection()
+        p.projection.apply_to_gl()
+        p.camera_matrix.apply_to_gl()
 
     def draw(self):
         """Set the viewport and draw stimuli."""
@@ -1389,9 +1469,6 @@ class FixationSpot(Stimulus):
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
-
-            gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glLoadIdentity()
 
             gl.glColorf(*p.color)
 
