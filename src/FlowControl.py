@@ -487,25 +487,26 @@ class Presentation(VisionEgg.ClassWithParameters):
         frame_skip_fraction = self.parameters.warn_longest_frame_threshold
         inter_frame_inteval = 1.0/VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ
 
-        longest_frame_draw_time_sec = frame_timer.get_longest_frame_duration_sec()
-        if longest_frame_draw_time_sec is not None:
-            logger = logging.getLogger('VisionEgg.FlowControl')
-            if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
-                self.frames_dropped_in_last_go_loop = True
-                logger.warning("One or more frames took %.1f msec, "
-                               "which is signficantly longer than the "
-                               "expected inter frame interval of %.1f "
-                               "msec for your frame rate (%.1f Hz)."%(
-                               longest_frame_draw_time_sec*1000.0,
-                               inter_frame_inteval*1000.0,
-                               VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
-            else:
-                logger.debug("Longest frame update was %.1f msec. "
-                             "Your expected inter frame interval is "
-                             "%f msec."%(longest_frame_draw_time_sec*1000.0,
-                             inter_frame_inteval*1000.0))
         if p.collect_timing_info:
+            longest_frame_draw_time_sec = frame_timer.get_longest_frame_duration_sec()
+            if longest_frame_draw_time_sec is not None:
+                logger = logging.getLogger('VisionEgg.FlowControl')
+                if longest_frame_draw_time_sec >= (frame_skip_fraction*inter_frame_inteval):
+                    self.frames_dropped_in_last_go_loop = True
+                    logger.warning("One or more frames took %.1f msec, "
+                                   "which is signficantly longer than the "
+                                   "expected inter frame interval of %.1f "
+                                   "msec for your frame rate (%.1f Hz)."%(
+                                   longest_frame_draw_time_sec*1000.0,
+                                   inter_frame_inteval*1000.0,
+                                   VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
+                else:
+                    logger.debug("Longest frame update was %.1f msec. "
+                                 "Your expected inter frame interval is "
+                                 "%f msec."%(longest_frame_draw_time_sec*1000.0,
+                                 inter_frame_inteval*1000.0))
             frame_timer.log_histogram()
+
         self.in_go_loop = 0
 
     def export_movie_go(self, frames_per_sec=12.0, filename_suffix=".tif", filename_base="visionegg_movie", path="."):
