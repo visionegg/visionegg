@@ -63,6 +63,8 @@ class Model3DS(VisionEgg.Core.Stimulus):
                     Default: (0.0, 0.0, 0.0)
     scale        -- (Sequence3 of Real)
                     Default: (1.0, 1.0, 1.0)
+    on           -- (Boolean)
+                    Default: True
 
     Constant Parameters
     ===================
@@ -89,6 +91,7 @@ class Model3DS(VisionEgg.Core.Stimulus):
                                                ve_types.Real),
                                'orient_axis':((0.0, 1.0, 0.0),
                                               ve_types.Sequence3(ve_types.Real)),
+                               'on':(True, ve_types.Boolean),
                                }
     constant_parameters_and_defaults = {'filename':(None,
                                                     ve_types.String),
@@ -199,6 +202,8 @@ class Model3DS(VisionEgg.Core.Stimulus):
     def draw(self):
         # call the C function that does the work
         p = self.parameters
+        if not p.on:
+            return
         VisionEgg._lib3ds.draw(self._lib3ds_file,
                                self.tex_dict,
                                p.scale[0],
