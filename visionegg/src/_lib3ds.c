@@ -112,6 +112,8 @@ static PyObject *draw(PyObject *self, PyObject *args)
   glRotatef(-90, 1.0,0,0);
   glScalef(scale_x,scale_y,scale_z);
 
+  // added to prevent other things from messing up the texture colouring.
+  glColor3f(1.0, 1.0, 1.0);
   {
     Lib3dsNode *p;
     for (p=file->nodes; p!=0; p=p->next) {
