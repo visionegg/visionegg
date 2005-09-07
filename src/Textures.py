@@ -1214,10 +1214,10 @@ class Mask2D(VisionEgg.ClassWithParameters):
         self.texture_object = TextureObject(dimensions=2)
         
         if cp.function == "gaussian":
-            xx = Numeric.outerproduct(Numeric.ones((1.0,cp.num_samples[1])),
+            xx = Numeric.outerproduct(Numeric.ones((1,cp.num_samples[1])),
                                       Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2)
             yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2,
-                                      Numeric.ones((1.0,cp.num_samples[0])))
+                                      Numeric.ones((1,cp.num_samples[0])))
             dist_from_center = Numeric.sqrt(xx**2 + yy**2)
             sigma = cp.radius_parameter
             data = Numeric.exp( -dist_from_center**2.0 / (2.0*sigma**2.0) )
@@ -1231,10 +1231,10 @@ class Mask2D(VisionEgg.ClassWithParameters):
             y_offsets = x_offsets
             for x_offset in x_offsets:
                 for y_offset in y_offsets:
-                    xx = Numeric.outerproduct(Numeric.ones((1.0,cp.num_samples[1])),
+                    xx = Numeric.outerproduct(Numeric.ones((1,cp.num_samples[1])),
                                               Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2+0.5)+x_offset
                     yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2+0.5,
-                                              Numeric.ones((1.0,cp.num_samples[0])))+y_offset
+                                              Numeric.ones((1,cp.num_samples[0])))+y_offset
                     dist_from_center = Numeric.sqrt(xx**2 + yy**2)
                     data += dist_from_center <= cp.radius_parameter
             data = data / float( len(x_offsets)*len(y_offsets) )
