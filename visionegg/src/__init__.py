@@ -322,7 +322,7 @@ class ClassWithParameters( object ):
             # otherwise to default value.
             #
             # If a class didn't override base class's parameters_and_defaults dictionary, don't deal with it twice
-            if klass.parameters_and_defaults not in done_parameters_and_defaults:
+            if hasattr(klass, 'parameters_and_defaults') and klass.parameters_and_defaults not in done_parameters_and_defaults:
                 for parameter_name in klass.parameters_and_defaults.keys():
                     # Make sure this parameter key/value pair doesn't exist already
                     if hasattr(self.parameters,parameter_name):
@@ -357,7 +357,7 @@ class ClassWithParameters( object ):
             # otherwise to default value.
             #
             # If a class didn't override base class's parameters_and_defaults dictionary, don't deal with it twice
-            if klass.constant_parameters_and_defaults not in done_constant_parameters_and_defaults:
+            if hasattr(klass, 'constant_parameters_and_defaults') and klass.constant_parameters_and_defaults not in done_constant_parameters_and_defaults:
                 for parameter_name in klass.constant_parameters_and_defaults.keys():
                     # Make sure this parameter key/value pair doesn't exist already
                     if hasattr(self.parameters,parameter_name):
