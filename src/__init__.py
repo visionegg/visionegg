@@ -1,7 +1,7 @@
 # The Vision Egg
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004 California Institute of Technology
+# Copyright (C) 2004-2006 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -31,8 +31,7 @@ greatly eased by routines within the Vision Egg.
 See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-
-release_name = '1.0-cvs'
+release_name = '1.0.dev' # not quite 1.0 yet
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]

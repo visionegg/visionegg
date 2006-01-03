@@ -1,4 +1,7 @@
 #emacs, this is -*-Python-*- mode
+# Copyright (C) 2005-2006 California Institute of Technology
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL).
 
 cimport darwinsys # for exported symbols
 

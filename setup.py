@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """Setup script for the Vision Egg distribution.
 """
-# Copyright (c) 2001-2003 Andrew Straw.  Distributed under the terms of the
-# GNU Lesser General Public License (LGPL).
+# Copyright (C) 2001-2003 Andrew Straw
+# Copyright (C) 2004-2006 California Institute of Technology
+# Distributed under the terms of the GNU Lesser General Public License
+# (LGPL).
 
 name             = "visionegg"
-version          = "1.0-cvs"
+version          = "1.0" # setuptools will add ".dev"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
@@ -13,9 +15,9 @@ license          = "LGPL" # Lesser GNU Public License
 description      = "2D/3D visual stimulus generation"
 
 long_description = \
-"""The Vision Egg is a programming library (with demo applications) that
-uses standard, inexpensive computer graphics cards to produce visual
-stimuli for vision research experiments.
+"""The Vision Egg is a programming library (with demo applications)
+that uses standard, inexpensive computer graphics cards to produce
+visual stimuli for vision research experiments.
 
 For more information, visit the website at www.visionegg.org
 
@@ -51,6 +53,12 @@ classifiers = [
     'Topic :: Scientific/Engineering :: Neuroscience',
     ]
 
+try:
+    import setuptools
+    print 'using setuptools'
+except ImportError:
+    print 'not using setuptools'
+    
 from distutils.core import setup, Extension
 try:
     from Pyrex.Distutils import build_ext
