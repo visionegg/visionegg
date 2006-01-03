@@ -55,6 +55,8 @@ class Model3DS(VisionEgg.Core.Stimulus):
 
     Parameters
     ==========
+    on           -- (Boolean)
+                    Default: True
     orient_angle -- (Real)
                     Default: 0.0
     orient_axis  -- (Sequence3 of Real)
@@ -63,8 +65,6 @@ class Model3DS(VisionEgg.Core.Stimulus):
                     Default: (0.0, 0.0, 0.0)
     scale        -- (Sequence3 of Real)
                     Default: (1.0, 1.0, 1.0)
-    on           -- (Boolean)
-                    Default: True
 
     Constant Parameters
     ===================

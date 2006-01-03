@@ -31,7 +31,7 @@ greatly eased by routines within the Vision Egg.
 See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-release_name = '1.0rc1' # not quite 1.0 yet
+release_name = '1.0'
 
 __version__ = release_name
 __cvs__ = '$Revision$'.split()[1]

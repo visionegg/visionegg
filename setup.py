@@ -25,10 +25,11 @@ This is release %s. Although it is already suitable for experiments,
 this is still beta software.  Any feedback, questions, or comments,
 should go to the mailing list at visionegg@freelists.org
 
-The Vision Egg is copyright (c) Andrew D. Straw, 2001-2003 and is
-distributed under the GNU Lesser General Public License (LGPL).  This
-software comes with absolutely no warranties, either expressed or
-implied.
+The Vision Egg is Copyright (c) 2001-2003 Andrew D. Straw, Copyright
+2004-2006 California Institute of Technology and is distributed under
+the GNU Lesser General Public License (LGPL).  This software comes
+with absolutely no warranties, either expressed or implied.
+
 """%(version,)
 
 classifiers = [
