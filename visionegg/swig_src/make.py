@@ -29,7 +29,6 @@ if swig_src_dir: # the above returns '' if we're in it on Python2.1
     os.chdir(swig_src_dir)
 
 interfaces = ["darwin_getrefresh",
-              "darwin_maxpriority",
               "gl_qt",
               "posix_maxpriority",
               "win32_getrefresh",

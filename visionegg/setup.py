@@ -58,7 +58,7 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     have_Pyrex = False
-    print 'WARNING: Pyrex not installed, assuming previously generated .c files are up to date'
+    print 'Pyrex not installed, using previously generated .c files'
     
 from distutils.errors import CCompilerError
 import distutils.command.sdist
@@ -90,9 +90,12 @@ if not skip_c_compilation:
         gl_libraries = []
 
     if sys.platform == 'darwin':
-        ext_modules.append(Extension(name='_darwin_maxpriority',
-                                     sources=['src/darwin_maxpriority.c',
-                                              'src/darwin_maxpriority_wrap.c']))
+        if have_Pyrex:
+            darwin_maxpriority_sources = ['src/darwin_maxpriority.pyx']
+        else:
+            darwin_maxpriority_sources = ['src/darwin_maxpriority.c']
+        ext_modules.append(Extension(name='darwin_maxpriority',
+                                     sources=darwin_maxpriority_sources))
         # VBL synchronization stuff
         ext_modules.append(Extension(name='_darwin_sync_swap',
                                      sources=['src/_darwin_sync_swap.m'],
