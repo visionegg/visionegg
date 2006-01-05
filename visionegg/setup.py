@@ -21,19 +21,18 @@ visual stimuli for vision research experiments.
 
 For more information, visit the website at www.visionegg.org
 
-This is release %s. Although it is already suitable for experiments,
-this is still beta software.  Any feedback, questions, or comments,
-should go to the mailing list at visionegg@freelists.org
+This is release %s. Any feedback, questions, or comments, should go to
+the mailing list at visionegg@freelists.org
 
 The Vision Egg is Copyright (c) 2001-2003 Andrew D. Straw, Copyright
-2004-2006 California Institute of Technology and is distributed under
-the GNU Lesser General Public License (LGPL).  This software comes
-with absolutely no warranties, either expressed or implied.
+(c) 2004-2006 California Institute of Technology and is distributed
+under the GNU Lesser General Public License (LGPL).  This software
+comes with absolutely no warranties, either expressed or implied.
 
 """%(version,)
 
 classifiers = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Win32 (MS Windows)',
     'Environment :: X11 Applications',
     'Environment :: MacOS X',
@@ -47,11 +46,16 @@ classifiers = [
     'Operating System :: POSIX :: Linux',
     'Operating System :: POSIX :: IRIX',
     'Programming Language :: Python',
+    'Programming Language :: C',
     'Topic :: Multimedia :: Graphics',
+    'Topic :: Multimedia :: Graphics :: 3D Rendering',
+    'Topic :: Multimedia :: Graphics :: Presentation',
+    'Topic :: Multimedia :: Video :: Display',
     'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Human Machine Interfaces',
     'Topic :: Scientific/Engineering :: Medical Science Apps.',
     'Topic :: Scientific/Engineering :: Visualization',
-    'Topic :: Scientific/Engineering :: Neuroscience',
+    'Topic :: Software Development :: Libraries',
     ]
 
 try:
