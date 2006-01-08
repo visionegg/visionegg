@@ -1,8 +1,42 @@
 Changes for 1.0:
 ----------------
-Added 'lat-long rectangle' to available 3D masking windows
-Moved controller.CONSTANTS into FlowControl module namespace
-Numerous bugfixes
+
+* Major enhancements to the ephys server/GUI code to use normal (or
+  slightly modified) demo scripts in this environment were done by Imran
+  Ali and Lachlan Dowd in the lab of David O'Carroll at the University
+  of Adelaide.
+
+* An initial patch for stereo support sent by Yuichi Sakano and Kevin
+  J. MacKenzie at York University.
+
+* Parallel port enhancements by Hubertus Becker, University of
+  Tübingen.
+
+* Arrow and FilledCircle stimuli by Hubertus Becker, University of
+  Tübingen.
+
+* DaqKeyboard and ResponseControl by Hubertus Becker, University of Tübingen.
+
+* Full screen anti-aliasing support (FSAA) by Mark Halko, Boston
+  University.
+
+* Various patches by Tony Arkles (University of Saskatchewan),
+  including a suggestion to separate camera motions from the
+  GL_PROJECTION matrix and put them in the GL_MODELVIEW matrix, where
+  they belong.
+
+* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT. 
+
+* Added win32_vretrace.WaitForRetrace() (but it's not used for much,
+  yet)
+
+* Enhancements to EPhys Server/GUI sequencer
+
+* Added 'lat-long rectangle' to available 3D masking windows
+
+* Moved controller.CONSTANTS into FlowControl module namespace
+
+* Numerous bugfixes
 
 Changes for 0.9.9:
 ------------------
