@@ -54,6 +54,8 @@ try:
 except:
     have_glut = False
 
+_font_objects = {} # global variable to cache pygame font objects
+
 class Text(VisionEgg.Textures.TextureStimulus):
     """Single line of text rendered using pygame/SDL true type fonts.
 
@@ -158,7 +160,13 @@ class Text(VisionEgg.Textures.TextureStimulus):
             kw['texture_min_filter'] = gl.GL_LINEAR        
         VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
         cp = self.constant_parameters
-        self.font = pygame.font.Font(cp.font_name,cp.font_size)
+        fontobject_args = (cp.font_name,cp.font_size)
+        if fontobject_args not in _font_objects:
+            # make global cache of font objects
+            fontobject = pygame.font.Font(*fontobject_args)
+            _font_objects[fontobject_args] = fontobject
+        # get font object from global cache
+        self.font = _font_objects[fontobject_args]
         self._render_text()
         
     def _render_text(self):
