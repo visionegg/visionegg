@@ -7,7 +7,7 @@
 # (LGPL).
 
 name             = "visionegg"
-version          = "1.0" # setuptools will add ".dev"
+version          = "1.1" # setuptools will add ".dev"
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
