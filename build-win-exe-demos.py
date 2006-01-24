@@ -3,7 +3,8 @@
 
 # For the demos to find the font file, we modify
 # site-packages/VisionEgg/Text.py to include r'.\freesansbold.ttf' as
-# the default font.
+# the default font. (in Text.__init__
+# self.font = pygame.font.Font(r'.\freesansbold.ttf',cp.font_size)
 
 # In VisionEgg.cfg, set VISIONEGG_LOG_TO_STDERR = 0.
 
