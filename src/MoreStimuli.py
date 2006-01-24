@@ -469,5 +469,6 @@ class FilledCircle(VisionEgg.Core.Stimulus):
             verts[:,1] = p.position[1] + p.radius * Numeric.sin(angles)
             for i in range(verts.shape[0]):
                 gl.glVertex2fv(verts[i])
+            gl.glVertex2fv(verts[0])
 
             gl.glEnd() # GL_TRIANGLE_FAN
