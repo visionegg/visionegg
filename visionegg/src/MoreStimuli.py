@@ -391,26 +391,43 @@ class Arrow(VisionEgg.Core.Stimulus):
             gl.glPopMatrix()
 
 class FilledCircle(VisionEgg.Core.Stimulus):
-  """A circular stimulus, typically used as a fixation point.
+    """  A circular stimulus, typically used as a fixation point.
 
-  (Note, this implementation almost certainly could be made faster
-  using display lists.)
+      (Note, this implementation almost certainly could be made faster
+      using display lists.)
 
-  Parameters
-  ==========
-  anchor        -- how position parameter is used (String)
+      Parameters
+      ==========
+      anchor        -- how position parameter is used (String)
                    Default: center
-  color         -- color (AnyOf(Sequence3 of Real or Sequence4 of Real))
+      color         -- color (AnyOf(Sequence3 of Real or Sequence4 of Real))
                    Default: (1.0, 1.0, 1.0)
-  num_triangles -- number of triangles used to draw circle (Integer)
+      num_triangles -- number of triangles used to draw circle (Integer)
                    Default: 51
-  on            -- draw? (Boolean)
+      on            -- draw? (Boolean)
                    Default: True
-  position      -- position in eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+      position      -- position in eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
                    Default: (320.0, 240.0)
-  radius        -- radius in eye coordinates (Real)
+      radius        -- radius in eye coordinates (Real)
                    Default: 2.0
-  """
+
+    Parameters
+    ==========
+    anchor        -- how position parameter is used (String)
+                     Default: center
+    anti_aliasing -- (Boolean)
+                     Default: True
+    color         -- color (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                     Default: (1.0, 1.0, 1.0)
+    num_triangles -- number of triangles used to draw circle (Integer)
+                     Default: 51
+    on            -- draw? (Boolean)
+                     Default: True
+    position      -- position in eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                     Default: (320.0, 240.0)
+    radius        -- radius in eye coordinates (Real)
+                     Default: 2.0
+    """
 
   parameters_and_defaults = VisionEgg.ParameterDefinition({
       'on':(True,
