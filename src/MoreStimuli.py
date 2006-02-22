@@ -4,6 +4,7 @@
 #           (C) 2005 by Hertie Institute for Clinical Brain Research,
 #            Department of Cognitive Neurology, University of Tuebingen
 #           (C) 2005 California Institute of Technology
+#           (C) 2006 Peter Jurica and Gijs Plomp
 #
 # Authors: Andrew Straw <astraw@users.sourceforge.net>
 #          Hubertus Becker <hubertus.becker@uni-tuebingen.de>
