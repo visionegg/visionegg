@@ -1,14 +1,28 @@
+/*
+ * Copyright (c) 2003, 2006 Andrew Straw.  Distributed under the terms
+ * of the GNU Lesser General Public License (LGPL).
+ *
+ * Author: Andrew Straw <astraw@users.sourceforge.net>
+ *
+ */
+
+#include "Python.h"
+
+#if defined(MS_WINDOWS)
+#  include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #if defined(__APPLE__)
 #  include <OpenGL/gl.h>
+#  include <QuickTime/Movies.h>
+#  include <Carbon/Carbon.h>
 #else
 #  include <GL/gl.h>
+#  include <Movies.h>
 #endif
-
-#include <QuickTime/Movies.h>
-#include <Carbon/Carbon.h>
 
 #include "gl_qt.h"
 
@@ -48,7 +62,7 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
   /// XXX todo: should check tex_shape is power of 2
   render_info = malloc(sizeof(gl_qt_renderer));
   if (render_info == NULL) {
-    gl_qt_set_error("memory allocation failure");
+    gl_qt_set_error("memory allocation failure (render_info)");
     return NULL;
   }
 
@@ -73,7 +87,7 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
 
   render_info->gl_texel_data = (GLubyte *)malloc(sizeTexture);
   if (render_info->gl_texel_data == NULL) {
-    gl_qt_set_error("memory allocation failure");
+    gl_qt_set_error("memory allocation failure (render_info->gl_texel_data)");
     goto fail;
   }
 
@@ -106,14 +120,15 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
   render_info->row_stride = render_info->tex_width * wOffScreenDepth / 8;
   render_info->qt_pixel_data = (unsigned char *) malloc(render_info->row_stride * render_info->tex_height);
   if (render_info->qt_pixel_data == NULL) {
-    gl_qt_set_error("memory allocation failure");
+    gl_qt_set_error("memory allocation failure (render_info->qt_pixel_data)");
     goto fail;
   }
-  bzero(render_info->qt_pixel_data, render_info->row_stride * render_info->tex_height);
+  //bzero(render_info->qt_pixel_data, render_info->row_stride * render_info->tex_height);
+  memset(render_info->qt_pixel_data, 0, render_info->row_stride * render_info->tex_height);
 
   QTNewGWorldFromPtr (&(render_info->offscreen_gworld), k32ARGBPixelFormat, &rectNewMovie, NULL, NULL, 0, render_info->qt_pixel_data, render_info->row_stride);
   if (render_info->offscreen_gworld == NULL) {
-    gl_qt_set_error("memory allocation failure");
+    gl_qt_set_error("memory allocation failure (render_info->offscreen_gworld)");
     goto fail;
   }
 
@@ -130,7 +145,7 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
   }
 
   render_info->qt_pixel_data = (unsigned char *) GetPixBaseAddr(render_info->offscreen_pixmap);
-  render_info->row_stride = (unsigned long) GetPixRowBytes(render_info->offscreen_pixmap);
+  //render_info->row_stride = (unsigned long) GetPixRowBytes(render_info->offscreen_pixmap);
 
   return render_info;
 
@@ -216,7 +231,8 @@ void gl_qt_renderer_update(gl_qt_renderer * render_info) {
 		  render_info->gl_texel_data);
   error = glGetError();
   if (GL_NO_ERROR != error) {
-    this_msg = gluErrorString(error);
+    //this_msg = gluErrorString(error);
+    this_msg = "unknown error";
     gl_qt_set_error(this_msg);
   }
 }

@@ -1,13 +1,11 @@
 # The Vision Egg: QuickTime
 #
-# Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2001-2003, 2006 Andrew Straw.
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 QuickTime movies in the Vision Egg.
@@ -16,6 +14,7 @@ QuickTime movies in the Vision Egg.
 
 import VisionEgg
 import VisionEgg.gl_qt # C implementation of GL/QT interface
+import VisionEgg.qtmovie as qtmovie
 import VisionEgg.Textures
 
 import Numeric
@@ -23,35 +22,12 @@ import os
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-import Carbon.File
-import Carbon.Qt
-import Carbon.QuickTime
-
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 #######################################################
 
-is_quicktime_started = False # global variable
-
-def new_movie_from_filename(filename):
-    global is_quicktime_started
-    if not is_quicktime_started:
-        Carbon.Qt.EnterMovies()
-        is_quicktime_started = True
-    fsspec = Carbon.File.FSSpec(filename)
-    movieResRef = Carbon.Qt.OpenMovieFile(fsspec,1)
-    movie, d1, d2 = Carbon.Qt.NewMovieFromFile(movieResRef, 0, Carbon.QuickTime.newMovieActive)
-    return movie
+new_movie_from_filename = qtmovie.new_movie_from_filename
     
 class MovieTexture(VisionEgg.Textures.Texture):
 
@@ -66,9 +42,9 @@ class MovieTexture(VisionEgg.Textures.Texture):
                  movie=None,
                  texture_size=None, # be default will be big enough for full movie, otherwise 2-tuple
                  ):
-        if not type(movie) == Carbon.Qt.Movie:
-            if type(movie) == str:
-                movie = get_movie_from_filename(filename=movie)
+        if not isinstance(movie,qtmovie.Movie):
+            if isinstance(movie,str) or isinstance(movie,unicode):
+                movie = new_movie_from_filename(filename=movie)
         self.movie = movie
         bounds = self.movie.GetMovieBox()
         width = bounds[2]-bounds[0]
