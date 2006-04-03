@@ -3,11 +3,11 @@
 
 #if defined(__APPLE__)
 #  include <OpenGL/gl.h>
+#  include <QuickTime/Movies.h>
 #else
 #  include <GL/gl.h>
+#  include <Movies.h>
 #endif
-
-#include <QuickTime/Movies.h>
 
 typedef struct {
   Movie my_movie;

@@ -96,11 +96,34 @@ if not skip_c_compilation:
         gl_extra_link_args = []
         
     if sys.platform == 'win32':
-        gl_libraries = ['opengl32']
+        gl_libraries = ['opengl32']#,'glu32']
     elif sys.platform.startswith('linux'):
         gl_libraries = ['GL']
     else:
         gl_libraries = []
+
+    if sys.platform == 'win32':
+        qt_include_dirs = [r'C:\Program Files\QuickTime SDK\CIncludes']
+        qt_library_dirs = [r'C:\Program Files\QuickTime SDK\Libraries']
+        qt_libraries = ['qtmlClient']
+        if 1:
+            # from http://lab.msdn.microsoft.com/express/visualc/usingpsdk/default.aspx
+            winlibs = "kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib"
+            winliblist = [fname[:-4] for fname in winlibs.split()]
+            qt_libraries = qt_libraries+winliblist
+        qt_extra_link_args = []
+    elif sys.platform == 'darwin':
+        qt_include_dirs = []
+        qt_library_dirs = []
+        qt_libraries = []
+        qt_extra_link_args = ['-framework','QuickTime',
+                              '-framework','Carbon',
+                              ]
+    else:
+        qt_include_dirs = []
+        qt_library_dirs = []
+        qt_libraries = []
+        qt_extra_link_args = []
 
     if sys.platform == 'darwin':
         if have_Pyrex:
@@ -119,15 +142,6 @@ if not skip_c_compilation:
                                               'src/darwin_getrefresh_wrap.c'],
                                      extra_link_args=['-framework','Cocoa']))
         
-        # QuickTime extras (currently Mac OS X only... should be easy to port to Windows)
-        ext_modules.append(Extension(name='_gl_qt',
-                                     sources=['src/gl_qt.c',
-                                              'src/gl_qt_wrap.c'],
-                                     libraries=gl_libraries,
-                                     extra_link_args=['-framework','QuickTime',
-                                                      '-framework','Carbon',
-                                                      ]+gl_extra_link_args,
-                                     ))
 
         
     elif sys.platform == 'win32':
@@ -148,6 +162,7 @@ if not skip_c_compilation:
                                               os.path.join('src','win32_load_driver.c')],
                                      libraries=['User32'],
                                      ))
+        
     elif sys.platform.startswith('linux') or sys.platform.startswith('irix'):
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['src/posix_maxpriority.c',
@@ -156,6 +171,20 @@ if not skip_c_compilation:
             ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
         else: # sys.platform.startswith('irix')
             ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
+            
+    if sys.platform == 'darwin' or sys.platform== 'win32':
+        # QuickTime support
+        ext_modules.append(Extension(name='_gl_qt',
+                                     sources=['src/gl_qt.c',
+                                              'src/gl_qt_wrap.c',
+                                              'src/movieconvert.c',
+                                              ],
+                                     include_dirs=qt_include_dirs,
+                                     library_dirs=qt_library_dirs,
+                                     libraries=qt_libraries+gl_libraries,
+                                     extra_link_args=(qt_extra_link_args+
+                                                      gl_extra_link_args),
+                                     ))
 
     # _lib3ds
     lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
