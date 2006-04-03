@@ -20,7 +20,8 @@ if 'commands' in globals().keys():
     else:
         swig_version = output.split('\n')[1]
         if swig_version.find('SWIG Version 1.3.17') != 0:
-            raise RuntimeError( "Wrong SWIG version: %s" % (swig_version,) )
+            if swig_version.find('SWIG Version 1.3.24') != 0:
+                raise RuntimeError( "Wrong SWIG version: %s" % (swig_version,) )
 else:
     print "WARNING: Error checking SWIG version"
         
