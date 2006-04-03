@@ -91,7 +91,7 @@ if 1:
     kQTNewMoviePropertyID_Active  = FOUR_CHAR_CODE('actv')
     kQTNewMoviePropertyID_DontInteractWithUser = FOUR_CHAR_CODE('intn')
     
-class VEQTError(RuntimeError):
+class qtlowlevelError(RuntimeError):
     pass
 
 noErr = 0
@@ -109,7 +109,7 @@ def GetErrorString(value):
     
 def CheckOSStatus(value):
     if value != noErr:
-        raise VEQTError(GetErrorString(value))
+        raise qtlowlevelError(GetErrorString(value))
     return value
 
 NewMovieFromFile = QTMLClient.NewMovieFromFile
@@ -135,17 +135,35 @@ SetMovieBox = QTMLClient.SetMovieBox
 SetMovieBox.argtypes = [Movie,
                         ctypes.POINTER(Rect)]
 
+StartMovie = QTMLClient.StartMovie
+StartMovie.argtypes = [Movie]
+
+MoviesTask = QTMLClient.MoviesTask
+MoviesTask.argtypes = [Movie,ctypes.c_long]
+
+IsMovieDone = QTMLClient.IsMovieDone
+IsMovieDone.argtypes = [Movie]
+
+GoToBeginningOfMovie = QTMLClient.GoToBeginningOfMovie
+GoToBeginningOfMovie.argtypes = [Movie]
+
 FSSpec = ctypes.c_void_p
 CFStringRef = ctypes.c_void_p
 CFStringEncoding = ctypes.c_uint
+CFAllocatorRef = ctypes.c_void_p
+CFIndex = ctypes.c_int
 if 1:
     CFStringCreateWithCharacters = QTMLClient.CFStringCreateWithCharacters
+    CFStringCreateWithCharacters.restype = CFStringRef
+    CFStringCreateWithCharacters.argtypes = [CFAllocatorRef,
+                                             ctypes.c_wchar_p,
+                                             CFIndex]
     
     CFStringCreateWithCString = QTMLClient.CFStringCreateWithCString
     CFStringCreateWithCString.restype = CFStringRef
-    CFStringCreateWithCString.argtypes = [ctypes.c_void_p,
+    CFStringCreateWithCString.argtypes = [CFAllocatorRef,
                                           ctypes.c_char_p,
-                                          ctypes.c_int]
+                                          CFStringEncoding]
 
     CFStringGetCString = QTMLClient.CFStringGetCString
     CFStringGetCStringPtr = QTMLClient.CFStringGetCStringPtr
@@ -160,5 +178,5 @@ if 1:
     OpenMovieFile = QTMLClient.OpenMovieFile
     
 if 1:
-    kCFAllocatorDefault = QTGetCFConstant("kCFAllocatorDefault")
+    kCFAllocatorDefault = 0
     kCFStringEncodingMacRoman = 0 # CoreFoundation/CFString.h

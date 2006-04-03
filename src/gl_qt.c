@@ -46,7 +46,7 @@ void gl_qt_set_error(const char * errmsg) {
   gl_qt_error_str = errmsg;
 }
 
-gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float tex_scale ) {
+gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, short tex_shape, float tex_scale ) {
   gl_qt_renderer * render_info = NULL;
 
   short gMovieWidth, gMovieHeight;
@@ -73,7 +73,12 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
   render_info->my_movie = theMovie;
 
   GetMovieBox(render_info->my_movie, &gMovieRect);
-  OffsetRect(&gMovieRect,  -gMovieRect.left,  -gMovieRect.top);
+
+  gMovieRect.bottom = gMovieRect.bottom-gMovieRect.top;
+  gMovieRect.top = 0;
+  gMovieRect.right = gMovieRect.right-gMovieRect.left;
+  gMovieRect.left = 0;
+
   SetMovieBox(render_info->my_movie, &gMovieRect);
 
   gMovieWidth = (short) (gMovieRect.right - gMovieRect.left);
@@ -99,8 +104,9 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
       tex_scale = (float)tex_shape / (float) gMovieHeight;
     }
   }
-  render_info->tex_width = (short) (gMovieWidth * tex_scale);	
-  render_info->tex_height = (short) (gMovieHeight * tex_scale);
+
+  render_info->tex_width = (short) ((float)gMovieWidth * tex_scale);	
+  render_info->tex_height = (short) ((float)gMovieHeight * tex_scale);
 
   if ((render_info->tex_width > tex_shape) || (render_info->tex_height > tex_shape)) {
     gl_qt_set_error("movie too big for assigned texture shape");
@@ -115,7 +121,10 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
 	      X2Fix(0.0));
   SetMovieMatrix(render_info->my_movie, &movieMatrix);
 
-  SetRect (&rectNewMovie, 0, 0, render_info->tex_width, render_info->tex_height); // l,t, r, b
+  rectNewMovie.top = 0;
+  rectNewMovie.left = 0;
+  rectNewMovie.bottom = render_info->tex_height;
+  rectNewMovie.right = render_info->tex_width;
   
   render_info->row_stride = render_info->tex_width * wOffScreenDepth / 8;
   render_info->qt_pixel_data = (unsigned char *) malloc(render_info->row_stride * render_info->tex_height);
@@ -123,12 +132,15 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float
     gl_qt_set_error("memory allocation failure (render_info->qt_pixel_data)");
     goto fail;
   }
-  //bzero(render_info->qt_pixel_data, render_info->row_stride * render_info->tex_height);
   memset(render_info->qt_pixel_data, 0, render_info->row_stride * render_info->tex_height);
 
-  QTNewGWorldFromPtr (&(render_info->offscreen_gworld), k32ARGBPixelFormat, &rectNewMovie, NULL, NULL, 0, render_info->qt_pixel_data, render_info->row_stride);
+  QTNewGWorldFromPtr (&(render_info->offscreen_gworld), k32ARGBPixelFormat, 
+		      &rectNewMovie, NULL, NULL, 0, 
+		      render_info->qt_pixel_data, render_info->row_stride);
+  //QTNewGWorld(&(render_info->offscreen_gworld), k32ARGBPixelFormat, 
+  //&rectNewMovie, NULL, NULL, 0);
   if (render_info->offscreen_gworld == NULL) {
-    gl_qt_set_error("memory allocation failure (render_info->offscreen_gworld)");
+    gl_qt_set_error("error allocating offscreen GWorld");
     goto fail;
   }
 
