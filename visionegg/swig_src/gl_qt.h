@@ -32,7 +32,7 @@ const char * gl_qt_err_message(void);
 
 /* Standard functions */
 
-gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, unsigned tex_shape, float tex_scale ); // tex_scale = 0.0 is auto
+gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, short tex_shape, float tex_scale ); // tex_scale = 0.0 is auto
 void gl_qt_renderer_delete( gl_qt_renderer *);
 void gl_qt_renderer_update( gl_qt_renderer *);
 

@@ -30,7 +30,7 @@ The documentation start page is doc/index.html
 
 LICENSE
 
-The Vision Egg is Copyright (c) Andrew D. Straw, 2001-2003, Copyright
+The Vision Egg is Copyright (c) Andrew D. Straw, 2001-2006, Copyright
 (c) 2004-2006 California Institute of Technology.  It is distributed
 under the terms of the GNU LGPL (Lesser General Public License.) See
 LICENSE.txt for more information.  This software is provided "as is"

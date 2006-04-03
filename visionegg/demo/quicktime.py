@@ -21,7 +21,7 @@ if len(sys.argv) > 1:
     filename = sys.argv[1]
 else:
     filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","water.mov")
-movie = new_movie_from_filename(filename) # movie is type Carbon.Qt.Movie
+movie = new_movie_from_filename(filename)
 bounds = movie.GetMovieBox()
 width = bounds[2]-bounds[0]
 height = bounds[3]-bounds[1]
