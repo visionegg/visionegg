@@ -1547,7 +1547,6 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             else:
                 gl.glDisable(gl.GL_DEPTH_TEST)
 
-            gl.glDisable(gl.GL_BLEND)
             gl.glEnable(gl.GL_TEXTURE_2D)
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
 
@@ -1559,7 +1558,10 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             self.texture_object.set_wrap_mode_s( p.texture_wrap_s )
             self.texture_object.set_wrap_mode_t( p.texture_wrap_t )
 
-            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
+            # allow max_alpha value to control blending
+            gl.glEnable( gl.GL_BLEND )
+            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
+            gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
             tex = self.parameters.texture
             tex.update()
