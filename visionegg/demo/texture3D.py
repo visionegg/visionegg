@@ -20,7 +20,6 @@ speed = 1.0
 z = duration*speed
 stimulus = TextureStimulus3D(texture = texture,
                              shrink_texture_ok=True,
-                             internal_format=gl.GL_RGBA,
                              )
 
 def every_frame_func(t=None):
