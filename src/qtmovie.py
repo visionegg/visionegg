@@ -54,6 +54,13 @@ def new_movie_from_filename(filename, MAX_PATH=255):
     qtlowlevel.NewMovieFromProperties( moviePropCount, movieProps, 0, None, ctypes.byref(theMovie))
     return Movie(theMovie)
 
+class Rect:
+    def __init__(self,top=0,left=0,bottom=0,right=0):
+        self.top = top
+        self.left = left
+        self.bottom = bottom
+        self.right = right
+
 class Movie:
     """An encapsulated QuickTime Movie"""
     def __init__(self,theMovie):
@@ -61,14 +68,17 @@ class Movie:
     def GetMovieBox(self):
         movieBounds = qtlowlevel.Rect()
         qtlowlevel.GetMovieBox(self.theMovie, ctypes.byref(movieBounds))
-        return (movieBounds.top,
-                movieBounds.left,
-                movieBounds.bottom,
-                movieBounds.right)
+        return Rect(top=movieBounds.top,
+                    left=movieBounds.left,
+                    bottom=movieBounds.bottom,
+                    right=movieBounds.right)
     
     def SetMovieBox(self,bounds):
+        if not isinstance(bounds,Rect):
+            raise ValueError('bounds argument must be instance of VisionEgg.qtmovie.Rect')
         b = qtlowlevel.Rect()
-        (b.top, b.left, b.bottom, b.right) = bounds
+        (b.top, b.left, b.bottom, b.right) = (bounds.top, bounds.left,
+                                              bounds.bottom, bounds.right)
         qtlowlevel.SetMovieBox(self.theMovie, ctypes.byref(b))
     def StartMovie(self):
         qtlowlevel.StartMovie(self.theMovie)

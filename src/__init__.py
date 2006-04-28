@@ -454,7 +454,10 @@ def assert_type(*args):
     return ve_types.assert_type(*args)
 
 def _get_lowerleft(position,anchor,size):
-    """Private helper function"""
+    """Private helper function
+
+    size is (width, height)
+    """
     if anchor == 'lowerleft':
         lowerleft = position
     else:

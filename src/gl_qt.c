@@ -137,8 +137,6 @@ gl_qt_renderer* gl_qt_renderer_create( Movie theMovie, short tex_shape, float te
   QTNewGWorldFromPtr (&(render_info->offscreen_gworld), k32ARGBPixelFormat, 
 		      &rectNewMovie, NULL, NULL, 0, 
 		      render_info->qt_pixel_data, render_info->row_stride);
-  //QTNewGWorld(&(render_info->offscreen_gworld), k32ARGBPixelFormat, 
-  //&rectNewMovie, NULL, NULL, 0);
   if (render_info->offscreen_gworld == NULL) {
     gl_qt_set_error("error allocating offscreen GWorld");
     goto fail;
