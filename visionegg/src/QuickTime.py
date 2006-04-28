@@ -47,9 +47,9 @@ class MovieTexture(VisionEgg.Textures.Texture):
                 movie = new_movie_from_filename(filename=movie)
         self.movie = movie
         bounds = self.movie.GetMovieBox()
-        width = bounds[2]-bounds[0]
-        height = bounds[3]-bounds[1]
-        self.movie.SetMovieBox((0,0,width,height))
+        height = bounds.bottom-bounds.top
+        width = bounds.right-bounds.left
+        self.movie.SetMovieBox(qtmovie.Rect(top=0,left=0,bottom=height,right=width))
         self.size = (width,height)
         self.scale = 1.0
 
@@ -74,7 +74,6 @@ class MovieTexture(VisionEgg.Textures.Texture):
             raise NotImplementedError('')
         width,height = self.size
         tex_shape = VisionEgg.Textures.next_power_of_2(max(width,height))
-        
         # fractional coverage
         self.buf_lf = 0.0
         self.buf_rf = float(width)/tex_shape

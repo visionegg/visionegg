@@ -23,8 +23,8 @@ else:
     filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","water.mov")
 movie = new_movie_from_filename(filename)
 bounds = movie.GetMovieBox()
-width = bounds[2]-bounds[0]
-height = bounds[3]-bounds[1]
+height = bounds.bottom-bounds.top
+width = bounds.right-bounds.left
 
 scale_x = screen.size[0]/float(width)
 scale_y = screen.size[1]/float(height)
