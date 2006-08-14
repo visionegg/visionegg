@@ -222,7 +222,7 @@ class Presentation(VisionEgg.ClassWithParameters):
                 raise TypeError( "When deleting a controller, specify an "
                                  "instance of VisionEgg.FlowControl.Controller class!")
             
-            if Controller == None: #Added by Tony, May30/2005
+            if controller == None: #Added by Tony, May30/2005
                 self.controllers = []
             
             i = 0
