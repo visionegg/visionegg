@@ -1,6 +1,8 @@
 Changes for 1.1:
 ----------------
 
+* QuickTime movies work in Windows (need to check on OS X).
+
 * FilledCircle stimulus is now anti-aliased. Thanks to Peter Jurica
   and Gijs Plomp.
 
