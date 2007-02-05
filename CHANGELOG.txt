@@ -1,10 +1,18 @@
 Changes for 1.1:
 ----------------
 
+* Changes so to reflect standard idioms on Python project layouts:
+    - src/ directory renamed to VisionEgg/ 
+         (but .c files need to be moved back to src/)
+    - use 'package_data' distutils argument
+  This enables setuptools to work with the Vision Egg.
+
 * QuickTime movies work in Windows (need to check on OS X).
 
 * FilledCircle stimulus is now anti-aliased. Thanks to Peter Jurica
   and Gijs Plomp.
+
+* Added demo/texture3D_alpha.py
 
 Changes for 1.0:
 ----------------
