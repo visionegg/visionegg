@@ -70,7 +70,7 @@ for i in interfaces:
     for filename in copy_files:
         if not os.path.exists(filename):
             continue
-        new_filename =  "../src/"+filename
+        new_filename =  "../VisionEgg/"+filename
         if not os.path.exists(new_filename) or os.stat(new_filename)[stat.ST_MTIME] < os.stat(filename)[stat.ST_MTIME]:
             shutil.copy2(filename,new_filename) # copy2 preserves attributes
-            print "copied %s to ../src/"%filename
+            print "copied %s to ../VisionEgg/"%filename

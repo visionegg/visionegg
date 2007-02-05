@@ -72,9 +72,6 @@ import distutils.command.sdist
 from distutils import dir_util
 import sys, os.path, glob, traceback
 
-package_dir      = {'VisionEgg'          : 'src',
-                    'VisionEgg.PyroApps' : os.path.join('src','PyroApps'),
-                    }
 packages         = [ 'VisionEgg',
                      'VisionEgg.PyroApps',
                      ]
@@ -121,30 +118,30 @@ if not skip_c_compilation:
 
     if sys.platform == 'darwin':
         if have_Pyrex:
-            darwin_maxpriority_sources = ['src/darwin_maxpriority.pyx']
+            darwin_maxpriority_sources = ['VisionEgg/darwin_maxpriority.pyx']
         else:
-            darwin_maxpriority_sources = ['src/darwin_maxpriority.c']
+            darwin_maxpriority_sources = ['VisionEgg/darwin_maxpriority.c']
         ext_modules.append(Extension(name='darwin_maxpriority',
                                      sources=darwin_maxpriority_sources))
         # VBL synchronization stuff
         ext_modules.append(Extension(name='_darwin_sync_swap',
-                                     sources=['src/_darwin_sync_swap.m'],
+                                     sources=['VisionEgg/_darwin_sync_swap.m'],
                                      extra_link_args=['-framework','OpenGL']))
         # getfresh
         ext_modules.append(Extension(name='_darwin_getrefresh',
-                                     sources=['src/darwin_getrefresh.m',
-                                              'src/darwin_getrefresh_wrap.c'],
+                                     sources=['VisionEgg/darwin_getrefresh.m',
+                                              'VisionEgg/darwin_getrefresh_wrap.c'],
                                      extra_link_args=['-framework','Cocoa']))
         
 
         
     elif sys.platform == 'win32':
         ext_modules.append(Extension(name='_win32_maxpriority',
-                                     sources=[os.path.join('src','win32_maxpriority.c'),
-                                              os.path.join('src','win32_maxpriority_wrap.c')]))
+                                     sources=[os.path.join('VisionEgg','win32_maxpriority.c'),
+                                              os.path.join('VisionEgg','win32_maxpriority_wrap.c')]))
         ext_modules.append(Extension(name='_win32_getrefresh',
-                                     sources=[os.path.join('src','win32_getrefresh.c'),
-                                              os.path.join('src','win32_getrefresh_wrap.c')],
+                                     sources=[os.path.join('VisionEgg','win32_getrefresh.c'),
+                                              os.path.join('VisionEgg','win32_getrefresh_wrap.c')],
                                      libraries=['User32'],
                                      ))
         if have_Pyrex:
@@ -152,26 +149,26 @@ if not skip_c_compilation:
         else:
             vretrace_source = 'win32_vretrace.c'
         ext_modules.append(Extension(name='win32_vretrace',
-                                     sources=[os.path.join('src',vretrace_source),
-                                              os.path.join('src','win32_load_driver.c')],
+                                     sources=[os.path.join('VisionEgg',vretrace_source),
+                                              os.path.join('VisionEgg','win32_load_driver.c')],
                                      libraries=['User32'],
                                      ))
         
     elif sys.platform.startswith('linux') or sys.platform.startswith('irix'):
         ext_modules.append(Extension(name='_posix_maxpriority',
-                                     sources=['src/posix_maxpriority.c',
-                                              'src/posix_maxpriority_wrap.c']))
+                                     sources=['VisionEgg/posix_maxpriority.c',
+                                              'VisionEgg/posix_maxpriority_wrap.c']))
         if sys.platform.startswith('linux'):
-            ext_modules.append(Extension(name='_raw_lpt_linux',sources=['src/_raw_lpt_linux.c']))
+            ext_modules.append(Extension(name='_raw_lpt_linux',sources=['VisionEgg/_raw_lpt_linux.c']))
         else: # sys.platform.startswith('irix')
-            ext_modules.append(Extension(name='_raw_plp_irix',sources=['src/_raw_plp_irix.c']))
+            ext_modules.append(Extension(name='_raw_plp_irix',sources=['VisionEgg/_raw_plp_irix.c']))
             
     if sys.platform == 'darwin' or sys.platform== 'win32':
         # QuickTime support
         ext_modules.append(Extension(name='_gl_qt',
-                                     sources=['src/gl_qt.c',
-                                              'src/gl_qt_wrap.c',
-                                              'src/movieconvert.c',
+                                     sources=['VisionEgg/gl_qt.c',
+                                              'VisionEgg/gl_qt_wrap.c',
+                                              'VisionEgg/movieconvert.c',
                                               ],
                                      include_dirs=qt_include_dirs,
                                      library_dirs=qt_library_dirs,
@@ -182,7 +179,7 @@ if not skip_c_compilation:
 
     # _lib3ds
     lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
-    lib3ds_sources.append(os.path.join('src','_lib3ds.c'))
+    lib3ds_sources.append(os.path.join('VisionEgg','_lib3ds.c'))
     ext_modules.append(Extension(name='_lib3ds',
                                  sources=lib3ds_sources,
                                  include_dirs=['.','lib3ds'],
@@ -194,7 +191,7 @@ if not skip_c_compilation:
     include_prefix = os.path.join( sys.prefix, 'include', 'python%s'%sys.version[:3] )
     Numeric_include_dir = os.path.join( include_prefix, 'Numeric' )
     ext_modules.append(Extension(name='_draw_in_c',
-                                 sources=['src/_draw_in_c.c'],
+                                 sources=['VisionEgg/_draw_in_c.c'],
                                  include_dirs=[Numeric_include_dir],
                                  libraries=gl_libraries,
                                  extra_link_args=gl_extra_link_args
@@ -303,7 +300,6 @@ def main():
         author_email=author_email,
         url=home_page,
         license=license,
-        package_dir=package_dir,
         packages=packages,
         ext_package=ext_package,
         ext_modules=ext_modules,
