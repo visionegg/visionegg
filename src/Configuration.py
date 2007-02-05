@@ -22,11 +22,10 @@ Environment variables take precedence over the configuration file,
 which takes precedence over the generic defaults.
 
 This module also determines the location of the Vision Egg
-directories.  The VISIONEGG_SYSTEM_DIR directory is by default a
-directory named 'VisionEgg' in the base python directory (found in
-Python variable sys.prefix).  VISIONEGG_USER_DIR is by default
-'VisionEgg' in the directory specified by the environment variable
-HOME, if it exists, and os.curdir otherwise.
+directories.  The VISIONEGG_SYSTEM_DIR directory is by default the
+'VisionEgg' directory in Python's site-packages.  VISIONEGG_USER_DIR
+is by default 'VisionEgg' in the directory specified by the
+environment variable HOME, if it exists, and os.curdir otherwise.
 
 You can create a configuration file that contains defaults for your
 system.  This should be a text file with key/value pairs.  Blank lines
@@ -111,7 +110,7 @@ class Config:
             try:
                 self.VISIONEGG_SYSTEM_DIR = os.environ['VISIONEGG_SYSTEM_DIR']
             except KeyError:
-                self.VISIONEGG_SYSTEM_DIR = os.path.join(sys.prefix,"VisionEgg")
+                self.VISIONEGG_SYSTEM_DIR = os.path.split(__file__)[0]
             user_dir = os.path.expanduser("~")
             self.VISIONEGG_USER_DIR = os.path.join(user_dir,"VisionEgg")
 
@@ -126,6 +125,7 @@ class Config:
                 if not os.path.isfile(configFile):
                     configFile = None # No file, use defaults specified in environment variables then here
 
+        print 'configFile',configFile
         if configFile:
             cfg.read(configFile)
         else:

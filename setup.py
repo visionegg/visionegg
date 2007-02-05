@@ -58,12 +58,6 @@ classifiers = [
     'Topic :: Software Development :: Libraries',
     ]
 
-try:
-    import setuptools
-    print 'using setuptools'
-except ImportError:
-    print 'not using setuptools'
-    
 from distutils.core import setup, Extension
 try:
     from Pyrex.Distutils import build_ext
@@ -205,21 +199,32 @@ if not skip_c_compilation:
                                  libraries=gl_libraries,
                                  extra_link_args=gl_extra_link_args
                                  ))
-    
-data_files = []
-data_base_dir = 'VisionEgg' # This becomes VISIONEGG_SYSTEM_DIR
-data_dir = os.path.join(data_base_dir,'data')
-test_dir = os.path.join(data_base_dir,'test')
-data_files.append( (data_dir,[os.path.join('data','water.mov')]) )
-data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
-data_files.append( (data_dir,[os.path.join('data','spiral.png')]) )
-data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
-data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
-data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
-for filename in os.listdir('test'):
-    if filename.endswith('.py'):
-        data_files.append( (test_dir,[os.path.join('test',filename)]) )
-data_files.append( (data_base_dir,['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
+
+if 0:
+    data_files = []
+    data_base_dir = 'VisionEgg' # This becomes VISIONEGG_SYSTEM_DIR
+    data_dir = os.path.join(data_base_dir,'data')
+    test_dir = os.path.join(data_base_dir,'test')
+    data_files.append( (data_dir,[os.path.join('data','water.mov')]) )
+    data_files.append( (data_dir,[os.path.join('data','panorama.jpg')]) )
+    data_files.append( (data_dir,[os.path.join('data','spiral.png')]) )
+    data_files.append( (data_dir,[os.path.join('data','az_el.png')]) )
+    data_files.append( (data_dir,[os.path.join('data','visionegg.bmp')]) )
+    data_files.append( (data_dir,[os.path.join('data','visionegg.tif')]) )
+    for filename in os.listdir('test'):
+        if filename.endswith('.py'):
+            data_files.append( (test_dir,[os.path.join('test',filename)]) )
+    data_files.append( (data_base_dir,['check-config.py','VisionEgg.cfg','README.txt','LICENSE.txt']) )
+else:
+    opj = os.path.join
+    package_data = {'VisionEgg':[opj('data','water.mov'),
+                                 opj('data','panorama.jpg'),
+                                 opj('data','spiral.png'),
+                                 opj('data','az_el.png'),
+                                 opj('data','visionegg.bmp'),
+                                 opj('data','visionegg.tif'),
+                                 'VisionEgg.cfg',
+                                 ]}
 
 global extension_build_failed
 extension_build_failed = 0
@@ -234,7 +239,7 @@ class sdist_demo( distutils.command.sdist.sdist ):
             if orig_file.startswith('demo') or orig_file.startswith('doc') or orig_file.startswith('test'):
                 new_files.append(orig_file)
             elif orig_file in ['check-config.py',
-                               'VisionEgg.cfg',
+                               #'VisionEgg.cfg', # location changed.. XXX FIXME
                                'CHANGELOG.txt',
                                'README-DEMOS.txt',
                                'LICENSE.txt',
@@ -288,7 +293,7 @@ def main():
     if (hasattr(distutils.core, 'setup_keywords') and 
         'classifiers' in distutils.core.setup_keywords):
         extras_kws['classifiers'] = classifiers
-        
+
     # Call setup - normal distutils behavior
     setup(
         name=name,
@@ -302,7 +307,7 @@ def main():
         packages=packages,
         ext_package=ext_package,
         ext_modules=ext_modules,
-        data_files=data_files,
+        package_data=package_data,
         long_description=long_description,
         cmdclass={'build_ext':ve_build_ext,
                   'sdist_demo':sdist_demo,

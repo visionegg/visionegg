@@ -3,7 +3,6 @@ include CHANGELOG.txt
 include README.txt
 include README-DEMOS.txt
 include MANIFEST.in
-include VisionEgg.cfg
 include src/*.pyx
 include src/*.c
 include src/*.m
@@ -25,10 +24,11 @@ include demo/tcp/*.py
 include demo/GUI/*.py
 include demo/Pyro/*.py
 include test/*.py
-include data/panorama.jpg
-include data/spiral.png
-include data/az_el.png
-include data/visionegg.bmp
-include data/visionegg.tif
-include data/water.mov
+include src/data/panorama.jpg
+include src/data/spiral.png
+include src/data/az_el.png
+include src/data/visionegg.bmp
+include src/data/visionegg.tif
+include src/data/water.mov
+include src/VisionEgg.cfg
 include check-config.py
