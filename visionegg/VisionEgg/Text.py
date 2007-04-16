@@ -270,7 +270,11 @@ if have_glut:
                 gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
 
                 c = self.parameters.color
-                gl.glColorf(*c)
+                
+                if len(c)==3:
+                    gl.glColor3f(*c)
+                elif len(c)==4:
+                    gl.glColor4f(*c)
                 gl.glDisable(gl.GL_TEXTURE_2D)
 
                 gl.glRasterPos3f(0.0,0.0,0.0)
@@ -331,7 +335,10 @@ if have_glut:
                 gl.glRotate(self.parameters.orientation,0.0,0.0,1.0)
 
                 c = self.parameters.color
-                gl.glColorf(*c)
+                if len(c)==3:
+                    gl.glColor3f(*c)
+                elif len(c)==4:
+                    gl.glColor4f(*c)
 
                 gl.glLineWidth(self.parameters.linewidth)
 

@@ -15,6 +15,8 @@ Vision Egg GL module -- lump all OpenGL names in one namespace.
 """
 
 from OpenGL.GL import * # get everything from OpenGL.GL
+import OpenGL
+__version__ = OpenGL.__version__
 
 # tell py2exe we want these modules
 try:
