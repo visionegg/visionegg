@@ -290,11 +290,17 @@ class AzElGrid(VisionEgg.Core.Stimulus):
             else:
                 gl.glDisable( gl.GL_BLEND )
 
-            gl.glColorf(p.minor_line_color)
+            if len(p.minor_line_color)==3:
+                gl.glColor3f(*p.minor_line_color)
+            elif len(p.minor_line_color)==4:
+                gl.glColor4f(*p.minor_line_color)
             gl.glLineWidth(p.minor_line_width)
             gl.glCallList(self.cached_minor_lines_display_list)
 
-            gl.glColorf(p.major_line_color)
+            if len(p.major_line_color)==3:
+                gl.glColor3f(*p.major_line_color)
+            elif len(p.major_line_color)==4:
+                gl.glColor4f(*p.major_line_color)
             gl.glLineWidth(p.major_line_width)
             gl.glCallList(self.cached_major_lines_display_list)
 
@@ -525,8 +531,8 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPushMatrix()
-            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+            gl.glPushMatrix()            
+            gl.glColor4f(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:
@@ -1201,7 +1207,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glBlendFunc( gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA ) # alpha 1.0 = transparent
             
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object_id)
-            gl.glColor( *p.opaque_color )
+            gl.glColor4f( *p.opaque_color )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             # clear modelview matrix

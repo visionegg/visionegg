@@ -1442,7 +1442,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                 gl.glTranslate(*translate_vector)
                 gl.glRotate(p.angle,0,0,1)
 
-                gl.glColorf(p.color[0],p.color[1],p.color[2],p.max_alpha)
+                gl.glColor4f(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
                 l = lowerleft[0] - p.position[0]
                 r = l + size[0]
@@ -1736,7 +1736,7 @@ class SpinningDrum(TextureStimulusBaseClass):
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
             try:
-                gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+                gl.glColor4f(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
                 if not self.constant_parameters.mipmaps_enabled:
                     if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:

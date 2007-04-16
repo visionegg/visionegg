@@ -170,7 +170,7 @@ class IntegerMC(type):
 class Integer(ParameterTypeDef):
     __metaclass__ = IntegerMC
     def verify(is_integer):
-        return type(is_integer) == int
+        return isinstance(is_integer,int)
     verify = staticmethod(verify)
 
 class UnsignedIntegerMC(IntegerMC):

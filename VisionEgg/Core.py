@@ -327,8 +327,8 @@ class Screen(VisionEgg.ClassWithParameters):
         gl_renderer = gl.glGetString(gl.GL_RENDERER)
         gl_version = gl.glGetString(gl.GL_VERSION)
 
-        logger.info("OpenGL %s, %s, %s"%
-                    (gl_version, gl_renderer, gl_vendor))
+        logger.info("OpenGL %s, %s, %s (PyOpenGL %s)"%
+                    (gl_version, gl_renderer, gl_vendor, gl.__version__))
 
         if gl_renderer == "GDI Generic" and gl_vendor == "Microsoft Corporation":
             logger.warning("Using default Microsoft Windows OpenGL "
@@ -1470,7 +1470,10 @@ class FixationSpot(Stimulus):
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
-            gl.glColorf(*p.color)
+            if len(p.color)==3:
+                gl.glColor3f(*p.color)
+            elif len(p.color)==4:
+                gl.glColor4f(*p.color)
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
