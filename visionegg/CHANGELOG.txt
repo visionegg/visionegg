@@ -1,6 +1,7 @@
 Changes for 1.1:
 ----------------
 
+* Update to work with PyOpenGL 3
 * Changes so to reflect standard idioms on Python project layouts:
     - src/ directory renamed to VisionEgg/ 
          (but .c files need to be moved back to src/)
