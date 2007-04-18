@@ -21,7 +21,7 @@ from VisionEgg.Text import Text
 from math import sin, pi
 import math
 from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN
-import RandomArray # Numeric
+import numpy
 
 #####################################
 #  Initialize OpenGL window/screen  #
@@ -328,7 +328,7 @@ while not quit_now:
     drum_viewport.draw() # draw spinning drum
     viewport_2d.draw() # draw 2D stimuli
 
-    pixels =  RandomArray.randint(0,256,(20,20,3)).astype(Numeric.UnsignedInt8)
+    pixels =  numpy.random.randint(0,256,size=(20,20,3)).astype(numpy.uint8)
     screen.put_pixels(pixels,
                       scale_x=5.0,
                       scale_y=5.0,
