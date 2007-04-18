@@ -1,7 +1,7 @@
 Changes for 1.1:
 ----------------
 
-* Update Textures to accept numpy arrays (by Mark Halko)
+* Update Textures to accept numpy arrays as data source (by Martin Spacek)
 
 * Update to work with PyOpenGL 3
 
