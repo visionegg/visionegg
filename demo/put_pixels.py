@@ -5,11 +5,12 @@ VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 from VisionEgg.Core import *
 import pygame
 from pygame.locals import *
+import numpy
 
 screen = get_default_screen()
 screen.set( bgcolor = (0.0,0.0,0.0) ) # black (RGB)
 
-white_data = (Numeric.ones((100,200,3))*255).astype(Numeric.UnsignedInt8)
+white_data = numpy.ones((100,200,3),dtype=numpy.uint8)*255
 red_data = white_data.copy()
 red_data[:,:,1:] = 0 # zero non-red channels
 
