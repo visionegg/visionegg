@@ -63,11 +63,16 @@ if Image.VERSION >= '1.1.3':
 else:
     shrink_filter = Image.BICUBIC # Fallback filtering
 
-# Allow use of numarray Texture data without requiring numarray
+# Allow use of numarray and numpy Texture data without requiring either
 array_types = [Numeric.ArrayType]
 try:
     import numarray
     array_types.append( numarray.numarraycore.NumArray )
+except ImportError:
+    pass
+try:
+    import numpy
+    array_types.append( numpy.ndarray )
 except ImportError:
     pass
 
@@ -188,7 +193,7 @@ class Texture(object):
 
         self.texels = texels
         self.texture_object = None
-        
+
         if size is not None and size != self.size:
             raise ValueError("size was specified, but data could not be rescaled")
 
@@ -207,7 +212,7 @@ class Texture(object):
     def make_half_size(self):
         if self.texture_object is not None:
             raise RuntimeError("make_half_size() only available BEFORE texture loaded to OpenGL.")
-        
+
         if isinstance(self.texels,Image.Image):
             w = self.size[0]/2
             h = self.size[1]/2
@@ -224,7 +229,7 @@ class Texture(object):
         are no other references to the TextureObject instance.  To
         ensure this, all references to the texture_object argument
         passed to the load() method should be deleted."""
-        
+
         self.texture_object = None
 
     def get_texels_as_image(self):
@@ -232,12 +237,20 @@ class Texture(object):
         if type(self.texels) in array_types:
             if len(self.texels.shape) == 2:
                 a = self.texels
-                if a.typecode() == Numeric.UInt8:
-                    mode = "L"
-                elif a.typecode() == Numeric.Float32:
-                    mode = "F"
-                else:
-                    raise ValueError("unsupported image mode")
+                try: # Numeric/numarray array?
+                    if a.typecode() == Numeric.UInt8:
+                        mode = "L"
+                    elif a.typecode() == Numeric.Float32:
+                        mode = "F"
+                    else:
+                        raise ValueError("unsupported image mode")
+                except AttributeError: # no typecode attrib, numpy array ?
+                    if a.dtype == numpy.uint8:
+                        mode = "L"
+                    elif a.dtype == numpy.float32:
+                        mode = "F"
+                    else:
+                        raise ValueError("unsupported image mode")
                 return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
             else:
                 raise NotImplementedError("Currently only luminance data can be converted to images")
@@ -295,14 +308,25 @@ class Texture(object):
 
         if width != width_pow2 or height != height_pow2:
             if type(self.texels) in array_types:
-                if len(self.texels.shape) == 2:
-                    buffer = Numeric.zeros( (height_pow2,width_pow2), self.texels.typecode() )
-                    buffer[0:height,0:width] = self.texels
-                elif len(self.texels.shape) == 3:
-                    buffer = Numeric.zeros( (height_pow2,width_pow2,self.texels.shape[2]), self.texels.typecode() )
-                    buffer[0:height,0:width,:] = self.texels
-                else:
-                    raise RuntimeError("Unexpected shape for self.texels")
+                try: # Numeric/numarray array?
+                    if len(self.texels.shape) == 2:
+                        buffer = Numeric.zeros( (height_pow2,width_pow2), self.texels.typecode() )
+                        buffer[0:height,0:width] = self.texels
+                    elif len(self.texels.shape) == 3:
+                        buffer = Numeric.zeros( (height_pow2,width_pow2,self.texels.shape[2]), self.texels.typecode() )
+                        buffer[0:height,0:width,:] = self.texels
+                    else:
+                        raise RuntimeError("Unexpected shape for self.texels")
+                except AttributeError: # no typecode attrib, numpy array?
+                    if len(self.texels.shape) == 2:
+                        buffer = numpy.zeros( (height_pow2,width_pow2), dtype=self.texels.dtype )
+                        buffer[0:height,0:width] = self.texels
+                    elif len(self.texels.shape) == 3:
+                        buffer = numpy.zeros( (height_pow2,width_pow2,self.texels.shape[2]), dtype=self.texels.dtype )
+                        buffer[0:height,0:width,:] = self.texels
+                    else:
+                        raise RuntimeError("Unexpected shape for self.texels")
+
             elif isinstance(self.texels, Image.Image): # PIL Image
                 if rescale_original_to_fill_texture_object:
                     # reset coverage values
@@ -315,7 +339,7 @@ class Texture(object):
                     self._buf_r = width_pow2
                     self._buf_t = 0
                     self._buf_b = height_pow2
-                    
+
                     buffer = self.texels.resize((width_pow2,height_pow2),shrink_filter)
 
                     self.size = (width_pow2, height_pow2)
@@ -372,7 +396,7 @@ class Texture(object):
 
                     mipmap_level += 1
                     biggest_dim = max(this_width,this_height)
-    
+
         # Keep reference to texture_object
         self.texture_object = texture_object
 
@@ -405,11 +429,11 @@ class TextureObject(object):
         'gl_id',
         '__gl_module__',
         )
-    
+
     _cube_map_side_names = ['positive_x', 'negative_x',
                             'positive_y', 'negative_y',
                             'positive_z', 'negative_z']
-    
+
     def __init__(self,
                  dimensions = 2):
         if dimensions not in [1,2,3,'cube']:
@@ -491,7 +515,7 @@ class TextureObject(object):
                       cube_side = None,
                       image_data = None, # DEPRECATED name (use texel_data)
                       ):
-        
+
         """Put Numeric array or PIL Image into OpenGL as texture data.
 
         The texel_data parameter contains the texture data.  If it is
@@ -513,7 +537,7 @@ class TextureObject(object):
         The internal_format parameter specifies the format in which
         the image data is stored on the video card.  See the OpenGL
         specification for all possible values.
-        
+
         If the data_format parameter is None (the default), an attempt
         is made to guess data_format according to the following
         description. For Numeric arrays: If texel_data.shape is equal
@@ -536,7 +560,7 @@ class TextureObject(object):
         supported. For PIL images: texel_data is used as unsigned
         bytes.  This is the usual format for common computer graphics
         files."""
-        
+
         if image_data is not None: # check for deprecated parameter name
             if not hasattr(TextureObject,"_gave_put_new_image_data_warning"):
                 logger = logging.getLogger('VisionEgg.Textures')
@@ -600,8 +624,12 @@ class TextureObject(object):
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
             if type(texel_data) in array_types:
-                if texel_data.typecode() == Numeric.Float:
-                    texel_data = texel_data*255.0
+                try: # Numeric/numarray array?
+                    if texel_data.typecode() == Numeric.Float:
+                        texel_data = texel_data*255.0
+                except AttributeError: # no typecode attrib, numpy array?
+                    if texel_data.dtype == numpy.float:
+                        texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(texel_data) in array_types:
@@ -672,7 +700,7 @@ class TextureObject(object):
                                 raw_data)
                 if gl.glGetTexLevelParameteriv(target, # Need PyOpenGL >= 2.0
                                                mipmap_level,
-                                               gl.GL_TEXTURE_WIDTH) == 0: 
+                                               gl.GL_TEXTURE_WIDTH) == 0:
                     raise TextureTooLargeError("texel_data is too wide for your video system.")
                 if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
                     raise TextureTooLargeError("texel_data is too tall for your video system.")
@@ -693,7 +721,7 @@ class TextureObject(object):
                     raise TextureTooLargeError("texel_data is too deep for your video system.")
             else:
                 raise RuntimeError("Unknown number of dimensions.")
-                
+
         # No OpenGL error, put the texture in!
         if self.dimensions == 1:
             gl.glTexImage1Dub(gl.GL_TEXTURE_1D,
@@ -735,12 +763,12 @@ class TextureObject(object):
                                     data_format = None, # automatic guess unless set explicitly
                                     data_type = None, # automatic guess unless set explicitly
                                     ):
-        
+
         """Similar to put_new_image(), but builds mipmaps."""
-        
+
         if self.dimensions != 2:
             raise ValueError("can only handle 2D texel data for automatic mipmap building")
-        
+
         if type(texel_data) in array_types:
             assert(cube_side == None)
             data_dimensions = len(texel_data.shape)
@@ -789,8 +817,13 @@ class TextureObject(object):
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
             if type(texel_data) in array_types:
-                if texel_data.typecode() == Numeric.Float:
-                    texel_data = texel_data*255.0
+                try: # Numeric/numarray array?
+                    if texel_data.typecode() == Numeric.Float:
+                        texel_data = texel_data*255.0
+                except AttributeError: # no typecode attrib, numpy array?
+                    if texel_data.dtype == numpy.float:
+                        texel_data = texel_data*255.0
+
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(texel_data) in array_types:
@@ -848,7 +881,7 @@ class TextureObject(object):
 
         For an explanation of most parameters, see the
         put_new_image() method."""
-        
+
         if image_data is not None:  # check for deprecated parameter name
             if not hasattr(TextureObject,"_gave_put_sub_image_data_warning"):
                 logger = logging.getLogger('VisionEgg.Textures')
@@ -860,7 +893,7 @@ class TextureObject(object):
                 raise ValueError("Cannot set both texel_data and image_data")
             else:
                 texel_data = image_data
-                
+
         if type(texel_data) in array_types:
             if self.dimensions != 'cube':
                 assert(cube_side == None)
@@ -880,7 +913,7 @@ class TextureObject(object):
 
         # Determine the data_format, data_type and rescale the data if needed
         data = texel_data
-        
+
         if data_format is None: # guess the format of the data
             if type(data) in array_types:
                 if len(data.shape) == self.dimensions:
@@ -914,8 +947,12 @@ class TextureObject(object):
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
             if type(data) in array_types:
-                if data.typecode() == Numeric.Float:
-                    data = data*255.0
+                try: # Numeric/numarray array?
+                    if data.typecode() == Numeric.Float:
+                        data = data*255.0
+                except AttributeError: # no typecode attrib, numpy array?
+                    if data.dtype == numpy.float:
+                        data = data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
             if type(data) in array_types:
@@ -974,7 +1011,7 @@ class TextureObject(object):
             raise RuntimeError("Cannot put_sub_image on 3D texture_object.")
         else:
             raise RuntimeError("Unknown number of dimensions.")
-        
+
     def put_new_framebuffer(self,
                             buffer='back',
                             mipmap_level = 0,
@@ -995,7 +1032,7 @@ class TextureObject(object):
 
         For an explanation of most parameters, see the
         put_new_image() method."""
-        
+
         if self.dimensions != 2:
             raise RuntimeError("put_new_framebuffer only supported for 2D textures.")
 
@@ -1004,8 +1041,8 @@ class TextureObject(object):
         elif buffer == 'back':
             gl.glReadBuffer( gl.GL_BACK )
         else:
-            raise ValueError('No support for "%s" framebuffer'%buffer)        
-        
+            raise ValueError('No support for "%s" framebuffer'%buffer)
+
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
@@ -1086,7 +1123,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                           "OpenGL texture wrap enum",
                           VisionEgg.ParameterDefinition.OPENGL_ENUM),
         }
-                               
+
     constant_parameters_and_defaults = {
         'internal_format':(gl.GL_RGB,#None,
                            ve_types.Integer,
@@ -1099,7 +1136,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                              ve_types.Boolean,
                              "Allow automatic shrinking of texture if too big?"),
         }
-                                        
+
     __slots__ = (
         'texture_object',
         '_using_texture',
@@ -1121,7 +1158,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
                 self.parameters.texture_min_filter = gl.GL_LINEAR_MIPMAP_LINEAR
             else:
                 self.parameters.texture_min_filter = gl.GL_LINEAR
-                    
+
         if not self.constant_parameters.mipmaps_enabled:
             if self.parameters.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
                 raise ValueError("texture_min_filter cannot be a mipmap type if mipmaps not enabled.")
@@ -1209,10 +1246,10 @@ class Mask2D(VisionEgg.ClassWithParameters):
             raise RuntimeError("Mask must have width num_samples power of 2")
         if height != next_power_of_2(height):
             raise RuntimeError("Mask must have height num_samples power of 2")
-        
+
         gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB) # Need PyOpenGL >= 2.0
         self.texture_object = TextureObject(dimensions=2)
-        
+
         if cp.function == "gaussian":
             xx = Numeric.outerproduct(Numeric.ones((1,cp.num_samples[1])),
                                       Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2)
@@ -1251,40 +1288,40 @@ class Mask2D(VisionEgg.ClassWithParameters):
 
         # reset active texture unit to 0
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
-        
+
     def draw_masked_quad_3d(self,lt,rt,bt,tt,v1,v2,v3,v4):
         # The *t parameters are the texture coordinates.
-        
+
         # By the time this method is called, GL_TEXTURE0_ARB should be
         # loaded as the texture object to be masked.
 
         gl.glActiveTextureARB(gl.GL_TEXTURE1_ARB) # bind 2nd texture unit to mask texture
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture_object.gl_id)
         gl.glEnable(gl.GL_TEXTURE_2D)
-        
+
         # The normal TEXTURE2D object is the 1st (TEXTURE0) texture unit
         gl.glBegin(gl.GL_QUADS)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,0.0)
         gl.glVertex3f(*v1)
-        
+
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,0.0)
         gl.glVertex3f(*v2)
-        
+
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,1.0)
         gl.glVertex3f(*v3)
-        
+
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,1.0)
         gl.glVertex3f(*v4)
-        
+
         gl.glEnd() # GL_QUADS
         gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
         gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB) # return to 1st texture unit
-        
+
     def draw_masked_quad(self,lt,rt,bt,tt,le,re,be,te,depth):
         # The *t parameters are the texture coordinates. The *e
         # parameters are the eye coordinates for the vertices of the
@@ -1294,7 +1331,7 @@ class Mask2D(VisionEgg.ClassWithParameters):
         v3 = (re,te,depth)
         v4 = (le,te,depth)
         self.draw_masked_quad_3d(lt,rt,bt,tt,v1,v2,v3,v4)
-        
+
 class TextureStimulus(TextureStimulusBaseClass):
     """A textured rectangle.
 
@@ -1347,7 +1384,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
                          Default: False
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean,
@@ -1384,7 +1421,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                       ve_types.Boolean,
                       "perform depth test?"),
         }
-    
+
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -1406,13 +1443,13 @@ class TextureStimulus(TextureStimulusBaseClass):
             if p.size is None:
                 # Note: 'size' attribute is not supposed to be part of the API,
                 # so this is naughty.
-                size = tex.size 
+                size = tex.size
             else:
                 size = p.size
-                
+
             # calculate lowerleft corner
             lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,size)
-            
+
             # Clear the modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
@@ -1425,7 +1462,7 @@ class TextureStimulus(TextureStimulusBaseClass):
 
                 # allow max_alpha value to control blending
                 gl.glEnable( gl.GL_BLEND )
-                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
+                gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 
                 if not self.constant_parameters.mipmaps_enabled:
                     if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
@@ -1515,7 +1552,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
     """
 
     parameters_and_defaults = {'on':(True,
-                                     ve_types.Boolean),                               
+                                     ve_types.Boolean),
                                'lowerleft':((0.0,0.0,-1.0), # in eye coordinates
                                             ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                                            ve_types.Sequence4(ve_types.Real)),
@@ -1536,7 +1573,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                                              ve_types.Boolean,
                                              "perform depth test?"),
                                }
-                                                                                
+
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -1560,7 +1597,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 
             # allow max_alpha value to control blending
             gl.glEnable( gl.GL_BLEND )
-            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA ) 
+            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 
             tex = self.parameters.texture
@@ -1579,7 +1616,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
             gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
             gl.glVertex(*p.upperleft)
             gl.glEnd() # GL_QUADS
-                
+
 ####################################################################
 #
 #        Stimulus - Spinning Drum
@@ -1677,7 +1714,7 @@ class SpinningDrum(TextureStimulusBaseClass):
         'drum_center_azimuth':(0.0,
                                ve_types.Real,
                                'changes orientation of drum in space',
-                               ), 
+                               ),
         'drum_center_elevation':(0.0,
                                  ve_types.Real,
                                  'changes orientation of drum in space'),
@@ -1685,14 +1722,14 @@ class SpinningDrum(TextureStimulusBaseClass):
                        ve_types.Real,
                        '0=right, 90=up'),
         }
-    
+
     __slots__ = (
         'cached_display_list_normal',
         'cached_display_list_mirror',
         'cached_display_list_num_sides',
         'texture_stimulus',
         )
-    
+
     def __init__(self,**kw):
         TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list_normal = gl.glGenLists(1) # Allocate a new display list
@@ -1726,12 +1763,12 @@ class SpinningDrum(TextureStimulusBaseClass):
             # appropriate values for glBlendFunc, adds the product of
             # fragment alpha (contrast) and fragment color to the
             # product of one minus fragment alpha (contrast) and what
-            # was already in the framebuffer. 
+            # was already in the framebuffer.
 
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-            
+
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL)
-            
+
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
@@ -1854,7 +1891,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                     else:
                         gl.glCallList(self.cached_display_list_mirror)
             finally:
-                gl.glMatrixMode(gl.GL_MODELVIEW)                
+                gl.glMatrixMode(gl.GL_MODELVIEW)
                 gl.glPopMatrix()
 
     def rebuild_display_list(self):
@@ -1874,7 +1911,7 @@ class SpinningDrum(TextureStimulusBaseClass):
 
         num_sides = self.parameters.num_sides
         self.cached_display_list_num_sides = num_sides
-        
+
         deltaTheta = 2.0*math.pi / num_sides
         for direction in ['normal','mirror']:
             if direction == 'normal':
@@ -1899,16 +1936,16 @@ class SpinningDrum(TextureStimulusBaseClass):
                 z1 = r*math.sin(theta1)
                 x2 = r*math.cos(theta2)
                 z2 = r*math.sin(theta2)
-    
+
                 #Bottom left of quad
                 gl.glTexCoord2f(frac1, tex.buf_bf)
                 gl.glVertex4f( x1, -h, z1, 1.0 )
-                
+
                 #Bottom right of quad
                 gl.glTexCoord2f(frac2, tex.buf_bf)
                 gl.glVertex4f( x2, -h, z2, 1.0 )
                 #Top right of quad
-                gl.glTexCoord2f(frac2, tex.buf_tf); 
+                gl.glTexCoord2f(frac2, tex.buf_tf);
                 gl.glVertex4f( x2,  h, z2, 1.0 )
                 #Top left of quad
                 gl.glTexCoord2f(frac1, tex.buf_tf)
@@ -1933,7 +1970,7 @@ class FixationCross(VisionEgg.Core.Stimulus):
     texture_size -- (Sequence2 of Real)
                     Default: (64, 64)
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -1950,7 +1987,7 @@ class FixationCross(VisionEgg.Core.Stimulus):
     __slots__ = (
         'texture_stimulus',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         s = self.constant_parameters.texture_size
@@ -1978,6 +2015,6 @@ class FixationCross(VisionEgg.Core.Stimulus):
         contained.size = my.size
         contained.on = my.on
         self.texture_stimulus.draw()
-            
+
 class TextureTooLargeError( RuntimeError ):
     pass
