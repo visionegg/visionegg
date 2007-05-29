@@ -762,6 +762,7 @@ class TextureObject(object):
                                     internal_format = gl.GL_RGB,
                                     data_format = None, # automatic guess unless set explicitly
                                     data_type = None, # automatic guess unless set explicitly
+                                    cube_side = None,
                                     ):
 
         """Similar to put_new_image(), but builds mipmaps."""
