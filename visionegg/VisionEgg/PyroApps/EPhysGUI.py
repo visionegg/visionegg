@@ -1,5 +1,3 @@
-## Automatically adapted for numpy.oldnumeric Jun 18, 2007 by alter_code1.py
-
 #!/usr/bin/env python
 #
 # The Vision Egg: EPhysGUI
@@ -35,7 +33,7 @@ import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import StringIO
 import Pyro
-import numpy.oldnumeric as Numeric
+import numpy
 
 import VisionEgg
 import VisionEgg.PyroClient
@@ -918,8 +916,8 @@ class GammaFrame(Tkinter.Frame):
         # in range [0.0,1.0], as is OpenGL standard.
         c = 1.0
         inc = 1.0/255
-        target_luminances = Numeric.arange(0.0,1.0+inc,inc)
-        output_ramp = Numeric.zeros(target_luminances.shape,Numeric.Int)
+        target_luminances = numpy.arange(0.0,1.0+inc,inc)
+        output_ramp = numpy.zeros(target_luminances.shape,dtype=numpy.int32)
         for i in range(len(target_luminances)):
             L = target_luminances[i]
             if L == 0.0:

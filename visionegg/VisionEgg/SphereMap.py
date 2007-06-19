@@ -684,10 +684,10 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                     phase = t_var*p.temporal_freq_hz*360.0 + p.phase_at_t0
                 floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
                 floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
             else:
                 # above cutoff frequency - blank
-                texel_data = (self.max_int_val*0.5)*Numeric.ones((this_mipmap_level_num_samples,),self.numeric_type)
+                texel_data = (self.max_int_val*0.5)*Numeric.ones((this_mipmap_level_num_samples,),self.numpy_dtype)
 
             if p.check_texture_size:
                 # Because the MAX_TEXTURE_SIZE method is insensitive to the current
@@ -816,10 +816,10 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                         phase = t_var*p.temporal_freq_hz*360.0 + p.phase_at_t0
                     floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq_cpd*Numeric.arange(l,r,inc,'d')-(phase/180.0*math.pi))*0.5*p.contrast+0.5
                     floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                    texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+                    texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
                 else:
                     blank = 0.5*Numeric.ones((this_mipmap_level_num_samples,),'d')
-                    texel_data = (blank*self.max_int_val).astype(self.numeric_type).tostring()
+                    texel_data = (blank*self.max_int_val).astype(self.numpy_dtype).tostring()
                         
                 gl.glTexSubImage1D(gl.GL_TEXTURE_1D,           # target
                                 mipmap_level,                  # level
@@ -1027,7 +1027,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             floating_point_window = Numeric.outerproduct(t_axis,s_axis)
         else:
             raise RuntimeError('Unknown window_shape "%s"'%(p.window_shape,))
-        texel_data = (floating_point_window * self.max_int_val).astype(self.numeric_type).tostring()
+        texel_data = (floating_point_window * self.max_int_val).astype(self.numpy_dtype).tostring()
    
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
