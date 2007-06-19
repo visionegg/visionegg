@@ -40,7 +40,7 @@ import VisionEgg
 import VisionEgg.Daq
 import VisionEgg.ParameterTypes as ve_types
 import socket, re
-import Numeric
+import numpy.oldnumeric as Numeric
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]

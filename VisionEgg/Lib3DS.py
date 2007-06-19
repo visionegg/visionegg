@@ -34,7 +34,7 @@ import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 import VisionEgg.Textures
 import VisionEgg._lib3ds # helper functions in C
-import Numeric
+import numpy.oldnumeric as Numeric
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 

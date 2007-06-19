@@ -30,7 +30,7 @@ import VisionEgg.Gratings
 import VisionEgg.ThreeDeeMath
 import VisionEgg.ParameterTypes as ve_types
 
-import Numeric  				# Numeric Python package
+import numpy.oldnumeric as Numeric  				# Numeric Python package
 import Image
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace

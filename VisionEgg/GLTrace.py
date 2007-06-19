@@ -78,7 +78,7 @@ bitmask_names_by_value = {
     }
 
 def arg_to_str( arg ):
-    if type(arg) == int:
+    if isinstance(arg, int):
         if arg in gl_constants.keys():
             return gl_constants[arg]
     elif type(arg) == str and len(arg) > 30:

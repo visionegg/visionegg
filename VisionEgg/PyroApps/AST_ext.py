@@ -1,3 +1,5 @@
+## Automatically adapted for numpy.oldnumeric Jun 18, 2007 by alter_code1.py
+
 # The Vision Egg: AST_ext
 #
 # Copyright (C) 2004 Imran S. Ali, Lachlan Dowd
@@ -187,9 +189,9 @@ def modify_AST(myAST, assign_name, assign_val):
     myAST_Visitor = AST_Visitor(1)
     old_AST_list = myAST.tolist(1)
     assign_val_type = 0
-    if type(assign_val) == int:
+    if isinstance(assign_val, int):
         assign_val_type = 2
-    elif type(assign_val) == float:
+    elif isinstance(assign_val, float):
         assign_val_type = 1
     elif type(assign_val) == str:
         assign_val_type = 3

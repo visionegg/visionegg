@@ -23,7 +23,7 @@ except ImportError:
 import VisionEgg
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import VisionEgg.ParameterTypes as ve_types
-import Numeric, math, types
+import numpy.oldnumeric as Numeric, math, types
 import pygame
 
 __version__ = VisionEgg.release_name

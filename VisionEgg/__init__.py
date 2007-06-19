@@ -41,7 +41,8 @@ __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 import VisionEgg.Configuration
 import VisionEgg.ParameterTypes as ve_types
 import os, sys, time, types # standard python modules
-import Numeric
+import numpy
+import numpy.oldnumeric as Numeric
 import warnings
 import traceback
 import StringIO
@@ -336,10 +337,15 @@ class ClassWithParameters( object ):
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own defaults
-                    if type(value) != type(None):
+                    if value is not None:
                         # Check anything other than None
                         if not tipe.verify(value):
-                            if type(value) != Numeric.ArrayType:
+                            print 'value',value
+                            print 'type value',type(value)
+                            print 'isinstance(value, numpy.ndarray)',isinstance(value, numpy.ndarray)
+                            print 'tipe',tipe
+                            
+                            if isinstance(value, numpy.ndarray):
                                 value_str = str(value)
                             else:
                                 if Numeric.multiply.reduce(value.shape) < 10:

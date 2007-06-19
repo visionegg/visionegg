@@ -17,7 +17,7 @@ import VisionEgg.gl_qt # C implementation of GL/QT interface
 import VisionEgg.qtmovie as qtmovie
 import VisionEgg.Textures
 
-import Numeric
+import numpy.oldnumeric as Numeric
 import os
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
