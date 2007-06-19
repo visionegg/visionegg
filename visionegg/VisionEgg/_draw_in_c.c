@@ -9,7 +9,7 @@
  */
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/oldnumeric.h"
 
 #if defined(MS_WINDOWS)
 #  include <windows.h>

@@ -1,6 +1,13 @@
 Changes for 1.1:
 ----------------
 
+* Change to use numpy at the core instead of Numeric. (Require numpy,
+  no longer require Numeric.)
+
+* Requre setuptools
+
+* No longer supporting Python 2.2
+
 * Update Textures to accept numpy arrays as data source (by Martin Spacek)
 
 * Update to work with PyOpenGL 3

@@ -31,7 +31,7 @@ import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
-import Numeric
+import numpy
 import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
@@ -51,19 +51,19 @@ def _get_type_info( bitdepth ):
     """Private helper function to calculate type info based on bit depth"""
     if bitdepth == 8:
         gl_type = gl.GL_UNSIGNED_BYTE
-        numeric_type = Numeric.UInt8
+        numpy_dtype = numpy.uint8
         max_int_val = float((2**8)-1)
     elif bitdepth == 12:
         gl_type = gl.GL_SHORT
-        numeric_type = Numeric.Int16
+        numpy_dtype = numpy.int16
         max_int_val = float((2**15)-1)
     elif bitdepth == 16:
         gl_type = gl.GL_INT
-        numeric_type = Numeric.Int32
+        numpy_dtype = numpy.int32
         max_int_val = float((2.**31.)-1) # do as float to avoid overflow
     else:
         raise ValueError("supported bitdepths are 8, 12, and 16.")
-    return gl_type, numeric_type, max_int_val
+    return gl_type, numpy_dtype, max_int_val
 
 class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing luminance gratings.
@@ -84,7 +84,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
         'gl_internal_format',
         'format',
         'gl_type',
-        'numeric_type',
+        'numpy_dtype',
         'max_int_val',
         'cached_bit_depth',
         )
@@ -106,7 +106,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
                            "supports (%d)."% (p.bit_depth,min_bits))
         self.gl_internal_format = gl.GL_LUMINANCE
         self.format = gl.GL_LUMINANCE
-        self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
+        self.gl_type, self.numpy_dtype, self.max_int_val = _get_type_info( p.bit_depth )
         self.cached_bit_depth = p.bit_depth
         
 class AlphaGratingCommon(VisionEgg.Core.Stimulus):
@@ -130,7 +130,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
         'gl_internal_format',
         'format',
         'gl_type',
-        'numeric_type',
+        'numpy_dtype',
         'max_int_val',
         'cached_bit_depth',
         )
@@ -146,7 +146,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
                            "supports (%d)."% (p.bit_depth,min_bits))
         self.gl_internal_format = gl.GL_ALPHA
         self.format = gl.GL_ALPHA
-        self.gl_type, self.numeric_type, self.max_int_val = _get_type_info( p.bit_depth )
+        self.gl_type, self.numpy_dtype, self.max_int_val = _get_type_info( p.bit_depth )
         self.cached_bit_depth = p.bit_depth
        
 class SinGrating2D(LuminanceGratingCommon):
@@ -253,10 +253,6 @@ class SinGrating2D(LuminanceGratingCommon):
                   "optional color with which to perform interpolation with color1 in RGB space"),
         'recalculate_phase_tolerance':(None, # only recalculate texture when phase is changed by more than this amount, None for always recalculate. (Saves time.)
                                        ve_types.Real), 
-        'center':(None,  # DEPRECATED -- don't use
-                  ve_types.Sequence2(ve_types.Real),
-                  "",
-                  VisionEgg.ParameterDefinition.DEPRECATED),
         })
     
     __slots__ = (
@@ -285,9 +281,9 @@ class SinGrating2D(LuminanceGratingCommon):
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
         self._last_phase = phase
-        floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-        texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+        floating_point_sin = numpy.sin(2.0*math.pi*p.spatial_freq*numpy.arange(0.0,w,inc,dtype=numpy.float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+        floating_point_sin = numpy.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+        texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
@@ -333,16 +329,6 @@ class SinGrating2D(LuminanceGratingCommon):
 
     def draw(self):
         p = self.parameters # shorthand
-        if p.center is not None:
-            if not hasattr(SinGrating2D,"_gave_center_warning"):
-                logger = logging.getLogger('VisionEgg.Gratings')
-                logger.warning("center parameter of SinGrating2D class "
-                               "is deprecated and will stop being "
-                               "supported. Use 'position' instead "
-                               "with anchor set to 'center'.")
-                SinGrating2D._gave_center_warning = True
-            p.anchor = 'center'
-            p.position = p.center[0], p.center[1] # copy values (don't copy ref to tuple)
         if p.on:
             # calculate center
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
@@ -395,10 +381,9 @@ class SinGrating2D(LuminanceGratingCommon):
                 phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
             if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
                 self._last_phase = phase # we're re-drawing the phase at this angle
-                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-                floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
-
+                floating_point_sin = numpy.sin(2.0*math.pi*p.spatial_freq*numpy.arange(0.0,w,inc,dtype=numpy.float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+                floating_point_sin = numpy.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
                 gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
                                    0,                # level
                                    0,                # x offset
@@ -591,9 +576,9 @@ class SinGrating3D(LuminanceGratingCommon):
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
         self._last_phase = phase
-        floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-        floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-        texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+        floating_point_sin = numpy.sin(2.0*math.pi*p.spatial_freq*numpy.arange(0.0,w,inc,dtype=numpy.float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+        floating_point_sin = numpy.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+        texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
 
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
@@ -675,9 +660,9 @@ class SinGrating3D(LuminanceGratingCommon):
                 phase = t_var*p.temporal_freq_hz*-360.0 + p.phase_at_t0
             if p.recalculate_phase_tolerance is None or abs(self._last_phase - phase) > p.recalculate_phase_tolerance:
                 self._last_phase = phase # we're re-drawing the phase at this angle
-                floating_point_sin = Numeric.sin(2.0*math.pi*p.spatial_freq*Numeric.arange(0.0,w,inc,typecode=Numeric.Float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
-                floating_point_sin = Numeric.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                texel_data = (floating_point_sin*self.max_int_val).astype(self.numeric_type).tostring()
+                floating_point_sin = numpy.sin(2.0*math.pi*p.spatial_freq*numpy.arange(0.0,w,inc,dtype=numpy.float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
+                floating_point_sin = numpy.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
 
                 gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
                                    0,                # level

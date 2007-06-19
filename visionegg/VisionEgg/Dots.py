@@ -31,7 +31,7 @@ import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
-import Numeric, RandomArray
+import numpy.oldnumeric as Numeric, numpy.oldnumeric.random_array as RandomArray
 import math, types, string
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
@@ -202,7 +202,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                 gl.glDisable( gl.GL_BLEND )
                 
             now_sec = VisionEgg.time_func()
-            if self.start_times_sec:
+            if self.start_times_sec is not None:
                 # compute extinct dots and generate new positions
                 replace_indices = Numeric.nonzero( Numeric.greater( now_sec - self.start_times_sec, p.dot_lifespan_sec) )
                 Numeric.put( self.start_times_sec, replace_indices, now_sec )

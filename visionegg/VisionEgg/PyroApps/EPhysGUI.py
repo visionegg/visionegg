@@ -1,3 +1,5 @@
+## Automatically adapted for numpy.oldnumeric Jun 18, 2007 by alter_code1.py
+
 #!/usr/bin/env python
 #
 # The Vision Egg: EPhysGUI
@@ -33,7 +35,7 @@ import pickle, random, math, threading
 import Tkinter, tkMessageBox, tkSimpleDialog, tkFileDialog
 import StringIO
 import Pyro
-import Numeric
+import numpy.oldnumeric as Numeric
 
 import VisionEgg
 import VisionEgg.PyroClient

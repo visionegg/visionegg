@@ -26,7 +26,7 @@ stimulus = TextureStimulus(texture = texture,
                            mask = mask,
                            position = (screen.size[0]/2.0,screen.size[1]/2.0),
                            anchor = 'center',
-                           shrink_texture_ok=1,
+                           shrink_texture_ok=True,
                            internal_format=gl.GL_RGBA,
                            )
 

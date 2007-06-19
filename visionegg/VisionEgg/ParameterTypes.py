@@ -23,13 +23,19 @@ __date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import types, warnings
+import numpy
+import numpy.oldnumeric as numpyNumeric
 
-# Allow use of numarray without requiring numarray
-import Numeric
-array_types = [Numeric.ArrayType]
+array_types = [numpy.ndarray]
+# Allow use of numarray and original Numeric Texture data without requiring either
 try:
     import numarray
     array_types.append( numarray.numarraycore.NumArray )
+except ImportError:
+    pass
+try:
+    import Numeric as orig_Numeric
+    array_types.append( orig_Numeric.ArrayType )
 except ImportError:
     pass
 
@@ -108,7 +114,7 @@ class BooleanMC(type):
 class Boolean(ParameterTypeDef):
     __metaclass__ = BooleanMC
     def verify(is_boolean):
-        if type(is_boolean) in (type(1==1), int):
+        if isinstance(is_boolean,(bool,int,numpy.integer)):
             return True
         else:
             return False
@@ -170,7 +176,7 @@ class IntegerMC(type):
 class Integer(ParameterTypeDef):
     __metaclass__ = IntegerMC
     def verify(is_integer):
-        return isinstance(is_integer,int)
+        return isinstance(is_integer,(int,numpy.integer))
     verify = staticmethod(verify)
 
 class UnsignedIntegerMC(IntegerMC):
@@ -194,7 +200,7 @@ class RealMC(type):
 class Real(ParameterTypeDef):
     __metaclass__ = RealMC
     def verify(is_real):
-        if type(is_real) in (int, float):
+        if isinstance(is_real, (int, float, numpy.floating, numpy.integer)):
             return True
         elif type(is_real) in array_types:
             # scalars can be Numeric arrays
@@ -283,7 +289,7 @@ class StringMC(type):
 class String(ParameterTypeDef):
     __metaclass__ = StringMC
     def verify(is_string):
-        if type(is_string) == str:
+        if isinstance(is_string,str):
             return True
         else:
             return False
@@ -297,7 +303,7 @@ class UnicodeMC(type):
 class Unicode(ParameterTypeDef):
     __metaclass__ = UnicodeMC
     def verify(is_unicode):
-        if type(is_unicode) == unicode:
+        if isinstance(is_unicode,unicode):
             return True
         else:
             return False
@@ -307,22 +313,16 @@ def get_type(value):
     """Take a value and return best guess of ParameterTypeDef it is."""
     py_type = type(value)
     
-    try:
-        bool # no 'bool' in Python 2.2
-    except NameError:
-        pass
-    else:
-        if py_type == bool:
-            return Boolean
-    
-    if value is None:
+    if isinstance(value,bool):
+        return Boolean
+    elif value is None:
         return NoneType
-    elif py_type == int:
+    elif isinstance(value,(int,numpy.integer)):
         if py_type >= 0:
             return UnsignedInteger
         else:
             return Integer
-    elif py_type == float:
+    elif isinstance(value,(float,numpy.floating)):
         return Real
     elif py_type == types.InstanceType:
         # hmm, impossible to figure out appropriate class of all possible base classes

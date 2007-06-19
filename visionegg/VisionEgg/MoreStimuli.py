@@ -36,7 +36,7 @@ import VisionEgg
 import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
-import Numeric
+import numpy.oldnumeric as Numeric
 
 import math
 

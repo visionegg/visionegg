@@ -58,19 +58,14 @@ classifiers = [
     'Topic :: Software Development :: Libraries',
     ]
 
-from distutils.core import setup, Extension
-try:
-    from Pyrex.Distutils import build_ext
-    have_Pyrex = True
-except ImportError:
-    from distutils.command.build_ext import build_ext
-    have_Pyrex = False
-    print 'Pyrex not installed, using previously generated .c files'
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
     
 from distutils.errors import CCompilerError
 import distutils.command.sdist
 from distutils import dir_util
 import sys, os.path, glob, traceback
+import numpy
 
 packages         = [ 'VisionEgg',
                      'VisionEgg.PyroApps',
@@ -117,10 +112,7 @@ if not skip_c_compilation:
         qt_extra_link_args = []
 
     if sys.platform == 'darwin':
-        if have_Pyrex:
-            darwin_maxpriority_sources = ['VisionEgg/darwin_maxpriority.pyx']
-        else:
-            darwin_maxpriority_sources = ['VisionEgg/darwin_maxpriority.c']
+        darwin_maxpriority_sources = ['VisionEgg/darwin_maxpriority.pyx']
         ext_modules.append(Extension(name='darwin_maxpriority',
                                      sources=darwin_maxpriority_sources))
         # VBL synchronization stuff
@@ -144,10 +136,7 @@ if not skip_c_compilation:
                                               os.path.join('VisionEgg','win32_getrefresh_wrap.c')],
                                      libraries=['User32'],
                                      ))
-        if have_Pyrex:
-            vretrace_source = 'win32_vretrace.pyx'
-        else:
-            vretrace_source = 'win32_vretrace.c'
+        vretrace_source = 'win32_vretrace.pyx'
         ext_modules.append(Extension(name='win32_vretrace',
                                      sources=[os.path.join('VisionEgg',vretrace_source),
                                               os.path.join('VisionEgg','win32_load_driver.c')],
@@ -189,7 +178,7 @@ if not skip_c_compilation:
 
     # C extensions for drawing GL stuff
     include_prefix = os.path.join( sys.prefix, 'include', 'python%s'%sys.version[:3] )
-    Numeric_include_dir = os.path.join( include_prefix, 'Numeric' )
+    Numeric_include_dir = numpy.get_numpy_include()
     ext_modules.append(Extension(name='_draw_in_c',
                                  sources=['VisionEgg/_draw_in_c.c'],
                                  include_dirs=[Numeric_include_dir],

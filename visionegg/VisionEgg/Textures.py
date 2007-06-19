@@ -34,7 +34,8 @@ import VisionEgg.ParameterTypes as ve_types
 import Image, ImageDraw                         # Python Imaging Library packages
 import pygame.surface, pygame.image             # pygame
 import math, types, os
-import Numeric, MLab
+import numpy
+import numpy.oldnumeric as numpyNumeric, numpy.oldnumeric.mlab as MLab
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import OpenGL.GLU as glu
@@ -63,18 +64,25 @@ if Image.VERSION >= '1.1.3':
 else:
     shrink_filter = Image.BICUBIC # Fallback filtering
 
-# Allow use of numarray and numpy Texture data without requiring either
-array_types = [Numeric.ArrayType]
+array_types = [numpy.ndarray]
+# Allow use of numarray and original Numeric texels without requiring either
 try:
     import numarray
     array_types.append( numarray.numarraycore.NumArray )
 except ImportError:
     pass
 try:
-    import numpy
-    array_types.append( numpy.ndarray )
+    import Numeric as orig_Numeric
+    array_types.append( orig_Numeric.ArrayType )
 except ImportError:
     pass
+
+def convert_to_numpy_if_array(A):
+    if type(A) in array_types:
+        # with late release Numeric and numarray this is a view of the data
+        return numpy.asarray(A)
+    else:
+        return A
 
 ####################################################################
 #
@@ -95,10 +103,6 @@ except ImportError:
 # Update the texture with:
 # glTexSubImage2D(target, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,image_ptr);
 
-# Include support for numarray data without converting to
-# Numeric. (Possibly like matplotlib's numerix both-supported
-# approach.)
-
 ####################################################################
 
 ####################################################################
@@ -117,18 +121,17 @@ class Texture(object):
     """A 2 dimensional texture.
 
     The pixel data can come from an image file, an image file stream,
-    an instance of Image from the Python Imaging Library, a Numeric
-    Python array, or None.
+    an instance of Image from the Python Imaging Library, a numpy
+    array, or None.
 
-    If the data is a Numeric python array, floating point numbers are
-    assumed to be in the range 0.0 to 1.0, and integers are assumed to
-    be in the range 0 to 255.  The first index is the row (y
-    position), the second index is the column (x position), and if
-    it's RGB or RGBA data, the third index specifies the color band.
-    Thus, if the texel data was 640 pixels wide by 480 pixels tall,
-    the array would have shape (480,640) for luminance information,
-    (480,640,3) for RGB information, and (480,640,4) for RGBA
-    information.
+    If the data is a numpy array, floating point numbers are assumed
+    to be in the range 0.0 to 1.0, and integers are assumed to be in
+    the range 0 to 255.  The first index is the row (y position), the
+    second index is the column (x position), and if it's RGB or RGBA
+    data, the third index specifies the color band.  Thus, if the
+    texel data was 640 pixels wide by 480 pixels tall, the array would
+    have shape (480,640) for luminance information, (480,640,3) for
+    RGB information, and (480,640,4) for RGBA information.
 
     The 2D texture data is not sent to OpenGL (video texture memory)
     until the load() method is called.  The unload() method may be
@@ -175,13 +178,15 @@ class Texture(object):
                 self._file_stream = open(texels,"rb")
             texels = Image.open(texels) # Attempt to open as an image stream
 
+        texels = convert_to_numpy_if_array(texels)
+        
         if isinstance(texels, Image.Image): # PIL Image
             if texels.mode == 'P': # convert from paletted
                 texels = texels.convert('RGBX')
             self.size = texels.size
         elif isinstance(texels, pygame.surface.Surface): # pygame surface
             self.size = texels.get_size()
-        elif type(texels) in array_types: # Numeric or numarray data
+        elif isinstance(texels,numpy.ndarray): # numpy array
             if len(texels.shape) == 3:
                 if texels.shape[2] not in [3,4]:
                     raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
@@ -189,7 +194,7 @@ class Texture(object):
                 raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
             self.size = ( texels.shape[1], texels.shape[0] )
         else:
-            raise TypeError("texel data could not be recognized. (Use a PIL Image, Numeric array, or pygame surface.)")
+            raise TypeError("texel data could not be recognized. (Use a PIL Image, numpy array, or pygame surface.)")
 
         self.texels = texels
         self.texture_object = None
@@ -234,23 +239,15 @@ class Texture(object):
 
     def get_texels_as_image(self):
         """Return texel data as PIL image"""
-        if type(self.texels) in array_types:
+        if isinstance(self.texels,numpy.ndarray):
             if len(self.texels.shape) == 2:
                 a = self.texels
-                try: # Numeric/numarray array?
-                    if a.typecode() == Numeric.UInt8:
-                        mode = "L"
-                    elif a.typecode() == Numeric.Float32:
-                        mode = "F"
-                    else:
-                        raise ValueError("unsupported image mode")
-                except AttributeError: # no typecode attrib, numpy array ?
-                    if a.dtype == numpy.uint8:
-                        mode = "L"
-                    elif a.dtype == numpy.float32:
-                        mode = "F"
-                    else:
-                        raise ValueError("unsupported image mode")
+                if a.dtype == numpy.uint8:
+                    mode = "L"
+                elif a.dtype == numpy.float32:
+                    mode = "F"
+                else:
+                    raise ValueError("unsupported image mode")
                 return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
             else:
                 raise NotImplementedError("Currently only luminance data can be converted to images")
@@ -307,25 +304,15 @@ class Texture(object):
         self._buf_t = height
 
         if width != width_pow2 or height != height_pow2:
-            if type(self.texels) in array_types:
-                try: # Numeric/numarray array?
-                    if len(self.texels.shape) == 2:
-                        buffer = Numeric.zeros( (height_pow2,width_pow2), self.texels.typecode() )
-                        buffer[0:height,0:width] = self.texels
-                    elif len(self.texels.shape) == 3:
-                        buffer = Numeric.zeros( (height_pow2,width_pow2,self.texels.shape[2]), self.texels.typecode() )
-                        buffer[0:height,0:width,:] = self.texels
-                    else:
-                        raise RuntimeError("Unexpected shape for self.texels")
-                except AttributeError: # no typecode attrib, numpy array?
-                    if len(self.texels.shape) == 2:
-                        buffer = numpy.zeros( (height_pow2,width_pow2), dtype=self.texels.dtype )
-                        buffer[0:height,0:width] = self.texels
-                    elif len(self.texels.shape) == 3:
-                        buffer = numpy.zeros( (height_pow2,width_pow2,self.texels.shape[2]), dtype=self.texels.dtype )
-                        buffer[0:height,0:width,:] = self.texels
-                    else:
-                        raise RuntimeError("Unexpected shape for self.texels")
+            if isinstance(self.texels,numpy.ndarray):
+                if len(self.texels.shape) == 2:
+                    buffer = numpy.zeros( (height_pow2,width_pow2), dtype=self.texels.dtype )
+                    buffer[0:height,0:width] = self.texels
+                elif len(self.texels.shape) == 3:
+                    buffer = numpy.zeros( (height_pow2,width_pow2,self.texels.shape[2]), dtype=self.texels.dtype )
+                    buffer[0:height,0:width,:] = self.texels
+                else:
+                    raise RuntimeError("Unexpected shape for self.texels")
 
             elif isinstance(self.texels, Image.Image): # PIL Image
                 if rescale_original_to_fill_texture_object:
@@ -360,8 +347,8 @@ class Texture(object):
         if not build_mipmaps:
             texture_object.put_new_image( buffer, internal_format=internal_format, mipmap_level=0 )
         else:
-            if 1:
-                # Build mipmaps with GLU (faster)
+            if 0:
+                # Build mipmaps with GLU (faster, but currently broken)
                 texture_object.put_new_image_build_mipmaps( buffer, internal_format=internal_format )
             else:
                 # Build mipmaps in PIL
@@ -513,13 +500,12 @@ class TextureObject(object):
                       data_format = None, # automatic guess unless set explicitly
                       data_type = None, # automatic guess unless set explicitly
                       cube_side = None,
-                      image_data = None, # DEPRECATED name (use texel_data)
                       ):
 
-        """Put Numeric array or PIL Image into OpenGL as texture data.
+        """Put numpy array or PIL Image into OpenGL as texture data.
 
         The texel_data parameter contains the texture data.  If it is
-        a Numeric array, it must be 1D, 2D, or 3D data in grayscale or
+        a numpy array, it must be 1D, 2D, or 3D data in grayscale or
         color (RGB or RGBA).  Remember that OpenGL begins its textures
         from the lower left corner, so texel_data[0,:] = 1.0 would set
         the bottom line of the texture to white, while texel_data[:,0]
@@ -540,7 +526,7 @@ class TextureObject(object):
 
         If the data_format parameter is None (the default), an attempt
         is made to guess data_format according to the following
-        description. For Numeric arrays: If texel_data.shape is equal
+        description. For numpy arrays: If texel_data.shape is equal
         to the dimensions of the texture object, texel_data is assumed
         to contain luminance (grayscale) information and data_format
         is set to GL_LUMINANCE.  If texel_data.shape is equal to one
@@ -552,7 +538,7 @@ class TextureObject(object):
         the "mode" attribute is queried.
 
         If the data_type parameter is None (the default), it is set to
-        GL_UNSIGNED_BYTE. For Numeric arrays: texel_data is (re)cast
+        GL_UNSIGNED_BYTE. For numpy arrays: texel_data is (re)cast
         to UInt8 and, if it is a floating point type, values are
         assumed to be in the range 0.0-1.0 and are scaled to the range
         0-255.  If the data_type parameter is not None, the texel_data
@@ -561,19 +547,8 @@ class TextureObject(object):
         bytes.  This is the usual format for common computer graphics
         files."""
 
-        if image_data is not None: # check for deprecated parameter name
-            if not hasattr(TextureObject,"_gave_put_new_image_data_warning"):
-                logger = logging.getLogger('VisionEgg.Textures')
-                logger.warning("Using deprecated 'image_data' "
-                               "parameter name.  Use 'texel_data' "
-                               "instead")
-                TextureObject._gave_put_new_image_data_warning = 1 # static variable set
-            if texel_data is not None:
-                raise ValueError("Cannot set both texel_data and image_data")
-            else:
-                texel_data = image_data
-
-        if type(texel_data) in array_types:
+        texel_data = convert_to_numpy_if_array(texel_data)
+        if isinstance(texel_data,numpy.ndarray):
             if self.dimensions != 'cube':
                 assert(cube_side == None)
                 data_dimensions = len(texel_data.shape)
@@ -585,14 +560,14 @@ class TextureObject(object):
         elif isinstance(texel_data,pygame.surface.Surface):
             assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
         # Determine the data_format, data_type and rescale the data if needed
         if data_format is None: # guess the format of the data
-            if type(texel_data) in array_types:
+            if isinstance(texel_data,numpy.ndarray):
                 if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(texel_data.shape) == (self.dimensions+1):
@@ -623,27 +598,23 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(texel_data) in array_types:
-                try: # Numeric/numarray array?
-                    if texel_data.typecode() == Numeric.Float:
-                        texel_data = texel_data*255.0
-                except AttributeError: # no typecode attrib, numpy array?
-                    if texel_data.dtype == numpy.float:
-                        texel_data = texel_data*255.0
+            if isinstance(texel_data,numpy.ndarray):
+                if texel_data.dtype == numpy.float:
+                    texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(texel_data) in array_types:
-                texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
+            if isinstance(texel_data,numpy.ndarray):
+                texel_data = texel_data.astype(numpy.uint8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
         # determine size and make sure its power of 2
         if self.dimensions == 1:
-            # must be Numeric array
+            # must be numpy array
             width = texel_data.shape[0]
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         else:
-            if type(texel_data) in array_types:
+            if isinstance(texel_data,numpy.ndarray):
                 width = texel_data.shape[1]
                 height = texel_data.shape[0]
             elif isinstance(texel_data,Image.Image):
@@ -653,12 +624,12 @@ class TextureObject(object):
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
             if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
             if self.dimensions == 3:
-                # must be Numeric array
+                # must be numpy array
                 depth = texel_data.shape[2]
                 if not is_power_of_2(depth): raise ValueError("texel_data does not have all dimensions == n^2")
 
         if self.dimensions in [2,'cube']:
-            if type(texel_data) in array_types:
+            if isinstance(texel_data,numpy.ndarray):
                 raw_data = texel_data.tostring()
             elif isinstance(texel_data,Image.Image):
                 raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
@@ -757,11 +728,9 @@ class TextureObject(object):
 
     def put_new_image_build_mipmaps(self,
                                     texel_data,
-                                    #border = 0,
-                                    #check_opengl_errors = True,
                                     internal_format = gl.GL_RGB,
                                     data_format = None, # automatic guess unless set explicitly
-                                    data_type = None, # automatic guess unless set explicitly
+                                    data_type = None,   # automatic guess unless set explicitly
                                     cube_side = None,
                                     ):
 
@@ -769,8 +738,8 @@ class TextureObject(object):
 
         if self.dimensions != 2:
             raise ValueError("can only handle 2D texel data for automatic mipmap building")
-
-        if type(texel_data) in array_types:
+        texel_data = convert_to_numpy_if_array(texel_data)
+        if isinstance(texel_data,numpy.ndarray):
             assert(cube_side == None)
             data_dimensions = len(texel_data.shape)
             assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
@@ -779,14 +748,14 @@ class TextureObject(object):
         elif isinstance(texel_data,pygame.surface.Surface):
             assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
 
         # Determine the data_format, data_type and rescale the data if needed
         if data_format is None: # guess the format of the data
-            if type(texel_data) in array_types:
+            if isinstance(texel_data,numpy.ndarray):
                 if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(texel_data.shape) == (self.dimensions+1):
@@ -817,22 +786,17 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(texel_data) in array_types:
-                try: # Numeric/numarray array?
-                    if texel_data.typecode() == Numeric.Float:
-                        texel_data = texel_data*255.0
-                except AttributeError: # no typecode attrib, numpy array?
-                    if texel_data.dtype == numpy.float:
-                        texel_data = texel_data*255.0
-
+            if isinstance(texel_data,numpy.ndarray):
+                if texel_data.dtype == numpy.float:
+                    texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(texel_data) in array_types:
-                texel_data = texel_data.astype(Numeric.UInt8) # (re)cast if necessary
+            if isinstance(texel_data,numpy.ndarray):
+                texel_data = texel_data.astype(numpy.uint8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
-        if type(texel_data) in array_types:
+        if isinstance(texel_data,numpy.ndarray):
             width = texel_data.shape[1]
             height = texel_data.shape[0]
         elif isinstance(texel_data,Image.Image):
@@ -842,7 +806,7 @@ class TextureObject(object):
         if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
 
-        if type(texel_data) in array_types:
+        if isinstance(texel_data,numpy.ndarray):
             raw_data = texel_data.tostring()
         elif isinstance(texel_data,Image.Image):
             raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
@@ -852,6 +816,15 @@ class TextureObject(object):
             else:
                 raw_data = pygame.image.tostring(texel_data,'RGB',1)
 
+        args = (self.target,
+                              internal_format,
+                              width, # XXX should be width_pow2?
+                              height,# XXX should be height_pow2?
+                              data_format,
+                              data_type)
+                              #raw_data)
+        print 'args',args
+        
         glu.gluBuild2DMipmaps(self.target,
                               internal_format,
                               width, # XXX should be width_pow2?
@@ -859,7 +832,7 @@ class TextureObject(object):
                               data_format,
                               data_type,
                               raw_data)
-
+        
     def put_sub_image(self,
                       texel_data,
                       mipmap_level = 0,
@@ -867,7 +840,6 @@ class TextureObject(object):
                       data_format = None, # automatic guess unless set explicitly
                       data_type = None, # automatic guess unless set explicitly
                       cube_side = None,
-                      image_data = None, # DEPRECATED name (use texel_data)
                       ):
 
         """Replace all or part of a texture object.
@@ -882,20 +854,9 @@ class TextureObject(object):
 
         For an explanation of most parameters, see the
         put_new_image() method."""
-
-        if image_data is not None:  # check for deprecated parameter name
-            if not hasattr(TextureObject,"_gave_put_sub_image_data_warning"):
-                logger = logging.getLogger('VisionEgg.Textures')
-                logger.warning("Using deprecated 'image_data' "
-                               "parameter name.  Use 'texel_data' "
-                               "instead")
-                TextureObject._gave_put_sub_image_data_warning = 1 # static variable set
-            if texel_data is not None:
-                raise ValueError("Cannot set both texel_data and image_data")
-            else:
-                texel_data = image_data
-
-        if type(texel_data) in array_types:
+        
+        texel_data = convert_to_numpy_if_array(texel_data)
+        if isinstance(texel_data,numpy.ndarray):
             if self.dimensions != 'cube':
                 assert(cube_side == None)
                 data_dimensions = len(texel_data.shape)
@@ -907,7 +868,7 @@ class TextureObject(object):
         elif isinstance(texel_data,pygame.surface.Surface):
             assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting Numeric array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
@@ -916,7 +877,7 @@ class TextureObject(object):
         data = texel_data
 
         if data_format is None: # guess the format of the data
-            if type(data) in array_types:
+            if isinstance(texel_data,numpy.ndarray):
                 if len(data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
                 elif len(data.shape) == (self.dimensions+1):
@@ -947,17 +908,13 @@ class TextureObject(object):
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if type(data) in array_types:
-                try: # Numeric/numarray array?
-                    if data.typecode() == Numeric.Float:
-                        data = data*255.0
-                except AttributeError: # no typecode attrib, numpy array?
-                    if data.dtype == numpy.float:
-                        data = data*255.0
+            if isinstance(data,numpy.ndarray):
+                if data.dtype == numpy.float:
+                    data = data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if type(data) in array_types:
-                data = data.astype(Numeric.UInt8) # (re)cast if necessary
+            if isinstance(data,numpy.ndarray):
+                data = data.astype(numpy.uint8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -967,7 +924,7 @@ class TextureObject(object):
             else:
                 x_offset = offset_tuple[0]
             width = data.shape[0]
-            raw_data = data.astype(Numeric.UInt8).tostring()
+            raw_data = data.astype(numpy.uint8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
                                x_offset,
@@ -985,10 +942,10 @@ class TextureObject(object):
                 x_offset = y_offset = 0
             else:
                 x_offset, y_offset = offset_tuple
-            if type(data) in array_types:
+            if isinstance(data,numpy.ndarray):
                 width = data.shape[1]
                 height = data.shape[0]
-                raw_data = data.astype(Numeric.UInt8).tostring()
+                raw_data = data.astype(numpy.uint8).tostring()
             elif isinstance(texel_data,Image.Image):
                 width = data.size[0]
                 height = data.size[1]
@@ -1252,28 +1209,28 @@ class Mask2D(VisionEgg.ClassWithParameters):
         self.texture_object = TextureObject(dimensions=2)
 
         if cp.function == "gaussian":
-            xx = Numeric.outerproduct(Numeric.ones((1,cp.num_samples[1])),
-                                      Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2)
-            yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2,
-                                      Numeric.ones((1,cp.num_samples[0])))
-            dist_from_center = Numeric.sqrt(xx**2 + yy**2)
+            xx = numpyNumeric.outerproduct(numpyNumeric.ones((1,cp.num_samples[1])),
+                                      numpyNumeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2)
+            yy = numpyNumeric.outerproduct(numpyNumeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2,
+                                      numpyNumeric.ones((1,cp.num_samples[0])))
+            dist_from_center = numpyNumeric.sqrt(xx**2 + yy**2)
             sigma = cp.radius_parameter
-            data = Numeric.exp( -dist_from_center**2.0 / (2.0*sigma**2.0) )
+            data = numpyNumeric.exp( -dist_from_center**2.0 / (2.0*sigma**2.0) )
         elif cp.function == "circle":
-            data = Numeric.zeros(cp.num_samples,Numeric.Float)
+            data = numpyNumeric.zeros(cp.num_samples,numpyNumeric.Float)
             # perform anti-aliasing in circle computation by computing
             # at several slightly different locations and averaging
             oversamples = 4
-            x_offsets = Numeric.arange(0.0,1.0,1.0/oversamples)
+            x_offsets = numpyNumeric.arange(0.0,1.0,1.0/oversamples)
             x_offsets = x_offsets - MLab.mean(x_offsets)
             y_offsets = x_offsets
             for x_offset in x_offsets:
                 for y_offset in y_offsets:
-                    xx = Numeric.outerproduct(Numeric.ones((1,cp.num_samples[1])),
-                                              Numeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2+0.5)+x_offset
-                    yy = Numeric.outerproduct(Numeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2+0.5,
-                                              Numeric.ones((1,cp.num_samples[0])))+y_offset
-                    dist_from_center = Numeric.sqrt(xx**2 + yy**2)
+                    xx = numpyNumeric.outerproduct(numpyNumeric.ones((1,cp.num_samples[1])),
+                                              numpyNumeric.arange(0,cp.num_samples[0],1.0)-cp.num_samples[0]/2+0.5)+x_offset
+                    yy = numpyNumeric.outerproduct(numpyNumeric.arange(0,cp.num_samples[1],1.0)-cp.num_samples[1]/2+0.5,
+                                              numpyNumeric.ones((1,cp.num_samples[0])))+y_offset
+                    dist_from_center = numpyNumeric.sqrt(xx**2 + yy**2)
                     data += dist_from_center <= cp.radius_parameter
             data = data / float( len(x_offsets)*len(y_offsets) )
         else:

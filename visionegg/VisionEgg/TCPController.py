@@ -47,7 +47,7 @@ import VisionEgg.Core
 import VisionEgg.FlowControl
 import VisionEgg.ParameterTypes as ve_types
 import socket, select, re, string, types
-import Numeric, math # for eval
+import numpy.oldnumeric as Numeric, math # for eval
 
 try:
     import Tkinter

@@ -10,6 +10,9 @@ from VisionEgg.SphereMap import *
 from VisionEgg.Textures import *
 import math, os
 
+import numpy
+numpy.seterr(all='raise')
+
 def projection_matrix_f(t):
     # This bit of code is from the "movingPOV" demo and can be used to
     # gain a moving external view of the texture-mapped sphere by

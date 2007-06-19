@@ -15,7 +15,8 @@ Vertex and matrix operations - simulate OpenGL transforms.
 """
 
 import math
-import Numeric, MLab
+import numpy
+import numpy.oldnumeric as Numeric, numpy.oldnumeric.mlab as MLab
 
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
@@ -73,21 +74,21 @@ class TransformMatrix:
         R = Numeric.concatenate( (R,Numeric.zeros( (3,1), Numeric.Float)), axis=1)
         R = Numeric.concatenate( (R,Numeric.zeros( (1,4), Numeric.Float)), axis=0)
         R[3,3] = 1.0
-        self.matrix = Numeric.matrixmultiply(R,self.matrix)
+        self.matrix = numpy.dot(R,self.matrix)
 
     def translate(self, x, y, z):
         T = MLab.eye(4,typecode=Numeric.Float)
         T[3,0] = x
         T[3,1] = y
         T[3,2] = z
-        self.matrix = Numeric.matrixmultiply(T,self.matrix)
+        self.matrix = numpy.dot(T,self.matrix)
     
     def scale(self, x, y, z):
         T = MLab.eye(4,typecode=Numeric.Float)
         T[0,0] = x
         T[1,1] = y
         T[2,2] = z
-        self.matrix = Numeric.matrixmultiply(T,self.matrix)
+        self.matrix = numpy.dot(T,self.matrix)
 
     def get_matrix(self):
         return self.matrix
@@ -95,7 +96,7 @@ class TransformMatrix:
     def transform_vertices(self,verts):
         v = Numeric.asarray(verts)
         homog = make_homogeneous_coord_rows(v)
-        r = Numeric.matrixmultiply(homog,self.matrix)
+        r = numpy.dot(homog,self.matrix)
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(4,))
         return r

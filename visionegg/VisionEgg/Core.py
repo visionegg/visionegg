@@ -44,7 +44,8 @@ import pygame.display
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-import Numeric  				# Numeric Python package
+import numpy
+import numpy.oldnumeric as Numeric # emulate old Numeric Python package
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -899,15 +900,17 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
         m = Numeric.array(self.parameters.matrix)
         v = Numeric.array(eye_coords_vertex)
         homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
-        r = Numeric.matrixmultiply(homog,m)
+        r = numpy.dot(homog,m)
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(4,))
         return r
     def clip_2_norm_device(self,clip_coords_vertex):
         """Transform clip coordinates to normalized device coordinates"""
-        v = Numeric.array(clip_coords_vertex)
+        v = numpy.array(clip_coords_vertex)
         homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
-        r = (homog/homog[:,3,Numeric.NewAxis])[:,:3]
+        err=numpy.seterr(all='ignore')
+        r = (homog/homog[:,3,numpy.newaxis])[:,:3]
+        numpy.seterr(**err)
         if len(homog.shape) > len(v.shape):
             r = Numeric.reshape(r,(3,))
         return r
