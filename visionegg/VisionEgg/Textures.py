@@ -1644,6 +1644,10 @@ class SpinningDrum(TextureStimulusBaseClass):
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
+        'height':(-1, 
+                  ve_types.Real,
+                  'height of cyliner, automatically set by texel aspect ratio if < 0.',
+                  ),
         'num_sides':(50,
                      ve_types.UnsignedInteger),
         'angular_position':(0.0, # may be best to clamp [0.0,360.0]
@@ -1687,6 +1691,8 @@ class SpinningDrum(TextureStimulusBaseClass):
         'cached_display_list_normal',
         'cached_display_list_mirror',
         'cached_display_list_num_sides',
+        'cached_display_list_radius',
+        'cached_display_list_height',
         'texture_stimulus',
         )
 
@@ -1844,8 +1850,11 @@ class SpinningDrum(TextureStimulusBaseClass):
                     # figuring out where to draw the texture relative to drum
                     gl.glRotatef(p.angular_position,0,-1,0)
 
-                    if p.num_sides != self.cached_display_list_num_sides:
+                    if ((p.num_sides != self.cached_display_list_num_sides) or
+                        (p.radius != self.cached_display_list_radius) or
+                        (p.height != self.cached_display_list_height)):
                         self.rebuild_display_list()
+                        
                     if not p.flip_image:
                         gl.glCallList(self.cached_display_list_normal)
                     else:
@@ -1867,10 +1876,15 @@ class SpinningDrum(TextureStimulusBaseClass):
         r = self.parameters.radius # in OpenGL (arbitrary) units
         circum = 2.0*math.pi*r
         tex = self.parameters.texture
-        h = circum/float(tex.size[0])*float(tex.size[1])/2.0
+        if self.parameters.height < 0:
+            h = circum/float(tex.size[0])*float(tex.size[1])/2.0
+        else:
+            h = self.parameters.height
 
         num_sides = self.parameters.num_sides
         self.cached_display_list_num_sides = num_sides
+        self.cached_display_list_radius = r
+        self.cached_display_list_height = self.parameters.height
 
         deltaTheta = 2.0*math.pi / num_sides
         for direction in ['normal','mirror']:
