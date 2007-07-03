@@ -1,7 +1,7 @@
 # The Vision Egg: SphereMap
 #
 # Copyright (C) 2001-2004 Andrew Straw.
-# Copyright (C) 2005 California Institute of Technology
+# Copyright (C) 2005-2007 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -30,7 +30,8 @@ import VisionEgg.Gratings
 import VisionEgg.ThreeDeeMath
 import VisionEgg.ParameterTypes as ve_types
 
-import numpy.oldnumeric as Numeric  				# Numeric Python package
+import numpy
+import numpy.oldnumeric as Numeric
 import Image
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
@@ -195,10 +196,19 @@ class AzElGrid(VisionEgg.Core.Stimulus):
                 gl.glVertex3f(x_stop, y_stop, z_stop)
 
         cp = self.constant_parameters
-        azs_major = Numeric.arange(-180.0,180.0,cp.az_major_spacing)
-        azs_minor = Numeric.arange(-180.0,180.0,cp.az_minor_spacing)
-        els_major = Numeric.arange(-90.0,90.0,cp.el_major_spacing)
-        els_minor = Numeric.arange(-90.0,90.0,cp.el_minor_spacing)
+        # Weird range construction to be sure to include zero.
+        azs_major = numpy.concatenate((
+            numpy.arange(0.0,180.0,cp.az_major_spacing),
+            -numpy.arange(0.0,180.0,cp.az_major_spacing)[1:]))
+        azs_minor = numpy.concatenate((
+            numpy.arange(0.0,180.0,cp.az_minor_spacing),
+            -numpy.arange(0.0,180.0,cp.az_minor_spacing)[1:]))
+        els_major = numpy.concatenate((
+            numpy.arange(0.0,90.0,cp.el_major_spacing),
+            -numpy.arange(0.0,90.0,cp.el_major_spacing)[1:]))
+        els_minor = numpy.concatenate((
+            numpy.arange(0.0,90.0,cp.el_minor_spacing),
+            -numpy.arange(0.0,90.0,cp.el_minor_spacing)[1:]))
 
         gl.glNewList(self.cached_minor_lines_display_list,gl.GL_COMPILE)
         gl.glBegin(gl.GL_LINES)
