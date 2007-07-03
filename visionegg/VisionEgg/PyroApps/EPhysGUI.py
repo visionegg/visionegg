@@ -809,7 +809,7 @@ def get_server(hostname="",port=7766):
                           'and port number '+\
                           'of the computer on which you have the '+\
                           '"EPhys server" running.').grid(row=current_row,column=0,columnspan=2)
-            hostname = socket.getfqdn(hostname)
+            hostname = 'localhost'
 
             self.hostname_tk = Tkinter.StringVar()
             self.hostname_tk.set(hostname)
