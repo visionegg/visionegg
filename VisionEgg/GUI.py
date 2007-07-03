@@ -361,7 +361,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         self.sync_swap = Tkinter.BooleanVar()
         self.sync_swap.set(VisionEgg.config.VISIONEGG_SYNC_SWAP)
         Tkinter.Checkbutton(cf,
-                            text='Attempt to synchronize buffer swaps',
+                            text='Attempt vsync',
                             variable=self.sync_swap,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
