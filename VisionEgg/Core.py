@@ -1,7 +1,7 @@
 # The Vision Egg: Core
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004-2005 California Institute of Technology
+# Copyright (C) 2004-2007 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -865,16 +865,16 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     def look_at(self, eye, center, up ):
         # Basically the same as gluLookAt
         def normalize(vec):
-            numpy_vec = Numeric.array(vec)
-            mag = math.sqrt(Numeric.sum(numpy_vec*numpy_vec))
+            numpy_vec = numpy.asarray(vec)
+            mag = math.sqrt(numpy.sum(numpy_vec**2))
             return numpy_vec / mag
         def cross(vec1,vec2):
             return ( vec1[1]*vec2[2] - vec1[2]*vec2[1],
                      vec1[2]*vec2[0] - vec1[0]*vec2[2],
                      vec1[0]*vec2[1] - vec1[1]*vec2[0] )
-        forward = Numeric.array(( center[0] - eye[0],
-                                  center[1] - eye[1],
-                                  center[2] - eye[2]),'f')
+        forward = numpy.array(( center[0] - eye[0],
+                                center[1] - eye[1],
+                                center[2] - eye[2]),'f')
         forward = normalize(forward)
         side = cross(forward,up)
         side = normalize(side)
