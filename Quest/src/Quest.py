@@ -39,7 +39,6 @@ import warnings
 import random
 import sys
 import time
-import Quest_interpolate as interpolate
 
 import numpy
 import numpy.numarray as num
@@ -214,9 +213,8 @@ class QuestObject:
             return self.x2[0]
         if x > self.x2[-1]:
             return self.x2[-1]
-        interp_object = interpolate.interp1d(self.x2,self.p2)
-        return interp_object(x)
-
+        return numpy.interp(x,self.x2,self.p2)
+    
     def pdf_at(self,t):
         """The (unnormalized) probability density of candidate threshold 't'.
         
@@ -254,8 +252,7 @@ class QuestObject:
         index = num.nonzero( m1p[1:]-m1p[:-1] )[0]
         if len(index) < 2:
             raise RuntimeError('pdf has only %g nonzero point(s)'%len(index))
-        interp_object = interpolate.interp1d(p[index],self.x[index])
-        ires = interp_object([quantileOrder*p[-1]])[0]
+        ires = numpy.interp([quantileOrder*p[-1]],p[index],self.x[index])[0]
         return self.tGuess+ires
 
     def sd(self):
@@ -277,8 +274,7 @@ class QuestObject:
 
         This was converted from the Psychtoolbox's QuestSimulate function."""
         t = min( max(tTest-tActual, self.x2[0]), self.x2[-1] )
-        interp_object = interpolate.interp1d(self.x2,self.p2)
-        response= interp_object([t])[0] > random.random()
+        response= numpy.interp([t],self.x2,self.p2)[0] > random.random()
         return response
 
     def recompute(self):
@@ -312,8 +308,7 @@ class QuestObject:
         index = num.nonzero( self.p2[1:]-self.p2[:-1] )[0] # strictly monotonic subset
         if len(index) < 2:
             raise RuntimeError('psychometric function has only %g strictly monotonic points'%len(index))
-        interp_object = interpolate.interp1d(self.p2[index],self.x2[index])
-        self.xThreshold = interp_object([self.pThreshold])[0]
+        self.xThreshold = numpy.interp([self.pThreshold],self.p2[index],self.x2[index])[0]
         self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*(self.x2+self.xThreshold))))
         if len(getinf(self.p2)[0]):
             raise RuntimeError('psychometric function p2 is not finite')
@@ -466,7 +461,7 @@ def demo():
         # Simulate a trial
 	timeSplit=time.time(); # omit simulation and printing from reported time/trial.
         response=q.simulate(tTest,tActual)
-        print 'Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[response])
+        print 'Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)])
 	timeZero=timeZero+time.time()-timeSplit;
         
         # Update the pdf
