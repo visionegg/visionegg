@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='Quest',
-    version='1.0',
+    version='1.1',
     description = "QUEST algorithm for finding threshold",
     author = "Dennis Pelli",
     maintainer = "Andrew D Straw",

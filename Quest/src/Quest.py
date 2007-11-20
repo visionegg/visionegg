@@ -2,7 +2,7 @@
 
 # Copyright (c) 1996-2002 Denis G. Pelli
 # Copyright (c) 1996-9 David Brainard
-# Copyright (c) 2004 Andrew D. Straw
+# Copyright (c) 2004-7 Andrew D. Straw
 #
 # All rights reserved.
 #
@@ -40,11 +40,10 @@ import random
 import sys
 import time
 
-import numpy
-import numpy.numarray as num
+import numpy as num
 
 def getinf(x):
-    return numpy.nonzero( numpy.isinf( numpy.atleast_1d(x) ) )
+    return num.nonzero( num.isinf( num.atleast_1d(x) ) )
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -213,7 +212,7 @@ class QuestObject:
             return self.x2[0]
         if x > self.x2[-1]:
             return self.x2[-1]
-        return numpy.interp(x,self.x2,self.p2)
+        return num.interp(x,self.x2,self.p2)
     
     def pdf_at(self,t):
         """The (unnormalized) probability density of candidate threshold 't'.
@@ -252,7 +251,7 @@ class QuestObject:
         index = num.nonzero( m1p[1:]-m1p[:-1] )[0]
         if len(index) < 2:
             raise RuntimeError('pdf has only %g nonzero point(s)'%len(index))
-        ires = numpy.interp([quantileOrder*p[-1]],p[index],self.x[index])[0]
+        ires = num.interp([quantileOrder*p[-1]],p[index],self.x[index])[0]
         return self.tGuess+ires
 
     def sd(self):
@@ -274,7 +273,7 @@ class QuestObject:
 
         This was converted from the Psychtoolbox's QuestSimulate function."""
         t = min( max(tTest-tActual, self.x2[0]), self.x2[-1] )
-        response= numpy.interp([t],self.x2,self.p2)[0] > random.random()
+        response= num.interp([t],self.x2,self.p2)[0] > random.random()
         return response
 
     def recompute(self):
@@ -308,7 +307,7 @@ class QuestObject:
         index = num.nonzero( self.p2[1:]-self.p2[:-1] )[0] # strictly monotonic subset
         if len(index) < 2:
             raise RuntimeError('psychometric function has only %g strictly monotonic points'%len(index))
-        self.xThreshold = numpy.interp([self.pThreshold],self.p2[index],self.x2[index])[0]
+        self.xThreshold = num.interp([self.pThreshold],self.p2[index],self.x2[index])[0]
         self.p2 = self.delta*self.gamma+(1-self.delta)*(1-(1-self.gamma)*num.exp(-10**(self.beta*(self.x2+self.xThreshold))))
         if len(getinf(self.p2)[0]):
             raise RuntimeError('psychometric function p2 is not finite')
@@ -338,8 +337,8 @@ class QuestObject:
                 ii = ii-ii[0]
             if ii[-1]>=self.s2.shape[1]:
                 ii = ii+self.s2.shape[1]-ii[-1]-1
-            iii = ii.astype(numpy.int)
-            if not numpy.allclose(ii,iii):
+            iii = ii.astype(num.int_)
+            if not num.allclose(ii,iii):
                 raise ValueError('truncation error')
             self.pdf = self.pdf*self.s2[response,iii]
             if self.normalizePdf and k%100==0:
@@ -375,8 +374,8 @@ class QuestObject:
                     ii = ii-ii[0]
                 else:
                     ii = ii+self.s2.shape[1]-ii[-1]-1
-            iii = ii.astype(numpy.int)
-            if not numpy.allclose(ii,iii):
+            iii = ii.astype(num.int_)
+            if not num.allclose(ii,iii):
                 raise ValueError('truncation error')
             self.pdf = self.pdf*self.s2[response,iii]
             if self.normalizePdf:
