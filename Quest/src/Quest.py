@@ -39,9 +39,13 @@ import warnings
 import random
 import sys
 import time
-import numarray as num
-from numarray.ieeespecial import getinf
 import Quest_interpolate as interpolate
+
+import numpy
+import numpy.numarray as num
+
+def getinf(x):
+    return numpy.nonzero( numpy.isinf( numpy.atleast_1d(x) ) )
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -339,7 +343,10 @@ class QuestObject:
                 ii = ii-ii[0]
             if ii[-1]>=self.s2.shape[1]:
                 ii = ii+self.s2.shape[1]-ii[-1]-1
-            self.pdf = self.pdf*self.s2[response,ii]
+            iii = ii.astype(numpy.int)
+            if not numpy.allclose(ii,iii):
+                raise ValueError('truncation error')
+            self.pdf = self.pdf*self.s2[response,iii]
             if self.normalizePdf and k%100==0:
                 self.pdf = self.pdf/num.sum(self.pdf) # avoid underflow; keep the pdf normalized
         if self.normalizePdf:
@@ -373,7 +380,10 @@ class QuestObject:
                     ii = ii-ii[0]
                 else:
                     ii = ii+self.s2.shape[1]-ii[-1]-1
-            self.pdf = self.pdf*self.s2[response,ii]
+            iii = ii.astype(numpy.int)
+            if not numpy.allclose(ii,iii):
+                raise ValueError('truncation error')
+            self.pdf = self.pdf*self.s2[response,iii]
             if self.normalizePdf:
                 self.pdf=self.pdf/num.sum(self.pdf)
         # keep a historical record of the trials
