@@ -90,8 +90,8 @@ for i in range(num_viewports):
     camera_look_at = (x,0,z)
 
     # Now setup the projection and the viewport.
-    ll = lowerlefts[i+1]
-    width = lowerlefts[i]-ll
+    ll = int(lowerlefts[i+1])
+    width = int(lowerlefts[i]-ll)
     projection = SimplePerspectiveProjection(fov_x=fov_x,
                                              aspect_ratio=aspect_ratio)
     projection.look_at( eye, camera_look_at, camera_up )
