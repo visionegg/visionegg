@@ -827,7 +827,19 @@ class Window(Screen):
             pygame.init()
         pygame.display.init()
         '''
-        self.win = pyglet.window.Window(screen=self.screen, width=cp.size[0], height=cp.size[1])
+        if cp.frameless:
+            style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS
+        else:
+            style = pyglet.window.Window.WINDOW_STYLE_DEFAULT
+
+        self.win = pyglet.window.Window(width=cp.size[0],
+                                        height=cp.size[1],
+                                        caption='Vision Egg',
+                                        style=style,
+                                        vsync=cp.double_buffer,
+                                        screen=self.screen)
+
+        self.win.set_fullscreen(cp.fullscreen) # fullscreen can't be set with width and height in constructor
 
         ## TODO: figure out pyglet eq'v of gl_set_attribute
 
@@ -856,17 +868,8 @@ class Window(Screen):
                          "greater. This is only of concern if you "
                          "need this feature.")
         '''
-        self.win.set_caption("Vision Egg")
 
         flags = pygame.locals.OPENGL
-        if cp.double_buffer:
-            #flags = flags | pygame.locals.DOUBLEBUF
-            print 'TODO: ensuring double bufferring in pyglet. This may require modifying the default opengl screen config'
-        if cp.fullscreen:
-            self.win.set_fullscreen(True)
-        if cp.frameless:
-            #flags = flags | pygame.locals.NOFRAME
-            print 'TODO: frameless windows in pyglet'
         try_bpp = cp.preferred_bpp
         '''
         append_str = ""
