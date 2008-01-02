@@ -752,6 +752,380 @@ def get_default_screen():
     """Make an instance of Screen using a GUI window or from config file."""
     return Screen.create_default()
 
+
+class Window(Screen):
+    """VisionEgg window, based on pyglet window. Similar to VisionEgg.Screen based on pygame/SDL
+
+    TODO: multiple inheritance from both pyglet.window.Window and VisionEgg.Screen.
+    This would require a separate module that would be imported only if pyglet is installed.
+    """
+    def __init__(self, screen=None, **kw):
+        """pyglet screen is optional. pyglet window object is stored as .win attribute"""
+        import pyglet.window
+        if screen == None:
+            platform = pyglet.window.get_platform()
+            display = platform.get_default_display()
+            screens = display.get_screens()
+            self.screen = screens[0]
+        else:
+            self.screen = screen
+
+        logger = logging.getLogger('VisionEgg.Core')
+
+        VisionEgg.ClassWithParameters.__init__(self, **kw)
+
+        cp = self.constant_parameters # shorthand
+        if cp.size is None:
+            cp.size = (VisionEgg.config.VISIONEGG_SCREEN_W,
+                       VisionEgg.config.VISIONEGG_SCREEN_H)
+        if cp.double_buffer is None:
+            cp.double_buffer = VisionEgg.config.VISIONEGG_DOUBLE_BUFFER
+        if cp.fullscreen is None:
+            cp.fullscreen = VisionEgg.config.VISIONEGG_FULLSCREEN
+        if cp.preferred_bpp is None:
+            cp.preferred_bpp = VisionEgg.config.VISIONEGG_PREFERRED_BPP
+        if cp.maxpriority is None:
+            cp.maxpriority = VisionEgg.config.VISIONEGG_MAXPRIORITY
+        if cp.hide_mouse is None:
+            cp.hide_mouse = VisionEgg.config.VISIONEGG_HIDE_MOUSE
+        if cp.frameless is None:
+            cp.frameless = VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW
+        if cp.sync_swap is None:
+            cp.sync_swap = VisionEgg.config.VISIONEGG_SYNC_SWAP
+        if cp.red_bits is None:
+            cp.red_bits = VisionEgg.config.VISIONEGG_REQUEST_RED_BITS
+        if cp.green_bits is None:
+            cp.green_bits = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
+        if cp.blue_bits is None:
+            cp.blue_bits = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
+        if cp.alpha_bits is None:
+            cp.alpha_bits = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
+        if cp.is_stereo is None:
+            cp.is_stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
+        if cp.multisample_samples is None:
+             cp.multisample_samples = VisionEgg.config.VISIONEGG_MULTISAMPLE_SAMPLES
+
+        if VisionEgg.config.SYNCLYNC_PRESENT:
+            global synclync # import into global namespace
+            import synclync
+            try:
+                VisionEgg.config._SYNCLYNC_CONNECTION = synclync.SyncLyncConnection()
+            except synclync.SyncLyncError, x:
+                logger.warning( "Could not connect to SyncLync device (SyncLyncError: %s)."%str(x))
+                VisionEgg.config._SYNCLYNC_CONNECTION = None
+            else:
+                logger.info( "Connected to SyncLync device" )
+        else:
+            VisionEgg.config._SYNCLYNC_CONNECTION = None
+
+        # Attempt to synchronize buffer swapping with vertical sync
+        if cp.sync_swap:
+            sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
+        '''
+        # Initialize pygame stuff
+        if sys.platform == "darwin": # bug in Mac OS X version of pygame
+            pygame.init()
+        pygame.display.init()
+        '''
+        self.win = pyglet.window.Window(screen=self.screen, width=cp.size[0], height=cp.size[1])
+
+        ## TODO: figure out pyglet eq'v of gl_set_attribute
+
+        '''
+        if hasattr(pygame.display, "gl_set_attribute"):
+            pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE, cp.red_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE, cp.green_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE, cp.blue_bits)
+            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE, cp.alpha_bits)
+        pygame.display.gl_set_attribute(pygame.locals.GL_STEREO, cp.is_stereo)
+            #Request FSAA
+            if cp.multisample_samples > 0 :
+                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS, 1)
+                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLESAMPLES, cp.multisample_samples)
+        else:
+            logger.debug("Could not request or query exact bit depths, "
+                         "alpha or stereo because you need "
+                         "pygame release 1.4.9 or greater. This is "
+                         "only of concern if you use a stimulus that "
+                         "needs this. In that case, the stimulus "
+                         "should check for the desired feature(s).")
+
+        if not hasattr(pygame.display, "set_gamma_ramp"):
+            logger.debug("set_gamma_ramp function not available "
+                         "because you need pygame release 1.5 or "
+                         "greater. This is only of concern if you "
+                         "need this feature.")
+        '''
+        self.win.set_caption("Vision Egg")
+
+        flags = pygame.locals.OPENGL
+        if cp.double_buffer:
+            #flags = flags | pygame.locals.DOUBLEBUF
+            print 'TODO: ensuring double bufferring in pyglet. This may require modifying the default opengl screen config'
+        if cp.fullscreen:
+            self.win.set_fullscreen(True)
+        if cp.frameless:
+            #flags = flags | pygame.locals.NOFRAME
+            print 'TODO: frameless windows in pyglet'
+        try_bpp = cp.preferred_bpp
+        '''
+        append_str = ""
+        if cp.fullscreen:
+            screen_mode = "fullscreen"
+        else:
+            screen_mode = "window"
+        if hasattr(pygame.display,"gl_set_attribute"):
+            append_str = " (%d %d %d %d RGBA)."%(cp.red_bits,
+                                                 cp.green_bits,
+                                                 cp.blue_bits,
+                                                 cp.alpha_bits)
+
+        logger.info("Requesting %s %d x %d %d bpp%s"%
+                    (screen_mode,self.size[0],self.size[1],
+                     try_bpp,append_str))
+
+        pygame.display.set_mode(self.size, flags, try_bpp )
+        # set a global variable so we know workaround avoid pygame bug
+        VisionEgg.config._pygame_started = 1
+
+        try:
+            if sys.platform != 'darwin':
+                pygame.display.set_icon(pygame.transform.scale(pygame.image.load(
+                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                                 'data','visionegg.bmp')).convert(),(32,32)))
+            else:
+                import AppKit # requires PyObjC, which is required by pygame osx
+                im = AppKit.NSImage.alloc()
+                im.initWithContentsOfFile_(
+                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
+                                 'data','visionegg.tif'))
+                AppKit.NSApplication.setApplicationIconImage_(AppKit.NSApp(),im)
+
+        except Exception,x:
+            logger.info("Error while trying to set_icon: %s: %s"%
+                        (str(x.__class__),str(x)))
+        '''
+        global gl_vendor, gl_renderer, gl_version
+        gl_vendor = gl.glGetString(gl.GL_VENDOR)
+        gl_renderer = gl.glGetString(gl.GL_RENDERER)
+        gl_version = gl.glGetString(gl.GL_VERSION)
+
+        logger.info("OpenGL %s, %s, %s (PyOpenGL %s)"%
+                    (gl_version, gl_renderer, gl_vendor, gl.__version__))
+
+        if gl_renderer == "GDI Generic" and gl_vendor == "Microsoft Corporation":
+            logger.warning("Using default Microsoft Windows OpenGL "
+                           "drivers.  Please (re-)install the latest "
+                           "video drivers from your video card "
+                           "manufacturer to get hardware accelerated "
+                           "performance.")
+        if gl_renderer == "Mesa GLX Indirect" and gl_vendor == "VA Linux Systems, Inc.":
+            logger.warning("Using default Mesa GLX drivers. Please "
+                           "(re-)install the latest video drivers from "
+                           "your video card manufacturer or DRI "
+                           "project to get hardware accelarated "
+                           "performance.")
+        # Set values to unknown and fill based on OpenGL values
+        cp.red_bits = None
+        cp.green_bits = None
+        cp.blue_bits = None
+        cp.alpha_bits = None
+        cp.is_stereo = None
+        '''
+        got_bpp = pygame.display.Info().bitsize
+        append_str = ''
+        if hasattr(pygame.display,"gl_get_attribute"):
+            # Fill in values as known
+            cp.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
+            cp.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
+            cp.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
+            cp.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
+            cp.is_stereo = pygame.display.gl_get_attribute(pygame.locals.GL_STEREO)
+            if cp.is_stereo: stereo_string = ' stereo'
+            else: stereo_string = ''
+            append_str = " (%d %d %d %d RGBA%s)"%(
+                cp.red_bits,cp.green_bits,cp.blue_bits,cp.alpha_bits,
+                stereo_string)
+        logger.info("Video system reports %d bpp%s."%(got_bpp, append_str))
+        if got_bpp < try_bpp:
+            logger.warning("Video system reports %d bits per pixel, "
+                           "while your program requested %d. Can you "
+                           "adjust your video drivers?"%(got_bpp,
+                           try_bpp))
+        '''
+        # Save the address of these functions so they can be called
+        # when closing the screen.
+        '''
+        self.__pygame_quit__ = pygame.quit
+
+        #Check FSAA requests
+        if cp.multisample_samples>0 :
+            if hasattr(pygame.display,"gl_set_attribute"):
+                got_ms_buf = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS)
+                got_ms_samp = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLESAMPLES)
+                if got_ms_samp < cp.multisample_samples :
+                    logger.warning("Video system reports %d multisample samples, "
+                                   "while you requested %d.  FSAA requires "
+                                   "SDL > 1.2.6, check that it is installed."%(got_ms_samp, cp.multisample_samples))
+        '''
+        # Attempt to synchronize buffer swapping with vertical sync again
+        if cp.sync_swap:
+            if not sync_success:
+                if not VisionEgg.PlatformDependent.sync_swap_with_vbl_post_gl_init():
+                    cp.sync_swap = False
+                    logger.warning("Unable to detect or automatically "
+                                   "synchronize buffer swapping with "
+                                   "vertical retrace. May be possible "
+                                   "by manually adjusting video "
+                                   "drivers. (Look for 'Enable "
+                                   "Vertical Sync' or similar.) If "
+                                   "buffer swapping is not "
+                                   "synchronized, frame by frame "
+                                   "control will not be possible. "
+                                   "Because of this, you will probably "
+                                   "get a warning about calculated "
+                                   "frames per second different than "
+                                   "specified.")
+        # Check previously made OpenGL assumptions now that we have OpenGL window
+        post_gl_init()
+
+        if cp.hide_mouse:
+            self.win.set_mouse_visible(False)
+            #self.win.set_exclusive_mouse(True)
+
+        # Attempt to set maximum priority (This may not be the best
+        # place in the code to do it because it's an application-level
+        # thing, not a screen-level thing, but it fits reasonably well
+        # here for now.)
+        if cp.maxpriority:
+            VisionEgg.PlatformDependent.set_priority() # defaults to max priority
+
+        if hasattr(VisionEgg.config,'_open_screens'):
+            VisionEgg.config._open_screens.append(self)
+        else:
+            VisionEgg.config._open_screens = [self]
+
+    def create_default(screen=None):
+        """Alternative constructor using configuration variables.
+
+        Most of the time you can create and instance of Window using
+        this method.  If your script needs explicit control of the
+        Window parameters, initialize with the normal constructor.
+
+        You can optionally pass a pyglet screen object to specify on
+        which physical screen you want to create the window.
+
+        Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
+        default window parameters are determined.  If this
+        value is 0, the values from VisionEgg.cfg are used.  If this
+        value is 1, a GUI panel is opened and allows manual settings
+        of the window parameters."""
+
+        global VisionEgg # Allow "VisionEgg.config" instead of just "config"
+        if VisionEgg.config.VISIONEGG_GUI_INIT:
+            import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
+            gcwindow = VisionEgg.GUI.GraphicsConfigurationWindow()
+            gcwindow.mainloop() # All this does is adjust VisionEgg.config
+            if not gcwindow.clicked_ok:
+                sys.exit() # User wants to quit
+        window = None
+        try:
+            window = Window(screen=screen,
+                            size=(VisionEgg.config.VISIONEGG_SCREEN_W,
+                                  VisionEgg.config.VISIONEGG_SCREEN_H),
+                            fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
+                            preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
+                            bgcolor=(0.5, 0.5, 0.5, 0.0),
+                            maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
+                            frameless=VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
+                            hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
+        finally:
+            if window == None:
+                # Opening window failed.  Let's do any cleanup that Screen.__init__ missed.
+                '''
+                try:
+                    pygame.mouse.set_visible(1) # make sure mouse is visible
+                    pygame.quit() # close screen
+                except pygame.error, x:
+                    if str(x) != 'video system not initialized':
+                        raise
+                '''
+                pass
+        if window == None:
+            raise RuntimeError("Window open failed. Check your error log for a traceback.")
+
+        gamma_source = VisionEgg.config.VISIONEGG_GAMMA_SOURCE.lower()
+        if gamma_source != 'none':
+            if gamma_source == 'invert':
+                native_red = VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED
+                native_green = VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN
+                native_blue = VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE
+                red = window._create_inverted_gamma_ramp( native_red )
+                green = window._create_inverted_gamma_ramp( native_green )
+                blue = window._create_inverted_gamma_ramp( native_blue )
+                gamma_set_string = "linearized gamma lookup tables to correct " + \
+                                   "monitor with native gammas (%f, %f, %f) RGB" % (
+                                   native_red,
+                                   native_green,
+                                   native_blue)
+            elif gamma_source == 'file':
+                filename = VisionEgg.config.VISIONEGG_GAMMA_FILE
+                red, green, blue = window._open_gamma_file(filename)
+                gamma_set_string = "set gamma lookup tables from data in file %s" % os.path.abspath(filename)
+            else:
+                raise ValueError("Unknown gamma source: '%s'" % gamma_source)
+            logger = logging.getLogger('VisionEgg.Core')
+            if not window.set_gamma_ramp(red, green, blue):
+                logger.warning("Setting gamma ramps failed.")
+            else:
+                logger.info("Gamma set sucessfully: %s" % gamma_set_string)
+        return window
+    create_default = staticmethod(create_default)
+
+    def set_gamma_ramp(self, *args, **kw):
+        """Set the gamma_ramp"""
+        print 'TODO: setting gamma in pyglet'
+
+    def clear(self):
+        """Clear the window"""
+        self.win.clear()
+
+    def flip(self):
+        """Swap the buffers"""
+        self.win.flip()
+
+    def swap_buffers(self):
+        """Swap the buffers"""
+        self.win.flip()
+
+    def close(self):
+        """Close the window"""
+        self.win.close()
+
+    def __del__(self):
+        """Overrides inherited Screen destructor, which makes a pygame call"""
+        pass
+
+    def switch_to(self):
+        """Make this window current"""
+        self.win.switch_to()
+
+    def make_current(self):
+        """Make this window current"""
+        self.win.switch_to()
+
+    def dispatch_events(self):
+        """Catch events"""
+        self.win.dispatch_events()
+
+
+def get_default_window(screen=None):
+    """Make an instance of Window using a GUI window or from config file.
+    You can optionally pass a pyglet screen object to specify on which
+    physical screen you want to create the window."""
+    return Window.create_default(screen=screen)
+
+
 ####################################################################
 #
 #        Projection and derived classes
@@ -1398,6 +1772,126 @@ class Viewport(VisionEgg.ClassWithParameters):
         """Transform eye coordinates to window coordinates"""
         my_proj = self.parameters.projection
         return self.norm_device_2_window( my_proj.eye_2_norm_device( eye_coords_vertex ) )
+
+
+class pyglet_Viewport(Viewport):
+    """Connects stimuli to a pyglet window.
+
+    A viewport defines a (possibly clipped region) of the window on
+    which stimuli are drawn.
+
+    A window may have multiple viewports.  The viewports may be
+    overlapping.
+
+    A viewport may have multiple stimuli.
+
+    A single stimulus may be drawn simultaneously by several
+    viewports, although this is typically useful only for 3D stimuli
+    to represent different views of the same object.
+
+    The coordinates of the stimulus are converted to window
+    coordinates via several steps, the most important of which is the
+    projection, which is defined by an instance of the Projection
+    class.
+
+    By default, a viewport has a projection which maps eye coordinates
+    to viewport coordinates in 1:1 manner.  In other words, eye
+    coordinates specify pixel location in the viewport.
+
+    For cases where pixel units are not natural to describe
+    coordinates of a stimulus, the application should specify the a
+    projection other than the default.  This is usually the case for
+    3D stimuli.
+
+    For details of the projection and clipping process, see the
+    section 'Coordinate Transformations' in the book/online document
+    'The OpenGL Graphics System: A Specification'
+
+    Parameters
+    ==========
+    anchor        -- How position parameter is interpreted (String)
+                     Default: lowerleft
+    camera_matrix -- extrinsic camera parameter matrix (position and orientation) (Instance of <class 'VisionEgg.Core.ModelView'>)
+                     Default: (determined at runtime)
+    depth_range   -- depth range (in object units) for rendering (Sequence2 of Real)
+                     Default: (0, 1)
+    position      -- Position (in pixel units) within the window (Sequence2 of Real)
+                     Default: (0, 0)
+    projection    -- intrinsic camera parameter matrix (field of view, focal length, aspect ratio) (Instance of <class 'VisionEgg.Core.Projection'>)
+                     Default: (determined at runtime)
+    window        -- The window in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Window'>)
+                     Default: (determined at runtime)
+    size          -- Size (in pixel units) (Sequence2 of Real)
+                     Default: (determined at runtime)
+    stimuli       -- sequence of stimuli to draw in window (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
+                     Default: (determined at runtime)
+    """
+
+    def __init__(self, **kw):
+        """Create a new instance.
+
+        Required arguments:
+
+        window
+
+        Optional arguments (specify parameter value other than default):
+
+        position -- defaults to (0,0), position relative to window by anchor (see below)
+        anchor -- defaults to 'lowerleft'
+        size -- defaults to window.size
+        projection -- defaults to self.make_new_pixel_coord_projection()
+        stimuli -- defaults to empty list
+        """
+        try:
+            del self.parameters_and_defaults['screen'] # del inherited 'screen' param
+        except KeyError:
+            pass
+        self.parameters_and_defaults['window'] = (None,
+                                                  ve_types.Instance(Window),
+                                                  'The window in which this viewport is drawn')
+        VisionEgg.ClassWithParameters.__init__(self, **kw)
+
+        if self.parameters.window == None:
+            raise ValueError("Must specify window when creating an instance of Viewport.")
+
+        p = self.parameters # shorthand
+        if p.size is None:
+            p.size = p.window.constant_parameters.size
+        if p.projection is None:
+            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
+            p.projection = self.make_new_pixel_coord_projection()
+        if p.camera_matrix is None:
+            p.camera_matrix = ModelView()
+        if p.stimuli is None:
+            p.stimuli = []
+        self._is_drawing = False
+
+    def make_current(self):
+        p = self.parameters # shorthand
+        p.window.make_current()
+
+        if p.lowerleft != None:
+            if not hasattr(Viewport, "_gave_lowerleft_warning"):
+                logger = logging.getLogger('VisionEgg.Core')
+                logger.warning("lowerleft parameter of Viewport class "
+                               "will stop being supported. Use "
+                               "'position' instead with anchor set to "
+                               "'lowerleft'.")
+                Viewport._gave_lowerleft_warning = True
+            p.anchor = 'lowerleft'
+            p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
+
+        lowerleft = VisionEgg._get_lowerleft(p.position, p.anchor, p.size)
+
+        gl.glViewport(lowerleft[0],
+                      lowerleft[1],
+                      p.size[0],
+                      p.size[1])
+        gl.glDepthRange(p.depth_range[0], p.depth_range[1])
+
+        p.projection.apply_to_gl()
+        p.camera_matrix.apply_to_gl()
+
 
 ####################################################################
 #
