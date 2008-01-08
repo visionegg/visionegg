@@ -1,15 +1,12 @@
 # The Vision Egg: Text
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Copyright (C) 2005 California Institute of Technology
+# Copyright (C) 2005,2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Text stimuli.
@@ -35,11 +32,6 @@ import VisionEgg.ParameterTypes as ve_types
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import pygame
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -131,19 +123,19 @@ class Text(VisionEgg.Textures.TextureStimulus):
         'ignore_size_parameter':(True, # when true, draws text at 100% size
                                  ve_types.Boolean),
         }
-    
+
     constant_parameters_and_defaults = {
         'font_size':(30,
                      ve_types.UnsignedInteger),
         'font_name':(None, # None = use default font
                      ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
         }
-    
+
     __slots__ = (
         'font',
         '_text',
         )
-    
+
     def __init__(self,**kw):
         if not pygame.font:
             raise RuntimeError("no pygame font module")
@@ -153,11 +145,11 @@ class Text(VisionEgg.Textures.TextureStimulus):
                 raise RuntimeError("pygame doesn't init")
         # override some defaults
         if 'internal_format' not in kw.keys():
-            kw['internal_format'] = gl.GL_RGBA        
+            kw['internal_format'] = gl.GL_RGBA
         if 'mipmaps_enabled' not in kw.keys():
             kw['mipmaps_enabled'] = 0
         if 'texture_min_filter' not in kw.keys():
-            kw['texture_min_filter'] = gl.GL_LINEAR        
+            kw['texture_min_filter'] = gl.GL_LINEAR
         VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
         cp = self.constant_parameters
         fontobject_args = (cp.font_name,cp.font_size)
@@ -168,18 +160,18 @@ class Text(VisionEgg.Textures.TextureStimulus):
         # get font object from global cache
         self.font = _font_objects[fontobject_args]
         self._render_text()
-        
+
     def _render_text(self):
         p = self.parameters
         rendered_surf = self.font.render(p.text, 1, (255,255,255)) # pygame.Surface object
-        
+
         # we could use put_new_image for speed (or put_sub_image for more)
         p.texture = VisionEgg.Textures.Texture(rendered_surf)
         self._reload_texture()
         self._text = p.text # cache string so we know when to re-render
         if p.ignore_size_parameter:
             p.size = p.texture.size
-        
+
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
@@ -270,7 +262,7 @@ if have_glut:
                 gl.glTranslate(self.parameters.lowerleft[0],self.parameters.lowerleft[1],0.0)
 
                 c = self.parameters.color
-                
+
                 if len(c)==3:
                     gl.glColor3f(*c)
                 elif len(c)==4:

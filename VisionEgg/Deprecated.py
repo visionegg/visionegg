@@ -1,13 +1,12 @@
 # The Vision Egg: Deprecated
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Author: Andrew Straw <astraw@users.sourceforge.net>
+# Copyright (C) 2008 California Institute of Technology
+#
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Bits of code which will be removed in the future.
@@ -21,18 +20,13 @@ try:
 except ImportError:
     import VisionEgg.py_logging as logging      # use local copy otherwise
 
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 # Use Python's bool constants if available, make aliases if not
 try:
     True
 except NameError:
     True = 1==1
     False = 1==0
-        
+
 ####################################################################
 #
 #        Error handling and assumption checking
@@ -73,7 +67,7 @@ class Message:
         if not hasattr(self,"logger"):
             self.logger = logging.getLogger('VisionEgg.Deprecated')
         self.logger.log(new_level,message + '\n(sent using deprecated VisionEgg.Core.Message class)')
-        
+
     def format_string(self,in_str):
         # This probably a slow way to do things, but it works!
         min_line_length = 70
@@ -89,7 +83,7 @@ class Message:
             # only add another newline if the last line done is non-empty
             out_str = out_str + cur_line + "\n"
         return out_str
-            
+
     def handle(self):
         if not self._sent_initial_newline:
             self.output_stream.write("\n",_no_sys_stderr=1)

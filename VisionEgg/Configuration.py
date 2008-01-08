@@ -1,13 +1,12 @@
 # The Vision Egg: Configuration
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Author: Andrew Straw <astraw@users.sourceforge.net>
+# Copyright (C) 2008 California Institute of Technology
+#
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Load config values from environment, config file, or defaults.
@@ -43,11 +42,6 @@ the environment variable VISIONEGG_CONFIG_FILE.
 import VisionEgg
 import re, os, errno, sys                  # standard python packages
 import ConfigParser
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 ####################################################################
 #
@@ -101,7 +95,7 @@ class Config:
     def __init__(self):
         """Load global Vision Egg configuration information."""
         cfg = ConfigParser.ConfigParser()
-        
+
         if sys.executable == sys.argv[0]: # Windows binary
             self.VISIONEGG_SYSTEM_DIR = os.curdir
             self.VISIONEGG_USER_DIR = os.curdir
@@ -165,7 +159,7 @@ class Config:
             name = option.upper()
             if name not in defaults.keys():
                 self._delayed_configuration_log_warnings.append(
-                    "While reading %s: The variable \"%s\" is not (anymore) a Vision Egg variable."%(os.path.abspath(configFile),option))            
+                    "While reading %s: The variable \"%s\" is not (anymore) a Vision Egg variable."%(os.path.abspath(configFile),option))
                 continue
             value = cfg.get('General',option)
             if name in os.environ.keys():
@@ -180,7 +174,7 @@ class Config:
                 setattr(self,name,float(value))
             else:
                 setattr(self,name,value)
-                
+
         # Do platform specific stuff
         # Set the default values
         platform_name = sys.platform
@@ -209,7 +203,7 @@ class Config:
                     setattr(self,name,float(value))
                 else:
                     setattr(self,name,value)
-            
+
         if(configFile):
             self.VISIONEGG_CONFIG_FILE = os.path.abspath(configFile)
         else:
@@ -222,7 +216,7 @@ def save_settings():
                  'VISIONEGG_SYSTEM_DIR',
                  'VISIONEGG_USER_DIR',
                  ]
-    
+
     if not VisionEgg.config.VISIONEGG_CONFIG_FILE:
         raise RuntimeError("No config file in use.")
     re_setting_finder = re.compile(r"^\s?((?:VISIONEGG_[A-Z_]*)|(?:SYNCLYNC_[A-Z_]*))\s?=\s?(\S*)\s?$",re.IGNORECASE)
@@ -235,7 +229,7 @@ def save_settings():
         line_ending = line_ending[1]
 
     out_file_lines = []
-    
+
     saved_config_vars = []
 
     for line in orig_lines:

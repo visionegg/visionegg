@@ -1,15 +1,13 @@
 # The Vision Egg
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004-2006 California Institute of Technology
+# Copyright (C) 2004-2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
 
 """
 The Vision Egg package.
@@ -34,9 +32,6 @@ See the 'Core' module for the fundamental Vision Egg classes.
 release_name = '1.1.dev'
 
 __version__ = release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import VisionEgg.Configuration
 import VisionEgg.ParameterTypes as ve_types
@@ -130,16 +125,16 @@ class _ExceptionHookKeeper:
 
         try:
             # don't send to stderr here (original exception handler does it)
-            logger.removeHandler( log_handler_stderr ) 
+            logger.removeHandler( log_handler_stderr )
             removed_stderr = True
         except:
             removed_stderr = False
-            
+
         logger.critical(traceback_stream.read())
-        
+
         if removed_stderr:
             logger.addHandler( log_handler_stderr )
-        
+
         if config is not None:
             if config.VISIONEGG_GUI_ON_ERROR and config.VISIONEGG_TKINTER_OK:
                 # Should really check if any GUI windows are open and only do this then
@@ -174,7 +169,7 @@ class _ExceptionHookKeeper:
         self._sys = sys # preserve ref to sys module
         self.orig_hook = self._sys.excepthook # keep copy
         sys.excepthook = self.handle_exception
-        
+
     def __del__(self):
         self._sys.excepthook = self.orig_hook # restore original
 
@@ -182,7 +177,7 @@ def watch_exceptions():
     """Catch exceptions, log them, and optionally open GUI."""
     global _exception_hook_keeper
     _exception_hook_keeper = _ExceptionHookKeeper()
-    
+
 def stop_watching_exceptions():
     """Stop catching exceptions, returning to previous state."""
     global _exception_hook_keeper
@@ -210,12 +205,12 @@ def recursive_base_class_finder(klass):
         if r not in result2:
             result2.append(r)
     return result2
-    
+
 ############# Setup timing functions #############
 
 if sys.platform == "win32":
     # on win32, time.clock() theoretically has better resolution than time.time()
-    true_time_func = time.clock 
+    true_time_func = time.clock
 else:
     true_time_func = time.time
     # XXX Possible To-Do:
@@ -233,7 +228,7 @@ def set_time_func_to_true_time():
 
 def set_time_func_to_frame_locked():
     time_func = time_func_locked_to_frames
-    
+
 def timing_func():
     """DEPRECATED.  Use time_func instead"""
     warnings.warn("timing_func() has been changed to time_func(). "
@@ -278,7 +273,7 @@ class ClassWithParameters( object ):
     See the ParameterTypes module for more information about types.
 
     """
-    
+
     parameters_and_defaults = ParameterDefinition({}) # empty for base class
     constant_parameters_and_defaults = ParameterDefinition({}) # empty for base class
 
@@ -306,14 +301,14 @@ class ClassWithParameters( object ):
         """Create self.parameters and set values."""
         self.constant_parameters = Parameters() # create self.constant_parameters
         self.parameters = Parameters() # create self.parameters
-        
+
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
 
         done_constant_parameters_and_defaults = []
         done_parameters_and_defaults = []
         done_kw = []
-        
+
         # Fill self.parameters with parameter names and set to default values
         for klass in classes:
             if klass == object:
@@ -333,7 +328,7 @@ class ClassWithParameters( object ):
                     if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
-                    if kw.has_key(parameter_name): 
+                    if kw.has_key(parameter_name):
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own defaults
@@ -344,7 +339,7 @@ class ClassWithParameters( object ):
                             print 'type value',type(value)
                             print 'isinstance(value, numpy.ndarray)',isinstance(value, numpy.ndarray)
                             print 'tipe',tipe
-                            
+
                             if isinstance(value, numpy.ndarray):
                                 value_str = str(value)
                             else:
@@ -371,11 +366,11 @@ class ClassWithParameters( object ):
                         raise ValueError("More than one definition of constant parameter '%s'"%parameter_name)
                     # Get default value and the type
                     value,tipe = klass.constant_parameters_and_defaults[parameter_name][:2]
-                    
+
                     if not ve_types.is_parameter_type_def(tipe):
                         raise ValueError("In definition of constant parameter '%s', %s is not a valid type declaration."%(parameter_name,tipe))
                     # Was a non-default value passed for this parameter?
-                    if kw.has_key(parameter_name): 
+                    if kw.has_key(parameter_name):
                         value = kw[parameter_name]
                         done_kw.append(parameter_name)
                     # Allow None to pass as acceptable value -- lets __init__ set own default
@@ -397,13 +392,13 @@ class ClassWithParameters( object ):
         for kw_parameter_name in kw.keys():
             if kw_parameter_name not in done_kw:
                 raise ValueError("parameter '%s' passed as keyword argument, but not specified by %s (or subclasses) as potential parameter"%(kw_parameter_name,self.__class__))
-            
+
     def is_constant_parameter(self,parameter_name):
         # Get a list of all classes this instance is derived from
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
             if klass == object:
-                continue # base class of new style classes - ignore            
+                continue # base class of new style classes - ignore
             if klass.constant_parameters_and_defaults.has_key(parameter_name):
                 return True
         # The for loop only completes if parameter_name is not in any subclass
@@ -414,7 +409,7 @@ class ClassWithParameters( object ):
         classes = recursive_base_class_finder(self.__class__)
         for klass in classes:
             if klass == object:
-                continue # base class of new style classes - ignore            
+                continue # base class of new style classes - ignore
             if klass.parameters_and_defaults.has_key(parameter_name):
                 return klass.parameters_and_defaults[parameter_name][1]
         # The for loop only completes if parameter_name is not in any subclass

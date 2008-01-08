@@ -1,13 +1,12 @@
 # The Vision Egg: ThreeDeeMath
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Author: Andrew Straw <astraw@users.sourceforge.net>
+# Copyright (C) 2008 California Institute of Technology
+#
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Vertex and matrix operations - simulate OpenGL transforms.
@@ -17,10 +16,6 @@ Vertex and matrix operations - simulate OpenGL transforms.
 import math
 import numpy
 import numpy.oldnumeric as Numeric, numpy.oldnumeric.mlab as MLab
-
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def make_homogeneous_coord_rows(v):
     """Convert vertex (or row-wise vertices) into homogeneous coordinates."""
@@ -57,7 +52,7 @@ class TransformMatrix:
         I visualize the right hand rule most easily as follows:
         Naturally, using your right hand, wrap it around the axis of
         rotation. Your fingers now point in the direction of rotation.
-        
+
         """
         angleRadians = angle_degrees / 180.0 * math.pi
         u = self.__make_normalized_vert3(axis_x, axis_y, axis_z )
@@ -82,7 +77,7 @@ class TransformMatrix:
         T[3,1] = y
         T[3,2] = z
         self.matrix = numpy.dot(T,self.matrix)
-    
+
     def scale(self, x, y, z):
         T = MLab.eye(4,typecode=Numeric.Float)
         T[0,0] = x
@@ -92,7 +87,7 @@ class TransformMatrix:
 
     def get_matrix(self):
         return self.matrix
-    
+
     def transform_vertices(self,verts):
         v = Numeric.asarray(verts)
         homog = make_homogeneous_coord_rows(v)

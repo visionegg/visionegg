@@ -1,15 +1,12 @@
 # The Vision Egg: Gratings
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Copyright (C) 2005 California Institute of Technology
+# Copyright (C) 2005,2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Grating stimuli.
@@ -34,11 +31,6 @@ import VisionEgg.ParameterTypes as ve_types
 import numpy
 import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -79,7 +71,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
                      ve_types.UnsignedInteger,
                      'precision with which grating is calculated and sent to OpenGL'),
         })
-    
+
     __slots__ = (
         'gl_internal_format',
         'format',
@@ -93,7 +85,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
         """Calculate a number of parameters dependent on bit depth."""
         bit_depth_warning = False
         p = self.parameters # shorthand
-        
+
         red_bits = gl.glGetIntegerv( gl.GL_RED_BITS )
         green_bits = gl.glGetIntegerv( gl.GL_GREEN_BITS )
         blue_bits = gl.glGetIntegerv( gl.GL_BLUE_BITS )
@@ -108,7 +100,7 @@ class LuminanceGratingCommon(VisionEgg.Core.Stimulus):
         self.format = gl.GL_LUMINANCE
         self.gl_type, self.numpy_dtype, self.max_int_val = _get_type_info( p.bit_depth )
         self.cached_bit_depth = p.bit_depth
-        
+
 class AlphaGratingCommon(VisionEgg.Core.Stimulus):
     """Base class with common code to all ways of drawing gratings in alpha.
 
@@ -125,7 +117,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
                      ve_types.UnsignedInteger,
                      'precision with which grating is calculated and sent to OpenGL'),
         })
-    
+
     __slots__ = (
         'gl_internal_format',
         'format',
@@ -134,7 +126,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
         'max_int_val',
         'cached_bit_depth',
         )
-    
+
     def calculate_bit_depth_dependencies(self):
         """Calculate a number of parameters dependent on bit depth."""
         p = self.parameters # shorthand
@@ -148,7 +140,7 @@ class AlphaGratingCommon(VisionEgg.Core.Stimulus):
         self.format = gl.GL_ALPHA
         self.gl_type, self.numpy_dtype, self.max_int_val = _get_type_info( p.bit_depth )
         self.cached_bit_depth = p.bit_depth
-       
+
 class SinGrating2D(LuminanceGratingCommon):
     """Sine wave grating stimulus
 
@@ -229,7 +221,7 @@ class SinGrating2D(LuminanceGratingCommon):
         'spatial_freq':(1.0/128.0, # cycles/eye coord units
                         ve_types.Real,
                         "frequency defined relative to coordinates defined in size parameter (units: cycles/eye_coord_unit)",
-                        ), 
+                        ),
         'temporal_freq_hz':(5.0, # hz
                             ve_types.Real),
         't0_time_sec_absolute':(None, # Will be assigned during first call to draw()
@@ -243,7 +235,7 @@ class SinGrating2D(LuminanceGratingCommon):
         'num_samples':(512, # number of spatial samples, should be a power of 2
                        ve_types.UnsignedInteger),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
-                     ve_types.Real), 
+                     ve_types.Real),
         'color1':((1.0, 1.0, 1.0), # alpha is ignored (if given) -- use max_alpha parameter
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                  ve_types.Sequence4(ve_types.Real))),
@@ -252,9 +244,9 @@ class SinGrating2D(LuminanceGratingCommon):
                                  ve_types.Sequence4(ve_types.Real)),
                   "optional color with which to perform interpolation with color1 in RGB space"),
         'recalculate_phase_tolerance':(None, # only recalculate texture when phase is changed by more than this amount, None for always recalculate. (Saves time.)
-                                       ve_types.Real), 
+                                       ve_types.Real),
         })
-    
+
     __slots__ = (
         '_texture_object_id',
         '_last_phase',
@@ -264,19 +256,19 @@ class SinGrating2D(LuminanceGratingCommon):
         LuminanceGratingCommon.__init__(self,**kw)
 
         p = self.parameters # shorthand
-        
+
         self._texture_object_id = gl.glGenTextures(1)
         if p.mask:
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
-        
+
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if p.num_samples > max_dim:
             raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         self.calculate_bit_depth_dependencies()
-        
+
         w = p.size[0]
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
@@ -300,7 +292,7 @@ class SinGrating2D(LuminanceGratingCommon):
                                        0,
                                        gl.GL_TEXTURE_WIDTH) == 0:
             raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
-        
+
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,                  # target
                         0,                                 # level
@@ -310,7 +302,7 @@ class SinGrating2D(LuminanceGratingCommon):
                         self.format,                       # format of texel data
                         self.gl_type,                      # type of texel data
                         texel_data)                        # texel data
-        
+
         # Set texture object defaults
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
@@ -335,16 +327,16 @@ class SinGrating2D(LuminanceGratingCommon):
             if p.mask:
                 gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
             gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
-            
+
             gl.glEnable(gl.GL_TEXTURE_1D)
             gl.glDisable(gl.GL_TEXTURE_2D)
             if p.bit_depth != self.cached_bit_depth:
                 self.calculate_bit_depth_dependencies()
-                    
+
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            
+
             # Rotate about the center of the texture
             gl.glTranslate(center[0],
                            center[1],
@@ -507,7 +499,7 @@ class SinGrating3D(LuminanceGratingCommon):
                 "defines coordinate size of grating (in eye coordinates)"),
         'spatial_freq':(4.0, # cycles/eye coord units
                         ve_types.Real,
-                        "frequency defined relative to coordinates defined in size parameter (units; cycles/eye_coord_unit)"), 
+                        "frequency defined relative to coordinates defined in size parameter (units; cycles/eye_coord_unit)"),
         'temporal_freq_hz':(5.0, # hz
                             ve_types.Real),
         't0_time_sec_absolute':(None, # Will be assigned during first call to draw()
@@ -519,7 +511,7 @@ class SinGrating3D(LuminanceGratingCommon):
         'num_samples':(512, # number of spatial samples, should be a power of 2
                        ve_types.UnsignedInteger),
         'max_alpha':(1.0, # controls "opacity": 1.0 = completely opaque, 0.0 = completely transparent
-                     ve_types.Real), 
+                     ve_types.Real),
         'color1':((1.0, 1.0, 1.0), # alpha is ignored (if given) -- use max_alpha parameter
                   ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                  ve_types.Sequence4(ve_types.Real))),
@@ -549,7 +541,7 @@ class SinGrating3D(LuminanceGratingCommon):
                                      ve_types.Sequence4(ve_types.Real)),
                       "vertex position (units: eye coordinates)"),
         })
-    
+
     __slots__ = (
         '_texture_object_id',
         '_last_phase',
@@ -559,19 +551,19 @@ class SinGrating3D(LuminanceGratingCommon):
         LuminanceGratingCommon.__init__(self,**kw)
 
         p = self.parameters # shorthand
-        
+
         self._texture_object_id = gl.glGenTextures(1)
         if p.mask:
             gl.glActiveTextureARB(gl.GL_TEXTURE0_ARB)
         gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
-        
+
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if p.num_samples > max_dim:
             raise NumSamplesTooLargeError("Grating num_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
 
         self.calculate_bit_depth_dependencies()
-        
+
         w = p.size[0]
         inc = w/float(p.num_samples)
         phase = 0.0 # this data won't get used - don't care about phase
@@ -595,7 +587,7 @@ class SinGrating3D(LuminanceGratingCommon):
                                        0,
                                        gl.GL_TEXTURE_WIDTH) == 0:
             raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
-        
+
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,                  # target
                         0,                                 # level
@@ -605,7 +597,7 @@ class SinGrating3D(LuminanceGratingCommon):
                         self.format,                       # format of texel data
                         self.gl_type,                      # type of texel data
                         texel_data)                        # texel data
-        
+
         # Set texture object defaults
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_1D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
@@ -636,7 +628,7 @@ class SinGrating3D(LuminanceGratingCommon):
             gl.glDisable(gl.GL_TEXTURE_2D)
             if p.bit_depth != self.cached_bit_depth:
                 self.calculate_bit_depth_dependencies()
-                    
+
             # allow max_alpha value to control blending
             gl.glEnable( gl.GL_BLEND )
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
@@ -647,7 +639,7 @@ class SinGrating3D(LuminanceGratingCommon):
                 ## alpha is ignored because the texture base internal format is luminance
             else:
                 gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
-            
+
             if p.t0_time_sec_absolute is None and not p.ignore_time:
                 p.t0_time_sec_absolute = VisionEgg.time_func()
 
@@ -671,22 +663,22 @@ class SinGrating3D(LuminanceGratingCommon):
                                    self.format,      # format of new texel data
                                    self.gl_type,     # type of new texel data
                                    texel_data)       # new texel data
-            
+
             # in the case of only color1,
             # the texel data multiplies color1 to produce a color
 
             # with color2,
             # the texel data linearly interpolates between color1 and color2
-            
+
             gl.glColor4f(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
-            
+
             if p.mask:
                 p.mask.draw_masked_quad_3d(0.0,1.0,0.0,1.0, # for texture coordinates
                                            p.lowerleft,p.lowerright,p.upperright,p.upperleft)
             else:
                 # draw unmasked quad
                 gl.glBegin(gl.GL_QUADS)
-                
+
                 gl.glTexCoord2f(0.0,0.0)
                 gl.glVertex3f(*p.lowerleft)
 
@@ -699,7 +691,7 @@ class SinGrating3D(LuminanceGratingCommon):
                 gl.glTexCoord2f(0.0,1.0)
                 gl.glVertex3f(*p.upperleft)
                 gl.glEnd() # GL_QUADS
-            
+
             gl.glDisable(gl.GL_TEXTURE_1D)
 
 class NumSamplesTooLargeError( RuntimeError ):
