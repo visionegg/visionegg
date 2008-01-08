@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: Text.py 1384 2007-04-16 20:28:26Z astraw $
 
 """
 Text stimuli.
@@ -37,8 +37,8 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import pygame
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1384 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-04-16 13:28:26 -0700 (Mon, 16 Apr 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: Textures.py 1396 2007-06-20 04:42:47Z  $
 
 """
 Texture (images mapped onto polygons) stimuli.
@@ -48,8 +48,8 @@ import _imaging
 import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1396 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-06-19 21:42:47 -0700 (Tue, 19 Jun 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

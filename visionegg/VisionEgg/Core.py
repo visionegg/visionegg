@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: Core.py 1413 2008-01-02 23:43:36Z mspacek $
 
 """
 Core Vision Egg functionality.
@@ -48,8 +48,8 @@ import numpy
 import numpy.oldnumeric as Numeric # emulate old Numeric Python package
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1413 $'.split()[1]
+__date__ = ' '.join('$Date: 2008-01-02 15:43:36 -0800 (Wed, 02 Jan 2008) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

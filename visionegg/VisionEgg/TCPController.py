@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: TCPController.py 1394 2007-06-19 22:36:26Z astraw $
 
 """
 Allows control of parameter values over the network.
@@ -60,8 +60,8 @@ except ImportError:
     import VisionEgg.py_logging as logging
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1394 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-06-19 15:36:26 -0700 (Tue, 19 Jun 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class TCPServer:

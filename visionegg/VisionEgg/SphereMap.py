@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: SphereMap.py 1398 2007-07-03 19:32:10Z  $
 
 """
 Stimuli on spheres, including texture maps.
@@ -37,8 +37,8 @@ import Image
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1398 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-07-03 12:32:10 -0700 (Tue, 03 Jul 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

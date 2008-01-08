@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: Deprecated.py 1215 2003-09-18 09:43:13Z astraw $
 
 """
 Bits of code which will be removed in the future.
@@ -22,8 +22,8 @@ except ImportError:
     import VisionEgg.py_logging as logging      # use local copy otherwise
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1215 $'.split()[1]
+__date__ = ' '.join('$Date: 2003-09-18 02:43:13 -0700 (Thu, 18 Sep 2003) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

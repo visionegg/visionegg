@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: GUI.py 1400 2007-07-03 19:35:11Z  $
 
 """
 Graphical user interface classes and functions.
@@ -17,8 +17,8 @@ Graphical user interface classes and functions.
 import VisionEgg
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1400 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-07-03 12:35:11 -0700 (Tue, 03 Jul 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not

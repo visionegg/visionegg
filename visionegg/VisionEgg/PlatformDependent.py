@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: PlatformDependent.py 1239 2003-09-19 08:45:21Z astraw $
 
 """
 Implementations of functions which vary by platform.
@@ -32,8 +32,8 @@ import VisionEgg.Core
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1239 $'.split()[1]
+__date__ = ' '.join('$Date: 2003-09-19 01:45:21 -0700 (Fri, 19 Sep 2003) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 def set_priority(*args,**kw):

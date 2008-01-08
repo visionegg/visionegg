@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: GL.py 1384 2007-04-16 20:28:26Z astraw $
 
 """
 Vision Egg GL module -- lump all OpenGL names in one namespace.

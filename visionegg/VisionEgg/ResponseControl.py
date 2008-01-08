@@ -10,7 +10,7 @@
 # published by the Free Software Foundation; either version 2.1 of
 # the License, or (at your option) any later version.
 #
-# $Revision$  $Date$
+# $Revision: 1323 $  $Date: 2005-05-30 15:23:12 -0700 (Mon, 30 May 2005) $
 
 """
 Response control during a presentation is running.
@@ -39,8 +39,8 @@ import VisionEgg.ParameterTypes as ve_types
 import pygame
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1323 $'.split()[1]
+__date__ = ' '.join('$Date: 2005-05-30 15:23:12 -0700 (Mon, 30 May 2005) $'.split()[1:3])
 __author__ = 'Hubertus Becker <hubertus.becker@uni-tuebingen.de>'
 
 # Use Python's bool constants if available, make aliases if not

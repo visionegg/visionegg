@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: __init__.py 1394 2007-06-19 22:36:26Z astraw $
 
 """
 The Vision Egg package.
@@ -34,8 +34,8 @@ See the 'Core' module for the fundamental Vision Egg classes.
 release_name = '1.1.dev'
 
 __version__ = release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1394 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-06-19 15:36:26 -0700 (Tue, 19 Jun 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import VisionEgg.Configuration

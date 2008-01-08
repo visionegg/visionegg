@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: DaqLPT.py 1328 2005-07-01 20:26:55Z astraw $
 
 """
 Data acquisition and triggering over the parallel port.
@@ -70,8 +70,8 @@ else:
     raise RuntimeError("VisionEgg.DaqLPT not supported on this platform")
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1328 $'.split()[1]
+__date__ = ' '.join('$Date: 2005-07-01 13:26:55 -0700 (Fri, 01 Jul 2005) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
             
 class LPTInput(VisionEgg.Daq.Input):

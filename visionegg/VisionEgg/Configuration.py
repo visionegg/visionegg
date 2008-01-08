@@ -7,7 +7,7 @@
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
 #
-# $Id$
+# $Id: Configuration.py 1394 2007-06-19 22:36:26Z astraw $
 
 """
 Load config values from environment, config file, or defaults.
@@ -45,8 +45,8 @@ import re, os, errno, sys                  # standard python packages
 import ConfigParser
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
+__cvs__ = '$Revision: 1394 $'.split()[1]
+__date__ = ' '.join('$Date: 2007-06-19 15:36:26 -0700 (Tue, 19 Jun 2007) $'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 ####################################################################
