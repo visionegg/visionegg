@@ -1,15 +1,12 @@
 # The Vision Egg: Textures
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004-2005 California Institute of Technology
+# Copyright (C) 2004-2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Texture (images mapped onto polygons) stimuli.
@@ -46,11 +43,6 @@ import OpenGL.GLU as glu
 # make executables using Intaller if you remove these lines.
 import _imaging
 import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -179,7 +171,7 @@ class Texture(object):
             texels = Image.open(texels) # Attempt to open as an image stream
 
         texels = convert_to_numpy_if_array(texels)
-        
+
         if isinstance(texels, Image.Image): # PIL Image
             if texels.mode == 'P': # convert from paletted
                 texels = texels.convert('RGBX')
@@ -824,7 +816,7 @@ class TextureObject(object):
                               data_type)
                               #raw_data)
         print 'args',args
-        
+
         glu.gluBuild2DMipmaps(self.target,
                               internal_format,
                               width, # XXX should be width_pow2?
@@ -832,7 +824,7 @@ class TextureObject(object):
                               data_format,
                               data_type,
                               raw_data)
-        
+
     def put_sub_image(self,
                       texel_data,
                       mipmap_level = 0,
@@ -854,7 +846,7 @@ class TextureObject(object):
 
         For an explanation of most parameters, see the
         put_new_image() method."""
-        
+
         texel_data = convert_to_numpy_if_array(texel_data)
         if isinstance(texel_data,numpy.ndarray):
             if self.dimensions != 'cube':
@@ -1644,7 +1636,7 @@ class SpinningDrum(TextureStimulusBaseClass):
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
-        'height':(-1, 
+        'height':(-1,
                   ve_types.Real,
                   'height of cyliner, automatically set by texel aspect ratio if < 0.',
                   ),
@@ -1854,7 +1846,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                         (p.radius != self.cached_display_list_radius) or
                         (p.height != self.cached_display_list_height)):
                         self.rebuild_display_list()
-                        
+
                     if not p.flip_image:
                         gl.glCallList(self.cached_display_list_normal)
                     else:

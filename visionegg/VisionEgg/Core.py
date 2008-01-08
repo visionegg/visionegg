@@ -1,15 +1,12 @@
 # The Vision Egg: Core
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004-2007 California Institute of Technology
+# Copyright (C) 2004-2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Core Vision Egg functionality.
@@ -46,11 +43,6 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import numpy
 import numpy.oldnumeric as Numeric # emulate old Numeric Python package
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:

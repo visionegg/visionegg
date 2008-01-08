@@ -1,15 +1,12 @@
 # The Vision Egg: GLTrace
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004 California Institute of Technology
+# Copyright (C) 2004,2008 California Institute of Technology
 #
-# Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Trace calls to OpenGL
@@ -40,10 +37,6 @@ to OpenGL.GL to a reference to VisionEgg.GLTrace.
 ####################################################################
 
 import OpenGL.GL as gl
-
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 gl_constants = {}
 
@@ -144,5 +137,5 @@ def gl_trace_attach():
         globals()['glMultiTexCoord2fARB'] = gl.glMultiTexCoord2f
         globals()['GL_TEXTURE0_ARB'] = gl.GL_TEXTURE0
         globals()['GL_TEXTURE1_ARB'] = gl.GL_TEXTURE1
-    
+
 gl_trace_attach() # attach when imported

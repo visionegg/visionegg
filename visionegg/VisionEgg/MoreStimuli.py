@@ -3,18 +3,13 @@
 # Copyright (C) 2001-2003 Andrew Straw.
 #           (C) 2005 by Hertie Institute for Clinical Brain Research,
 #            Department of Cognitive Neurology, University of Tuebingen
-#           (C) 2005 California Institute of Technology
+#           (C) 2005,2008 California Institute of Technology
 #           (C) 2006 Peter Jurica and Gijs Plomp
 #
-# Authors: Andrew Straw <astraw@users.sourceforge.net>
-#          Hubertus Becker <hubertus.becker@uni-tuebingen.de>
 # URL: http://www.visionegg.org
-# URL: http://www.hubertus-becker.de/resources/visionegg/
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Assorted stimuli.
@@ -41,11 +36,6 @@ import numpy.oldnumeric as Numeric
 import math
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -76,7 +66,7 @@ class Target2D(VisionEgg.Core.Stimulus):
     size          -- units: eye coordinates (Sequence2 of Real)
                      Default: (64.0, 16.0)
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean,
@@ -103,11 +93,11 @@ class Target2D(VisionEgg.Core.Stimulus):
                     ve_types.Sequence2(ve_types.Real),
                     "DEPRECATED: don't use"),
         }
-    
+
     __slots__ = (
         '_gave_alpha_warning',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         self._gave_alpha_warning = 0
@@ -212,7 +202,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
     vertex4 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
                Default: (10.0, 0.0, -10.0)
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -236,7 +226,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                                   ve_types.Sequence4(ve_types.Real)),
                  "units: eye coordinates"),
         }
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
 
@@ -258,7 +248,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
             gl.glVertex(*p.vertex3)
             gl.glVertex(*p.vertex4)
             gl.glEnd() # GL_QUADS
-                
+
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
@@ -422,7 +412,7 @@ class FilledCircle(VisionEgg.Core.Stimulus):
     radius        -- radius in eye coordinates (Real)
                      Default: 2.0
     """
-    
+
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'on':(True,
               ve_types.Boolean,
@@ -464,12 +454,12 @@ class FilledCircle(VisionEgg.Core.Stimulus):
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
-            
+
             if len(p.color)==3:
                 gl.glColor3f(*p.color)
             elif len(p.color)==4:
                 gl.glColor4f(*p.color)
-            
+
           # Build filled circle from points
 #           gl.glBegin(gl.GL_POINTS)
 #           radius = int(math.ceil(p.radius))
@@ -511,7 +501,7 @@ class FilledCircle(VisionEgg.Core.Stimulus):
                         # GL_POLYGON_SMOOTH results in artifactual lines where
                         # triangles were joined to create quad, at least on some OpenGL
                         # implementations.)
-                        
+
                 # Calculate coverage value for each pixel of outline
                 # and store as alpha
                 gl.glEnable(gl.GL_LINE_SMOOTH)

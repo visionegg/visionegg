@@ -1,13 +1,12 @@
 # The Vision Egg: GUI
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Author: Andrew Straw <astraw@users.sourceforge.net>
+# Copyright (C) 2008 California Institute of Technology
+#
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Graphical user interface classes and functions.
@@ -15,11 +14,6 @@ Graphical user interface classes and functions.
 """
 
 import VisionEgg
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -50,17 +44,17 @@ class _delay_import_error:
         self.orig_traceback = orig_traceback
     def __getattr__(self,name):
         raise self.orig_traceback # ImportError deferred from earlier failure
-    
+
 try:
     import Tkinter
 except ImportError, x: # don't fail on this until it becomes a problem...
     Tkinter = _delay_import_error(x)
-    
+
 try:
     import tkMessageBox
 except ImportError, x: # don't fail on this until it becomes a problem...
     tkMessageBox = _delay_import_error(x)
-    
+
 try:
     import tkFileDialog
 except ImportError, x: # don't fail on this until it becomes a problem...
@@ -71,7 +65,7 @@ def showexception(exc_type, exc_value, traceback_str):
     class ShowExceptionFrame(Tkinter.Frame):
         """A window that shows a string and has a quit button."""
         def __init__(self,master,exc_type, exc_value, traceback_str):
-            VisionEgg.config._Tkinter_used = True            
+            VisionEgg.config._Tkinter_used = True
             Tkinter.Frame.__init__(self,master,borderwidth=20)
             title="Vision Egg: exception caught"
             first_str = "An unhandled exception was caught."
@@ -108,7 +102,7 @@ def showexception(exc_type, exc_value, traceback_str):
     f.pack()
     f.mainloop()
     f.winfo_toplevel().destroy()
-                
+
 class AppWindow(Tkinter.Frame):
     """A GUI Window that can be subclassed for a main application window"""
     def __init__(self,master=None,idle_func=lambda: None,**cnf):
@@ -118,7 +112,7 @@ class AppWindow(Tkinter.Frame):
 
         self.info_frame = InfoFrame(self)
         self.info_frame.pack()
-        
+
         self.idle_func = idle_func
         self.after(1,self.idle) # register idle function with Tkinter
 
@@ -179,7 +173,7 @@ class ProgressBar(Tkinter.Frame):
               float(value) / self.max * self.width, self.height)
         else:
             self.canvas.coords(self.scale, 0,
-                               self.height - (float(value) / 
+                               self.height - (float(value) /
                                               self.max*self.height),
                                self.width, self.height)
         # Now update the colors
@@ -189,7 +183,7 @@ class ProgressBar(Tkinter.Frame):
         if self.doLabel:
             if value:
                 if value >= 0:
-                    pvalue = int((float(value) / float(self.max)) * 
+                    pvalue = int((float(value) / float(self.max)) *
                                    100.0)
                 else:
                     pvalue = 0
@@ -205,11 +199,11 @@ class ProgressBar(Tkinter.Frame):
 class GraphicsConfigurationWindow(Tkinter.Frame):
     """Graphics Configuration Window"""
     def __init__(self,master=None,**cnf):
-        VisionEgg.config._Tkinter_used = True        
+        VisionEgg.config._Tkinter_used = True
         Tkinter.Frame.__init__(self,master,**cnf)
         self.winfo_toplevel().title('Vision Egg - Graphics configuration')
         self.pack()
-        
+
         self.clicked_ok = 0 # So we can distinguish between clicking OK and closing the window
 
         row = 0
@@ -219,11 +213,11 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         row += 1
 
         ################## begin topframe ##############################
-        
+
         topframe = Tkinter.Frame(self)
         topframe.grid(row=row,column=0,columnspan=2)
         topframe_row = 0
-        
+
         Tkinter.Label(topframe,
                       text=self.format_string("The default value for these variables and the presence of this dialog window can be controlled via the Vision Egg config file. If this file exists in the Vision Egg user directory, that file is used.  Otherwise, the configuration file found in the Vision Egg system directory is used."),
                       ).grid(row=topframe_row,column=1,columnspan=2,sticky=Tkinter.W)
@@ -248,7 +242,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         row += 1
 
         ################## begin file_frame ##############################
-        
+
         file_frame = Tkinter.Frame(self)
         file_frame.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E,pady=5)
 
@@ -265,14 +259,14 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         Tkinter.Label(file_frame,
                       text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_SYSTEM_DIR),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         file_row += 1
-        
+
         # Vision Egg user dir
         Tkinter.Label(file_frame,
                       text="Vision Egg user directory:").grid(row=file_row,column=0,sticky=Tkinter.E)
         Tkinter.Label(file_frame,
                       text="%s"%(os.path.abspath(VisionEgg.config.VISIONEGG_USER_DIR),)).grid(row=file_row,column=1,sticky=Tkinter.W)
         file_row += 1
-        
+
         # Config file
         Tkinter.Label(file_frame,
                       text="Config file location:").grid(row=file_row,column=0,sticky=Tkinter.E)
@@ -299,11 +293,11 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         row += 1
 
         ################## begin cf ##############################
-        
+
         cf = Tkinter.Frame(self)
         cf.grid(row=row,column=0,padx=10)
 
-        cf_row = 0 
+        cf_row = 0
         # Fullscreen
         self.fullscreen = Tkinter.BooleanVar()
         self.fullscreen.set(VisionEgg.config.VISIONEGG_FULLSCREEN)
@@ -311,7 +305,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             text='Fullscreen',
                             variable=self.fullscreen,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-        
+
         cf_row += 1
         self.synclync_present = Tkinter.BooleanVar()
         self.synclync_present.set(VisionEgg.config.SYNCLYNC_PRESENT)
@@ -326,8 +320,8 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                                 text='SyncLync device present',
                                 variable=self.synclync_present,
                                 relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
-           
-        
+
+
         cf_row += 1
         # Maximum priority
         self.maxpriority = Tkinter.BooleanVar()
@@ -374,7 +368,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             variable=self.frameless,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
-        
+
         # Hide mouse
         self.mouse_visible = Tkinter.BooleanVar()
         self.mouse_visible.set(not VisionEgg.config.VISIONEGG_HIDE_MOUSE)
@@ -383,7 +377,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             variable=self.mouse_visible,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
-        
+
         # Stereo
         self.stereo = Tkinter.BooleanVar()
         self.stereo.set(VisionEgg.config.VISIONEGG_REQUEST_STEREO)
@@ -392,7 +386,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                             variable=self.stereo,
                             relief=Tkinter.FLAT).grid(row=cf_row,column=0,sticky=Tkinter.W)
         cf_row += 1
-        
+
         if sys.platform == 'darwin':
             if sys.version == '2.2 (#11, Jan  6 2002, 01:00:42) \n[GCC 2.95.2 19991024 (release)]':
                 if Tkinter.TkVersion == 8.4:
@@ -410,7 +404,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         entry_frame = Tkinter.Frame(self)
         entry_frame.grid(row=row,column=1,padx=10,sticky="n")
         row += 1
-        ef_row = 0 
+        ef_row = 0
 
         # frame rate
         Tkinter.Label(entry_frame,text="What will your monitor refresh's rate be (Hz):").grid(row=ef_row,column=0,sticky=Tkinter.E)
@@ -524,9 +518,9 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         Tkinter.Button(gamma_frame,
                        command=self.set_gamma_file,
                        text="Set...").grid(row=0,column=11)
-        
+
         ################## end gamma_frame ###################
-        
+
         row += 1
         bf = Tkinter.Frame(self)
         bf.grid(row=row,columnspan=2,sticky=Tkinter.W+Tkinter.E)
@@ -578,7 +572,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                 cur_line = "    "
         out_str = out_str + cur_line + "\n"
         return out_str
-        
+
     def darwin_maxpriority_tune(self):
         class DarwinFineTuneDialog(ToplevelDialog):
             def __init__(self,parent,**cnf):
@@ -605,7 +599,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                     Using_Mach__pplications.html Hint: Try the
                     realtime task method with the framerate as the
                     denominator.  """
-                    
+
                     )).grid(row=row,columnspan=4,column=0)
                 row = 1
 #                Tkinter.Checkbutton(f,text="Use conventional priority",variable=parent.darwin_conventional).grid(row=row,column=0,columnspan=4)
@@ -638,10 +632,10 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
                 row += 1
                 Tkinter.Button(f, text="ok",command=self.ok).grid(row=row,column=0,columnspan=4)
                 self.wait_window(self)
-                
+
             def ok(self):
                 self.destroy()
-                
+
         DarwinFineTuneDialog(parent=self)
 
     def _set_config_values(self):
@@ -676,7 +670,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
 
         if self.show_synclync_option:
             VisionEgg.config.SYNCLYNC_PRESENT = self.synclync_present.get()
-        
+
     def save(self,dummy_arg=None):
         self._set_config_values()
         try:
@@ -724,7 +718,7 @@ class InfoFrame(Tkinter.Frame):
 class ToplevelDialog(Tkinter.Toplevel):
     """Base class for a dialog that runs on the top level."""
     def __init__(self,**kw):
-        VisionEgg.config._Tkinter_used = True        
+        VisionEgg.config._Tkinter_used = True
         Tkinter.Toplevel.__init__(self,**kw)
         self.transient(self)
 
@@ -743,7 +737,7 @@ class GetKeypressDialog(ToplevelDialog):
     The following example will print whatever character was pressed:
     d = GetKeypressDialog(key_list=['q','1','2','<Return>','<Escape>'])
     print d.result
-    
+
     The implementation is somewhat obscure because a new Tk/Tcl
     interpreter may be created if this Dialog is called with no
     master widget."""
@@ -752,7 +746,7 @@ class GetKeypressDialog(ToplevelDialog):
                  text="Press a key",
                  key_list=[],
                  **kw):
-        
+
         ToplevelDialog.__init__(self,**kw)
         self.title(title)
         self.result = None
@@ -763,7 +757,7 @@ class GetKeypressDialog(ToplevelDialog):
         for key in key_list:
             self.bind(key,self.keypress)
         self.wait_window(self)
-        
+
     def keypress(self,tkinter_event):
         self.result = tkinter_event.keysym
         self.destroy()

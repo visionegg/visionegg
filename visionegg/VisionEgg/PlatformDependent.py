@@ -1,13 +1,12 @@
 # The Vision Egg: PlatformDependent
 #
 # Copyright (C) 2001-2003 Andrew Straw.
-# Author: Andrew Straw <astraw@users.sourceforge.net>
+# Copyright (C) 2008 California Institute of Technology
+#
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Implementations of functions which vary by platform.
@@ -31,11 +30,6 @@ import VisionEgg.Core
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 def set_priority(*args,**kw):
     """Set the priority of the Vision Egg application.
 
@@ -44,7 +38,7 @@ def set_priority(*args,**kw):
 
     Raises an exception on failure.
     """
-    
+
     # potential keywords
     parse_me = ["darwin_realtime_period_denom",
                 "darwin_realtime_computation_denom",
@@ -79,7 +73,7 @@ def set_priority(*args,**kw):
         # 1) http://developer.apple.com/techpubs/macosx/Darwin/General/KernelProgramming/scheduler/Using_Mach__pplications.html
         #
         # 2) The Mac OS X port of the Esound daemon.
-                   
+
         import darwin_maxpriority
 
         if params['darwin_maxpriority_conventional_not_realtime']:
@@ -89,7 +83,7 @@ def set_priority(*args,**kw):
             logger.info("Setting max priority mode for darwin platform "
                         "using conventional priority %d."%(
                         params['darwin_conventional_priority'],))
-                
+
             # set the priority of the current process
             darwin_maxpriority.setpriority(process,0,params['darwin_conventional_priority'])
 
@@ -130,7 +124,7 @@ def set_priority(*args,**kw):
             win32_maxpriority.HIGH_PRIORITY_CLASS )
         win32_maxpriority.set_self_thread_priority(
             win32_maxpriority.THREAD_PRIORITY_HIGHEST)
-        
+
     elif sys.platform.startswith('irix') or sys.platform.startswith('linux') or sys.platform.startswith('posix'):
         import posix_maxpriority
         policy = posix_maxpriority.SCHED_FIFO
@@ -142,7 +136,7 @@ def set_priority(*args,**kw):
         posix_maxpriority.stop_memory_paging()
     else:
         raise RuntimeError("Cannot change priority.  Unknown platform '%s'"%sys.platform)
-            
+
 def linux_but_unknown_drivers():
     """Warn that platform is linux, but drivers not known."""
     # If you've added support for other drivers to sync with VBLANK under
@@ -152,7 +146,7 @@ def linux_but_unknown_drivers():
                    "you are running linux but not known/supported "
                    "drivers (only nVidia and recent Mesa DRI Radeon "
                    "currently supported).")
-    
+
 def sync_swap_with_vbl_pre_gl_init():
     """Try to synchronize buffer swapping and vertical retrace before starting OpenGL."""
     success = 0
@@ -161,7 +155,7 @@ def sync_swap_with_vbl_pre_gl_init():
         # check if drivers are nVidia because we have to do that requires
         # OpenGL context started, but this variable must be set
         # before OpenGL context started!
-        
+
         # Assume drivers are nVidia or recent ATI
         VisionEgg.Core.add_gl_assumption("__SPECIAL__","linux_nvidia_or_new_ATI",linux_but_unknown_drivers)
         # Set for nVidia linux
@@ -199,7 +193,7 @@ def sync_swap_with_vbl_post_gl_init():
                                "swapping on darwin: %s: %s"%(str(x.__class__),str(x)))
     except:
         pass
-    
+
     return success
 
 def query_refresh_rate(screen):
@@ -231,13 +225,13 @@ def attempt_to_load_multitexturing():
         libGL.glGetString.restype = ctypes.c_char_p
         vers = libGL.glGetString( ctypes.c_int( gl.GL_VERSION ) )
         logger.debug("ctypes loaded OpenGL %s"%vers)
-        
+
         gl.glActiveTexture = libGL.glActiveTexture
         gl.glActiveTexture.argtypes = [ctypes.c_int]
-        
+
         gl.glMultiTexCoord2f = libGL.glMultiTexCoord2f
         gl.glMultiTexCoord2f.argtypes = [ctypes.c_int, ctypes.c_float, ctypes.c_float]
-        
+
         # assign constants found by looking at gl.h
         gl.GL_TEXTURE0 = 0x84C0
         gl.GL_TEXTURE1 = 0x84C1
