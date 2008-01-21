@@ -34,9 +34,9 @@ import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
 import VisionEgg.GLTrace                        # Allows tracing of all OpenGL calls
 import VisionEgg.ThreeDeeMath                   # OpenGL math simulation
 
-import pygame                                   # pygame handles OpenGL window setup
-import pygame.locals
-import pygame.display
+## import pygame                                   # pygame handles OpenGL window setup
+## import pygame.locals
+## import pygame.display
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
@@ -51,9 +51,15 @@ except NameError:
     def sum( values ):
         return reduce(operator.add, values )
 
+global all_windows
+all_windows = []
+
 def swap_buffers():
     VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
-    return pygame.display.flip()
+    global all_windows
+    for w in all_windows:
+        w.flip()
+    return
 
 ####################################################################
 #
@@ -61,7 +67,7 @@ def swap_buffers():
 #
 ####################################################################
 
-class Screen(VisionEgg.ClassWithParameters):
+class _Screen(VisionEgg.ClassWithParameters):
     """An OpenGL window, possibly displayed across multiple displays.
 
     A Screen instance is an OpenGL window for the Vision Egg to draw
@@ -737,7 +743,7 @@ def get_default_screen():
     return Screen.create_default()
 
 
-class Window(Screen):
+class Window(_Screen):
     """VisionEgg window, based on pyglet window. Similar to VisionEgg.Screen based on pygame/SDL
 
     TODO: multiple inheritance from both pyglet.window.Window and VisionEgg.Screen.
@@ -822,6 +828,8 @@ class Window(Screen):
                                         style=style,
                                         vsync=cp.double_buffer,
                                         screen=self.screen)
+        global all_windows
+        all_windows.append( self.win )
 
         self.win.set_fullscreen(cp.fullscreen) # fullscreen can't be set with width and height in constructor
 
@@ -851,11 +859,10 @@ class Window(Screen):
                          "because you need pygame release 1.5 or "
                          "greater. This is only of concern if you "
                          "need this feature.")
-        '''
 
         flags = pygame.locals.OPENGL
         try_bpp = cp.preferred_bpp
-        '''
+
         append_str = ""
         if cp.fullscreen:
             screen_mode = "fullscreen"
@@ -1028,7 +1035,7 @@ class Window(Screen):
                             hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
         finally:
             if window == None:
-                # Opening window failed.  Let's do any cleanup that Screen.__init__ missed.
+                # Opening window failed.  Let's do any cleanup that Window.__init__ missed.
                 '''
                 try:
                     pygame.mouse.set_visible(1) # make sure mouse is visible
@@ -1118,6 +1125,12 @@ def get_default_window(screen=None):
 #        Projection and derived classes
 #
 ####################################################################
+
+class Screen(Window):
+    def __init__(self,*args,**kwargs):
+        import warnings
+        warnings.warn('you are instantiating a deprecated class - use Window instead!')
+        super(Screen, self).__init__(*args, **kwargs)
 
 class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     """Converts stimulus coordinates to viewport coordinates.
@@ -1560,7 +1573,7 @@ class Stimulus(VisionEgg.ClassWithParameters):
 #
 ####################################################################
 
-class Viewport(VisionEgg.ClassWithParameters):
+class _Viewport(VisionEgg.ClassWithParameters):
     """Connects stimuli to a screen.
 
     A viewport defines a (possibly clipped region) of the screen on
@@ -1615,8 +1628,9 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'screen':(None,
-                  ve_types.Instance(Screen),
-                  'The screen in which this viewport is drawn'),
+                  #ve_types.Instance(_Screen),
+                  ve_types.NoneType,
+                  'The window in which this viewport is drawn'),
         'position':((0,0),
                     ve_types.Sequence2(ve_types.Real),
                     'Position (in pixel units) within the screen'),
@@ -1663,7 +1677,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
         """
-        VisionEgg.ClassWithParameters.__init__(self,**kw)
+        super(_Viewport, self).__init__(**kw)
 
         if self.parameters.screen is None:
             raise ValueError("Must specify screen when creating an instance of Viewport.")
@@ -1761,7 +1775,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         return self.norm_device_2_window( my_proj.eye_2_norm_device( eye_coords_vertex ) )
 
 
-class pyglet_Viewport(Viewport):
+class Viewport(_Viewport):
     """Connects stimuli to a pyglet window.
 
     A viewport defines a (possibly clipped region) of the window on
@@ -1796,25 +1810,16 @@ class pyglet_Viewport(Viewport):
 
     Parameters
     ==========
-    anchor        -- How position parameter is interpreted (String)
-                     Default: lowerleft
-    camera_matrix -- extrinsic camera parameter matrix (position and orientation) (Instance of <class 'VisionEgg.Core.ModelView'>)
-                     Default: (determined at runtime)
-    depth_range   -- depth range (in object units) for rendering (Sequence2 of Real)
-                     Default: (0, 1)
-    position      -- Position (in pixel units) within the window (Sequence2 of Real)
-                     Default: (0, 0)
-    projection    -- intrinsic camera parameter matrix (field of view, focal length, aspect ratio) (Instance of <class 'VisionEgg.Core.Projection'>)
-                     Default: (determined at runtime)
-    window        -- The window in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Window'>)
-                     Default: (determined at runtime)
-    size          -- Size (in pixel units) (Sequence2 of Real)
-                     Default: (determined at runtime)
-    stimuli       -- sequence of stimuli to draw in window (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
-                     Default: (determined at runtime)
+
     """
 
-    def __init__(self, **kw):
+    parameters_and_defaults = VisionEgg.ParameterDefinition({
+        'window':(None,
+                  ve_types.Instance(Window),
+                  'The window in which this viewport is drawn'),
+        })
+
+    def __init__(self, **kwargs):
         """Create a new instance.
 
         Required arguments:
@@ -1829,14 +1834,14 @@ class pyglet_Viewport(Viewport):
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
         """
-        try:
-            del self.parameters_and_defaults['screen'] # del inherited 'screen' param
-        except KeyError:
-            pass
-        self.parameters_and_defaults['window'] = (None,
-                                                  ve_types.Instance(Window),
-                                                  'The window in which this viewport is drawn')
-        VisionEgg.ClassWithParameters.__init__(self, **kw)
+        ## try:
+        ##     del self.parameters_and_defaults['screen'] # del inherited 'screen' param
+        ## except KeyError:
+        ##     pass
+        ## self.parameters_and_defaults['window'] = (None,
+        ##                                           ve_types.Instance(Window),
+        ##                                           'The window in which this viewport is drawn')
+        super(Viewport, self).__init__(**kwargs)
 
         if self.parameters.window == None:
             raise ValueError("Must specify window when creating an instance of Viewport.")

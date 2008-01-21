@@ -211,7 +211,7 @@ class MouseTarget(object):
         # Create viewport(s), all with identical stimuli
         self.viewports = []
         for win in self.wins:
-            viewport = VisionEgg.Core.pyglet_Viewport(window=win, stimuli=self.stimuli)
+            viewport = VisionEgg.Core.Viewport(window=win, stimuli=self.stimuli)
             self.viewports.append(viewport)
 
         self.attach_handlers()

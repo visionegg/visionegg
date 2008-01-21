@@ -120,8 +120,8 @@ class Target2D(VisionEgg.Core.Stimulus):
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            gl.glTranslate(center[0],center[1],0.0)
-            gl.glRotate(p.orientation,0.0,0.0,1.0)
+            gl.glTranslatef(center[0],center[1],0.0)
+            gl.glRotatef(p.orientation,0.0,0.0,1.0)
 
             if len(p.color)==3:
                 gl.glColor3f(*p.color)

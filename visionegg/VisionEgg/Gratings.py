@@ -24,6 +24,7 @@ try:
 except ImportError:
     import VisionEgg.py_logging as logging      # use local copy otherwise
 
+import ctypes
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Textures
@@ -31,13 +32,6 @@ import VisionEgg.ParameterTypes as ve_types
 import numpy
 import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 def _get_type_info( bitdepth ):
     """Private helper function to calculate type info based on bit depth"""
@@ -288,10 +282,14 @@ class SinGrating2D(LuminanceGratingCommon):
                         self.format,                       # format of texel data
                         self.gl_type,                      # type of texel data
                         texel_data)                        # texel data (irrelevant for proxy)
-        if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D, # Need PyOpenGL >= 2.0
-                                       0,
-                                       gl.GL_TEXTURE_WIDTH) == 0:
-            raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
+        if 1:
+            import warnings
+            warnings.warn('skipping texture width test in Gratings.py')
+        else:
+            if gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_1D, # Need PyOpenGL >= 2.0
+                                           0,
+                                           gl.GL_TEXTURE_WIDTH) == 0:
+                raise NumSamplesTooLargeError("Grating num_samples is too wide for your video system!")
 
         # If we got here, it worked and we can load the texture for real.
         gl.glTexImage1D(gl.GL_TEXTURE_1D,                  # target
@@ -317,7 +315,7 @@ class SinGrating2D(LuminanceGratingCommon):
                                "color gratings properly.")
 
     def __del__(self):
-        gl.glDeleteTextures( [self._texture_object_id] )
+        gl.glDeleteTextures( self._texture_object_id )
 
     def draw(self):
         p = self.parameters # shorthand
@@ -338,10 +336,10 @@ class SinGrating2D(LuminanceGratingCommon):
             gl.glPushMatrix()
 
             # Rotate about the center of the texture
-            gl.glTranslate(center[0],
-                           center[1],
-                           0)
-            gl.glRotate(p.orientation,0,0,1)
+            gl.glTranslatef(center[0],
+                            center[1],
+                            0)
+            gl.glRotatef(p.orientation,0,0,1)
 
             if p.depth is None:
                 gl.glDisable(gl.GL_DEPTH_TEST)
@@ -612,7 +610,7 @@ class SinGrating3D(LuminanceGratingCommon):
                                "color gratings properly.")
 
     def __del__(self):
-        gl.glDeleteTextures( [self._texture_object_id] )
+        gl.glDeleteTextures( self._texture_object_id )
 
     def draw(self):
         p = self.parameters # shorthand

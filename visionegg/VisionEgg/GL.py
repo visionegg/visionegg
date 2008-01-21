@@ -14,30 +14,42 @@ Vision Egg GL module -- lump all OpenGL names in one namespace.
 
 """
 
-from OpenGL.GL import * # get everything from OpenGL.GL
-import OpenGL
-__version__ = OpenGL.__version__
+from pyglet.gl import * # get everything from pyglet.gl
+from pyglet.gl import gl_info
+import pyglet.gl
+import ctypes
+import numpy
 
-# tell py2exe we want these modules
-try:
-    import OpenGL.GL.GL__init___
-except:
-    pass
-try:
-    import OpenGL.GL.ARB.multitexture
-except:
-    pass
-try:
-    import OpenGL.GL.EXT.bgra
-except:
-    pass
-try:
-    import SGIS.texture_edge_clamp
-except:
-    pass
+__version__ = pyglet.gl.__version__
 
-# why doesn't PyOpenGL define this?!
-try:
-    GL_UNSIGNED_INT_8_8_8_8_REV
-except NameError:
-    GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367 
+## # why doesn't PyOpenGL define this?!
+## try:
+##     GL_UNSIGNED_INT_8_8_8_8_REV
+## except NameError:
+##     GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367
+
+float_ptr = ctypes.POINTER(ctypes.c_float)
+
+# maintain compatibility with PyOpenGL #############################
+def glLoadMatrixf( arr ):
+    arr = numpy.asarray( arr )
+    pyglet.gl.glLoadMatrixf( arr.ctypes.data_as( float_ptr ))
+
+def glGenTextures( num ):
+    if num != 1:
+        raise NotImplementedError('')
+    gl_id = ctypes.c_uint(0)
+    pyglet.gl.glGenTextures(num,ctypes.byref(gl_id))
+    return gl_id.value
+
+def glDeleteTextures( id ):
+    gl_id = ctypes.c_uint(id)
+    pyglet.gl.glDeleteTextures( ctypes.byref(gl_id) )
+
+def glGetIntegerv( attr ):
+    val = gl.GLint()
+    pyglet.gl.glGetIntegerv(attr,ctypes.byref(val))
+    return val.value
+
+def glGetString( attr ):
+    return cast( pyglet.gl.glGetString(attr), c_char_p).value

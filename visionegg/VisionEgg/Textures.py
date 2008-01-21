@@ -661,12 +661,16 @@ class TextureObject(object):
                                 data_format,
                                 data_type,
                                 raw_data)
-                if gl.glGetTexLevelParameteriv(target, # Need PyOpenGL >= 2.0
-                                               mipmap_level,
-                                               gl.GL_TEXTURE_WIDTH) == 0:
-                    raise TextureTooLargeError("texel_data is too wide for your video system.")
-                if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
-                    raise TextureTooLargeError("texel_data is too tall for your video system.")
+                if 1:
+                    import warnings
+                    warnings.warn('skipping texture width test in Textures.py')
+                else:
+                    if gl.glGetTexLevelParameteriv(target, # Need PyOpenGL >= 2.0
+                                                   mipmap_level,
+                                                   gl.GL_TEXTURE_WIDTH) == 0:
+                        raise TextureTooLargeError("texel_data is too wide for your video system.")
+                    if gl.glGetTexLevelParameteriv(target,mipmap_level,gl.GL_TEXTURE_HEIGHT) == 0:
+                        raise TextureTooLargeError("texel_data is too tall for your video system.")
             elif self.dimensions == 3:
                 if max(height,depth) > max_dim:
                     raise TextureTooLargeError("texel_data is too large for your video system.")
@@ -1426,8 +1430,8 @@ class TextureStimulus(TextureStimulusBaseClass):
                 translate_vector = p.position
                 if len(translate_vector) == 2:
                     translate_vector = translate_vector[0], translate_vector[1], 0
-                gl.glTranslate(*translate_vector)
-                gl.glRotate(p.angle,0,0,1)
+                gl.glTranslatef(*translate_vector)
+                gl.glRotatef(p.angle,0,0,1)
 
                 gl.glColor4f(p.color[0],p.color[1],p.color[2],p.max_alpha)
 

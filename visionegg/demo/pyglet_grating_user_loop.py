@@ -14,6 +14,8 @@ If you want to create more windows, add more calls to get_default_window()"""
 
 from __future__ import division
 
+import VisionEgg
+VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 import VisionEgg.Core
 import pyglet.window
 from VisionEgg.FlowControl import Presentation
@@ -49,7 +51,7 @@ stimulus = SinGrating2D(position=(wins[0].win.width/2, wins[0].win.height/2),
 
 viewports = [] # list of viewports, one per window
 for win in wins:
-    viewport = VisionEgg.Core.pyglet_Viewport(window=win, stimuli=[stimulus])
+    viewport = VisionEgg.Core.Viewport(window=win, stimuli=[stimulus])
     viewports.append(viewport)
 
 ##########################
