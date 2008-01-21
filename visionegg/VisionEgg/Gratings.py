@@ -32,6 +32,7 @@ import VisionEgg.ParameterTypes as ve_types
 import numpy
 import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
+import _vegl
 
 def _get_type_info( bitdepth ):
     """Private helper function to calculate type info based on bit depth"""
@@ -373,14 +374,23 @@ class SinGrating2D(LuminanceGratingCommon):
                 self._last_phase = phase # we're re-drawing the phase at this angle
                 floating_point_sin = numpy.sin(2.0*math.pi*p.spatial_freq*numpy.arange(0.0,w,inc,dtype=numpy.float)+(phase/180.0*math.pi))*0.5*p.contrast+p.pedestal
                 floating_point_sin = numpy.clip(floating_point_sin,0.0,1.0) # allow square wave generation if contrast > 1
-                texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype).tostring()
-                gl.glTexSubImage1D(gl.GL_TEXTURE_1D, # target
-                                   0,                # level
-                                   0,                # x offset
-                                   p.num_samples,    # width
-                                   self.format,      # format of new texel data
-                                   self.gl_type,     # type of new texel data
-                                   texel_data)       # new texel data
+                texel_data = (floating_point_sin*self.max_int_val).astype(self.numpy_dtype)
+                # PyOpenGL 2.0.1.09 has a bug, so use our own wrapper
+                _vegl.veglTexSubImage1D(gl.GL_TEXTURE_1D, # target
+                                        0,                # level
+                                        0,                # x offset
+                                        p.num_samples,    # width
+                                        self.format,      # format of new texel data
+                                        self.gl_type,     # type of new texel data
+                                        texel_data)       # new texel data
+                if 0:
+                    compare_array = numpy.empty(texel_data.shape,dtype=texel_data.dtype)
+                    pixels = _vegl.veglGetTexImage(gl.GL_TEXTURE_1D, # target
+                                                   0, # level
+                                                   self.format, # format
+                                                   self.gl_type, # type
+                                                   compare_array)
+                    assert numpy.allclose( compare_array, texel_data )
 
             h_w = p.size[0]/2.0
             h_h = p.size[1]/2.0

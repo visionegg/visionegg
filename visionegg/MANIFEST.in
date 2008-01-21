@@ -7,7 +7,6 @@ include VisionEgg/*.pyx
 include VisionEgg/*.c
 include VisionEgg/*.m
 include VisionEgg/*.h
-include lib3ds/*
 include doc/reference/html/*
 include doc/reference/epydoc
 include doc/reference/make_epy.sh

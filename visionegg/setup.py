@@ -166,6 +166,13 @@ if not skip_c_compilation:
                                                       gl_extra_link_args),
                                      ))
 
+    # _vegl
+    ext_modules.append(Extension(name='_vegl',
+                                 sources=['VisionEgg/_vegl.pyx',],
+                                 libraries=gl_libraries,
+                                 extra_link_args=gl_extra_link_args
+                                 ))
+
     # C extensions for drawing GL stuff
     include_prefix = os.path.join( sys.prefix, 'include', 'python%s'%sys.version[:3] )
     numpy_include_dir = numpy.get_include()
