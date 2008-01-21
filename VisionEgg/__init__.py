@@ -335,12 +335,13 @@ class ClassWithParameters( object ):
                     if value is not None:
                         # Check anything other than None
                         if not tipe.verify(value):
+                            print 'parameter_name',parameter_name
                             print 'value',value
                             print 'type value',type(value)
                             print 'isinstance(value, numpy.ndarray)',isinstance(value, numpy.ndarray)
                             print 'tipe',tipe
 
-                            if isinstance(value, numpy.ndarray):
+                            if not isinstance(value, numpy.ndarray):
                                 value_str = str(value)
                             else:
                                 if Numeric.multiply.reduce(value.shape) < 10:
