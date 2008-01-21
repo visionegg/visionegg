@@ -1,11 +1,11 @@
 #ifndef _QUICKTIME_C_H_
 #define _QUICKTIME_C_H_
 
+#include "vegl.h"
+
 #if defined(__APPLE__)
-#  include <OpenGL/gl.h>
 #  include <QuickTime/Movies.h>
 #else
-#  include <GL/gl.h>
 #  include <Movies.h>
 #endif
 

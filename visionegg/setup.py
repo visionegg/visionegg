@@ -2,7 +2,7 @@
 """Setup script for the Vision Egg distribution.
 """
 # Copyright (C) 2001-2003 Andrew Straw
-# Copyright (C) 2004-2006 California Institute of Technology
+# Copyright (C) 2004-2008 California Institute of Technology
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL).
 
@@ -60,7 +60,7 @@ classifiers = [
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-    
+
 from distutils.errors import CCompilerError
 import distutils.command.sdist
 from distutils import dir_util
@@ -80,7 +80,7 @@ if not skip_c_compilation:
         gl_extra_link_args = ['-framework','OpenGL']
     else:
         gl_extra_link_args = []
-        
+
     if sys.platform == 'win32':
         gl_libraries = ['opengl32']#,'glu32']
     elif sys.platform.startswith('linux'):
@@ -124,9 +124,9 @@ if not skip_c_compilation:
                                      sources=['VisionEgg/darwin_getrefresh.m',
                                               'VisionEgg/darwin_getrefresh_wrap.c'],
                                      extra_link_args=['-framework','Cocoa']))
-        
 
-        
+
+
     elif sys.platform == 'win32':
         ext_modules.append(Extension(name='_win32_maxpriority',
                                      sources=[os.path.join('VisionEgg','win32_maxpriority.c'),
@@ -142,7 +142,7 @@ if not skip_c_compilation:
                                               os.path.join('VisionEgg','win32_load_driver.c')],
                                      libraries=['User32'],
                                      ))
-        
+
     elif sys.platform.startswith('linux') or sys.platform.startswith('irix'):
         ext_modules.append(Extension(name='_posix_maxpriority',
                                      sources=['VisionEgg/posix_maxpriority.c',
@@ -151,7 +151,7 @@ if not skip_c_compilation:
             ext_modules.append(Extension(name='_raw_lpt_linux',sources=['VisionEgg/_raw_lpt_linux.c']))
         else: # sys.platform.startswith('irix')
             ext_modules.append(Extension(name='_raw_plp_irix',sources=['VisionEgg/_raw_plp_irix.c']))
-            
+
     if sys.platform == 'darwin' or sys.platform== 'win32':
         # QuickTime support
         ext_modules.append(Extension(name='_gl_qt',
@@ -166,22 +166,12 @@ if not skip_c_compilation:
                                                       gl_extra_link_args),
                                      ))
 
-    # _lib3ds
-    lib3ds_sources = glob.glob(os.path.join('lib3ds','*.c'))
-    lib3ds_sources.append(os.path.join('VisionEgg','_lib3ds.c'))
-    ext_modules.append(Extension(name='_lib3ds',
-                                 sources=lib3ds_sources,
-                                 include_dirs=['.','lib3ds'],
-                                 libraries=gl_libraries,
-                                 extra_link_args=gl_extra_link_args
-                                 ))
-
     # C extensions for drawing GL stuff
     include_prefix = os.path.join( sys.prefix, 'include', 'python%s'%sys.version[:3] )
-    Numeric_include_dir = numpy.get_numpy_include()
+    numpy_include_dir = numpy.get_include()
     ext_modules.append(Extension(name='_draw_in_c',
                                  sources=['VisionEgg/_draw_in_c.c'],
-                                 include_dirs=[Numeric_include_dir],
+                                 include_dirs=[numpy_include_dir],
                                  libraries=gl_libraries,
                                  extra_link_args=gl_extra_link_args
                                  ))
@@ -241,7 +231,7 @@ class sdist_demo( distutils.command.sdist.sdist ):
             return fullname
         self.distribution.get_fullname = get_fullname # override this method
         distutils.command.sdist.sdist.make_distribution(self) # call super
-        
+
 class ve_build_ext( build_ext ):
     # This class allows C extension building to fail.
     # No extension is essential to the Vision Egg.
@@ -250,7 +240,7 @@ class ve_build_ext( build_ext ):
             build_ext.build_extension(self, ext)
         except CCompilerError, x:
             print ('*'*70+'\n')*3
-            
+
             print """WARNING: The %s extension module to the Vision
             Egg could not be compiled.  The Vision Egg should run, but
             the features present in that file will not be
@@ -261,13 +251,13 @@ class ve_build_ext( build_ext ):
 
             if sys.platform == 'win32':
                 print
-                
+
                 print """I see you are using Windows.  The default
                 compiler for this platform is the Microsoft Visual
                 Studio C compiler.  However, a free alternative
                 compiler called mingw can be used instead."""
 
-            print 
+            print
             print ('*'*70+'\n')*3
             global extension_build_failed
             if not extension_build_failed:
@@ -276,7 +266,7 @@ class ve_build_ext( build_ext ):
 def main():
     # make sure older versions of distutils work
     extras_kws = {}
-    if (hasattr(distutils.core, 'setup_keywords') and 
+    if (hasattr(distutils.core, 'setup_keywords') and
         'classifiers' in distutils.core.setup_keywords):
         extras_kws['classifiers'] = classifiers
 
@@ -302,7 +292,7 @@ def main():
 
     if extension_build_failed:
         print ('*'*70+'\n')*3
-        
+
         print """WARNING: Building of some extensions failed.  Please
         see the messages above for details.\n"""
 
