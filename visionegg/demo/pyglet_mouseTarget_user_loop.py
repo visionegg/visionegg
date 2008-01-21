@@ -11,7 +11,7 @@ import math
 import pyglet.window
 import pyglet.window.key as key
 import pyglet.window.mouse as mouse
-import OpenGL.GL as gl
+import VisionEgg.GL as gl
 
 import VisionEgg.Core
 from VisionEgg.MoreStimuli import Target2D
@@ -127,8 +127,8 @@ class MouseTarget(object):
             # need to use dx/dy when using exclusive_mouse
             self.x += dx
             self.y += dy
-            self.x = min(max(self.x, 0), self.wins[0].win.width) # constrain it to the first window
-            self.y = min(max(self.y, 0), self.wins[0].win.height)
+            self.x = min(max(self.x, 0), self.ve_screens[0].win.width) # constrain it to the first window
+            self.y = min(max(self.y, 0), self.ve_screens[0].win.height)
         else:
             self.x = x
             self.y = y
@@ -177,19 +177,19 @@ class MouseTarget(object):
         self.SCROLL = scroll_y / abs(scroll_y) # +ve or -ve scroll click
 
     def attach_handlers(self):
-        for win in self.wins:
-            win.win.push_handlers(self.on_mouse_motion)
-            win.win.push_handlers(self.on_key_press)
-            win.win.push_handlers(self.on_key_release)
-            win.win.push_handlers(self.on_mouse_press)
-            win.win.push_handlers(self.on_mouse_release)
-            win.win.push_handlers(self.on_mouse_scroll)
+        for ve_screen in self.ve_screens:
+            ve_screen.win.push_handlers(self.on_mouse_motion)
+            ve_screen.win.push_handlers(self.on_key_press)
+            ve_screen.win.push_handlers(self.on_key_release)
+            ve_screen.win.push_handlers(self.on_mouse_press)
+            ve_screen.win.push_handlers(self.on_mouse_release)
+            ve_screen.win.push_handlers(self.on_mouse_scroll)
 
     def exit(self):
         """Check if any windows have the has_exit attrib set True"""
         quit = False
-        for win in self.wins:
-            if win.win.has_exit:
+        for ve_screen in self.ve_screens:
+            if ve_screen.win.has_exit:
                 quit = True
         return quit
 
@@ -198,20 +198,20 @@ class MouseTarget(object):
         # Init OpenGL graphics windows, one window per requested screen
         platform = pyglet.window.get_platform()
         display = platform.get_default_display()
-        self.screens = display.get_screens()
-        self.wins = []
-        for screen in self.screens:
-            win = VisionEgg.Core.get_default_window(screen=screen)
-            win.win.set_exclusive_mouse(self.exclusive_mouse)
-            self.wins.append(win)
+        self.pyglet_screens = display.get_screens()
+        self.ve_screens = []
+        for pyglet_screen in self.pyglet_screens:
+            ve_screen = VisionEgg.Core.get_default_screen(pyglet_screen=pyglet_screen)
+            ve_screen.win.set_exclusive_mouse(self.exclusive_mouse)
+            self.ve_screens.append(ve_screen)
 
         # Create VisionEgg stimuli objects, defined by each specific subclass of Experiment
         self.createstimuli()
 
         # Create viewport(s), all with identical stimuli
         self.viewports = []
-        for win in self.wins:
-            viewport = VisionEgg.Core.Viewport(window=win, stimuli=self.stimuli)
+        for ve_screen in self.ve_screens:
+            viewport = VisionEgg.Core.Viewport(screen=ve_screen, stimuli=self.stimuli)
             self.viewports.append(viewport)
 
         self.attach_handlers()
@@ -220,26 +220,26 @@ class MouseTarget(object):
         self.main()
 
         # Close OpenGL graphics windows (necessary when running from Python interpreter)
-        for win in self.wins:
-            win.close()
+        for ve_screen in self.ve_screens:
+            ve_screen.close()
 
     def main(self):
         """Run the main stimulus loop"""
         while not self.exit():
 
-            for win in self.wins:
-                win.dispatch_events() # to the event handlers
+            for ve_screen in self.ve_screens:
+                ve_screen.dispatch_events() # to the event handlers
 
             self.get_targetsize()
             self.get_targetori()
             self.get_targetbrightness()
             self.updatestimuli()
 
-            for win, viewport in zip(self.wins, self.viewports):
-                win.switch_to()
-                win.clear()
+            for ve_screen, viewport in zip(self.ve_screens, self.viewports):
+                ve_screen.switch_to()
+                ve_screen.clear()
                 viewport.draw()
-                win.flip()
+                ve_screen.flip()
 
 
 if __name__ == '__main__':
