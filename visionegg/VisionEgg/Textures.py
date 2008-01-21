@@ -29,13 +29,12 @@ import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
 import Image, ImageDraw                         # Python Imaging Library packages
-import pygame.surface, pygame.image             # pygame
 import math, types, os
 import numpy
 import numpy.oldnumeric as numpyNumeric, numpy.oldnumeric.mlab as MLab
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-import OpenGL.GLU as glu
+import pyglet.gl as glu
 
 # These modules are part of PIL and get loaded as needed by Image.
 # They are listed here so that Gordon McMillan's Installer properly
@@ -176,8 +175,6 @@ class Texture(object):
             if texels.mode == 'P': # convert from paletted
                 texels = texels.convert('RGBX')
             self.size = texels.size
-        elif isinstance(texels, pygame.surface.Surface): # pygame surface
-            self.size = texels.get_size()
         elif isinstance(texels,numpy.ndarray): # numpy array
             if len(texels.shape) == 3:
                 if texels.shape[2] not in [3,4]:
@@ -186,7 +183,7 @@ class Texture(object):
                 raise ValueError("Only luminance (rank 2), and RGB, RGBA (rank 3) arrays allowed")
             self.size = ( texels.shape[1], texels.shape[0] )
         else:
-            raise TypeError("texel data could not be recognized. (Use a PIL Image, numpy array, or pygame surface.)")
+            raise TypeError("texel data could not be recognized. (Use a PIL Image or numpy array.)")
 
         self.texels = texels
         self.texture_object = None
@@ -325,11 +322,6 @@ class Texture(object):
                 else:
                     buffer = Image.new(self.texels.mode,(width_pow2, height_pow2))
                     buffer.paste( self.texels, (0,height_pow2-height,width,height_pow2))
-            elif isinstance(self.texels, pygame.surface.Surface): # pygame surface
-                buffer = pygame.surface.Surface( (width_pow2, height_pow2),
-                                                 self.texels.get_flags(),
-                                                 self.texels.get_bitsize() )
-                buffer.blit( self.texels, (0,height_pow2-height) )
             else:
                 raise RuntimeError("texel data not recognized - changed?")
         else:
@@ -549,10 +541,8 @@ class TextureObject(object):
                 assert(cube_side in TextureObject._cube_map_side_names)
         elif isinstance(texel_data,Image.Image):
             assert( self.dimensions == 2 )
-        elif isinstance(texel_data,pygame.surface.Surface):
-            assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array or PIL image")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
@@ -582,11 +572,6 @@ class TextureObject(object):
                     raise NotImplementedError("Paletted images are not supported.")
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
-            elif isinstance(texel_data,pygame.surface.Surface):
-                if texel_data.get_alpha():
-                    data_format = gl.GL_RGBA
-                else:
-                    data_format = gl.GL_RGB
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
@@ -611,8 +596,6 @@ class TextureObject(object):
                 height = texel_data.shape[0]
             elif isinstance(texel_data,Image.Image):
                 width, height = texel_data.size
-            elif isinstance(texel_data,pygame.surface.Surface):
-                width, height = texel_data.get_size()
             if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
             if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
             if self.dimensions == 3:
@@ -625,11 +608,6 @@ class TextureObject(object):
                 raw_data = texel_data.tostring()
             elif isinstance(texel_data,Image.Image):
                 raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
-            elif isinstance(texel_data,pygame.surface.Surface):
-                if texel_data.get_alpha():
-                    raw_data = pygame.image.tostring(texel_data,'RGBA',1)
-                else:
-                    raw_data = pygame.image.tostring(texel_data,'RGB',1)
 
         # check for OpenGL errors
         if check_opengl_errors:
@@ -741,10 +719,8 @@ class TextureObject(object):
             assert((data_dimensions == self.dimensions) or (data_dimensions == self.dimensions+1))
         elif isinstance(texel_data,Image.Image):
             assert( self.dimensions == 2 )
-        elif isinstance(texel_data,pygame.surface.Surface):
-            assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array or PIL image")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
@@ -774,11 +750,6 @@ class TextureObject(object):
                     raise NotImplementedError("Paletted images are not supported.")
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
-            elif isinstance(texel_data,pygame.surface.Surface):
-                if texel_data.get_alpha():
-                    data_format = gl.GL_RGBA
-                else:
-                    data_format = gl.GL_RGB
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
@@ -797,8 +768,6 @@ class TextureObject(object):
             height = texel_data.shape[0]
         elif isinstance(texel_data,Image.Image):
             width, height = texel_data.size
-        elif isinstance(texel_data,pygame.surface.Surface):
-            width, height = texel_data.get_size()
         if not is_power_of_2(width): raise ValueError("texel_data does not have all dimensions == n^2")
         if not is_power_of_2(height): raise ValueError("texel_data does not have all dimensions == n^2")
 
@@ -806,11 +775,6 @@ class TextureObject(object):
             raw_data = texel_data.tostring()
         elif isinstance(texel_data,Image.Image):
             raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
-        elif isinstance(texel_data,pygame.surface.Surface):
-            if texel_data.get_alpha():
-                raw_data = pygame.image.tostring(texel_data,'RGBA',1)
-            else:
-                raw_data = pygame.image.tostring(texel_data,'RGB',1)
 
         args = (self.target,
                               internal_format,
@@ -861,10 +825,8 @@ class TextureObject(object):
                 assert(cube_side in TextureObject._cube_map_side_names)
         elif isinstance(texel_data,Image.Image):
             assert( self.dimensions == 2 )
-        elif isinstance(texel_data,pygame.surface.Surface):
-            assert( self.dimensions == 2 )
         else:
-            raise TypeError("Expecting numpy array, PIL image, or pygame surface")
+            raise TypeError("Expecting numpy array or PIL image")
 
         # make myself the active texture
         gl.glBindTexture(self.target, self.gl_id)
@@ -896,11 +858,6 @@ class TextureObject(object):
                     raise NotImplementedError("Paletted images are not supported.")
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%data.mode)
-            elif isinstance(texel_data,pygame.surface.Surface):
-                if data.get_alpha():
-                    data_format = gl.GL_RGBA
-                else:
-                    data_format = gl.GL_RGB
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
@@ -946,12 +903,6 @@ class TextureObject(object):
                 width = data.size[0]
                 height = data.size[1]
                 raw_data = data.tostring('raw',data.mode,0,-1)
-            elif isinstance(texel_data,pygame.surface.Surface):
-                width, height = texel_data.get_size()
-                if data.get_alpha():
-                    raw_data = pygame.image.tostring(texel_data,'RGBA',1)
-                else:
-                    raw_data = pygame.image.tostring(texel_data,'RGB',1)
             gl.glTexSubImage2D(target,
                                mipmap_level,
                                x_offset,

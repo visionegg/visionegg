@@ -31,8 +31,6 @@ import VisionEgg.ParameterTypes as ve_types
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
-import pygame
-
 # Use Python's bool constants if available, make aliases if not
 try:
     True
@@ -137,6 +135,9 @@ class Text(VisionEgg.Textures.TextureStimulus):
         )
 
     def __init__(self,**kw):
+        if 1:
+            super(Text,self).__init__(**kw)
+            return
         if not pygame.font:
             raise RuntimeError("no pygame font module")
         if not pygame.font.get_init():
@@ -150,7 +151,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
             kw['mipmaps_enabled'] = 0
         if 'texture_min_filter' not in kw.keys():
             kw['texture_min_filter'] = gl.GL_LINEAR
-        VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
+        super(Text,self).__init__(**kw)
         cp = self.constant_parameters
         fontobject_args = (cp.font_name,cp.font_size)
         if fontobject_args not in _font_objects:
@@ -162,6 +163,8 @@ class Text(VisionEgg.Textures.TextureStimulus):
         self._render_text()
 
     def _render_text(self):
+        if 1:
+            return
         p = self.parameters
         rendered_surf = self.font.render(p.text, 1, (255,255,255)) # pygame.Surface object
 
@@ -173,6 +176,8 @@ class Text(VisionEgg.Textures.TextureStimulus):
             p.size = p.texture.size
 
     def draw(self):
+        if 1:
+            return
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
             raise RuntimeError("my texture has been modified, but it shouldn't be")

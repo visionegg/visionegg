@@ -35,6 +35,10 @@ def glLoadMatrixf( arr ):
     arr = numpy.asarray( arr )
     pyglet.gl.glLoadMatrixf( arr.ctypes.data_as( float_ptr ))
 
+def glMultMatrixf( arr ):
+    arr = numpy.asarray( arr )
+    pyglet.gl.glMultMatrixf( arr.ctypes.data_as( float_ptr ))
+
 def glGenTextures( num ):
     if num != 1:
         raise NotImplementedError('')
@@ -51,5 +55,17 @@ def glGetIntegerv( attr ):
     pyglet.gl.glGetIntegerv(attr,ctypes.byref(val))
     return val.value
 
+def glGetFloatv( attr ):
+    val = gl.GLfloat()
+    pyglet.gl.glGetFloatv(attr,ctypes.byref(val))
+    return val.value
+
 def glGetString( attr ):
     return cast( pyglet.gl.glGetString(attr), c_char_p).value
+
+def glReadPixels( *args ):
+    raise NotImplementedError('TODO: fix compatibility with PyOpenGL')
+
+def glTexEnvfv( a, b, c ):
+    arr = numpy.asarray( c )
+    return pyglet.gl.glTexEnvfv( a, b, arr.ctypes.data_as( float_ptr ))

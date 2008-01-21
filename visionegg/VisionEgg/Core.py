@@ -31,14 +31,10 @@ import logging                                  # available in Python 2.3
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
 import VisionEgg.ParameterTypes as ve_types     # Vision Egg type checking
-import VisionEgg.GLTrace                        # Allows tracing of all OpenGL calls
 import VisionEgg.ThreeDeeMath                   # OpenGL math simulation
 
-## import pygame                                   # pygame handles OpenGL window setup
-## import pygame.locals
-## import pygame.display
-
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
+import pyglet.window
 
 import numpy
 import numpy.oldnumeric as Numeric # emulate old Numeric Python package
@@ -67,64 +63,12 @@ def swap_buffers():
 #
 ####################################################################
 
-class _Screen(VisionEgg.ClassWithParameters):
-    """An OpenGL window, possibly displayed across multiple displays.
+class Screen(VisionEgg.ClassWithParameters):
+    """VisionEgg window, based on pyglet window. Similar to VisionEgg.Screen based on pygame/SDL
 
-    A Screen instance is an OpenGL window for the Vision Egg to draw
-    in.  For an instance of Screen to do anything useful, it must
-    contain one or more instances of the Viewport class and one or
-    more instances of the Stimulus class.
-
-    Currently, only one OpenGL window is supported by the library with
-    which the Vision Egg initializes graphics (pygame/SDL).  However,
-    this need not limit display to a single physical display device.
-    Many video drivers, for example, allow applications to treat two
-    separate monitors as one large array of contiguous pixels.  By
-    sizing a window such that it occupies both monitors and creating
-    separate viewports for the portion of the window on each monitor,
-    a multiple screen effect can be created.
-
-    Public read-only variables
-    ==========================
-    size -- Tuple of 2 integers specifying width and height
-
-    Parameters
-    ==========
-    bgcolor -- background color (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (0.5, 0.5, 0.5, 0.0)
-
-    Constant Parameters
-    ===================
-    alpha_bits          -- number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS (UnsignedInteger)
-                           Default: (determined at runtime)
-    blue_bits           -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
-                           Default: (determined at runtime)
-    double_buffer       -- use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER (Boolean)
-                           Default: (determined at runtime)
-    frameless           -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
-                           Default: (determined at runtime)
-    fullscreen          -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
-                           Default: (determined at runtime)
-    green_bits          -- number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS (UnsignedInteger)
-                           Default: (determined at runtime)
-    hide_mouse          -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
-                           Default: (determined at runtime)
-    is_stereo           -- allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO (Boolean)
-                           Default: (determined at runtime)
-    maxpriority         -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
-                           Default: (determined at runtime)
-    multisample_samples -- preferred number of multisamples for FSAA (UnsignedInteger)
-                           Default: (determined at runtime)
-    preferred_bpp       -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
-                           Default: (determined at runtime)
-    red_bits            -- number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS (UnsignedInteger)
-                           Default: (determined at runtime)
-    size                -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
-                           Default: (determined at runtime)
-    sync_swap           -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
-                           Default: (determined at runtime)
+    TODO: multiple inheritance from both pyglet.window.Window and VisionEgg.Screen.
+    This would require a separate module that would be imported only if pyglet is installed.
     """
-
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'bgcolor':((0.5,0.5,0.5,0.0),
                    ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
@@ -133,27 +77,27 @@ class _Screen(VisionEgg.ClassWithParameters):
         })
 
     constant_parameters_and_defaults = VisionEgg.ParameterDefinition({
-        'size':(None,
-                ve_types.Sequence2(ve_types.Real),
-                'size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H'),
         'fullscreen':(None,
                       ve_types.Boolean,
                       'use full screen? Can be set with VISIONEGG_FULLSCREEN'),
-        'double_buffer':(None,
-                         ve_types.Boolean,
-                         'use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER'),
-        'preferred_bpp':(None,
-                         ve_types.UnsignedInteger,
-                         'preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP'),
         'maxpriority':(None,
                        ve_types.Boolean,
                        'raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY'),
         'hide_mouse':(None,
                       ve_types.Boolean,
                       'hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE'),
+        'preferred_bpp':(None,
+                         ve_types.UnsignedInteger,
+                         'preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP'),
         'frameless':(None,
                      ve_types.Boolean,
                      'remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW'),
+        'size':(None,
+                ve_types.Sequence2(ve_types.UnsignedInteger),
+                'size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H'),
+        'double_buffer':(None,
+                         ve_types.Boolean,
+                         'use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER'),
         'sync_swap':(None,
                      ve_types.Boolean,
                      'synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP'),
@@ -176,593 +120,23 @@ class _Screen(VisionEgg.ClassWithParameters):
                                ve_types.UnsignedInteger,
                                'preferred number of multisamples for FSAA'),
         })
-
     __slots__ = (
-        '__cursor_visible_func__',
-        '__pygame_quit__',
-        '_put_pixels_texture_stimulus',
-        '_pixel_coord_projection',
+        'pyglet_screen',
+        'win',
         )
-
-    def __init__(self,**kw):
-        logger = logging.getLogger('VisionEgg.Core')
-
-        VisionEgg.ClassWithParameters.__init__(self,**kw)
-
-        cp = self.constant_parameters # shorthand
-        if cp.size is None:
-            cp.size = (VisionEgg.config.VISIONEGG_SCREEN_W,
-                       VisionEgg.config.VISIONEGG_SCREEN_H)
-        if cp.double_buffer is None:
-            cp.double_buffer = VisionEgg.config.VISIONEGG_DOUBLE_BUFFER
-        if cp.fullscreen is None:
-            cp.fullscreen = VisionEgg.config.VISIONEGG_FULLSCREEN
-        if cp.preferred_bpp is None:
-            cp.preferred_bpp = VisionEgg.config.VISIONEGG_PREFERRED_BPP
-        if cp.maxpriority is None:
-            cp.maxpriority = VisionEgg.config.VISIONEGG_MAXPRIORITY
-        if cp.hide_mouse is None:
-            cp.hide_mouse = VisionEgg.config.VISIONEGG_HIDE_MOUSE
-        if cp.frameless is None:
-            cp.frameless = VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW
-        if cp.sync_swap is None:
-            cp.sync_swap = VisionEgg.config.VISIONEGG_SYNC_SWAP
-        if cp.red_bits is None:
-            cp.red_bits = VisionEgg.config.VISIONEGG_REQUEST_RED_BITS
-        if cp.green_bits is None:
-            cp.green_bits = VisionEgg.config.VISIONEGG_REQUEST_GREEN_BITS
-        if cp.blue_bits is None:
-            cp.blue_bits = VisionEgg.config.VISIONEGG_REQUEST_BLUE_BITS
-        if cp.alpha_bits is None:
-            cp.alpha_bits = VisionEgg.config.VISIONEGG_REQUEST_ALPHA_BITS
-        if cp.is_stereo is None:
-            cp.is_stereo = VisionEgg.config.VISIONEGG_REQUEST_STEREO
-        if cp.multisample_samples is None:
-             cp.multisample_samples = VisionEgg.config.VISIONEGG_MULTISAMPLE_SAMPLES
-
-        if VisionEgg.config.SYNCLYNC_PRESENT:
-            global synclync # import into global namespace
-            import synclync
-            try:
-                VisionEgg.config._SYNCLYNC_CONNECTION = synclync.SyncLyncConnection()
-            except synclync.SyncLyncError, x:
-                logger.warning( "Could not connect to SyncLync device (SyncLyncError: %s)."%str(x))
-                VisionEgg.config._SYNCLYNC_CONNECTION = None
-            else:
-                logger.info( "Connected to SyncLync device" )
-        else:
-            VisionEgg.config._SYNCLYNC_CONNECTION = None
-
-        # Attempt to synchronize buffer swapping with vertical sync
-        if cp.sync_swap:
-            sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
-
-        # Initialize pygame stuff
-        if sys.platform == "darwin": # bug in Mac OS X version of pygame
-            pygame.init()
-        pygame.display.init()
-
-        if hasattr(pygame.display,"gl_set_attribute"):
-            pygame.display.gl_set_attribute(pygame.locals.GL_RED_SIZE,cp.red_bits)
-            pygame.display.gl_set_attribute(pygame.locals.GL_GREEN_SIZE,cp.green_bits)
-            pygame.display.gl_set_attribute(pygame.locals.GL_BLUE_SIZE,cp.blue_bits)
-            pygame.display.gl_set_attribute(pygame.locals.GL_ALPHA_SIZE,cp.alpha_bits)
-	    pygame.display.gl_set_attribute(pygame.locals.GL_STEREO,cp.is_stereo)
-            #Request FSAA
-            if cp.multisample_samples > 0 :
-                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS,1)
-                pygame.display.gl_set_attribute(pygame.locals.GL_MULTISAMPLESAMPLES,cp.multisample_samples)
-        else:
-            logger.debug("Could not request or query exact bit depths, "
-                         "alpha or stereo because you need "
-                         "pygame release 1.4.9 or greater. This is "
-                         "only of concern if you use a stimulus that "
-                         "needs this. In that case, the stimulus "
-                         "should check for the desired feature(s).")
-
-        if not hasattr(pygame.display,"set_gamma_ramp"):
-            logger.debug("set_gamma_ramp function not available "
-                         "because you need pygame release 1.5 or "
-                         "greater. This is only of concern if you "
-                         "need this feature.")
-        pygame.display.set_caption("Vision Egg")
-
-        flags = pygame.locals.OPENGL
-        if cp.double_buffer:
-            flags = flags | pygame.locals.DOUBLEBUF
-        if cp.fullscreen:
-            flags = flags | pygame.locals.FULLSCREEN
-        if cp.frameless:
-            flags = flags | pygame.locals.NOFRAME
-
-        try_bpp = cp.preferred_bpp
-
-        append_str = ""
-        if cp.fullscreen:
-            screen_mode = "fullscreen"
-        else:
-            screen_mode = "window"
-        if hasattr(pygame.display,"gl_set_attribute"):
-            append_str = " (%d %d %d %d RGBA)."%(cp.red_bits,
-                                                 cp.green_bits,
-                                                 cp.blue_bits,
-                                                 cp.alpha_bits)
-
-        logger.info("Requesting %s %d x %d %d bpp%s"%
-                    (screen_mode,self.size[0],self.size[1],
-                     try_bpp,append_str))
-
-        pygame.display.set_mode(self.size, flags, try_bpp )
-        # set a global variable so we know workaround avoid pygame bug
-        VisionEgg.config._pygame_started = 1
-
-        try:
-            if sys.platform != 'darwin':
-                pygame.display.set_icon(pygame.transform.scale(pygame.image.load(
-                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                                 'data','visionegg.bmp')).convert(),(32,32)))
-            else:
-                import AppKit # requires PyObjC, which is required by pygame osx
-                im = AppKit.NSImage.alloc()
-                im.initWithContentsOfFile_(
-                    os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
-                                 'data','visionegg.tif'))
-                AppKit.NSApplication.setApplicationIconImage_(AppKit.NSApp(),im)
-
-        except Exception,x:
-            logger.info("Error while trying to set_icon: %s: %s"%
-                        (str(x.__class__),str(x)))
-
-        global gl_vendor, gl_renderer, gl_version
-        gl_vendor = gl.glGetString(gl.GL_VENDOR)
-        gl_renderer = gl.glGetString(gl.GL_RENDERER)
-        gl_version = gl.glGetString(gl.GL_VERSION)
-
-        logger.info("OpenGL %s, %s, %s (PyOpenGL %s)"%
-                    (gl_version, gl_renderer, gl_vendor, gl.__version__))
-
-        if gl_renderer == "GDI Generic" and gl_vendor == "Microsoft Corporation":
-            logger.warning("Using default Microsoft Windows OpenGL "
-                           "drivers.  Please (re-)install the latest "
-                           "video drivers from your video card "
-                           "manufacturer to get hardware accelerated "
-                           "performance.")
-        if gl_renderer == "Mesa GLX Indirect" and gl_vendor == "VA Linux Systems, Inc.":
-            logger.warning("Using default Mesa GLX drivers. Please "
-                           "(re-)install the latest video drivers from "
-                           "your video card manufacturer or DRI "
-                           "project to get hardware accelarated "
-                           "performance.")
-        # Set values to unknown and fill based on OpenGL values
-        cp.red_bits = None
-        cp.green_bits = None
-        cp.blue_bits = None
-        cp.alpha_bits = None
-        cp.is_stereo = None
-        got_bpp = pygame.display.Info().bitsize
-        append_str = ''
-        if hasattr(pygame.display,"gl_get_attribute"):
-            # Fill in values as known
-            cp.red_bits = pygame.display.gl_get_attribute(pygame.locals.GL_RED_SIZE)
-            cp.green_bits = pygame.display.gl_get_attribute(pygame.locals.GL_GREEN_SIZE)
-            cp.blue_bits = pygame.display.gl_get_attribute(pygame.locals.GL_BLUE_SIZE)
-            cp.alpha_bits = pygame.display.gl_get_attribute(pygame.locals.GL_ALPHA_SIZE)
-            cp.is_stereo = pygame.display.gl_get_attribute(pygame.locals.GL_STEREO)
-            if cp.is_stereo: stereo_string = ' stereo'
-            else: stereo_string = ''
-            append_str = " (%d %d %d %d RGBA%s)"%(
-                cp.red_bits,cp.green_bits,cp.blue_bits,cp.alpha_bits,
-                stereo_string)
-        logger.info("Video system reports %d bpp%s."%(got_bpp,append_str))
-        if got_bpp < try_bpp:
-            logger.warning("Video system reports %d bits per pixel, "
-                           "while your program requested %d. Can you "
-                           "adjust your video drivers?"%(got_bpp,
-                           try_bpp))
-        # Save the address of these functions so they can be called
-        # when closing the screen.
-        self.__cursor_visible_func__ = pygame.mouse.set_visible
-        self.__pygame_quit__ = pygame.quit
-
-        #Check FSAA requests
-        if cp.multisample_samples>0 :
-            if hasattr(pygame.display,"gl_set_attribute"):
-                got_ms_buf = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLEBUFFERS)
-                got_ms_samp = pygame.display.gl_get_attribute(pygame.locals.GL_MULTISAMPLESAMPLES)
-                if got_ms_samp < cp.multisample_samples :
-                    logger.warning("Video system reports %d multisample samples, "
-                                   "while you requested %d.  FSAA requires "
-                                   "SDL > 1.2.6, check that it is installed."%(got_ms_samp, cp.multisample_samples))
-
-        # Attempt to synchronize buffer swapping with vertical sync again
-        if cp.sync_swap:
-            if not sync_success:
-                if not VisionEgg.PlatformDependent.sync_swap_with_vbl_post_gl_init():
-                    cp.sync_swap = False
-                    logger.warning("Unable to detect or automatically "
-                                   "synchronize buffer swapping with "
-                                   "vertical retrace. May be possible "
-                                   "by manually adjusting video "
-                                   "drivers. (Look for 'Enable "
-                                   "Vertical Sync' or similar.) If "
-                                   "buffer swapping is not "
-                                   "synchronized, frame by frame "
-                                   "control will not be possible. "
-                                   "Because of this, you will probably "
-                                   "get a warning about calculated "
-                                   "frames per second different than "
-                                   "specified.")
-        # Check previously made OpenGL assumptions now that we have OpenGL window
-        post_gl_init()
-
-        if cp.hide_mouse:
-            self.__cursor_visible_func__(0)
-
-        # Attempt to set maximum priority (This may not be the best
-        # place in the code to do it because it's an application-level
-        # thing, not a screen-level thing, but it fits reasonably well
-        # here for now.)
-        if cp.maxpriority:
-            VisionEgg.PlatformDependent.set_priority() # defaults to max priority
-
-        if hasattr(VisionEgg.config,'_open_screens'):
-            VisionEgg.config._open_screens.append(self)
-        else:
-            VisionEgg.config._open_screens = [self]
-
-    # Use Python descriptors (introduced in Python 2.2) to link size
-    # attribute to constant_parameters.size.
-    def get_size(self): return self.constant_parameters.size
-    def set_size(self, value): raise RuntimeError("Attempting to set read-only value")
-    size = property(get_size,set_size)
-
-    def get_framebuffer_as_image(self,
-                                 buffer='back',
-                                 format=gl.GL_RGB,
-                                 position=(0,0),
-                                 anchor='lowerleft',
-                                 size=None, # if None, use full screen
-                                 ):
-        """get pixel values from framebuffer to PIL image"""
-        import Image # Could import this at the beginning of the file, but it breaks sometimes.
-
-        fb_array = self.get_framebuffer_as_array(buffer=buffer,
-                                                 format=format,
-                                                 position=position,
-                                                 anchor=anchor,
-                                                 size=size,
-                                                 )
-        size = fb_array.shape[1], fb_array.shape[0]
-        if format == gl.GL_RGB:
-            pil_mode = 'RGB'
-        elif format == gl.GL_RGBA:
-            pil_mode = 'RGBA'
-        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
-        fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
-        return fb_image
-
-    def get_framebuffer_as_array(self,
-                                 buffer='back',
-                                 format=gl.GL_RGB,
-                                 position=(0,0),
-                                 anchor='lowerleft',
-                                 size=None, # if None, use full screen
-                                 ):
-        """get pixel values from framebuffer to Numeric array"""# (SLOW)"""
-        if size is None:
-            size = self.size
-        lowerleft = VisionEgg._get_lowerleft(position,anchor,size)
-        if buffer == 'front':
-            gl.glReadBuffer( gl.GL_FRONT )
-        elif buffer == 'back':
-            gl.glReadBuffer( gl.GL_BACK )
-        else:
-            raise ValueError('No support for "%s" framebuffer'%buffer)
-
-        # according to Apple's glGrab demo, this should force DMA transfers:
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 4)
-        gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
-        gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
-        gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
-        if gl_version >= '1.2' and hasattr(gl,'GL_BGRA'):
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
-                                                 size[0],size[1],
-                                                 gl.GL_BGRA,
-                                                 gl.GL_UNSIGNED_INT_8_8_8_8_REV)
-            raw_format = 'BGRA'
-        else:
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
-                                                 size[0],size[1],
-                                                 gl.GL_RGBA,
-                                                 gl.GL_UNSIGNED_BYTE)
-            raw_format = 'RGBA'
-        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UInt8)
-        fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
-        # These work, but I don't know why.  There must be something I
-        # don't understand about byte ordering!
-        if format == gl.GL_RGB:
-            if raw_format == 'BGRA':
-                fb_array = fb_array[:,:,1:]
-            elif raw_format == 'RGBA':
-                fb_array = fb_array[:,:,:3]
-        elif format == gl.GL_RGBA:
-            if raw_format == 'BGRA':
-                alpha = fb_array[:,:,0,Numeric.NewAxis]
-                fb_array = fb_array[:,:,1:]
-                fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
-            elif raw_format == 'RGBA':
-                pass
-        else:
-            raise NotImplementedError("Only RGB and RGBA formats currently supported")
-        return fb_array
-
-    def put_pixels(self,
-                   pixels=None,
-                   position=(0,0),
-                   anchor='lowerleft',
-                   scale_x=1.0, # "zoom" the pixels
-                   scale_y=1.0, # "zoom" the pixels
-                   texture_min_filter=gl.GL_NEAREST, # only used if scale < 1.0
-                   texture_mag_filter=gl.GL_NEAREST, # only used if scale > 1.0
-                   internal_format=gl.GL_RGB, # pixel data converted to this format in texture (gl.GL_RGBA also useful)
-                   ):
-        """Put pixel values to screen.
-
-        Pixel values become texture data using the VisionEgg.Textures
-        module.  Any source of texture data accepted by that module is
-        accepted here.
-
-        This function could be sped up by allocating a fixed OpenGL texture object.
-
-        """
-
-        import VisionEgg.Textures # import here to avoid import loop
-        make_new_texture_object = 0
-        if not hasattr(self, "_put_pixels_texture_stimulus"):
-            make_new_texture_object = 1
-        else:
-            if internal_format != self._put_pixels_texture_stimulus.constant_parameters.internal_format:
-                make_new_texture_object = 1
-        if make_new_texture_object:
-            # For speed, don't do this on anything other than 1st run
-            texture = VisionEgg.Textures.Texture(pixels)
-            on_screen_size = (texture.size[0]*scale_x, texture.size[1]*scale_y)
-            t = VisionEgg.Textures.TextureStimulus(texture=texture,
-                                                   position=position,
-                                                   anchor=anchor,
-                                                   size=on_screen_size,
-                                                   mipmaps_enabled=0,
-                                                   texture_min_filter=texture_min_filter,
-                                                   texture_mag_filter=texture_mag_filter,
-                                                   internal_format = internal_format,
-                                                   )
-            self._put_pixels_texture_stimulus = t # rename
-            self._pixel_coord_projection = OrthographicProjection(left=0,
-                                                                  right=self.size[0],
-                                                                  bottom=0,
-                                                                  top=self.size[1],
-                                                                  z_clip_near=0.0,
-                                                                  z_clip_far=1.0)
-        else:
-            # We've run once before and therefore already have a
-            # texture stimulus. (XXX In the future, make use of
-            # already assigned texture object and use put_sub_image
-            # for speed.)
-            self._put_pixels_texture_stimulus.parameters.texture = VisionEgg.Textures.Texture(pixels)
-
-        self._pixel_coord_projection.push_and_set_gl_projection() # Save projection
-        self._put_pixels_texture_stimulus.draw() # Draw pixels as texture
-
-        gl.glMatrixMode(gl.GL_PROJECTION) # Restore projection
-        gl.glPopMatrix()
-
-    def query_refresh_rate(self):
-        return VisionEgg.PlatformDependent.query_refresh_rate(self)
-
-    def measure_refresh_rate(self,average_over_seconds=0.1):
-        """Measure the refresh rate. Assumes swap buffers synced."""
-        start_time = VisionEgg.time_func()
-        duration_sec = 0.0
-        num_frames = 0
-        while duration_sec < average_over_seconds:
-            swap_buffers()
-            now = VisionEgg.time_func()
-            num_frames += 1
-            duration_sec = now - start_time
-        if duration_sec > 0.0:
-            fps = num_frames / duration_sec
-        else:
-            fps = 0.0
-        return fps
-
-    def clear(self):
-        """Called by Presentation instance. Clear the screen."""
-
-        c = self.parameters.bgcolor # Shorthand
-        if len(c) == 4:
-            gl.glClearColor(*c)
-        else:
-            gl.glClearColor(c[0],c[1],c[2],0.0) # set alpha to 0.0 unless specified
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-    def make_current(self):
-        """Called by Viewport instance. Makes screen active for drawing.
-
-        Can not be implemented until multiple screens are possible."""
-        pass
-
-    def set_gamma_ramp(self,*args,**kw):
-        """Set the gamma_ramp, if supported.
-
-        Call pygame.display.set_gamma_ramp, if available.
-
-        Returns True on success, False otherwise."""
-        if not hasattr(pygame.display,"set_gamma_ramp"):
-            logger = logging.getLogger('VisionEgg.Core')
-            logger.error("Need pygame 1.5 or greater for set_gamma_ramp function")
-            return False
-        if pygame.display.set_gamma_ramp(*args,**kw):
-            return True
-        else:
-            return False
-
-    def close(self):
-        """Close the screen.
-
-        You can call this to close the screen.  Not necessary during
-        normal operation because it gets automatically deleted."""
-        # Close pygame if possible
-        if hasattr(VisionEgg.config,'_open_screens'):
-            if self in VisionEgg.config._open_screens:
-                VisionEgg.config._open_screens.remove(self)
-            if len(VisionEgg.config._open_screens) == 0:
-                # no more open screens
-                if hasattr(self,"__cursor_visible_func__"):
-                    self.__cursor_visible_func__(1)
-                pygame.quit()
-        # No access to the cursor visible function anymore
-        if hasattr(self,"__cursor_visible_func__"):
-            del self.__cursor_visible_func__
-
-    def __del__(self):
-        # Make sure mouse is visible after screen closed.
-        if hasattr(self,"__cursor_visible_func__"):
-            try:
-                self.__cursor_visible_func__(1)
-                self.__pygame_quit__()
-            except pygame.error, x:
-                if str(x) != 'video system not initialized':
-                    raise
-
-    def create_default():
-        """Alternative constructor using configuration variables.
-
-        Most of the time you can create and instance of Screen using
-        this method.  If your script needs explicit control of the
-        Screen parameters, initialize with the normal constructor.
-
-        Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
-        default screen parameters should are determined.  If this
-        value is 0, the values from VisionEgg.cfg are used.  If this
-        value is 1, a GUI panel is opened and allows manual settings
-        of the screen parameters.  """
-
-        global VisionEgg # Allow "VisionEgg.config" instead of just "config"
-        if VisionEgg.config.VISIONEGG_GUI_INIT:
-            import VisionEgg.GUI # Could import in beginning, but no need if not using GUI
-            window = VisionEgg.GUI.GraphicsConfigurationWindow()
-            window.mainloop() # All this does is adjust VisionEgg.config
-            if not window.clicked_ok:
-                sys.exit() # User wants to quit
-        screen = None
-        try:
-            screen = Screen(size=(VisionEgg.config.VISIONEGG_SCREEN_W,
-                                  VisionEgg.config.VISIONEGG_SCREEN_H),
-                            fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
-                            preferred_bpp=VisionEgg.config.VISIONEGG_PREFERRED_BPP,
-                            bgcolor=(0.5,0.5,0.5,0.0),
-                            maxpriority=VisionEgg.config.VISIONEGG_MAXPRIORITY,
-                            frameless=VisionEgg.config.VISIONEGG_FRAMELESS_WINDOW,
-                            hide_mouse=VisionEgg.config.VISIONEGG_HIDE_MOUSE)
-        finally:
-            if screen is None:
-                # Opening screen failed.  Let's do any cleanup that Screen.__init__ missed.
-                try:
-                    pygame.mouse.set_visible(1) # make sure mouse is visible
-                    pygame.quit() # close screen
-                except pygame.error, x:
-                    if str(x) != 'video system not initialized':
-                        raise
-
-        if screen is None:
-            raise RuntimeError("Screen open failed. Check your error log for a traceback.")
-
-        gamma_source = VisionEgg.config.VISIONEGG_GAMMA_SOURCE.lower()
-        if gamma_source != 'none':
-            if gamma_source == 'invert':
-                native_red = VisionEgg.config.VISIONEGG_GAMMA_INVERT_RED
-                native_green = VisionEgg.config.VISIONEGG_GAMMA_INVERT_GREEN
-                native_blue = VisionEgg.config.VISIONEGG_GAMMA_INVERT_BLUE
-                red = screen._create_inverted_gamma_ramp( native_red )
-                green = screen._create_inverted_gamma_ramp( native_green )
-                blue = screen._create_inverted_gamma_ramp( native_blue )
-                gamma_set_string = "linearized gamma lookup tables to correct "+\
-                                   "monitor with native gammas (%f, %f, %f) RGB"%(
-                    native_red,
-                    native_green,
-                    native_blue)
-            elif gamma_source == 'file':
-                filename = VisionEgg.config.VISIONEGG_GAMMA_FILE
-                red, green, blue = screen._open_gamma_file(filename)
-                gamma_set_string = "set gamma lookup tables from data in file %s"%os.path.abspath(filename)
-            else:
-                raise ValueError("Unknown gamma source: '%s'"%gamma_source)
-            logger = logging.getLogger('VisionEgg.Core')
-            if not screen.set_gamma_ramp(red,green,blue):
-                logger.warning( "Setting gamma ramps failed." )
-            else:
-                logger.info( "Gamma set sucessfully: %s"%gamma_set_string )
-        return screen
-    create_default = staticmethod(create_default)
-
-    def _create_inverted_gamma_ramp(self, gamma):
-        # c is a constant scale factor.  It is always 1.0 when
-        # luminance is normalized to range [0.0,1.0] and input units
-        # in range [0.0,1.0], as is OpenGL standard.
-        c = 1.0
-        inc = 1.0/255
-        target_luminances = Numeric.arange(0.0,1.0+inc,inc)
-        output_ramp = Numeric.zeros(target_luminances.shape,Numeric.Int)
-        for i in range(len(target_luminances)):
-            L = target_luminances[i]
-            if L == 0.0:
-                v_88fp = 0
-            else:
-                v = math.exp( (math.log(L) - math.log(c)) /gamma)
-                v_88fp = int(round((v*255) * 256)) # convert to from [0.0,1.0] floating point to [0.0,255.0] 8.8 fixed point
-            output_ramp[i] = v_88fp # 8.8 fixed point format
-        return list(output_ramp) # convert to Python list
-
-    def _open_gamma_file(self, filename):
-        fd = open(filename,"r")
-        gamma_values = []
-        for line in fd.readlines():
-            line = line.strip() # remove leading/trailing whitespace
-            if line.startswith("#"): # comment, ignore
-                continue
-            gamma_values.append( map(int, line.split() ) )
-            if len(gamma_values[-1]) != 3:
-                raise ValueError("expected 3 values per gamma entry")
-        if len(gamma_values) != 256:
-            raise ValueError("expected 256 gamma entries")
-        red, green, blue = zip(*gamma_values)
-        return red,green,blue
-
-def get_default_screen():
-    """Make an instance of Screen using a GUI window or from config file."""
-    return Screen.create_default()
-
-
-class Window(_Screen):
-    """VisionEgg window, based on pyglet window. Similar to VisionEgg.Screen based on pygame/SDL
-
-    TODO: multiple inheritance from both pyglet.window.Window and VisionEgg.Screen.
-    This would require a separate module that would be imported only if pyglet is installed.
-    """
-    def __init__(self, screen=None, **kw):
+    def __init__(self, pyglet_screen=None, **kw):
         """pyglet screen is optional. pyglet window object is stored as .win attribute"""
-        import pyglet.window
-        if screen == None:
+        if pyglet_screen == None:
             platform = pyglet.window.get_platform()
             display = platform.get_default_display()
             screens = display.get_screens()
-            self.screen = screens[0]
+            self.pyglet_screen = screens[0]
         else:
-            self.screen = screen
+            self.pyglet_screen = pyglet_screen
 
         logger = logging.getLogger('VisionEgg.Core')
 
-        VisionEgg.ClassWithParameters.__init__(self, **kw)
+        super( Screen, self ).__init__(**kw)
 
         cp = self.constant_parameters # shorthand
         if cp.size is None:
@@ -811,12 +185,6 @@ class Window(_Screen):
         # Attempt to synchronize buffer swapping with vertical sync
         if cp.sync_swap:
             sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
-        '''
-        # Initialize pygame stuff
-        if sys.platform == "darwin": # bug in Mac OS X version of pygame
-            pygame.init()
-        pygame.display.init()
-        '''
         if cp.frameless:
             style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS
         else:
@@ -827,7 +195,7 @@ class Window(_Screen):
                                         caption='Vision Egg',
                                         style=style,
                                         vsync=cp.double_buffer,
-                                        screen=self.screen)
+                                        screen=self.pyglet_screen)
         global all_windows
         all_windows.append( self.win )
 
@@ -998,8 +366,13 @@ class Window(_Screen):
             VisionEgg.config._open_screens.append(self)
         else:
             VisionEgg.config._open_screens = [self]
+    # Use Python descriptors (introduced in Python 2.2) to link size
+    # attribute to constant_parameters.size.
+    def get_size(self): return self.constant_parameters.size
+    def set_size(self, value): raise RuntimeError("Attempting to set read-only value")
+    size = property(get_size,set_size)
 
-    def create_default(screen=None):
+    def create_default(pyglet_screen=None):
         """Alternative constructor using configuration variables.
 
         Most of the time you can create and instance of Window using
@@ -1024,7 +397,7 @@ class Window(_Screen):
                 sys.exit() # User wants to quit
         window = None
         try:
-            window = Window(screen=screen,
+            window = Screen(pyglet_screen=pyglet_screen,
                             size=(VisionEgg.config.VISIONEGG_SCREEN_W,
                                   VisionEgg.config.VISIONEGG_SCREEN_H),
                             fullscreen=VisionEgg.config.VISIONEGG_FULLSCREEN,
@@ -1078,7 +451,87 @@ class Window(_Screen):
 
     def set_gamma_ramp(self, *args, **kw):
         """Set the gamma_ramp"""
-        print 'TODO: setting gamma in pyglet'
+        raise NotImplementedError('TODO: setting gamma in pyglet')
+
+    def get_framebuffer_as_image(self,
+                                 buffer='back',
+                                 format=gl.GL_RGB,
+                                 position=(0,0),
+                                 anchor='lowerleft',
+                                 size=None, # if None, use full screen
+                                 ):
+        """get pixel values from framebuffer to PIL image"""
+        import Image # Could import this at the beginning of the file, but it breaks sometimes.
+
+        fb_array = self.get_framebuffer_as_array(buffer=buffer,
+                                                 format=format,
+                                                 position=position,
+                                                 anchor=anchor,
+                                                 size=size,
+                                                 )
+        size = fb_array.shape[1], fb_array.shape[0]
+        if format == gl.GL_RGB:
+            pil_mode = 'RGB'
+        elif format == gl.GL_RGBA:
+            pil_mode = 'RGBA'
+        fb_image = Image.fromstring(pil_mode,size,fb_array.tostring())
+        fb_image = fb_image.transpose( Image.FLIP_TOP_BOTTOM )
+        return fb_image
+
+    def get_framebuffer_as_array(self,
+                                 buffer='back',
+                                 format=gl.GL_RGB,
+                                 position=(0,0),
+                                 anchor='lowerleft',
+                                 size=None, # if None, use full screen
+                                 ):
+        """get pixel values from framebuffer to Numeric array"""# (SLOW)"""
+        if size is None:
+            size = self.size
+        lowerleft = VisionEgg._get_lowerleft(position,anchor,size)
+        if buffer == 'front':
+            gl.glReadBuffer( gl.GL_FRONT )
+        elif buffer == 'back':
+            gl.glReadBuffer( gl.GL_BACK )
+        else:
+            raise ValueError('No support for "%s" framebuffer'%buffer)
+
+        # according to Apple's glGrab demo, this should force DMA transfers:
+        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 4)
+        gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
+        gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
+        gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
+        if gl_version >= '1.2' and hasattr(gl,'GL_BGRA'):
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
+                                                 size[0],size[1],
+                                                 gl.GL_BGRA,
+                                                 gl.GL_UNSIGNED_INT_8_8_8_8_REV)
+            raw_format = 'BGRA'
+        else:
+            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
+                                                 size[0],size[1],
+                                                 gl.GL_RGBA,
+                                                 gl.GL_UNSIGNED_BYTE)
+            raw_format = 'RGBA'
+        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UInt8)
+        fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
+        # These work, but I don't know why.  There must be something I
+        # don't understand about byte ordering!
+        if format == gl.GL_RGB:
+            if raw_format == 'BGRA':
+                fb_array = fb_array[:,:,1:]
+            elif raw_format == 'RGBA':
+                fb_array = fb_array[:,:,:3]
+        elif format == gl.GL_RGBA:
+            if raw_format == 'BGRA':
+                alpha = fb_array[:,:,0,Numeric.NewAxis]
+                fb_array = fb_array[:,:,1:]
+                fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
+            elif raw_format == 'RGBA':
+                pass
+        else:
+            raise NotImplementedError("Only RGB and RGBA formats currently supported")
+        return fb_array
 
     def clear(self):
         """Clear the window"""
@@ -1112,25 +565,17 @@ class Window(_Screen):
         """Catch events"""
         self.win.dispatch_events()
 
-
-def get_default_window(screen=None):
-    """Make an instance of Window using a GUI window or from config file.
+def get_default_screen(pyglet_screen=None):
+    """Make an instance of Screen using a GUI window or from config file.
     You can optionally pass a pyglet screen object to specify on which
     physical screen you want to create the window."""
-    return Window.create_default(screen=screen)
-
+    return Screen.create_default(pyglet_screen=pyglet_screen)
 
 ####################################################################
 #
 #        Projection and derived classes
 #
 ####################################################################
-
-class Screen(Window):
-    def __init__(self,*args,**kwargs):
-        import warnings
-        warnings.warn('you are instantiating a deprecated class - use Window instead!')
-        super(Screen, self).__init__(*args, **kwargs)
 
 class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     """Converts stimulus coordinates to viewport coordinates.
@@ -1573,7 +1018,7 @@ class Stimulus(VisionEgg.ClassWithParameters):
 #
 ####################################################################
 
-class _Viewport(VisionEgg.ClassWithParameters):
+class Viewport(VisionEgg.ClassWithParameters):
     """Connects stimuli to a screen.
 
     A viewport defines a (possibly clipped region) of the screen on
@@ -1628,8 +1073,7 @@ class _Viewport(VisionEgg.ClassWithParameters):
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'screen':(None,
-                  #ve_types.Instance(_Screen),
-                  ve_types.NoneType,
+                  ve_types.Instance(Screen),
                   'The window in which this viewport is drawn'),
         'position':((0,0),
                     ve_types.Sequence2(ve_types.Real),
@@ -1677,7 +1121,7 @@ class _Viewport(VisionEgg.ClassWithParameters):
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
         """
-        super(_Viewport, self).__init__(**kw)
+        super(Viewport, self).__init__(**kw)
 
         if self.parameters.screen is None:
             raise ValueError("Must specify screen when creating an instance of Viewport.")
@@ -1773,117 +1217,6 @@ class _Viewport(VisionEgg.ClassWithParameters):
         """Transform eye coordinates to window coordinates"""
         my_proj = self.parameters.projection
         return self.norm_device_2_window( my_proj.eye_2_norm_device( eye_coords_vertex ) )
-
-
-class Viewport(_Viewport):
-    """Connects stimuli to a pyglet window.
-
-    A viewport defines a (possibly clipped region) of the window on
-    which stimuli are drawn.
-
-    A window may have multiple viewports.  The viewports may be
-    overlapping.
-
-    A viewport may have multiple stimuli.
-
-    A single stimulus may be drawn simultaneously by several
-    viewports, although this is typically useful only for 3D stimuli
-    to represent different views of the same object.
-
-    The coordinates of the stimulus are converted to window
-    coordinates via several steps, the most important of which is the
-    projection, which is defined by an instance of the Projection
-    class.
-
-    By default, a viewport has a projection which maps eye coordinates
-    to viewport coordinates in 1:1 manner.  In other words, eye
-    coordinates specify pixel location in the viewport.
-
-    For cases where pixel units are not natural to describe
-    coordinates of a stimulus, the application should specify the a
-    projection other than the default.  This is usually the case for
-    3D stimuli.
-
-    For details of the projection and clipping process, see the
-    section 'Coordinate Transformations' in the book/online document
-    'The OpenGL Graphics System: A Specification'
-
-    Parameters
-    ==========
-
-    """
-
-    parameters_and_defaults = VisionEgg.ParameterDefinition({
-        'window':(None,
-                  ve_types.Instance(Window),
-                  'The window in which this viewport is drawn'),
-        })
-
-    def __init__(self, **kwargs):
-        """Create a new instance.
-
-        Required arguments:
-
-        window
-
-        Optional arguments (specify parameter value other than default):
-
-        position -- defaults to (0,0), position relative to window by anchor (see below)
-        anchor -- defaults to 'lowerleft'
-        size -- defaults to window.size
-        projection -- defaults to self.make_new_pixel_coord_projection()
-        stimuli -- defaults to empty list
-        """
-        ## try:
-        ##     del self.parameters_and_defaults['screen'] # del inherited 'screen' param
-        ## except KeyError:
-        ##     pass
-        ## self.parameters_and_defaults['window'] = (None,
-        ##                                           ve_types.Instance(Window),
-        ##                                           'The window in which this viewport is drawn')
-        super(Viewport, self).__init__(**kwargs)
-
-        if self.parameters.window == None:
-            raise ValueError("Must specify window when creating an instance of Viewport.")
-
-        p = self.parameters # shorthand
-        if p.size is None:
-            p.size = p.window.constant_parameters.size
-        if p.projection is None:
-            # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
-            p.projection = self.make_new_pixel_coord_projection()
-        if p.camera_matrix is None:
-            p.camera_matrix = ModelView()
-        if p.stimuli is None:
-            p.stimuli = []
-        self._is_drawing = False
-
-    def make_current(self):
-        p = self.parameters # shorthand
-        p.window.make_current()
-
-        if p.lowerleft != None:
-            if not hasattr(Viewport, "_gave_lowerleft_warning"):
-                logger = logging.getLogger('VisionEgg.Core')
-                logger.warning("lowerleft parameter of Viewport class "
-                               "will stop being supported. Use "
-                               "'position' instead with anchor set to "
-                               "'lowerleft'.")
-                Viewport._gave_lowerleft_warning = True
-            p.anchor = 'lowerleft'
-            p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
-
-        lowerleft = VisionEgg._get_lowerleft(p.position, p.anchor, p.size)
-
-        gl.glViewport(lowerleft[0],
-                      lowerleft[1],
-                      p.size[0],
-                      p.size[1])
-        gl.glDepthRange(p.depth_range[0], p.depth_range[1])
-
-        p.projection.apply_to_gl()
-        p.camera_matrix.apply_to_gl()
-
 
 ####################################################################
 #
@@ -2121,14 +1454,7 @@ def add_gl_assumption(gl_variable,required_value,failure_callback):
     gl_assumptions.append((gl_variable,required_value,failure_callback))
 
 def init_gl_extension(prefix,name):
-    global gl # interpreter knows when we're up to something funny with GLTrace
     logger = logging.getLogger('VisionEgg.Core')
-
-    if gl is VisionEgg.GLTrace:
-        watched = True
-        gl = VisionEgg.GLTrace.gl # manipulate original module for now
-    else:
-        watched = False
 
     module_name = "OpenGL.GL.%(prefix)s.%(name)s"%locals()
     try:
@@ -2161,9 +1487,6 @@ def init_gl_extension(prefix,name):
         gl_attr_name = attr_name
         setattr(gl,gl_attr_name,attr)
 
-    if watched:
-        VisionEgg.GLTrace.gl_trace_attach() # (re)scan namespace
-        gl = VisionEgg.GLTrace # reinstall GLTrace
     return True # success!
 
 def post_gl_init():

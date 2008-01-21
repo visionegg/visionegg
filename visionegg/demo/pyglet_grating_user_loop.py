@@ -27,21 +27,21 @@ from VisionEgg.Gratings import SinGrating2D
 
 platform = pyglet.window.get_platform()
 display = platform.get_default_display() # a display might be 2 screens side by side
-screens = display.get_screens()
-wins = [] # list of Windows
-for screen in screens:
+pyglet_screens = display.get_screens()
+ve_screens = [] # list of Windows
+for pyglet_screen in pyglet_screens:
     # create a VisionEgg.Window, based on settings in VisionEgg.cfg
-    win = VisionEgg.Core.get_default_window(screen=screen)
-    wins.append(win)
+    ve_screen = VisionEgg.Core.get_default_screen(pyglet_screen=pyglet_screen)
+    ve_screens.append(ve_screen)
 
 ######################################
 #  Create sinusoidal grating object  #
 ######################################
 
-stimulus = SinGrating2D(position=(wins[0].win.width/2, wins[0].win.height/2),
+stimulus = SinGrating2D(position=(ve_screens[0].win.width/2, ve_screens[0].win.height/2),
                         anchor='center',
                         size=(300, 300),
-                        spatial_freq=10/wins[0].win.width, # units of cycles/pixel
+                        spatial_freq=10/ve_screens[0].win.width, # units of cycles/pixel
                         temporal_freq_hz=1,
                         orientation=45)
 
@@ -50,8 +50,8 @@ stimulus = SinGrating2D(position=(wins[0].win.width/2, wins[0].win.height/2),
 ##################################################################
 
 viewports = [] # list of viewports, one per window
-for win in wins:
-    viewport = VisionEgg.Core.Viewport(window=win, stimuli=[stimulus])
+for ve_screen in ve_screens:
+    viewport = VisionEgg.Core.Viewport(screen=ve_screen, stimuli=[stimulus])
     viewports.append(viewport)
 
 ##########################
@@ -60,18 +60,18 @@ for win in wins:
 
 def exit():
     quit = False
-    for win in wins:
-        if win.win.has_exit:
+    for ve_screen in ve_screens:
+        if ve_screen.win.has_exit:
             quit = True
     return quit
 
 
 while not exit():
-    for win in wins:
+    for ve_screen in ve_screens:
         # dispatch each window's events to its event handlers
-        win.dispatch_events()
-    for win, viewport in zip(wins, viewports):
-        win.switch_to() # win.make_current() also works
-        win.clear()
+        ve_screen.dispatch_events()
+    for ve_screen, viewport in zip(ve_screens, viewports):
+        ve_screen.switch_to() # ve_screen.make_current() also works
+        ve_screen.clear()
         viewport.draw() # draw to its viewport
-        win.flip() # win.swap buffers() also works
+        ve_screen.flip() # ve_screen.swap buffers() also works

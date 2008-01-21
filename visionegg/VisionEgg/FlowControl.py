@@ -23,7 +23,6 @@ import VisionEgg
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import VisionEgg.ParameterTypes as ve_types
 import numpy.oldnumeric as Numeric, math, types
-import pygame
 
 # Use Python's bool constants if available, make aliases if not
 try:
@@ -436,10 +435,11 @@ class Presentation(VisionEgg.ClassWithParameters):
 
             # Check events if requested
             if p.check_events:
-                for event in pygame.event.get():
-                    for event_type, event_callback in p.handle_event_callbacks:
-                        if event.type is event_type:
-                            event_callback(event)
+                ## for event in pygame.event.get():
+                ##     for event_type, event_callback in p.handle_event_callbacks:
+                ##         if event.type is event_type:
+                ##             event_callback(event)
+                pass
 
         # Tell transitional controllers a presentation has ended
         self.__call_controllers(
@@ -593,10 +593,11 @@ class Presentation(VisionEgg.ClassWithParameters):
 
             # Check events if requested
             if p.check_events:
-                for event in pygame.event.get():
-                    for event_type, event_callback in p.handle_event_callbacks:
-                        if event.type is event_type:
-                            event_callback(event)
+                ## for event in pygame.event.get():
+                ##     for event_type, event_callback in p.handle_event_callbacks:
+                ##         if event.type is event_type:
+                ##             event_callback(event)
+                pass
 
         # Tell transitional controllers a presentation has ended
         self.__call_controllers(
@@ -634,10 +635,11 @@ class Presentation(VisionEgg.ClassWithParameters):
                 self.parameters.enter_go_loop = False
                 self.go()
             if p.check_events:
-                for event in pygame.event.get():
-                    for event_type, event_callback in p.handle_event_callbacks:
-                        if event.type is event_type:
-                            event_callback(event)
+                ## for event in pygame.event.get():
+                ##     for event_type, event_callback in p.handle_event_callbacks:
+                ##         if event.type is event_type:
+                ##             event_callback(event)
+                pass
 
     def between_presentations(self):
         """Maintain display while between stimulus presentations.

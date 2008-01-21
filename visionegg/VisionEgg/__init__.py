@@ -148,18 +148,6 @@ class _ExceptionHookKeeper:
                 traceback.print_tb(exc_traceback,None,traceback_stream)
                 traceback_stream.seek(0)
 
-                pygame_bug_workaround = False # do we need to workaround pygame bug?
-                if hasattr(config,"_pygame_started"):
-                    if config._pygame_started:
-                        pygame_bug_workaround = True
-                if sys.platform.startswith('linux'): # doesn't affect linux for some reason
-                    pygame_bug_workaround = False
-                if not pygame_bug_workaround:
-                    if hasattr(config,'_Tkinter_used'):
-                        if config._Tkinter_used:
-                            import GUI
-                            GUI.showexception(exc_type, exc_value, traceback_stream.getvalue())
-
         # continue on with normal exception processing:
         __keep_config__ = config # bizarre that the exception handler changes our values...
         self.orig_hook(exc_type, exc_value, exc_traceback)
