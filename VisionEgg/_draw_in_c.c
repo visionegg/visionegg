@@ -15,13 +15,9 @@
 #  include <windows.h>
 #endif
 
-#if defined(__APPLE__)
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
+#include "vegl.h"
 
-static char draw_dots__doc__[] = 
+static char draw_dots__doc__[] =
 "VisionEgg._draw_in_c._draw_dots(x,y,z) -> None";
 
 static PyObject *

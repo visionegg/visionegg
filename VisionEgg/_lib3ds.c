@@ -15,7 +15,7 @@
 
 #include "Python.h"
 
-#include <lib3ds/file.h>                        
+#include <lib3ds/file.h>
 #include <lib3ds/mesh.h>
 #include <lib3ds/node.h>
 #include <lib3ds/material.h>
@@ -30,11 +30,7 @@
 #  include <windows.h>
 #endif
 
-#if defined(__APPLE__)
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
+#include "vegl.h"
 
 #define PY_CHECK(X,LINENO) if (!(X)) { fprintf(stderr,"Python exception _lib3ds.c line %d\n",LINENO); goto error; }
 #define L3DCK(X,LINENO) if (!(X)) { fprintf(stderr,"_lib3ds error on line %d",LINENO); goto error; }
@@ -48,14 +44,14 @@ static PyObject *g_logger_warning = NULL;
 static PyObject*
 render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node);
 
-static PyObject* 
+static PyObject*
 get_logger_warning( void );
 
 int warn_python(char *text);
 
 //////////////////////////////////////////////
 
-static char draw__doc__[] = 
+static char draw__doc__[] =
 "Draw a model loaded from a .3ds file.\n";
 
 static PyObject *draw(PyObject *self, PyObject *args)
@@ -69,7 +65,7 @@ static PyObject *draw(PyObject *self, PyObject *args)
   float pos_x, pos_y, pos_z;
   float orient_angle;
   float orient_x,orient_y,orient_z;
-  
+
   PY_CHECK(PyArg_ParseTuple(args,"OOffffffffff",
 			    &py_c_file,
 			    &tex_dict,
@@ -87,7 +83,7 @@ static PyObject *draw(PyObject *self, PyObject *args)
   if (!PyDict_Check(tex_dict)) {
     PyErr_SetString(PyExc_ValueError,"Must pass PyDict as 2nd argument");
     return NULL;
-  }  
+  }
 
   file = (Lib3dsFile*)PyCObject_AsVoidPtr(py_c_file);
 
@@ -139,7 +135,7 @@ static PyObject *get_logger_warning( void ) {
   PyObject *logger = NULL;
   PyObject *logger_warning = NULL;
 
-  // Now get VisionEgg.Core.message to pass message 
+  // Now get VisionEgg.Core.message to pass message
   loggingModule = PyImport_ImportModule("logging"); // New ref
   if (!loggingModule) {
     loggingModule = PyImport_ImportModule("VisionEgg.py_logging");
@@ -185,7 +181,7 @@ int warn_python(char *text) {
   return 0;
 }
 
-static char c_init__doc__[] = 
+static char c_init__doc__[] =
 "C helper for Model3DS.__init__.\n";
 
 static PyObject *c_init(PyObject *dummy_self, PyObject *args)
@@ -225,7 +221,7 @@ static PyObject *c_init(PyObject *dummy_self, PyObject *args)
     PyErr_SetString(PyExc_RuntimeError,"lib3ds_file_load failed");
     return NULL;
   }
-  
+
   lib3ds_file_eval(file,0);
 
   //  gFile = file;
@@ -344,7 +340,7 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
 
     if (!node->user.d) {
       Lib3dsMesh *mesh;
-      
+
       mesh=lib3ds_file_mesh_by_name(file, node->name);
       ASSERT(mesh);
       if (!mesh) {
@@ -374,7 +370,7 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
           }
 
           if (mat) {
-	    
+
 	    /*
 	    /////////////////////
             static GLfloat a[4]={0,0,0,1};
@@ -425,7 +421,7 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
               for (i=0; i<3; ++i) {
                 glNormal3fv(normalL[3*p+i]);
 		if (mesh->texels) {
-		  glTexCoord2fv(mesh->texelL[f->points[i]]); 
+		  glTexCoord2fv(mesh->texelL[f->points[i]]);
 		}
                 glVertex3fv(mesh->pointL[f->points[i]].pos);
               }
@@ -459,14 +455,14 @@ render_node(Lib3dsFile *file, PyObject *tex_dict, Lib3dsNode *node)
 
 //////////////////////////////////////////////
 
-static char dump_materials__doc__[] = 
+static char dump_materials__doc__[] =
 "Print the materials of a .3ds file.\n";
 
 static PyObject *dump_materials(PyObject *self, PyObject *args)
 {
   PyObject *py_c_file;
   Lib3dsFile *file=NULL;
-  
+
   PY_CHECK(PyArg_ParseTuple(args,"O",
 			    &py_c_file),__LINE__);
 
@@ -488,14 +484,14 @@ static PyObject *dump_materials(PyObject *self, PyObject *args)
 
 //////////////////////////////////////////////
 
-static char dump_nodes__doc__[] = 
+static char dump_nodes__doc__[] =
 "Print the nodes of a .3ds file.\n";
 
 static PyObject *dump_nodes(PyObject *self, PyObject *args)
 {
   PyObject *py_c_file;
   Lib3dsFile *file=NULL;
-  
+
   PY_CHECK(PyArg_ParseTuple(args,"O",
 			    &py_c_file),__LINE__);
 
@@ -517,14 +513,14 @@ static PyObject *dump_nodes(PyObject *self, PyObject *args)
 
 //////////////////////////////////////////////
 
-static char dump_meshes__doc__[] = 
+static char dump_meshes__doc__[] =
 "Print the meshes of a .3ds file.\n";
 
 static PyObject *dump_meshes(PyObject *self, PyObject *args)
 {
   PyObject *py_c_file;
   Lib3dsFile *file=NULL;
-  
+
   PY_CHECK(PyArg_ParseTuple(args,"O",
 			    &py_c_file),__LINE__);
 
@@ -548,11 +544,11 @@ static PyObject *dump_meshes(PyObject *self, PyObject *args)
 
 static PyMethodDef
 lib3ds_c_methods[] = {
-  { "c_init", (PyCFunction)c_init, METH_VARARGS, c_init__doc__},  
-  { "draw", (PyCFunction)draw, METH_VARARGS, draw__doc__},  
-  { "dump_materials", (PyCFunction)dump_materials, METH_VARARGS, dump_materials__doc__},  
-  { "dump_nodes", (PyCFunction)dump_nodes, METH_VARARGS, dump_nodes__doc__},  
-  { "dump_meshes", (PyCFunction)dump_meshes, METH_VARARGS, dump_meshes__doc__},  
+  { "c_init", (PyCFunction)c_init, METH_VARARGS, c_init__doc__},
+  { "draw", (PyCFunction)draw, METH_VARARGS, draw__doc__},
+  { "dump_materials", (PyCFunction)dump_materials, METH_VARARGS, dump_materials__doc__},
+  { "dump_nodes", (PyCFunction)dump_nodes, METH_VARARGS, dump_nodes__doc__},
+  { "dump_meshes", (PyCFunction)dump_meshes, METH_VARARGS, dump_meshes__doc__},
   { NULL, NULL, 0, NULL} /* sentinel */
 };
 
