@@ -1,13 +1,15 @@
 Changes for 1.1:
 ----------------
 
+* Workaround PyOpenGL 3.0.0a and 3.0.0b1 bug in glLoadMatrixf().
+
 * Fix SphereMap.AzElGrid() to properly draw iso elevation and azimuth
   lines at specified intervals.
 
 * Change to use numpy at the core instead of Numeric. (Require numpy,
   no longer require Numeric.)
 
-* Requre setuptools
+* Require setuptools
 
 * No longer supporting Python 2.2
 
@@ -16,7 +18,7 @@ Changes for 1.1:
 * Update to work with PyOpenGL 3
 
 * Changes so to reflect standard idioms on Python project layouts:
-    - src/ directory renamed to VisionEgg/ 
+    - src/ directory renamed to VisionEgg/
          (but .c files need to be moved back to src/)
     - use 'package_data' distutils argument
   This enables setuptools to work with the Vision Egg.
@@ -55,7 +57,7 @@ Changes for 1.0:
   GL_PROJECTION matrix and put them in the GL_MODELVIEW matrix, where
   they belong.
 
-* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT. 
+* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT.
 
 * Added win32_vretrace.WaitForRetrace() (but it's not used for much,
   yet)
@@ -295,7 +297,7 @@ computer.  Check out the the demos in the demo/Pyro directory.
 Requires python package "Pyro" (Python Remote Objects).
 
 New configuration system added.  VisionEgg.config holds system-wide
-configuration defaults. 
+configuration defaults.
 
 Changed VisionEgg.py to Core.py, so now you must do "import
 VisionEgg.Core".

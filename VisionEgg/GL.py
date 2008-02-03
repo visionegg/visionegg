@@ -16,6 +16,7 @@ Vision Egg GL module -- lump all OpenGL names in one namespace.
 
 from OpenGL.GL import * # get everything from OpenGL.GL
 import OpenGL
+import numpy
 __version__ = OpenGL.__version__
 
 # tell py2exe we want these modules
@@ -40,4 +41,13 @@ except:
 try:
     GL_UNSIGNED_INT_8_8_8_8_REV
 except NameError:
-    GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367 
+    GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367
+
+if OpenGL.__version__[0] == '3':
+    if (OpenGL.__version__.startswith('3.0.0a')) or (OpenGL.__version__ == '3.0.0b1'):
+
+        # A bug in early PyOpenGL 3.x had problems with some arrays
+        _orig_glLoadMatrixf = glLoadMatrixf
+        def glLoadMatrixf(M):
+            M = numpy.array([ Mi for Mi in M ])
+            return _orig_glLoadMatrixf(M)
