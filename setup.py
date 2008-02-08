@@ -21,15 +21,14 @@ visual stimuli for vision research experiments.
 
 For more information, visit the website at www.visionegg.org
 
-This is release %s. Any feedback, questions, or comments, should go to
-the mailing list at visionegg@freelists.org
+Any feedback, questions, or comments, should go to the mailing list at
+visionegg@freelists.org
 
-The Vision Egg is Copyright (c) 2001-2003 Andrew D. Straw, Copyright
-(c) 2004-2006 California Institute of Technology and is distributed
+The Vision Egg is Copyright (c) by its authors and is distributed
 under the GNU Lesser General Public License (LGPL).  This software
 comes with absolutely no warranties, either expressed or implied.
 
-"""%(version,)
+"""
 
 classifiers = [
     'Development Status :: 5 - Production/Stable',
