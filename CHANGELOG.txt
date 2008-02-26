@@ -3,8 +3,6 @@ Changes for 1.1:
 
 * Removed Lib3DS module.
 
-* Removed unfinished DAQ code.
-
 * Workaround PyOpenGL 3.0.0a and 3.0.0b1 bug in glLoadMatrixf().
 
 * Fix SphereMap.AzElGrid() to properly draw iso elevation and azimuth
