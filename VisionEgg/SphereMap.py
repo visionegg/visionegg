@@ -391,7 +391,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -405,7 +405,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -575,7 +575,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     lowpass_cutoff_cycles_per_texel -- helps prevent spatial aliasing (Real)
                                        Default: 0.5
     min_filter                      -- OpenGL filter enum (Integer)
-                                       Default: GL_LINEAR
+                                       Default: GL_LINEAR (9729)
     num_samples                     -- (UnsignedInteger)
                                        Default: 1024
     on                              -- (Boolean)

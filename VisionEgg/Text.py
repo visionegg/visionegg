@@ -89,7 +89,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                              Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: GL_LINEAR
+                             Default: GL_LINEAR (9729)
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                              Default: (GL enum determined at runtime)
@@ -108,7 +108,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                          Default: 30
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
                          Inherited from VisionEgg.Textures.TextureStimulus
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Inherited from VisionEgg.Textures.TextureStimulus
                          Default: True

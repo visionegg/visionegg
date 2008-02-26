@@ -1034,7 +1034,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
@@ -1045,7 +1045,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1314,7 +1314,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -1328,7 +1328,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1478,7 +1478,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -1496,7 +1496,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1597,6 +1597,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: (determined at runtime)
     flip_image            -- toggles normal vs. horizonally flipped image (Boolean)
                              Default: False
+    height                -- height of cyliner, automatically set by texel aspect ratio if < 0. (Real)
+                             Default: -1
     num_sides             -- (UnsignedInteger)
                              Default: 50
     on                    -- (Boolean)
@@ -1612,7 +1614,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
-                             Default: GL_LINEAR
+                             Default: GL_LINEAR (9729)
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
                              Default: (GL enum determined at runtime)
@@ -1626,7 +1628,7 @@ class SpinningDrum(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
