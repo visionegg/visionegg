@@ -9,8 +9,6 @@
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; either version 2.1 of
 # the License, or (at your option) any later version.
-#
-# $Revision$  $Date$
 
 """
 Response control during a presentation is running.
@@ -32,16 +30,11 @@ except ImportError:
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.FlowControl
-import VisionEgg.Daq
-import VisionEgg.DaqLPT
 import VisionEgg.DaqKeyboard
 import VisionEgg.ParameterTypes as ve_types
 import pygame
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Hubertus Becker <hubertus.becker@uni-tuebingen.de>'
 
 # Use Python's bool constants if available, make aliases if not
 try:
