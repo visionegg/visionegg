@@ -6,8 +6,6 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Definition of data acquisition and triggering interfaces.
@@ -25,9 +23,6 @@ import VisionEgg
 import VisionEgg.ParameterTypes as ve_types
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class Trigger(VisionEgg.ClassWithParameters):
     pass
@@ -82,7 +77,7 @@ class Functionality(ChannelParameters):
             raise RuntimeError("Trying to instantiate abstract base class.")
         else:
             ChannelParameters.__init__(self,**kw)
-   
+
 class Input(Functionality):
     def get_data(self):
         raise RuntimeError("Must override get_data method with daq implementation!")
@@ -106,7 +101,7 @@ class Channel(VisionEgg.ClassWithParameters):
         self.constant_parameters.daq_mode.channel = self
         self.constant_parameters.functionality.channel = self
         self.device = None # Not set yet
-        
+
     def arm_trigger(self):
         raise NotImpelemetedError("This method must be overridden.")
 
@@ -118,7 +113,7 @@ class Device:
                 raise ValueError("channels must be a list of channels")
             for channel in channels:
                 self.add_channel( channel )
-        
+
     def add_channel(self,channel):
         # override this method if you need to do error checking
         if isinstance(channel,Channel):

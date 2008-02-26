@@ -7,8 +7,6 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Data acquisition and triggering over the parallel port.
@@ -55,7 +53,7 @@ import sys
 if sys.platform == 'win32':
     try:
         # Dincer Aydin's module http://www.geocities.com/dinceraydin
-        import winioport as raw_lpt_module 
+        import winioport as raw_lpt_module
     except ImportError:
         # Andrew Straw's module http://www.its.caltech.edu/~astraw/coding.html
         import dlportio as raw_lpt_module
@@ -70,10 +68,7 @@ else:
     raise RuntimeError("VisionEgg.DaqLPT not supported on this platform")
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-            
+
 class LPTInput(VisionEgg.Daq.Input):
     def get_data(self):
         """Get status bits 0-7 of the LPT port.
@@ -121,10 +116,10 @@ class LPTChannel(VisionEgg.Daq.Channel):
 
 class LPTDevice(VisionEgg.Daq.Device):
     """A single parallel port. (Line PrinTer port.)
-    
+
     Typically, LPT1 has a base address of 0x0378, and LPT2 has a base
     address of 0x0278."""
-    
+
     def __init__(self,base_address=0x378,**kw):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
@@ -138,7 +133,7 @@ class LPTDevice(VisionEgg.Daq.Device):
         if not isinstance(channel,LPTChannel):
             raise ValueError("LPTDevice only has LPTChannels.")
         VisionEgg.Daq.Device.add_channel(self,channel)
-        
+
 class LPTTriggerOutController(VisionEgg.FlowControl.Controller):
     """Use 8 bits of digital output for triggering and frame timing verification.
 
@@ -147,7 +142,7 @@ class LPTTriggerOutController(VisionEgg.FlowControl.Controller):
     2^7) in binary.  Looking at any one of these pins therefore
     provides verification that your stimulus is not skipping
     frames."""
-    
+
     def __init__(self,lpt_device=None):
         if not 'raw_lpt_module' in globals().keys():
             raise RuntimeError("LPT output not supported on this platform.")
@@ -165,7 +160,7 @@ class LPTTriggerOutController(VisionEgg.FlowControl.Controller):
                 raise ValueError("lpt_device must be instance of LPTDevice.")
             self.device = lpt_device
         self.device.add_channel(self.trigger_out_channel)
-                                           
+
         self.total_frames = 0
     def during_go_eval(self):
         self.total_frames = (self.total_frames + 1) % (2**7)
