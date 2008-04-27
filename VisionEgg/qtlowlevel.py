@@ -1,8 +1,20 @@
-import os
+import os, sys
 import ctypes
 
 if os.name=='nt':
     QTMLClient = ctypes.CDLL(r'C:\Program Files\QuickTime\QTSystem\QTMLClient.dll')
+elif sys.platform.startswith('darwin'):
+
+    # There was once a functional Mac QuickTime implementation, but it
+    # used a combination of the Python stdlib's quicktime module and
+    # some C extensions based on the Carbon QuickTime interface. Given
+    # the inevitable long-term ultimate demise of Carbon, it would be
+    # foolish to spend much time on the Carbon implementation. On the
+    # other hand, the newer implementation will require someone who
+    # knows or learns Objective C, the language of the newer
+    # implementation.
+
+    raise NotImplementedError('QuickTime support is not implemented for Mac OS X.')
 
 # OSErr SInt16 MacTypes.h
 # OSStatus SInt32 MacTypes.h
