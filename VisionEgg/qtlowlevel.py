@@ -12,7 +12,7 @@ elif sys.platform.startswith('darwin'):
     # foolish to spend much time on the Carbon implementation. On the
     # other hand, the newer implementation will require someone who
     # knows or learns Objective C, the language of the newer
-    # implementation.
+    # implementation (QTKit).
 
     raise NotImplementedError('QuickTime support is not implemented for Mac OS X.')
 
