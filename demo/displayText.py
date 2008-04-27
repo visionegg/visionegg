@@ -4,9 +4,9 @@
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
-from VisionEgg.Core import *
+from VisionEgg.Core import get_default_screen, Viewport
 from VisionEgg.FlowControl import Presentation
-from VisionEgg.Text import *
+from VisionEgg.Text import Text
 
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,1.0) # background blue (RGB)
