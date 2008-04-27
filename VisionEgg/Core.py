@@ -240,8 +240,8 @@ class Screen(VisionEgg.ClassWithParameters):
             sync_success = VisionEgg.PlatformDependent.sync_swap_with_vbl_pre_gl_init()
 
         # Initialize pygame stuff
-        if sys.platform == "darwin": # bug in Mac OS X version of pygame
-            pygame.init()
+#        if sys.platform == "darwin": # bug in Mac OS X version of pygame
+#            pygame.init()
         pygame.display.init()
 
         if hasattr(pygame.display,"gl_set_attribute"):
