@@ -1,1 +1,1 @@
-python setup.py register sdist upload --sign
+python setup.py register sdist --formats gztar,zip upload --sign
