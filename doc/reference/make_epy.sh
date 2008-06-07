@@ -1,10 +1,5 @@
 #!/bin/sh
-if test ! -n "$PYTHON"; then
-  echo "Specify which python with the PYTHON environment variable"
-  exit 1
-fi
-
-$PYTHON epydoc --name "Vision Egg" --url "http://www.visionegg.org" --no-private \
+python epydoc --name "Vision Egg" --url "http://www.visionegg.org" --no-private \
 --docformat plaintext --parse-only \
 VisionEgg \
 VisionEgg.Configuration \
