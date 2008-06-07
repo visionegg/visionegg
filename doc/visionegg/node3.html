@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="visionegg.css" type='text/css' />
+<link rel='start' href='http://www.visionegg.org/' title='Vision Egg website' />
+<link rel="first" href="visionegg.html" title='The Vision Egg Programmer's Manual' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="hierarchy.html" />
+<link rel="prev" href="contents.html" />
+<link rel="parent" href="visionegg.html" />
+<link rel="next" href="hierarchy.html" />
+<meta name='aesop' content='information' />
+<title>1. Coordinating events </title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="Contents"
+  href="contents.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="2. Hierarchy of graphical"
+  href="hierarchy.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="contents.html">Contents</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="hierarchy.html">2. Hierarchy of graphical</A>
+</div>
+<hr /></div>
+</DIV>
+<!--End of Navigation Panel-->
+<div class='online-navigation'>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></a>
+
+<UL CLASS="ChildLinks">
+<LI><A href="node3.html#SECTION003100000000000000000">1.1 Custom flow control and event handling</a>
+<LI><A href="node3.html#SECTION003200000000000000000">1.2 Using the Presentation class: Running a single trial</a>
+<LI><A href="node3.html#SECTION003300000000000000000">1.3 Using the Presentation class: Continuous operation</a>
+</ul>
+<!--End of Table of Child-Links-->
+</div>
+<HR>
+
+<H1><A NAME="SECTION003000000000000000000"></A><A NAME="coordinating_events"></A>
+<BR>
+1. Coordinating events 
+</H1>
+
+<P>
+There are several ways to organize the sequence of your experiments
+using the Vision Egg.  You can write your own custom flow control and
+event handling, using the Vision Egg solely for drawing graphics.
+This is often useful in psychophysics experiments where interaction
+with a subject is interleaved with presentation of stimuli.
+
+<P>
+Alternatively, you can make use of the classes in
+<tt class="module">VisionEgg.FlowControl</tt>.  For example, <tt class="class">Presentation</tt> is a class
+that maintains an association between the parameters of stimuli and
+their control functions, calls these functions, and initiates drawing
+of the stimuli.  There are several ways to use the
+<tt class="class">Presentation</tt> class described below.  This mode of operation is
+useful for electrophysiology experiments.
+
+<P>
+
+<H1><A NAME="SECTION003100000000000000000">
+1.1 Custom flow control and event handling</A>
+</H1>
+
+<P>
+By writing your own custom flow control code, you have much more
+flexibility in designing experiments, but also less of the work
+involved has been done for you.  Perhaps the best place to start is
+simply to look at some examples.  See the demonstration scripts
+dots_simple_loop.py, mouseTarget_user_loop.py, and multi_stim.py.
+Each of these programs has its own main loop which performs the same
+role as the <tt class="class">Presentation</tt> class's <tt class="method">go</tt> and
+<tt class="method">run_forever</tt> methods, which are described further in this chapter.
+
+<P>
+
+<H1><A NAME="SECTION003200000000000000000">
+1.2 Using the Presentation class: Running a single trial</A>
+</H1>
+
+<P>
+Most of the Vision Egg demonstration scripts run a single trial and
+then quit. From a programming perspective, this is the easiest way to
+get started. The timing and control of events within a single trial is
+performed by a ``go loop'', which is entered by calling the
+<tt class="method">go()</tt> method of the <tt class="class">Presentation</tt> class.
+
+<P>
+A cycle of the go loop consists of updating any relevant stimulus
+parameters, clearing the framebuffer, and calling the stimuli to draw
+themselves.  The buffers are swapped and the cycle begins again,
+usually after waiting for the vertical blanking interval (see the
+section in this manual on double buffering).  When waiting for the
+vertical blanking interval (``sync swap buffers'') is enabled, cycles
+through the ``go loop'' never occur faster than the frame rate.  If
+the go loop is burdened with lots of calculations or if the operating
+system takes the CPU away from the Vision Egg, the cycle through the
+go loop is not completed before the video card begins drawing the next
+frame and therefore a frame is skipped.
+
+<P>
+A go loop can run indefinitly or have its duration limited to a
+duration measured in seconds or in number of frames drawn.  (Measuring
+duration based on frames drawn is only meaningful when buffer swapping
+is synchronized with the vertical blanking interval and frame skipping
+would be particularly undesirable in this case.)
+
+<P>
+
+<H1><A NAME="SECTION003300000000000000000">
+1.3 Using the Presentation class: Continuous operation</A>
+</H1>
+
+<P>
+Often, the visual stimulus needs to continue running between trials.
+At a minimum this could be used to keep the display constant and to
+prevent the Vision Egg from quitting, but could also be used to
+maintain a moving pattern on the display between trials.  In addition,
+it may be necessary to trigger a go loop with a minimum of latency
+after the receipt of some signal, such as a digital input on the
+parallel port.
+
+<P>
+To use the Vision Egg in this manner, the <tt class="method">run_forever()</tt>
+method of <tt class="class">Presentation</tt> is called, which begins a loop that
+performs the same tasks as a go loop with the exception that functions
+controlling stimulus parameters are informed that it is a ``between go
+loops'' state.  At any point this <tt class="method">run_forever</tt> loop can create
+a go loop, which returns control back to the <tt class="method">run_forever</tt> loop
+when done.  Alternatively, if the controlling functions for stimulus
+parameters operate between go loops, the entire experiment could be
+run without entering a go loop.  (This could also be acheived by
+starting a go loop with a duration parameter set to ``forever''.)
+
+<P>
+
+<DIV CLASS="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="Contents"
+  href="contents.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="2. Hierarchy of graphical"
+  href="hierarchy.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="contents.html">Contents</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="hierarchy.html">2. Hierarchy of graphical</A>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 1.1, documentation updated on June 7, 2008.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

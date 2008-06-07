@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="visionegg.css" type='text/css' />
+<link rel='start' href='http://www.visionegg.org/' title='Vision Egg website' />
+<link rel="first" href="visionegg.html" title='The Vision Egg Programmer's Manual' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="about.html" />
+<link rel="prev" href="controllers.html" />
+<link rel="parent" href="visionegg.html" />
+<link rel="next" href="about.html" />
+<meta name='aesop' content='information' />
+<title>4. Other general information </title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="3. Controlling stimulus parameters"
+  href="controllers.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="About this document ..."
+  href="about.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="controllers.html">3. Controlling stimulus parameters</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="about.html">About this document ...</A>
+</div>
+<hr /></div>
+</DIV>
+<!--End of Navigation Panel-->
+<div class='online-navigation'>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></a>
+
+<UL CLASS="ChildLinks">
+<LI><A href="node6.html#SECTION006100000000000000000">4.1 Double buffering</a>
+<LI><A href="node6.html#SECTION006200000000000000000">4.2 File layout</a>
+<LI><A href="node6.html#SECTION006300000000000000000">4.3 Priority control</a>
+<LI><A href="node6.html#SECTION006400000000000000000">4.4 The log file: Warnings and errors</a>
+<LI><A href="node6.html#SECTION006500000000000000000">4.5 Configuration options</a>
+<LI><A href="node6.html#SECTION006600000000000000000">4.6 For more information</a>
+</ul>
+<!--End of Table of Child-Links-->
+</div>
+<HR>
+
+<H1><A NAME="SECTION006000000000000000000"></A><A NAME="other_info"></A>
+<BR>
+4. Other general information 
+</H1>
+
+<P>
+
+<H1><A NAME="SECTION006100000000000000000">
+4.1 Double buffering</A>
+</H1>
+
+<P>
+The Vision Egg operates in double buffered mode.  This means that the
+contents of the ``front'' framebuffer are read by the video card to
+produce the on-screen display.  Meanwhile, clearing and drawing
+operations always occur on the back framebuffer, which becomes the
+front buffer on a buffer swap (also called flip).  This way, an
+incomplete frame is never drawn to the screen.  However, if the
+buffers are swapped while the display is only part-way through the
+front buffer, the top and bottom parts of the display will contain
+frames drawn at different times and thus lead to a tearing artifact.
+For this reason the default behavior of the Vision Egg is to
+synchronize buffer swapping with the vertical blanking period,
+ensuring that tearing does not happen.  (Synchronizing buffer swapping
+is not available for some video drivers on the linux platform, and may
+frequently be overriden in the Displays control panel in Windows.)
+
+<P>
+
+<H1><A NAME="SECTION006200000000000000000">
+4.2 File layout</A>
+</H1>
+
+<P>
+Several directories are created in a Vision Egg installation.  The
+files used when a Python script imports any Vision Egg module are in
+the standard Python ``site-packages'' directory.  Next, the Vision Egg
+system directory contains data files such as sample images used by the
+demo scripts and a site-wide configuration file.  A user-specific
+configuration file is looked for is the VisionEgg home directory.  On
+your system, you can determine the exact location of these directories
+by running the ``check-config.py'' script, which is distributed with
+the Vision Egg.  If you have installed the Vision Egg from source, you
+will also have the source directory.
+
+<P>
+
+<H1><A NAME="SECTION006300000000000000000">
+4.3 Priority control</A>
+</H1>
+
+<P>
+The Vision Egg can take advantage of operating system dependent
+methods of setting the priority of an application.  The performance
+and features vary from platform to platform.  The options available
+from OS specific system calls are available in the Vision Egg.  Before
+trying something new, do not attempt to increase your script's
+priority, because this may result in locking up the computer.
+
+<P>
+
+<H1><A NAME="SECTION006400000000000000000">
+4.4 The log file: Warnings and errors</A>
+</H1>
+
+<P>
+The Vision Egg uses the standard Python logging package to log
+information including warnings and errors to two locations by default:
+the standard error stream (as standard for Python scripts) and to a
+file called ``VisionEgg.log'' in the current directory.  The standard
+error stream is typically printed on the console, which may only be
+visible when running your script from the command line.  If your
+script (or modules it imports) raise a
+<tt class="exception">SyntaxError</tt>, the Vision Egg will be unable to start and
+therefore unable to copy the exception traceback to the log file, and
+viewing the standard error is the only way to see what went wrong.
+Therefore, if your log file does not display an error but your script
+is not executing, run it from the command line.  Also, on Mac OS X,
+the standard error output is only visible through the Console.app
+available in ``/Applications/Utilities''.
+
+<P>
+You can increase the verbosity of the output by doing something like
+``VisionEgg.logger.setLevel( VisionEgg.logging.DEBUG )'' in your
+script.
+
+<P>
+
+<H1><A NAME="SECTION006500000000000000000">
+4.5 Configuration options</A>
+</H1>
+
+<P>
+A number of options that control behavior of the Vision Egg are
+available.  These options are first determined when the
+<tt class="module">VisionEgg.Configuration</tt> module is loaded (by the base module
+<tt class="module">VisionEgg</tt>, for example).  This module first loads variables
+from the ``VisionEgg.cfg'' file and then checks for environment
+variables that override these values.
+
+<P>
+The values set by <tt class="module">VisionEgg.Configuration</tt> may be overriden at
+any time by re-assigning the appropriate variable.  For example:
+
+<P>
+<div class="verbatim"><pre>
+import VisionEgg
+
+# Turn off GUI window when calling create_default_screen()
+VisionEgg.config.VISIONEGG_GUI_INIT = 0
+</pre></div>
+
+<P>
+
+<H1><A NAME="SECTION006600000000000000000">
+4.6 For more information</A>
+</H1>
+
+<P>
+A significant amount of documentation is contained within the source
+code as ''docstrings'' -- special comments within the code.  These
+docstrings are often the best source of information for a particular
+class or function. In particular, the fundamentally important classes
+in the <tt class="module">VisionEgg.Core</tt> module are well documented.  You can
+either browse the source code itself, look at the library reference
+compiled from the source, or use a utility such as PyDoc to compile
+your own reference from the source.
+
+<P>
+The Vision Egg mailing list is another source of valuble information.
+Sign up and browse the archives through the Vision Egg website.
+
+<P>
+For installation instructions, the Vision Egg website provides the
+most up-to-date, platform-specific information.
+
+<P>
+To create your own stimuli you need to know OpenGL.  To learn more
+about OpenGL, you may want to begin with ``The Red Book'' (The OpenGL
+Programming Guide, The Official Guide to Learning).  The OpenGL
+specification is also useful (available online).
+
+<P>
+
+<DIV CLASS="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="3. Controlling stimulus parameters"
+  href="controllers.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="About this document ..."
+  href="about.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="controllers.html">3. Controlling stimulus parameters</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="about.html">About this document ...</A>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 1.1, documentation updated on June 7, 2008.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
