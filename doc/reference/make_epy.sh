@@ -5,20 +5,17 @@ if test ! -n "$PYTHON"; then
 fi
 
 $PYTHON epydoc --name "Vision Egg" --url "http://www.visionegg.org" --no-private \
---docformat plaintext \
+--docformat plaintext --parse-only \
 VisionEgg \
 VisionEgg.Configuration \
 VisionEgg.Core \
 VisionEgg.Daq \
 VisionEgg.DaqLPT \
-VisionEgg.DaqOverTCP \
 VisionEgg.Deprecated \
 VisionEgg.Dots \
 VisionEgg.FlowControl \
-VisionEgg.FlowControl \
 VisionEgg.GUI \
 VisionEgg.Gratings \
-VisionEgg.Lib3DS \
 VisionEgg.MoreStimuli \
 VisionEgg.ParameterTypes \
 VisionEgg.PlatformDependent \
