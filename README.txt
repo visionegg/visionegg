@@ -10,7 +10,7 @@ python setup.py install
 However, the above assumes all of the prerequisites are working.  For
 blow-by-blow accounts of how I got the prerequisites for the Vision
 Egg installed on all the supported platforms, check out the website at
-http://www.visionegg.org/ 
+http://www.visionegg.org/
 
 RUN THE CONFIGURATION CHECK (BEFORE AND/OR AFTER INSTALLATION)
 
@@ -30,20 +30,13 @@ The documentation start page is doc/index.html
 
 LICENSE
 
-The Vision Egg is Copyright (c) Andrew D. Straw, 2001-2006, Copyright
-(c) 2004-2006 California Institute of Technology.  It is distributed
-under the terms of the GNU LGPL (Lesser General Public License.) See
-LICENSE.txt for more information.  This software is provided "as is"
-without any warranty of any kind, either expressed or implied.
+The Vision Egg is Copyright (c) 2001-2008 by the Vision Egg
+Authors. It is distributed under the terms of the GNU LGPL (Lesser
+General Public License.) See LICENSE.txt for more information.  This
+software is provided "as is" without any warranty of any kind, either
+expressed or implied.
 
 CREDITS (SOURCE CODE INCLUDED WITH THE VISION EGG DISTRIBUTION)
-
-lib3ds is copyright (c) by J.E. Hoffmann and is included with this
-release based on the GNU LGPL.  See lib3ds/README and lib3ds/COPYING.
-
-py_logging.py (renamed from logging/__init__.py in the Python 2.3
-source) is copyright (c) by Vinay Sajip and is included with this
-release based on the BSD-style license included in that file.
 
 See http://visionegg.org/Miscellaneous/CreditsAndThanks for more.
 
