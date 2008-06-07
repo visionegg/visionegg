@@ -19,10 +19,7 @@ Grating stimuli.
 #
 ####################################################################
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
+import logging                              # available in Python 2.3
 
 import VisionEgg
 import VisionEgg.Core
@@ -32,13 +29,6 @@ import numpy
 import math, types, string
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 import _vegl
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 def _get_type_info( bitdepth ):
     """Private helper function to calculate type info based on bit depth"""

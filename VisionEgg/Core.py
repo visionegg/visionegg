@@ -24,10 +24,7 @@ This module contains the architectural foundations of the Vision Egg.
 import sys, types, math, time, os               # standard Python modules
 import StringIO
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
+import logging                                  # available in Python 2.3
 
 import VisionEgg                                # Vision Egg base module (__init__.py)
 import VisionEgg.PlatformDependent              # platform dependent Vision Egg C code
@@ -43,13 +40,6 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import numpy
 import numpy.oldnumeric as Numeric # emulate old Numeric Python package
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 # Define "sum" if it's not available as Python function
 try:

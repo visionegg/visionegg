@@ -1,6 +1,11 @@
 Changes for 1.1:
 ----------------
 
+* Explicitly require Python 2.3 by removing duplicate of Python
+  standard library's logging module and assume the "True" and "False"
+  are defined. There were probably other assumptions depending on 2.3
+  creeping into the code, as well.
+
 * Removed Lib3DS module.
 
 * Workaround PyOpenGL 3.0.0a and 3.0.0b1 bug in glLoadMatrixf().

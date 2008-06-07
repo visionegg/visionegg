@@ -15,17 +15,7 @@ Bits of code which will be removed in the future.
 
 import VisionEgg
 import sys, os
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
+import logging                              # available in Python 2.3
 
 ####################################################################
 #

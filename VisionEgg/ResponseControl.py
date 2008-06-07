@@ -21,11 +21,8 @@ Response control during a presentation is running.
 #
 ####################################################################
 
-try:
-    import logging
-    import logging.handlers
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
+import logging.handlers
 
 import VisionEgg
 import VisionEgg.Core
@@ -35,13 +32,6 @@ import VisionEgg.ParameterTypes as ve_types
 import pygame
 
 __version__ = VisionEgg.release_name
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 ####################################################################
 #

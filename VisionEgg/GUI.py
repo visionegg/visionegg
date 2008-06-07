@@ -15,13 +15,6 @@ Graphical user interface classes and functions.
 
 import VisionEgg
 
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
-
 ####################################################################
 #
 #        Import all the necessary packages
@@ -29,10 +22,7 @@ except NameError:
 ####################################################################
 
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
+import logging                              # available in Python 2.3
 
 import VisionEgg
 import os

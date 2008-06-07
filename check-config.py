@@ -248,9 +248,7 @@ print "Version checklist:"
 print
 
 print "Python version %s"%(string.split(sys.version)[0],),
-if sys.version >= '2.2' and sys.platform != 'darwin':
-    print "(OK)"
-elif sys.version >= '2.3' and sys.platform == 'darwin':
+if sys.version >= '2.3':
     print "(OK)"
 else:
     print "(Unsupported, probably won't work)"

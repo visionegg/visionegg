@@ -1,7 +1,7 @@
 # The Vision Egg: SphereMap
 #
 # Copyright (C) 2001-2004 Andrew Straw.
-# Copyright (C) 2005-2007 California Institute of Technology
+# Copyright (C) 2005-2008 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -16,10 +16,7 @@ Stimuli on spheres, including texture maps.
 
 import math, types
 
-try:
-    import logging
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
 
 import VisionEgg.Core
 import VisionEgg.Textures
@@ -35,13 +32,6 @@ import Image
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 class AzElGrid(VisionEgg.Core.Stimulus):
     """Spherical grid of iso-azimuth and iso-elevation lines.

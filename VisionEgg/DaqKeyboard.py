@@ -33,13 +33,6 @@ import pygame
 
 __version__ = VisionEgg.release_name
 
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
-
 ####################################################################
 #
 #        KeyboardInput

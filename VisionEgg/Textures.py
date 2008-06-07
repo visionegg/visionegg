@@ -19,10 +19,7 @@ Texture (images mapped onto polygons) stimuli.
 #
 ####################################################################
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
+import logging                              # available in Python 2.3
 
 import VisionEgg
 import VisionEgg.Core
@@ -43,13 +40,6 @@ import OpenGL.GLU as glu
 # make executables using Intaller if you remove these lines.
 import _imaging
 import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 if Image.VERSION >= '1.1.3':
     shrink_filter = Image.ANTIALIAS # Added in PIL 1.1.3

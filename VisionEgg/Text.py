@@ -19,11 +19,8 @@ Text stimuli.
 #
 ####################################################################
 
-try:
-    import logging
-    import logging.handlers
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
+import logging.handlers
 
 import VisionEgg.Core
 import VisionEgg.Textures
@@ -32,13 +29,6 @@ import VisionEgg.ParameterTypes as ve_types
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import pygame
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 try:
     import OpenGL.GLUT as glut
