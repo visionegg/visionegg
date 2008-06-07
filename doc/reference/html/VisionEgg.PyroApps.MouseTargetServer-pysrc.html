@@ -1,0 +1,1071 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.PyroApps.MouseTargetServer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        <a href="VisionEgg.PyroApps-module.html">Package&nbsp;PyroApps</a> ::
+        Module&nbsp;MouseTargetServer
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.PyroApps.MouseTargetServer-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="VisionEgg.PyroApps.MouseTargetServer-module.html">Module VisionEgg.PyroApps.MouseTargetServer</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#!/usr/bin/env python</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># The Vision Egg: MouseTargetServer</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2001-2003 Andrew Straw.</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Author: Andrew Straw &lt;astraw@users.sourceforge.net&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># URL: &lt;http://www.visionegg.org/&gt;</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Distributed under the terms of the GNU Lesser General Public License</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># (LGPL). See LICENSE.TXT that came with this file.</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># $Id$</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">"""Handle mouse-controlled small targets (server-side)"""</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package VisionEgg=VisionEgg-module.html"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-0', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">,</tt> <tt class="py-name">string</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-1', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Module VisionEgg.ParameterTypes=VisionEgg.ParameterTypes-module.html"><a title="VisionEgg.ParameterTypes" class="py-name" href="#" onclick="return doclink('link-2', 'ParameterTypes', 'link-2');">ParameterTypes</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">ve_types</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable VisionEgg.DaqKeyboard.__version__=VisionEgg.DaqKeyboard-module.html#__version__,Variable VisionEgg.DaqLPT.__version__=VisionEgg.DaqLPT-module.html#__version__,Variable VisionEgg.GL.__version__=VisionEgg.GL-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUI.__version__=VisionEgg.PyroApps.EPhysGUI-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__version__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__version__,Variable VisionEgg.PyroApps.EPhysServer.__version__=VisionEgg.PyroApps.EPhysServer-module.html#__version__,Variable VisionEgg.PyroApps.GridGUI.__version__=VisionEgg.PyroApps.GridGUI-module.html#__version__,Variable VisionEgg.PyroApps.GridServer.__version__=VisionEgg.PyroApps.GridServer-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__version__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionServer.__version__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__version__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumServer.__version__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__version__,Variable VisionEgg.PyroHelpers.__version__=VisionEgg.PyroHelpers-module.html#__version__,Variable VisionEgg.QuickTime.__version__=VisionEgg.QuickTime-module.html#__version__,Variable VisionEgg.ResponseControl.__version__=VisionEgg.ResponseControl-module.html#__version__,Variable VisionEgg.SphereMap.__version__=VisionEgg.SphereMap-module.html#__version__,Variable VisionEgg.TCPController.__version__=VisionEgg.TCPController-module.html#__version__"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-3', '__version__', 'link-3');">__version__</a></tt> <tt class="py-op">=</tt> <tt id="link-4" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-4', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Variable VisionEgg.release_name=VisionEgg-module.html#release_name"><a title="VisionEgg.release_name" class="py-name" href="#" onclick="return doclink('link-5', 'release_name', 'link-5');">release_name</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt id="link-6" class="py-name" targets="Variable VisionEgg.PyroApps.ColorCalGUI.__cvs__=VisionEgg.PyroApps.ColorCalGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.ColorCalServer.__cvs__=VisionEgg.PyroApps.ColorCalServer-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysGUI.__cvs__=VisionEgg.PyroApps.EPhysGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__cvs__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysServer.__cvs__=VisionEgg.PyroApps.EPhysServer-module.html#__cvs__,Variable VisionEgg.PyroApps.FlatGratingGUI.__cvs__=VisionEgg.PyroApps.FlatGratingGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.FlatGratingServer.__cvs__=VisionEgg.PyroApps.FlatGratingServer-module.html#__cvs__,Variable VisionEgg.PyroApps.GridGUI.__cvs__=VisionEgg.PyroApps.GridGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.GridServer.__cvs__=VisionEgg.PyroApps.GridServer-module.html#__cvs__,Variable VisionEgg.PyroApps.MouseTargetGUI.__cvs__=VisionEgg.PyroApps.MouseTargetGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.MouseTargetServer.__cvs__=VisionEgg.PyroApps.MouseTargetServer-module.html#__cvs__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__cvs__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.ScreenPositionServer.__cvs__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__cvs__,Variable VisionEgg.PyroApps.SphereGratingGUI.__cvs__=VisionEgg.PyroApps.SphereGratingGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.SphereGratingServer.__cvs__=VisionEgg.PyroApps.SphereGratingServer-module.html#__cvs__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__cvs__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.SpinningDrumServer.__cvs__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__cvs__,Variable VisionEgg.PyroApps.TargetGUI.__cvs__=VisionEgg.PyroApps.TargetGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.TargetServer.__cvs__=VisionEgg.PyroApps.TargetServer-module.html#__cvs__,Variable VisionEgg.PyroClient.__cvs__=VisionEgg.PyroClient-module.html#__cvs__,Variable VisionEgg.PyroHelpers.__cvs__=VisionEgg.PyroHelpers-module.html#__cvs__,Variable VisionEgg.TCPController.__cvs__=VisionEgg.TCPController-module.html#__cvs__"><a title="VisionEgg.PyroApps.ColorCalGUI.__cvs__
+VisionEgg.PyroApps.ColorCalServer.__cvs__
+VisionEgg.PyroApps.EPhysGUI.__cvs__
+VisionEgg.PyroApps.EPhysGUIUtils.__cvs__
+VisionEgg.PyroApps.EPhysServer.__cvs__
+VisionEgg.PyroApps.FlatGratingGUI.__cvs__
+VisionEgg.PyroApps.FlatGratingServer.__cvs__
+VisionEgg.PyroApps.GridGUI.__cvs__
+VisionEgg.PyroApps.GridServer.__cvs__
+VisionEgg.PyroApps.MouseTargetGUI.__cvs__
+VisionEgg.PyroApps.MouseTargetServer.__cvs__
+VisionEgg.PyroApps.ScreenPositionGUI.__cvs__
+VisionEgg.PyroApps.ScreenPositionServer.__cvs__
+VisionEgg.PyroApps.SphereGratingGUI.__cvs__
+VisionEgg.PyroApps.SphereGratingServer.__cvs__
+VisionEgg.PyroApps.SpinningDrumGUI.__cvs__
+VisionEgg.PyroApps.SpinningDrumServer.__cvs__
+VisionEgg.PyroApps.TargetGUI.__cvs__
+VisionEgg.PyroApps.TargetServer.__cvs__
+VisionEgg.PyroClient.__cvs__
+VisionEgg.PyroHelpers.__cvs__
+VisionEgg.TCPController.__cvs__" class="py-name" href="#" onclick="return doclink('link-6', '__cvs__', 'link-6');">__cvs__</a></tt> <tt class="py-op">=</tt> <tt class="py-name">string</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">'$Revision$'</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt id="link-7" class="py-name" targets="Variable VisionEgg.PyroApps.ColorCalGUI.__date__=VisionEgg.PyroApps.ColorCalGUI-module.html#__date__,Variable VisionEgg.PyroApps.ColorCalServer.__date__=VisionEgg.PyroApps.ColorCalServer-module.html#__date__,Variable VisionEgg.PyroApps.EPhysGUI.__date__=VisionEgg.PyroApps.EPhysGUI-module.html#__date__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__date__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__date__,Variable VisionEgg.PyroApps.EPhysServer.__date__=VisionEgg.PyroApps.EPhysServer-module.html#__date__,Variable VisionEgg.PyroApps.FlatGratingGUI.__date__=VisionEgg.PyroApps.FlatGratingGUI-module.html#__date__,Variable VisionEgg.PyroApps.FlatGratingServer.__date__=VisionEgg.PyroApps.FlatGratingServer-module.html#__date__,Variable VisionEgg.PyroApps.GridGUI.__date__=VisionEgg.PyroApps.GridGUI-module.html#__date__,Variable VisionEgg.PyroApps.GridServer.__date__=VisionEgg.PyroApps.GridServer-module.html#__date__,Variable VisionEgg.PyroApps.MouseTargetGUI.__date__=VisionEgg.PyroApps.MouseTargetGUI-module.html#__date__,Variable VisionEgg.PyroApps.MouseTargetServer.__date__=VisionEgg.PyroApps.MouseTargetServer-module.html#__date__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__date__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__date__,Variable VisionEgg.PyroApps.ScreenPositionServer.__date__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__date__,Variable VisionEgg.PyroApps.SphereGratingGUI.__date__=VisionEgg.PyroApps.SphereGratingGUI-module.html#__date__,Variable VisionEgg.PyroApps.SphereGratingServer.__date__=VisionEgg.PyroApps.SphereGratingServer-module.html#__date__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__date__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__date__,Variable VisionEgg.PyroApps.SpinningDrumServer.__date__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__date__,Variable VisionEgg.PyroApps.TargetGUI.__date__=VisionEgg.PyroApps.TargetGUI-module.html#__date__,Variable VisionEgg.PyroApps.TargetServer.__date__=VisionEgg.PyroApps.TargetServer-module.html#__date__,Variable VisionEgg.PyroClient.__date__=VisionEgg.PyroClient-module.html#__date__,Variable VisionEgg.PyroHelpers.__date__=VisionEgg.PyroHelpers-module.html#__date__,Variable VisionEgg.TCPController.__date__=VisionEgg.TCPController-module.html#__date__"><a title="VisionEgg.PyroApps.ColorCalGUI.__date__
+VisionEgg.PyroApps.ColorCalServer.__date__
+VisionEgg.PyroApps.EPhysGUI.__date__
+VisionEgg.PyroApps.EPhysGUIUtils.__date__
+VisionEgg.PyroApps.EPhysServer.__date__
+VisionEgg.PyroApps.FlatGratingGUI.__date__
+VisionEgg.PyroApps.FlatGratingServer.__date__
+VisionEgg.PyroApps.GridGUI.__date__
+VisionEgg.PyroApps.GridServer.__date__
+VisionEgg.PyroApps.MouseTargetGUI.__date__
+VisionEgg.PyroApps.MouseTargetServer.__date__
+VisionEgg.PyroApps.ScreenPositionGUI.__date__
+VisionEgg.PyroApps.ScreenPositionServer.__date__
+VisionEgg.PyroApps.SphereGratingGUI.__date__
+VisionEgg.PyroApps.SphereGratingServer.__date__
+VisionEgg.PyroApps.SpinningDrumGUI.__date__
+VisionEgg.PyroApps.SpinningDrumServer.__date__
+VisionEgg.PyroApps.TargetGUI.__date__
+VisionEgg.PyroApps.TargetServer.__date__
+VisionEgg.PyroClient.__date__
+VisionEgg.PyroHelpers.__date__
+VisionEgg.TCPController.__date__" class="py-name" href="#" onclick="return doclink('link-7', '__date__', 'link-7');">__date__</a></tt> <tt class="py-op">=</tt> <tt class="py-name">string</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">string</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">'$Date$'</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">' '</tt><tt class="py-op">)</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt id="link-8" class="py-name" targets="Variable VisionEgg.PyroApps.EPhysGUI.__author__=VisionEgg.PyroApps.EPhysGUI-module.html#__author__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__author__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__author__,Variable VisionEgg.PyroApps.EPhysServer.__author__=VisionEgg.PyroApps.EPhysServer-module.html#__author__,Variable VisionEgg.PyroApps.GridGUI.__author__=VisionEgg.PyroApps.GridGUI-module.html#__author__,Variable VisionEgg.PyroApps.GridServer.__author__=VisionEgg.PyroApps.GridServer-module.html#__author__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__author__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__author__,Variable VisionEgg.PyroApps.SpinningDrumServer.__author__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__author__"><a title="VisionEgg.PyroApps.EPhysGUI.__author__
+VisionEgg.PyroApps.EPhysGUIUtils.__author__
+VisionEgg.PyroApps.EPhysServer.__author__
+VisionEgg.PyroApps.GridGUI.__author__
+VisionEgg.PyroApps.GridServer.__author__
+VisionEgg.PyroApps.SpinningDrumGUI.__author__
+VisionEgg.PyroApps.SpinningDrumServer.__author__" class="py-name" href="#" onclick="return doclink('link-8', '__author__', 'link-8');">__author__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'Andrew Straw &lt;astraw@users.sourceforge.net&gt;'</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt><tt class="py-op">,</tt> <tt class="py-name">os</tt><tt class="py-op">,</tt> <tt class="py-name">math</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-9', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Module VisionEgg.Core=VisionEgg.Core-module.html"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-10', 'Core', 'link-10');">Core</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-11" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-11', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Module VisionEgg.FlowControl=VisionEgg.FlowControl-module.html"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-12', 'FlowControl', 'link-12');">FlowControl</a></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-13" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-13', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Module VisionEgg.MoreStimuli=VisionEgg.MoreStimuli-module.html"><a title="VisionEgg.MoreStimuli" class="py-name" href="#" onclick="return doclink('link-14', 'MoreStimuli', 'link-14');">MoreStimuli</a></tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-15" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-15', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Module VisionEgg.PyroHelpers=VisionEgg.PyroHelpers-module.html"><a title="VisionEgg.PyroHelpers" class="py-name" href="#" onclick="return doclink('link-16', 'PyroHelpers', 'link-16');">PyroHelpers</a></tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">Pyro</tt><tt class="py-op">.</tt><tt class="py-name">core</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">pygame</tt><tt class="py-op">,</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-17" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-17', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Package VisionEgg.PyroApps=VisionEgg.PyroApps-module.html"><a title="VisionEgg.PyroApps" class="py-name" href="#" onclick="return doclink('link-18', 'PyroApps', 'link-18');">PyroApps</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Module VisionEgg.PyroApps.MouseTargetGUI=VisionEgg.PyroApps.MouseTargetGUI-module.html"><a title="VisionEgg.PyroApps.MouseTargetGUI" class="py-name" href="#" onclick="return doclink('link-19', 'MouseTargetGUI', 'link-19');">MouseTargetGUI</a></tt> <tt class="py-keyword">import</tt> <tt id="link-20" class="py-name" targets="Class VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters=VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters-class.html"><a title="VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters" class="py-name" href="#" onclick="return doclink('link-20', 'MouseTargetMetaParameters', 'link-20');">MouseTargetMetaParameters</a></tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-comment"># Variables to store the mouse position</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt id="link-21" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.mouse_position=VisionEgg.PyroApps.MouseTargetServer-module.html#mouse_position"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-21', 'mouse_position', 'link-21');">mouse_position</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">320.0</tt><tt class="py-op">,</tt> <tt class="py-number">240.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt id="link-22" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.last_mouse_position=VisionEgg.PyroApps.MouseTargetServer-module.html#last_mouse_position"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-22', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-comment"># target size global variables</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt id="link-23" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.target_w=VisionEgg.PyroApps.MouseTargetServer-module.html#target_w"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-23', 'target_w', 'link-23');">target_w</a></tt> <tt class="py-op">=</tt> <tt class="py-number">50.0</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt id="link-24" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.target_h=VisionEgg.PyroApps.MouseTargetServer-module.html#target_h"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-24', 'target_h', 'link-24');">target_h</a></tt> <tt class="py-op">=</tt> <tt class="py-number">10.0</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-comment"># key state global variables</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt id="link-25" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.up=VisionEgg.PyroApps.MouseTargetServer-module.html#up"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-25', 'up', 'link-25');">up</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt id="link-26" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.down=VisionEgg.PyroApps.MouseTargetServer-module.html#down"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-26', 'down', 'link-26');">down</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt id="link-27" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.left=VisionEgg.PyroApps.MouseTargetServer-module.html#left"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-27', 'left', 'link-27');">left</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt id="link-28" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.right=VisionEgg.PyroApps.MouseTargetServer-module.html#right"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-28', 'right', 'link-28');">right</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="keydown"></a><div id="keydown-def"><a name="L48"></a><tt class="py-lineno"> 48</tt> <a class="py-toggle" href="#" id="keydown-toggle" onclick="return toggle('keydown');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#keydown">keydown</a><tt class="py-op">(</tt><tt class="py-param">event</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="keydown-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="keydown-expanded"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-29" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-29', 'up', 'link-25');">up</a></tt><tt class="py-op">,</tt> <tt id="link-30" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-30', 'down', 'link-26');">down</a></tt><tt class="py-op">,</tt> <tt id="link-31" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-31', 'left', 'link-27');">left</a></tt><tt class="py-op">,</tt> <tt id="link-32" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-32', 'right', 'link-28');">right</a></tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_UP</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt id="link-33" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-33', 'up', 'link-25');">up</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_DOWN</tt><tt class="py-op">:</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt id="link-34" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-34', 'down', 'link-26');">down</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_RIGHT</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt id="link-35" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-35', 'right', 'link-28');">right</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_LEFT</tt><tt class="py-op">:</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt id="link-36" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-36', 'left', 'link-27');">left</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">         </tt>
+<a name="keyup"></a><div id="keyup-def"><a name="L59"></a><tt class="py-lineno"> 59</tt> <a class="py-toggle" href="#" id="keyup-toggle" onclick="return toggle('keyup');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#keyup">keyup</a><tt class="py-op">(</tt><tt class="py-param">event</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="keyup-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="keyup-expanded"><a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-37" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-37', 'up', 'link-25');">up</a></tt><tt class="py-op">,</tt> <tt id="link-38" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-38', 'down', 'link-26');">down</a></tt><tt class="py-op">,</tt> <tt id="link-39" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-39', 'left', 'link-27');">left</a></tt><tt class="py-op">,</tt> <tt id="link-40" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-40', 'right', 'link-28');">right</a></tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_UP</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt id="link-41" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-41', 'up', 'link-25');">up</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_DOWN</tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt id="link-42" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-42', 'down', 'link-26');">down</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_RIGHT</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt id="link-43" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-43', 'right', 'link-28');">right</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">key</tt> <tt class="py-op">==</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">K_LEFT</tt><tt class="py-op">:</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt id="link-44" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-44', 'left', 'link-27');">left</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">         </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt id="link-45" class="py-name" targets="Variable VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks=VisionEgg.PyroApps.MouseTargetServer-module.html#handle_event_callbacks"><a title="VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks" class="py-name" href="#" onclick="return doclink('link-45', 'handle_event_callbacks', 'link-45');">handle_event_callbacks</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">KEYDOWN</tt><tt class="py-op">,</tt> <tt id="link-46" class="py-name" targets="Function VisionEgg.PyroApps.MouseTargetServer.keydown()=VisionEgg.PyroApps.MouseTargetServer-module.html#keydown"><a title="VisionEgg.PyroApps.MouseTargetServer.keydown" class="py-name" href="#" onclick="return doclink('link-46', 'keydown', 'link-46');">keydown</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                          <tt class="py-op">(</tt><tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">locals</tt><tt class="py-op">.</tt><tt class="py-name">KEYUP</tt><tt class="py-op">,</tt> <tt id="link-47" class="py-name" targets="Function VisionEgg.PyroApps.MouseTargetServer.keyup()=VisionEgg.PyroApps.MouseTargetServer-module.html#keyup"><a title="VisionEgg.PyroApps.MouseTargetServer.keyup" class="py-name" href="#" onclick="return doclink('link-47', 'keyup', 'link-47');">keyup</a></tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="MouseTargetExperimentMetaController"></a><div id="MouseTargetExperimentMetaController-def"><a name="L73"></a><tt class="py-lineno"> 73</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController-toggle" onclick="return toggle('MouseTargetExperimentMetaController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html">MouseTargetExperimentMetaController</a><tt class="py-op">(</tt> <tt class="py-base-class">Pyro</tt><tt class="py-op">.</tt><tt class="py-base-class">core</tt><tt class="py-op">.</tt><tt class="py-base-class">ObjBase</tt> <tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MouseTargetExperimentMetaController-expanded"><a name="MouseTargetExperimentMetaController.__init__"></a><div id="MouseTargetExperimentMetaController.__init__-def"><a name="L74"></a><tt class="py-lineno"> 74</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.__init__-toggle" onclick="return toggle('MouseTargetExperimentMetaController.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">screen</tt><tt class="py-op">,</tt><tt class="py-param">presentation</tt><tt class="py-op">,</tt><tt class="py-param">stimuli</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.__init__-expanded"><a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt class="py-name">screen_global</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-name">screen_global</tt> <tt class="py-op">=</tt> <tt class="py-name">screen</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-comment"># get stimulus</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">assert</tt><tt class="py-op">(</tt> <tt class="py-name">stimuli</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-string">'2d_overlay'</tt><tt class="py-op">)</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">stimuli</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">         </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-name">Pyro</tt><tt class="py-op">.</tt><tt class="py-name">core</tt><tt class="py-op">.</tt><tt class="py-name">ObjBase</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Method VisionEgg.ClassWithParameters.__init__()=VisionEgg.ClassWithParameters-class.html#__init__,Method VisionEgg.Configuration.Config.__init__()=VisionEgg.Configuration.Config-class.html#__init__,Method VisionEgg.Core.FixationSpot.__init__()=VisionEgg.Core.FixationSpot-class.html#__init__,Method VisionEgg.Core.FrameTimer.__init__()=VisionEgg.Core.FrameTimer-class.html#__init__,Method VisionEgg.Core.ModelView.__init__()=VisionEgg.Core.ModelView-class.html#__init__,Method VisionEgg.Core.OrthographicProjection.__init__()=VisionEgg.Core.OrthographicProjection-class.html#__init__,Method VisionEgg.Core.OrthographicProjectionNoZClip.__init__()=VisionEgg.Core.OrthographicProjectionNoZClip-class.html#__init__,Method VisionEgg.Core.PerspectiveProjection.__init__()=VisionEgg.Core.PerspectiveProjection-class.html#__init__,Method VisionEgg.Core.Projection.__init__()=VisionEgg.Core.Projection-class.html#__init__,Method VisionEgg.Core.ProjectionBaseClass.__init__()=VisionEgg.Core.ProjectionBaseClass-class.html#__init__,Method VisionEgg.Core.Screen.__init__()=VisionEgg.Core.Screen-class.html#__init__,Method VisionEgg.Core.SimplePerspectiveProjection.__init__()=VisionEgg.Core.SimplePerspectiveProjection-class.html#__init__,Method VisionEgg.Core.Stimulus.__init__()=VisionEgg.Core.Stimulus-class.html#__init__,Method VisionEgg.Core.Viewport.__init__()=VisionEgg.Core.Viewport-class.html#__init__,Method VisionEgg.Daq.Channel.__init__()=VisionEgg.Daq.Channel-class.html#__init__,Method VisionEgg.Daq.DaqMode.__init__()=VisionEgg.Daq.DaqMode-class.html#__init__,Method VisionEgg.Daq.Device.__init__()=VisionEgg.Daq.Device-class.html#__init__,Method VisionEgg.Daq.Functionality.__init__()=VisionEgg.Daq.Functionality-class.html#__init__,Method VisionEgg.Daq.SignalType.__init__()=VisionEgg.Daq.SignalType-class.html#__init__,Method VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__()=VisionEgg.DaqKeyboard.KeyboardTriggerInController-class.html#__init__,Method VisionEgg.DaqLPT.LPTChannel.__init__()=VisionEgg.DaqLPT.LPTChannel-class.html#__init__,Method VisionEgg.DaqLPT.LPTDevice.__init__()=VisionEgg.DaqLPT.LPTDevice-class.html#__init__,Method VisionEgg.DaqLPT.LPTTriggerInController.__init__()=VisionEgg.DaqLPT.LPTTriggerInController-class.html#__init__,Method VisionEgg.DaqLPT.LPTTriggerOutController.__init__()=VisionEgg.DaqLPT.LPTTriggerOutController-class.html#__init__,Method VisionEgg.Deprecated.Message.__init__()=VisionEgg.Deprecated.Message-class.html#__init__,Method VisionEgg.Dots.DotArea2D.__init__()=VisionEgg.Dots.DotArea2D-class.html#__init__,Method VisionEgg.FlowControl.ConstantController.__init__()=VisionEgg.FlowControl.ConstantController-class.html#__init__,Method VisionEgg.FlowControl.Controller.__init__()=VisionEgg.FlowControl.Controller-class.html#__init__,Method VisionEgg.FlowControl.EncapsulatedController.__init__()=VisionEgg.FlowControl.EncapsulatedController-class.html#__init__,Method VisionEgg.FlowControl.EvalStringController.__init__()=VisionEgg.FlowControl.EvalStringController-class.html#__init__,Method VisionEgg.FlowControl.ExecStringController.__init__()=VisionEgg.FlowControl.ExecStringController-class.html#__init__,Method VisionEgg.FlowControl.FunctionController.__init__()=VisionEgg.FlowControl.FunctionController-class.html#__init__,Method VisionEgg.FlowControl.Presentation.__init__()=VisionEgg.FlowControl.Presentation-class.html#__init__,Method VisionEgg.GLTrace.Wrapper.__init__()=VisionEgg.GLTrace.Wrapper-class.html#__init__,Method VisionEgg.GUI.AppWindow.__init__()=VisionEgg.GUI.AppWindow-class.html#__init__,Method VisionEgg.GUI.GetKeypressDialog.__init__()=VisionEgg.GUI.GetKeypressDialog-class.html#__init__,Method VisionEgg.GUI.GraphicsConfigurationWindow.__init__()=VisionEgg.GUI.GraphicsConfigurationWindow-class.html#__init__,Method VisionEgg.GUI.InfoFrame.__init__()=VisionEgg.GUI.InfoFrame-class.html#__init__,Method VisionEgg.GUI.ProgressBar.__init__()=VisionEgg.GUI.ProgressBar-class.html#__init__,Method VisionEgg.GUI.ToplevelDialog.__init__()=VisionEgg.GUI.ToplevelDialog-class.html#__init__,Method VisionEgg.Gratings.SinGrating2D.__init__()=VisionEgg.Gratings.SinGrating2D-class.html#__init__,Method VisionEgg.Gratings.SinGrating3D.__init__()=VisionEgg.Gratings.SinGrating3D-class.html#__init__,Method VisionEgg.MoreStimuli.Arrow.__init__()=VisionEgg.MoreStimuli.Arrow-class.html#__init__,Method VisionEgg.MoreStimuli.FilledCircle.__init__()=VisionEgg.MoreStimuli.FilledCircle-class.html#__init__,Method VisionEgg.MoreStimuli.Rectangle3D.__init__()=VisionEgg.MoreStimuli.Rectangle3D-class.html#__init__,Method VisionEgg.MoreStimuli.Target2D.__init__()=VisionEgg.MoreStimuli.Target2D-class.html#__init__,Method VisionEgg.ParameterTypes.AnyOf.__init__()=VisionEgg.ParameterTypes.AnyOf-class.html#__init__,Method VisionEgg.ParameterTypes.Instance.__init__()=VisionEgg.ParameterTypes.Instance-class.html#__init__,Method VisionEgg.ParameterTypes.Sequence.__init__()=VisionEgg.ParameterTypes.Sequence-class.html#__init__,Method VisionEgg.ParameterTypes.SubClass.__init__()=VisionEgg.ParameterTypes.SubClass-class.html#__init__,Method VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__()=VisionEgg.PyroApps.AST_ext.AST_Visitor-class.html#__init__,Method VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__()=VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame-class.html#__init__,Method VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__()=VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__()=VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController-class.html#__init__,Method VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__()=VisionEgg.PyroApps.DropinGUI.DropinControlFrame-class.html#__init__,Method VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__()=VisionEgg.PyroApps.DropinGUI.DropinMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__()=VisionEgg.PyroApps.DropinServer.DropinMetaController-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__()=VisionEgg.PyroApps.EPhysGUI.AppWindow-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.BarButton.__init__()=VisionEgg.PyroApps.EPhysGUI.BarButton-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__()=VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__()=VisionEgg.PyroApps.EPhysGUI.GammaFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__()=VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.Loop.__init__()=VisionEgg.PyroApps.EPhysGUI.Loop-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__()=VisionEgg.PyroApps.EPhysGUI.LoopContainedObject-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__()=VisionEgg.PyroApps.EPhysGUI.LoopParamDialog-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__()=VisionEgg.PyroApps.EPhysGUI.ScrollListFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__()=VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__()=VisionEgg.PyroApps.EPhysServer.EPhysServer-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__()=VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__()=VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__()=VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__()=VisionEgg.PyroApps.GridGUI.GridControlFrame-class.html#__init__,Method VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__()=VisionEgg.PyroApps.GridGUI.GridMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.GridServer.GridMetaController.__init__()=VisionEgg.PyroApps.GridServer.GridMetaController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__()=VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__()=VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__()=VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__()=VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__()=VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__()=VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__()=VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__()=VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__()=VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__()=VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__()=VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__()=VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__()=VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__()=VisionEgg.PyroApps.TargetGUI.TargetControlFrame-class.html#__init__,Method VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__()=VisionEgg.PyroApps.TargetGUI.TargetMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__()=VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController-class.html#__init__,Method VisionEgg.PyroClient.PyroClient.__init__()=VisionEgg.PyroClient.PyroClient-class.html#__init__,Method VisionEgg.PyroHelpers.PyroConstantController.__init__()=VisionEgg.PyroHelpers.PyroConstantController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__()=VisionEgg.PyroHelpers.PyroEncapsulatedController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroEvalStringController.__init__()=VisionEgg.PyroHelpers.PyroEvalStringController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroExecStringController.__init__()=VisionEgg.PyroHelpers.PyroExecStringController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroListenController.__init__()=VisionEgg.PyroHelpers.PyroListenController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroLocalDictController.__init__()=VisionEgg.PyroHelpers.PyroLocalDictController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroServer.__init__()=VisionEgg.PyroHelpers.PyroServer-class.html#__init__,Method VisionEgg.QuickTime.MovieTexture.__init__()=VisionEgg.QuickTime.MovieTexture-class.html#__init__,Method VisionEgg.ResponseControl.KeyboardResponseController.__init__()=VisionEgg.ResponseControl.KeyboardResponseController-class.html#__init__,Method VisionEgg.ResponseControl.ResponseController.__init__()=VisionEgg.ResponseControl.ResponseController-class.html#__init__,Method VisionEgg.SphereMap.AzElGrid.__init__()=VisionEgg.SphereMap.AzElGrid-class.html#__init__,Method VisionEgg.SphereMap.SphereGrating.__init__()=VisionEgg.SphereMap.SphereGrating-class.html#__init__,Method VisionEgg.SphereMap.SphereMap.__init__()=VisionEgg.SphereMap.SphereMap-class.html#__init__,Method VisionEgg.SphereMap.SphereWindow.__init__()=VisionEgg.SphereMap.SphereWindow-class.html#__init__,Method VisionEgg.TCPController.SocketListenController.__init__()=VisionEgg.TCPController.SocketListenController-class.html#__init__,Method VisionEgg.TCPController.TCPController.__init__()=VisionEgg.TCPController.TCPController-class.html#__init__,Method VisionEgg.TCPController.TCPServer.__init__()=VisionEgg.TCPController.TCPServer-class.html#__init__,Method VisionEgg.Text.BitmapText.__init__()=VisionEgg.Text.BitmapText-class.html#__init__,Method VisionEgg.Text.GlutTextBase.__init__()=VisionEgg.Text.GlutTextBase-class.html#__init__,Method VisionEgg.Text.StrokeText.__init__()=VisionEgg.Text.StrokeText-class.html#__init__,Method VisionEgg.Text.Text.__init__()=VisionEgg.Text.Text-class.html#__init__,Method VisionEgg.Textures.FixationCross.__init__()=VisionEgg.Textures.FixationCross-class.html#__init__,Method VisionEgg.Textures.Mask2D.__init__()=VisionEgg.Textures.Mask2D-class.html#__init__,Method VisionEgg.Textures.SpinningDrum.__init__()=VisionEgg.Textures.SpinningDrum-class.html#__init__,Method VisionEgg.Textures.Texture.__init__()=VisionEgg.Textures.Texture-class.html#__init__,Method VisionEgg.Textures.TextureFromFile.__init__()=VisionEgg.Textures.TextureFromFile-class.html#__init__,Method VisionEgg.Textures.TextureObject.__init__()=VisionEgg.Textures.TextureObject-class.html#__init__,Method VisionEgg.Textures.TextureStimulusBaseClass.__init__()=VisionEgg.Textures.TextureStimulusBaseClass-class.html#__init__,Method VisionEgg.ThreeDeeMath.TransformMatrix.__init__()=VisionEgg.ThreeDeeMath.TransformMatrix-class.html#__init__,Method VisionEgg.WrappedText.WrappedText.__init__()=VisionEgg.WrappedText.WrappedText-class.html#__init__,Method VisionEgg.qtmovie.Movie.__init__()=VisionEgg.qtmovie.Movie-class.html#__init__,Method VisionEgg.qtmovie.Rect.__init__()=VisionEgg.qtmovie.Rect-class.html#__init__"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-48', '__init__', 'link-48');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">meta_params</tt> <tt class="py-op">=</tt> <tt id="link-49" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters" class="py-name" href="#" onclick="return doclink('link-49', 'MouseTargetMetaParameters', 'link-20');">MouseTargetMetaParameters</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">screen</tt><tt class="py-op">,</tt><tt id="link-50" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-50', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-51', 'Core', 'link-10');">Core</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name" targets="Class VisionEgg.Core.Screen=VisionEgg.Core.Screen-class.html"><a title="VisionEgg.Core.Screen" class="py-name" href="#" onclick="return doclink('link-52', 'Screen', 'link-52');">Screen</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Expecting instance of VisionEgg.Core.Screen"</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">presentation</tt><tt class="py-op">,</tt><tt id="link-53" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-53', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-54', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-55" class="py-name" targets="Class VisionEgg.FlowControl.Presentation=VisionEgg.FlowControl.Presentation-class.html"><a title="VisionEgg.FlowControl.Presentation" class="py-name" href="#" onclick="return doclink('link-55', 'Presentation', 'link-55');">Presentation</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Expecting instance of VisionEgg.FlowControl.Presentation"</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt><tt id="link-56" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-56', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="VisionEgg.MoreStimuli" class="py-name" href="#" onclick="return doclink('link-57', 'MoreStimuli', 'link-14');">MoreStimuli</a></tt><tt class="py-op">.</tt><tt id="link-58" class="py-name" targets="Class VisionEgg.MoreStimuli.Target2D=VisionEgg.MoreStimuli.Target2D-class.html"><a title="VisionEgg.MoreStimuli.Target2D" class="py-name" href="#" onclick="return doclink('link-58', 'Target2D', 'link-58');">Target2D</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Expecting instance of VisionEgg.MoreStimuli.Target2D"</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">         </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">screen</tt> <tt class="py-op">=</tt> <tt class="py-name">screen</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt> <tt class="py-op">=</tt> <tt class="py-name">presentation</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stim</tt> <tt class="py-op">=</tt> <tt class="py-name">target</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name" targets="Method VisionEgg.FlowControl.Presentation.add_controller()=VisionEgg.FlowControl.Presentation-class.html#add_controller,Method VisionEgg.PyroHelpers.PyroLocalDictController.add_controller()=VisionEgg.PyroHelpers.PyroLocalDictController-class.html#add_controller"><a title="VisionEgg.FlowControl.Presentation.add_controller
+VisionEgg.PyroHelpers.PyroLocalDictController.add_controller" class="py-name" href="#" onclick="return doclink('link-59', 'add_controller', 'link-59');">add_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt><tt class="py-string">'position'</tt><tt class="py-op">,</tt> <tt id="link-60" class="py-name" targets="Class VisionEgg.PyroApps.MouseTargetServer.TargetPositionController=VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html"><a title="VisionEgg.PyroApps.MouseTargetServer.TargetPositionController" class="py-name" href="#" onclick="return doclink('link-60', 'TargetPositionController', 'link-60');">TargetPositionController</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="VisionEgg.FlowControl.Presentation.add_controller
+VisionEgg.PyroHelpers.PyroLocalDictController.add_controller" class="py-name" href="#" onclick="return doclink('link-61', 'add_controller', 'link-59');">add_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt><tt class="py-string">'size'</tt><tt class="py-op">,</tt> <tt id="link-62" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-62', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-63', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-64" class="py-name" targets="Class VisionEgg.FlowControl.FunctionController=VisionEgg.FlowControl.FunctionController-class.html"><a title="VisionEgg.FlowControl.FunctionController" class="py-name" href="#" onclick="return doclink('link-64', 'FunctionController', 'link-64');">FunctionController</a></tt><tt class="py-op">(</tt><tt class="py-name">during_go_func</tt><tt class="py-op">=</tt><tt id="link-65" class="py-name" targets="Function VisionEgg.PyroApps.MouseTargetServer.get_target_size()=VisionEgg.PyroApps.MouseTargetServer-module.html#get_target_size"><a title="VisionEgg.PyroApps.MouseTargetServer.get_target_size" class="py-name" href="#" onclick="return doclink('link-65', 'get_target_size', 'link-65');">get_target_size</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                                                                <tt class="py-name">between_go_func</tt><tt class="py-op">=</tt><tt id="link-66" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.get_target_size" class="py-name" href="#" onclick="return doclink('link-66', 'get_target_size', 'link-65');">get_target_size</a></tt><tt class="py-op">)</tt> <tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="VisionEgg.FlowControl.Presentation.add_controller
+VisionEgg.PyroHelpers.PyroLocalDictController.add_controller" class="py-name" href="#" onclick="return doclink('link-67', 'add_controller', 'link-59');">add_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt><tt class="py-string">'orientation'</tt><tt class="py-op">,</tt> <tt id="link-68" class="py-name" targets="Class VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController=VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html"><a title="VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController" class="py-name" href="#" onclick="return doclink('link-68', 'TargetOrientationController', 'link-68');">TargetOrientationController</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">mouse_position_controller</tt> <tt class="py-op">=</tt> <tt id="link-69" class="py-name" targets="Class VisionEgg.PyroApps.MouseTargetServer.MousePositionController=VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html"><a title="VisionEgg.PyroApps.MouseTargetServer.MousePositionController" class="py-name" href="#" onclick="return doclink('link-69', 'MousePositionController', 'link-69');">MousePositionController</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="VisionEgg.FlowControl.Presentation.add_controller
+VisionEgg.PyroHelpers.PyroLocalDictController.add_controller" class="py-name" href="#" onclick="return doclink('link-70', 'add_controller', 'link-59');">add_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">mouse_position_controller</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">orig_event_handlers</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks" class="py-name" href="#" onclick="return doclink('link-71', 'handle_event_callbacks', 'link-45');">handle_event_callbacks</a></tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks" class="py-name" href="#" onclick="return doclink('link-72', 'handle_event_callbacks', 'link-45');">handle_event_callbacks</a></tt> <tt class="py-op">=</tt> <tt id="link-73" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks" class="py-name" href="#" onclick="return doclink('link-73', 'handle_event_callbacks', 'link-45');">handle_event_callbacks</a></tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name" targets="Method VisionEgg.GUI.InfoFrame.update()=VisionEgg.GUI.InfoFrame-class.html#update,Method VisionEgg.GUI.ProgressBar.update()=VisionEgg.GUI.ProgressBar-class.html#update,Method VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.update()=VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController-class.html#update,Method VisionEgg.PyroApps.DropinServer.DropinMetaController.update()=VisionEgg.PyroApps.DropinServer.DropinMetaController-class.html#update,Method VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.update()=VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController-class.html#update,Method VisionEgg.PyroApps.GridServer.GridMetaController.update()=VisionEgg.PyroApps.GridServer.GridMetaController-class.html#update,Method VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.update()=VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#update,Method VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.update()=VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController-class.html#update,Method VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.update()=VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController-class.html#update,Method VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.update()=VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController-class.html#update,Method VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.update()=VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController-class.html#update,Method VisionEgg.QuickTime.MovieTexture.update()=VisionEgg.QuickTime.MovieTexture-class.html#update,Method VisionEgg.Textures.Texture.update()=VisionEgg.Textures.Texture-class.html#update"><a title="VisionEgg.GUI.InfoFrame.update
+VisionEgg.GUI.ProgressBar.update
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.update
+VisionEgg.PyroApps.DropinServer.DropinMetaController.update
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.update
+VisionEgg.PyroApps.GridServer.GridMetaController.update
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.update
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.update
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.update
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.update
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.update
+VisionEgg.QuickTime.MovieTexture.update
+VisionEgg.Textures.Texture.update" class="py-name" href="#" onclick="return doclink('link-74', 'update', 'link-74');">update</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-comment"># set stimulus parameters to initial defaults</tt> </tt>
+</div><a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="MouseTargetExperimentMetaController.__del__"></a><div id="MouseTargetExperimentMetaController.__del__-def"><a name="L105"></a><tt class="py-lineno">105</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.__del__-toggle" onclick="return toggle('MouseTargetExperimentMetaController.__del__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#__del__">__del__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.__del__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.__del__-expanded"><a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.handle_event_callbacks" class="py-name" href="#" onclick="return doclink('link-75', 'handle_event_callbacks', 'link-45');">handle_event_callbacks</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">orig_event_handlers</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Method VisionEgg.FlowControl.Presentation.remove_controller()=VisionEgg.FlowControl.Presentation-class.html#remove_controller"><a title="VisionEgg.FlowControl.Presentation.remove_controller" class="py-name" href="#" onclick="return doclink('link-76', 'remove_controller', 'link-76');">remove_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">mouse_position_controller</tt><tt class="py-op">)</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="VisionEgg.FlowControl.Presentation.remove_controller" class="py-name" href="#" onclick="return doclink('link-77', 'remove_controller', 'link-76');">remove_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stim</tt><tt class="py-op">,</tt><tt class="py-string">'position'</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="VisionEgg.FlowControl.Presentation.remove_controller" class="py-name" href="#" onclick="return doclink('link-78', 'remove_controller', 'link-76');">remove_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stim</tt><tt class="py-op">,</tt><tt class="py-string">'size'</tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-79" class="py-name"><a title="VisionEgg.FlowControl.Presentation.remove_controller" class="py-name" href="#" onclick="return doclink('link-79', 'remove_controller', 'link-76');">remove_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stim</tt><tt class="py-op">,</tt><tt class="py-string">'orientation'</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">     </tt>
+<a name="MouseTargetExperimentMetaController.get_parameters"></a><div id="MouseTargetExperimentMetaController.get_parameters-def"><a name="L112"></a><tt class="py-lineno">112</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.get_parameters-toggle" onclick="return toggle('MouseTargetExperimentMetaController.get_parameters');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#get_parameters">get_parameters</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.get_parameters-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.get_parameters-expanded"><a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">meta_params</tt> </tt>
+</div><a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="MouseTargetExperimentMetaController.set_parameters"></a><div id="MouseTargetExperimentMetaController.set_parameters-def"><a name="L115"></a><tt class="py-lineno">115</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.set_parameters-toggle" onclick="return toggle('MouseTargetExperimentMetaController.set_parameters');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#set_parameters">set_parameters</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">new_parameters</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.set_parameters-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.set_parameters-expanded"><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">new_parameters</tt><tt class="py-op">,</tt> <tt id="link-80" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters" class="py-name" href="#" onclick="return doclink('link-80', 'MouseTargetMetaParameters', 'link-20');">MouseTargetMetaParameters</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">meta_params</tt> <tt class="py-op">=</tt> <tt class="py-name">new_parameters</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Argument to set_parameters must be instance of MouseTargetMetaParameters"</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="VisionEgg.GUI.InfoFrame.update
+VisionEgg.GUI.ProgressBar.update
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.update
+VisionEgg.PyroApps.DropinServer.DropinMetaController.update
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.update
+VisionEgg.PyroApps.GridServer.GridMetaController.update
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.update
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.update
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.update
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.update
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.update
+VisionEgg.QuickTime.MovieTexture.update
+VisionEgg.Textures.Texture.update" class="py-name" href="#" onclick="return doclink('link-81', 'update', 'link-74');">update</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">         </tt>
+<a name="MouseTargetExperimentMetaController.update"></a><div id="MouseTargetExperimentMetaController.update-def"><a name="L122"></a><tt class="py-lineno">122</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.update-toggle" onclick="return toggle('MouseTargetExperimentMetaController.update');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#update">update</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.update-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.update-expanded"><a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-name">stim_params</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stim</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt> <tt class="py-comment"># shorthand</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-name">meta_params</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">meta_params</tt> <tt class="py-comment"># shorthand</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-comment"># colors</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">stim_params</tt><tt class="py-op">.</tt><tt class="py-name">color</tt> <tt class="py-op">=</tt> <tt class="py-name">meta_params</tt><tt class="py-op">.</tt><tt class="py-name">color</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">screen</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">bgcolor</tt> <tt class="py-op">=</tt> <tt class="py-name">meta_params</tt><tt class="py-op">.</tt><tt class="py-name">bgcolor</tt> </tt>
+</div><a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
+<a name="MouseTargetExperimentMetaController.go"></a><div id="MouseTargetExperimentMetaController.go-def"><a name="L130"></a><tt class="py-lineno">130</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.go-toggle" onclick="return toggle('MouseTargetExperimentMetaController.go');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#go">go</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.go-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.go-expanded"><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-comment">#self.p.parameters.enter_go_loop = 1</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="MouseTargetExperimentMetaController.quit_server"></a><div id="MouseTargetExperimentMetaController.quit_server-def"><a name="L134"></a><tt class="py-lineno">134</tt> <a class="py-toggle" href="#" id="MouseTargetExperimentMetaController.quit_server-toggle" onclick="return toggle('MouseTargetExperimentMetaController.quit_server');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#quit_server">quit_server</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MouseTargetExperimentMetaController.quit_server-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MouseTargetExperimentMetaController.quit_server-expanded"><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name" targets="Method VisionEgg.PyroApps.EPhysGUI.AppWindow.quit()=VisionEgg.PyroApps.EPhysGUI.AppWindow-class.html#quit"><a title="VisionEgg.PyroApps.EPhysGUI.AppWindow.quit" class="py-name" href="#" onclick="return doclink('link-82', 'quit', 'link-82');">quit</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+</div></div><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="get_meta_controller_class"></a><div id="get_meta_controller_class-def"><a name="L137"></a><tt class="py-lineno">137</tt> <a class="py-toggle" href="#" id="get_meta_controller_class-toggle" onclick="return toggle('get_meta_controller_class');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#get_meta_controller_class">get_meta_controller_class</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_meta_controller_class-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_meta_controller_class-expanded"><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-83" class="py-name" targets="Class VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController=VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html"><a title="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController" class="py-name" href="#" onclick="return doclink('link-83', 'MouseTargetExperimentMetaController', 'link-83');">MouseTargetExperimentMetaController</a></tt> </tt>
+</div><a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"> </tt>
+<a name="make_stimuli"></a><div id="make_stimuli-def"><a name="L140"></a><tt class="py-lineno">140</tt> <a class="py-toggle" href="#" id="make_stimuli-toggle" onclick="return toggle('make_stimuli');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#make_stimuli">make_stimuli</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="make_stimuli-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="make_stimuli-expanded"><a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">    <tt class="py-name">stimulus</tt> <tt class="py-op">=</tt> <tt id="link-84" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-84', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="VisionEgg.MoreStimuli" class="py-name" href="#" onclick="return doclink('link-85', 'MoreStimuli', 'link-14');">MoreStimuli</a></tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="VisionEgg.MoreStimuli.Target2D" class="py-name" href="#" onclick="return doclink('link-86', 'Target2D', 'link-58');">Target2D</a></tt><tt class="py-op">(</tt><tt class="py-name">anchor</tt><tt class="py-op">=</tt><tt class="py-string">'center'</tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-string">'2d_overlay'</tt><tt class="py-op">,</tt><tt class="py-name">stimulus</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"> </tt>
+<a name="get_meta_controller_stimkey"></a><div id="get_meta_controller_stimkey-def"><a name="L144"></a><tt class="py-lineno">144</tt> <a class="py-toggle" href="#" id="get_meta_controller_stimkey-toggle" onclick="return toggle('get_meta_controller_stimkey');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#get_meta_controller_stimkey">get_meta_controller_stimkey</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_meta_controller_stimkey-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_meta_controller_stimkey-expanded"><a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-string">"mouse_target_server"</tt> </tt>
+</div><a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"><tt class="py-comment">########################</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#  Define controllers  #</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">########################</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="MousePositionController"></a><div id="MousePositionController-def"><a name="L151"></a><tt class="py-lineno">151</tt> <a class="py-toggle" href="#" id="MousePositionController-toggle" onclick="return toggle('MousePositionController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html">MousePositionController</a><tt class="py-op">(</tt> <tt class="py-base-class">VisionEgg</tt><tt class="py-op">.</tt><tt class="py-base-class">FlowControl</tt><tt class="py-op">.</tt><tt class="py-base-class">Controller</tt> <tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MousePositionController-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MousePositionController-expanded"><a name="MousePositionController.__init__"></a><div id="MousePositionController.__init__-def"><a name="L152"></a><tt class="py-lineno">152</tt> <a class="py-toggle" href="#" id="MousePositionController.__init__-toggle" onclick="return toggle('MousePositionController.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MousePositionController.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MousePositionController.__init__-expanded"><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt id="link-87" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-87', 'mouse_position', 'link-21');">mouse_position</a></tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt id="link-88" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-88', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-89', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-90" class="py-name" targets="Class VisionEgg.FlowControl.Controller=VisionEgg.FlowControl.Controller-class.html"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-90', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-91', '__init__', 'link-48');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">                            <tt class="py-name">return_type</tt><tt class="py-op">=</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name" targets="Function VisionEgg.ParameterTypes.get_type()=VisionEgg.ParameterTypes-module.html#get_type,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.get_type()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame-class.html#get_type,Function VisionEgg.get_type()=VisionEgg-module.html#get_type"><a title="VisionEgg.ParameterTypes.get_type
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.get_type
+VisionEgg.get_type" class="py-name" href="#" onclick="return doclink('link-92', 'get_type', 'link-92');">get_type</a></tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">                            <tt class="py-name">eval_frequency</tt><tt class="py-op">=</tt><tt id="link-93" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-93', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-94', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-95', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-96" class="py-name" targets="Variable VisionEgg.FlowControl.Controller.EVERY_FRAME=VisionEgg.FlowControl.Controller-class.html#EVERY_FRAME,Variable VisionEgg.FlowControl.EVERY_FRAME=VisionEgg.FlowControl-module.html#EVERY_FRAME"><a title="VisionEgg.FlowControl.Controller.EVERY_FRAME
+VisionEgg.FlowControl.EVERY_FRAME" class="py-name" href="#" onclick="return doclink('link-96', 'EVERY_FRAME', 'link-96');">EVERY_FRAME</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-97" class="py-name" targets="Method VisionEgg.DaqKeyboard.KeyboardTriggerInController.between_go_eval()=VisionEgg.DaqKeyboard.KeyboardTriggerInController-class.html#between_go_eval,Method VisionEgg.DaqLPT.LPTTriggerInController.between_go_eval()=VisionEgg.DaqLPT.LPTTriggerInController-class.html#between_go_eval,Method VisionEgg.DaqLPT.LPTTriggerOutController.between_go_eval()=VisionEgg.DaqLPT.LPTTriggerOutController-class.html#between_go_eval,Method VisionEgg.FlowControl.ConstantController.between_go_eval()=VisionEgg.FlowControl.ConstantController-class.html#between_go_eval,Method VisionEgg.FlowControl.Controller.between_go_eval()=VisionEgg.FlowControl.Controller-class.html#between_go_eval,Method VisionEgg.FlowControl.EncapsulatedController.between_go_eval()=VisionEgg.FlowControl.EncapsulatedController-class.html#between_go_eval,Method VisionEgg.FlowControl.EvalStringController.between_go_eval()=VisionEgg.FlowControl.EvalStringController-class.html#between_go_eval,Method VisionEgg.FlowControl.ExecStringController.between_go_eval()=VisionEgg.FlowControl.ExecStringController-class.html#between_go_eval,Method VisionEgg.FlowControl.FunctionController.between_go_eval()=VisionEgg.FlowControl.FunctionController-class.html#between_go_eval,Method VisionEgg.PyroHelpers.PyroListenController.between_go_eval()=VisionEgg.PyroHelpers.PyroListenController-class.html#between_go_eval,Method VisionEgg.ResponseControl.KeyboardResponseController.between_go_eval()=VisionEgg.ResponseControl.KeyboardResponseController-class.html#between_go_eval,Method VisionEgg.ResponseControl.ResponseController.between_go_eval()=VisionEgg.ResponseControl.ResponseController-class.html#between_go_eval,Method VisionEgg.TCPController.SocketListenController.between_go_eval()=VisionEgg.TCPController.SocketListenController-class.html#between_go_eval"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.between_go_eval
+VisionEgg.FlowControl.ConstantController.between_go_eval
+VisionEgg.FlowControl.Controller.between_go_eval
+VisionEgg.FlowControl.EncapsulatedController.between_go_eval
+VisionEgg.FlowControl.EvalStringController.between_go_eval
+VisionEgg.FlowControl.ExecStringController.between_go_eval
+VisionEgg.FlowControl.FunctionController.between_go_eval
+VisionEgg.PyroHelpers.PyroListenController.between_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.between_go_eval
+VisionEgg.ResponseControl.ResponseController.between_go_eval
+VisionEgg.TCPController.SocketListenController.between_go_eval" class="py-name" href="#" onclick="return doclink('link-97', 'between_go_eval', 'link-97');">between_go_eval</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-98" class="py-name" targets="Method VisionEgg.DaqKeyboard.KeyboardTriggerInController.during_go_eval()=VisionEgg.DaqKeyboard.KeyboardTriggerInController-class.html#during_go_eval,Method VisionEgg.DaqLPT.LPTTriggerInController.during_go_eval()=VisionEgg.DaqLPT.LPTTriggerInController-class.html#during_go_eval,Method VisionEgg.DaqLPT.LPTTriggerOutController.during_go_eval()=VisionEgg.DaqLPT.LPTTriggerOutController-class.html#during_go_eval,Method VisionEgg.FlowControl.ConstantController.during_go_eval()=VisionEgg.FlowControl.ConstantController-class.html#during_go_eval,Method VisionEgg.FlowControl.Controller.during_go_eval()=VisionEgg.FlowControl.Controller-class.html#during_go_eval,Method VisionEgg.FlowControl.EncapsulatedController.during_go_eval()=VisionEgg.FlowControl.EncapsulatedController-class.html#during_go_eval,Method VisionEgg.FlowControl.EvalStringController.during_go_eval()=VisionEgg.FlowControl.EvalStringController-class.html#during_go_eval,Method VisionEgg.FlowControl.ExecStringController.during_go_eval()=VisionEgg.FlowControl.ExecStringController-class.html#during_go_eval,Method VisionEgg.FlowControl.FunctionController.during_go_eval()=VisionEgg.FlowControl.FunctionController-class.html#during_go_eval,Method VisionEgg.PyroApps.MouseTargetServer.MousePositionController.during_go_eval()=VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html#during_go_eval,Method VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.during_go_eval()=VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html#during_go_eval,Method VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.during_go_eval()=VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html#during_go_eval,Method VisionEgg.PyroHelpers.PyroListenController.during_go_eval()=VisionEgg.PyroHelpers.PyroListenController-class.html#during_go_eval,Method VisionEgg.ResponseControl.KeyboardResponseController.during_go_eval()=VisionEgg.ResponseControl.KeyboardResponseController-class.html#during_go_eval,Method VisionEgg.ResponseControl.ResponseController.during_go_eval()=VisionEgg.ResponseControl.ResponseController-class.html#during_go_eval,Method VisionEgg.TCPController.SocketListenController.during_go_eval()=VisionEgg.TCPController.SocketListenController-class.html#during_go_eval"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.during_go_eval
+VisionEgg.FlowControl.ConstantController.during_go_eval
+VisionEgg.FlowControl.Controller.during_go_eval
+VisionEgg.FlowControl.EncapsulatedController.during_go_eval
+VisionEgg.FlowControl.EvalStringController.during_go_eval
+VisionEgg.FlowControl.ExecStringController.during_go_eval
+VisionEgg.FlowControl.FunctionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.during_go_eval
+VisionEgg.PyroHelpers.PyroListenController.during_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.during_go_eval
+VisionEgg.ResponseControl.ResponseController.during_go_eval
+VisionEgg.TCPController.SocketListenController.during_go_eval" class="py-name" href="#" onclick="return doclink('link-98', 'during_go_eval', 'link-98');">during_go_eval</a></tt> </tt>
+</div><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="MousePositionController.during_go_eval"></a><div id="MousePositionController.during_go_eval-def"><a name="L159"></a><tt class="py-lineno">159</tt> <a class="py-toggle" href="#" id="MousePositionController.during_go_eval-toggle" onclick="return toggle('MousePositionController.during_go_eval');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html#during_go_eval">during_go_eval</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">t</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MousePositionController.during_go_eval-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MousePositionController.during_go_eval-expanded"><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-comment"># Convert pygame mouse position to OpenGL position</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">global</tt> <tt id="link-99" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-99', 'mouse_position', 'link-21');">mouse_position</a></tt><tt class="py-op">,</tt> <tt id="link-100" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-100', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt><tt class="py-op">,</tt> <tt class="py-name">screen_global</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-name">just_current_pos</tt> <tt class="py-op">=</tt> <tt id="link-101" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-101', 'mouse_position', 'link-21');">mouse_position</a></tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">,</tt><tt class="py-name">y</tt><tt class="py-op">)</tt> <tt class="py-op">=</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">mouse</tt><tt class="py-op">.</tt><tt class="py-name">get_pos</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-name">y</tt> <tt class="py-op">=</tt> <tt class="py-name">screen_global</tt><tt class="py-op">.</tt><tt id="link-102" class="py-name" targets="Variable VisionEgg.Core.Screen.size=VisionEgg.Core.Screen-class.html#size"><a title="VisionEgg.Core.Screen.size" class="py-name" href="#" onclick="return doclink('link-102', 'size', 'link-102');">size</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">-</tt><tt class="py-name">y</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt id="link-103" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-103', 'mouse_position', 'link-21');">mouse_position</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">,</tt><tt class="py-name">y</tt><tt class="py-op">)</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">just_current_pos</tt> <tt class="py-op">!=</tt> <tt id="link-104" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-104', 'mouse_position', 'link-21');">mouse_position</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt id="link-105" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-105', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt> <tt class="py-op">=</tt> <tt class="py-name">just_current_pos</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div></div><a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">         </tt>
+<a name="TargetPositionController"></a><div id="TargetPositionController-def"><a name="L170"></a><tt class="py-lineno">170</tt> <a class="py-toggle" href="#" id="TargetPositionController-toggle" onclick="return toggle('TargetPositionController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html">TargetPositionController</a><tt class="py-op">(</tt> <tt class="py-base-class">VisionEgg</tt><tt class="py-op">.</tt><tt class="py-base-class">FlowControl</tt><tt class="py-op">.</tt><tt class="py-base-class">Controller</tt> <tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetPositionController-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="TargetPositionController-expanded"><a name="TargetPositionController.__init__"></a><div id="TargetPositionController.__init__-def"><a name="L171"></a><tt class="py-lineno">171</tt> <a class="py-toggle" href="#" id="TargetPositionController.__init__-toggle" onclick="return toggle('TargetPositionController.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetPositionController.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TargetPositionController.__init__-expanded"><a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt id="link-106" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-106', 'mouse_position', 'link-21');">mouse_position</a></tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">        <tt id="link-107" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-107', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-108" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-108', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-109" class="py-name"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-109', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-110', '__init__', 'link-48');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">                            <tt class="py-name">return_type</tt><tt class="py-op">=</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-111" class="py-name" targets="Class VisionEgg.ParameterTypes.Sequence2=VisionEgg.ParameterTypes.Sequence2-class.html"><a title="VisionEgg.ParameterTypes.Sequence2" class="py-name" href="#" onclick="return doclink('link-111', 'Sequence2', 'link-111');">Sequence2</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-112" class="py-name" targets="Class VisionEgg.ParameterTypes.Real=VisionEgg.ParameterTypes.Real-class.html"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-112', 'Real', 'link-112');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">                            <tt class="py-name">eval_frequency</tt><tt class="py-op">=</tt><tt id="link-113" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-113', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-114', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-115" class="py-name"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-115', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-116" class="py-name"><a title="VisionEgg.FlowControl.Controller.EVERY_FRAME
+VisionEgg.FlowControl.EVERY_FRAME" class="py-name" href="#" onclick="return doclink('link-116', 'EVERY_FRAME', 'link-96');">EVERY_FRAME</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-117" class="py-name"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.between_go_eval
+VisionEgg.FlowControl.ConstantController.between_go_eval
+VisionEgg.FlowControl.Controller.between_go_eval
+VisionEgg.FlowControl.EncapsulatedController.between_go_eval
+VisionEgg.FlowControl.EvalStringController.between_go_eval
+VisionEgg.FlowControl.ExecStringController.between_go_eval
+VisionEgg.FlowControl.FunctionController.between_go_eval
+VisionEgg.PyroHelpers.PyroListenController.between_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.between_go_eval
+VisionEgg.ResponseControl.ResponseController.between_go_eval
+VisionEgg.TCPController.SocketListenController.between_go_eval" class="py-name" href="#" onclick="return doclink('link-117', 'between_go_eval', 'link-97');">between_go_eval</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-118" class="py-name"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.during_go_eval
+VisionEgg.FlowControl.ConstantController.during_go_eval
+VisionEgg.FlowControl.Controller.during_go_eval
+VisionEgg.FlowControl.EncapsulatedController.during_go_eval
+VisionEgg.FlowControl.EvalStringController.during_go_eval
+VisionEgg.FlowControl.ExecStringController.during_go_eval
+VisionEgg.FlowControl.FunctionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.during_go_eval
+VisionEgg.PyroHelpers.PyroListenController.during_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.during_go_eval
+VisionEgg.ResponseControl.ResponseController.during_go_eval
+VisionEgg.TCPController.SocketListenController.during_go_eval" class="py-name" href="#" onclick="return doclink('link-118', 'during_go_eval', 'link-98');">during_go_eval</a></tt> </tt>
+</div><a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"> </tt>
+<a name="TargetPositionController.during_go_eval"></a><div id="TargetPositionController.during_go_eval-def"><a name="L178"></a><tt class="py-lineno">178</tt> <a class="py-toggle" href="#" id="TargetPositionController.during_go_eval-toggle" onclick="return toggle('TargetPositionController.during_go_eval');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html#during_go_eval">during_go_eval</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">t</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetPositionController.during_go_eval-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TargetPositionController.during_go_eval-expanded"><a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt id="link-119" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-119', 'mouse_position', 'link-21');">mouse_position</a></tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-120" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-120', 'mouse_position', 'link-21');">mouse_position</a></tt> </tt>
+</div></div><a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"> </tt>
+<a name="cross_product"></a><div id="cross_product-def"><a name="L182"></a><tt class="py-lineno">182</tt> <a class="py-toggle" href="#" id="cross_product-toggle" onclick="return toggle('cross_product');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#cross_product">cross_product</a><tt class="py-op">(</tt><tt class="py-param">b</tt><tt class="py-op">,</tt><tt class="py-param">c</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="cross_product-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="cross_product-expanded"><a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">    <tt class="py-docstring">"""Cross product between vectors, represented as tuples of length 3."""</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">    <tt class="py-name">det_i</tt> <tt class="py-op">=</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt> <tt class="py-op">-</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">    <tt class="py-name">det_j</tt> <tt class="py-op">=</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt> <tt class="py-op">-</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">    <tt class="py-name">det_k</tt> <tt class="py-op">=</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> <tt class="py-op">-</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">det_i</tt><tt class="py-op">,</tt><tt class="py-op">-</tt><tt class="py-name">det_j</tt><tt class="py-op">,</tt><tt class="py-name">det_k</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"> </tt>
+<a name="mag"></a><div id="mag-def"><a name="L189"></a><tt class="py-lineno">189</tt> <a class="py-toggle" href="#" id="mag-toggle" onclick="return toggle('mag');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#mag">mag</a><tt class="py-op">(</tt><tt class="py-param">b</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="mag-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="mag-expanded"><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">    <tt class="py-docstring">"""Magnitude of a vector."""</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">**</tt><tt class="py-number">2.0</tt> <tt class="py-op">+</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">**</tt><tt class="py-number">2.0</tt> <tt class="py-op">+</tt> <tt class="py-name">b</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">**</tt><tt class="py-number">2.0</tt> </tt>
+</div><a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">     </tt>
+<a name="TargetOrientationController"></a><div id="TargetOrientationController-def"><a name="L193"></a><tt class="py-lineno">193</tt> <a class="py-toggle" href="#" id="TargetOrientationController-toggle" onclick="return toggle('TargetOrientationController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html">TargetOrientationController</a><tt class="py-op">(</tt> <tt class="py-base-class">VisionEgg</tt><tt class="py-op">.</tt><tt class="py-base-class">FlowControl</tt><tt class="py-op">.</tt><tt class="py-base-class">Controller</tt> <tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetOrientationController-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="TargetOrientationController-expanded"><a name="TargetOrientationController.__init__"></a><div id="TargetOrientationController.__init__-def"><a name="L194"></a><tt class="py-lineno">194</tt> <a class="py-toggle" href="#" id="TargetOrientationController.__init__-toggle" onclick="return toggle('TargetOrientationController.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetOrientationController.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TargetOrientationController.__init__-expanded"><a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt id="link-121" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-121', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-122" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-122', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-123" class="py-name"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-123', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-124" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-124', '__init__', 'link-48');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">                            <tt class="py-name">return_type</tt><tt class="py-op">=</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-125', 'Real', 'link-112');">Real</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">                            <tt class="py-name">eval_frequency</tt><tt class="py-op">=</tt><tt id="link-126" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-126', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-127" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-127', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-128" class="py-name"><a title="VisionEgg.FlowControl.Controller" class="py-name" href="#" onclick="return doclink('link-128', 'Controller', 'link-90');">Controller</a></tt><tt class="py-op">.</tt><tt id="link-129" class="py-name"><a title="VisionEgg.FlowControl.Controller.EVERY_FRAME
+VisionEgg.FlowControl.EVERY_FRAME" class="py-name" href="#" onclick="return doclink('link-129', 'EVERY_FRAME', 'link-96');">EVERY_FRAME</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">1.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">last_orientation</tt> <tt class="py-op">=</tt> <tt class="py-number">0.0</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-130" class="py-name"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.between_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.between_go_eval
+VisionEgg.FlowControl.ConstantController.between_go_eval
+VisionEgg.FlowControl.Controller.between_go_eval
+VisionEgg.FlowControl.EncapsulatedController.between_go_eval
+VisionEgg.FlowControl.EvalStringController.between_go_eval
+VisionEgg.FlowControl.ExecStringController.between_go_eval
+VisionEgg.FlowControl.FunctionController.between_go_eval
+VisionEgg.PyroHelpers.PyroListenController.between_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.between_go_eval
+VisionEgg.ResponseControl.ResponseController.between_go_eval
+VisionEgg.TCPController.SocketListenController.between_go_eval" class="py-name" href="#" onclick="return doclink('link-130', 'between_go_eval', 'link-97');">between_go_eval</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-131" class="py-name"><a title="VisionEgg.DaqKeyboard.KeyboardTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerInController.during_go_eval
+VisionEgg.DaqLPT.LPTTriggerOutController.during_go_eval
+VisionEgg.FlowControl.ConstantController.during_go_eval
+VisionEgg.FlowControl.Controller.during_go_eval
+VisionEgg.FlowControl.EncapsulatedController.during_go_eval
+VisionEgg.FlowControl.EvalStringController.during_go_eval
+VisionEgg.FlowControl.ExecStringController.during_go_eval
+VisionEgg.FlowControl.FunctionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.during_go_eval
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.during_go_eval
+VisionEgg.PyroHelpers.PyroListenController.during_go_eval
+VisionEgg.ResponseControl.KeyboardResponseController.during_go_eval
+VisionEgg.ResponseControl.ResponseController.during_go_eval
+VisionEgg.TCPController.SocketListenController.during_go_eval" class="py-name" href="#" onclick="return doclink('link-131', 'during_go_eval', 'link-98');">during_go_eval</a></tt> </tt>
+</div><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"> </tt>
+<a name="TargetOrientationController.during_go_eval"></a><div id="TargetOrientationController.during_go_eval-def"><a name="L202"></a><tt class="py-lineno">202</tt> <a class="py-toggle" href="#" id="TargetOrientationController.during_go_eval-toggle" onclick="return toggle('TargetOrientationController.during_go_eval');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html#during_go_eval">during_go_eval</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TargetOrientationController.during_go_eval-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TargetOrientationController.during_go_eval-expanded"><a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt id="link-132" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-132', 'mouse_position', 'link-21');">mouse_position</a></tt><tt class="py-op">,</tt> <tt id="link-133" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-133', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-name">b</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt id="link-134" class="py-name" targets="Class float=float-class.html"><a title="float" class="py-name" href="#" onclick="return doclink('link-134', 'float', 'link-134');">float</a></tt><tt class="py-op">(</tt><tt id="link-135" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-135', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">-</tt><tt id="link-136" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-136', 'mouse_position', 'link-21');">mouse_position</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">             <tt id="link-137" class="py-name"><a title="float" class="py-name" href="#" onclick="return doclink('link-137', 'float', 'link-134');">float</a></tt><tt class="py-op">(</tt><tt id="link-138" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.last_mouse_position" class="py-name" href="#" onclick="return doclink('link-138', 'last_mouse_position', 'link-22');">last_mouse_position</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">-</tt><tt id="link-139" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.mouse_position" class="py-name" href="#" onclick="return doclink('link-139', 'mouse_position', 'link-21');">mouse_position</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">             <tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-140" class="py-name" targets="Function VisionEgg.PyroApps.MouseTargetServer.mag()=VisionEgg.PyroApps.MouseTargetServer-module.html#mag"><a title="VisionEgg.PyroApps.MouseTargetServer.mag" class="py-name" href="#" onclick="return doclink('link-140', 'mag', 'link-140');">mag</a></tt><tt class="py-op">(</tt><tt class="py-name">b</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">1.0</tt><tt class="py-op">:</tt> <tt class="py-comment"># Must mouse 1 pixel before changing orientation (supposed to reject noise)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">            <tt class="py-comment"># find cross product b x c. assume b and c are 3-vecs, b has</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-comment"># 3rd component 0.</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">orientation_vector</tt> <tt class="py-op">=</tt> <tt id="link-141" class="py-name" targets="Function VisionEgg.PyroApps.MouseTargetServer.cross_product()=VisionEgg.PyroApps.MouseTargetServer-module.html#cross_product"><a title="VisionEgg.PyroApps.MouseTargetServer.cross_product" class="py-name" href="#" onclick="return doclink('link-141', 'cross_product', 'link-141');">cross_product</a></tt><tt class="py-op">(</tt><tt class="py-name">b</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">last_orientation</tt> <tt class="py-op">=</tt> <tt class="py-name">math</tt><tt class="py-op">.</tt><tt class="py-name">atan2</tt><tt class="py-op">(</tt><tt class="py-name">orientation_vector</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-name">orientation_vector</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">/</tt><tt class="py-name">math</tt><tt class="py-op">.</tt><tt class="py-name">pi</tt><tt class="py-op">*</tt><tt class="py-number">180.0</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">last_orientation</tt> </tt>
+</div></div><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">         </tt>
+<a name="get_target_size"></a><div id="get_target_size-def"><a name="L216"></a><tt class="py-lineno">216</tt> <a class="py-toggle" href="#" id="get_target_size-toggle" onclick="return toggle('get_target_size');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroApps.MouseTargetServer-module.html#get_target_size">get_target_size</a><tt class="py-op">(</tt><tt class="py-param">t</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_target_size-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_target_size-expanded"><a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-142" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-142', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">,</tt> <tt id="link-143" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-143', 'target_h', 'link-24');">target_h</a></tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-144" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-144', 'up', 'link-25');">up</a></tt><tt class="py-op">,</tt> <tt id="link-145" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-145', 'down', 'link-26');">down</a></tt><tt class="py-op">,</tt> <tt id="link-146" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-146', 'left', 'link-27');">left</a></tt><tt class="py-op">,</tt> <tt id="link-147" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-147', 'right', 'link-28');">right</a></tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">    <tt class="py-name">amount</tt> <tt class="py-op">=</tt> <tt class="py-number">0.02</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">     </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-148" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.up" class="py-name" href="#" onclick="return doclink('link-148', 'up', 'link-25');">up</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">        <tt id="link-149" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-149', 'target_w', 'link-23');">target_w</a></tt> <tt class="py-op">=</tt> <tt id="link-150" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-150', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">+</tt><tt class="py-op">(</tt><tt class="py-name">amount</tt><tt class="py-op">*</tt><tt id="link-151" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-151', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt id="link-152" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.down" class="py-name" href="#" onclick="return doclink('link-152', 'down', 'link-26');">down</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">        <tt id="link-153" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-153', 'target_w', 'link-23');">target_w</a></tt> <tt class="py-op">=</tt> <tt id="link-154" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-154', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">-</tt><tt class="py-op">(</tt><tt class="py-name">amount</tt><tt class="py-op">*</tt><tt id="link-155" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-155', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt id="link-156" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.right" class="py-name" href="#" onclick="return doclink('link-156', 'right', 'link-28');">right</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt id="link-157" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-157', 'target_h', 'link-24');">target_h</a></tt> <tt class="py-op">=</tt> <tt id="link-158" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-158', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">+</tt><tt class="py-op">(</tt><tt class="py-name">amount</tt><tt class="py-op">*</tt><tt id="link-159" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-159', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt id="link-160" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.left" class="py-name" href="#" onclick="return doclink('link-160', 'left', 'link-27');">left</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt id="link-161" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-161', 'target_h', 'link-24');">target_h</a></tt> <tt class="py-op">=</tt> <tt id="link-162" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-162', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">-</tt><tt class="py-op">(</tt><tt class="py-name">amount</tt><tt class="py-op">*</tt><tt id="link-163" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-163', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">    <tt id="link-164" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-164', 'target_w', 'link-23');">target_w</a></tt> <tt class="py-op">=</tt> <tt class="py-name">max</tt><tt class="py-op">(</tt><tt id="link-165" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-165', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">    <tt id="link-166" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-166', 'target_h', 'link-24');">target_h</a></tt> <tt class="py-op">=</tt> <tt class="py-name">max</tt><tt class="py-op">(</tt><tt id="link-167" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-167', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">     </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt id="link-168" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_w" class="py-name" href="#" onclick="return doclink('link-168', 'target_w', 'link-23');">target_w</a></tt><tt class="py-op">,</tt> <tt id="link-169" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.target_h" class="py-name" href="#" onclick="return doclink('link-169', 'target_h', 'link-24');">target_h</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line"> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line"><tt class="py-comment"># Don't do anything unless this script is being run</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-keyword">if</tt> <tt class="py-name">__name__</tt> <tt class="py-op">==</tt> <tt class="py-string">'__main__'</tt><tt class="py-op">:</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">     </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">    <tt class="py-name">pyro_server</tt> <tt class="py-op">=</tt> <tt id="link-170" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-170', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-171" class="py-name"><a title="VisionEgg.PyroHelpers" class="py-name" href="#" onclick="return doclink('link-171', 'PyroHelpers', 'link-16');">PyroHelpers</a></tt><tt class="py-op">.</tt><tt id="link-172" class="py-name" targets="Class VisionEgg.PyroHelpers.PyroServer=VisionEgg.PyroHelpers.PyroServer-class.html"><a title="VisionEgg.PyroHelpers.PyroServer" class="py-name" href="#" onclick="return doclink('link-172', 'PyroServer', 'link-172');">PyroServer</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">    <tt class="py-name">screen</tt> <tt class="py-op">=</tt> <tt id="link-173" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-173', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-174" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-174', 'Core', 'link-10');">Core</a></tt><tt class="py-op">.</tt><tt id="link-175" class="py-name"><a title="VisionEgg.Core.Screen" class="py-name" href="#" onclick="return doclink('link-175', 'Screen', 'link-52');">Screen</a></tt><tt class="py-op">.</tt><tt id="link-176" class="py-name" targets="Static Method VisionEgg.Core.Screen.create_default()=VisionEgg.Core.Screen-class.html#create_default"><a title="VisionEgg.Core.Screen.create_default" class="py-name" href="#" onclick="return doclink('link-176', 'create_default', 'link-176');">create_default</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">    <tt class="py-comment"># get Vision Egg stimulus ready to go</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-name">stimuli</tt> <tt class="py-op">=</tt> <tt id="link-177" class="py-name" targets="Function VisionEgg.PyroApps.ColorCalServer.make_stimuli()=VisionEgg.PyroApps.ColorCalServer-module.html#make_stimuli,Function VisionEgg.PyroApps.DropinServer.make_stimuli()=VisionEgg.PyroApps.DropinServer-module.html#make_stimuli,Function VisionEgg.PyroApps.FlatGratingServer.make_stimuli()=VisionEgg.PyroApps.FlatGratingServer-module.html#make_stimuli,Function VisionEgg.PyroApps.GridServer.make_stimuli()=VisionEgg.PyroApps.GridServer-module.html#make_stimuli,Function VisionEgg.PyroApps.MouseTargetServer.make_stimuli()=VisionEgg.PyroApps.MouseTargetServer-module.html#make_stimuli,Function VisionEgg.PyroApps.SphereGratingServer.make_stimuli()=VisionEgg.PyroApps.SphereGratingServer-module.html#make_stimuli,Function VisionEgg.PyroApps.SpinningDrumServer.make_stimuli()=VisionEgg.PyroApps.SpinningDrumServer-module.html#make_stimuli,Function VisionEgg.PyroApps.TargetServer.make_stimuli()=VisionEgg.PyroApps.TargetServer-module.html#make_stimuli"><a title="VisionEgg.PyroApps.ColorCalServer.make_stimuli
+VisionEgg.PyroApps.DropinServer.make_stimuli
+VisionEgg.PyroApps.FlatGratingServer.make_stimuli
+VisionEgg.PyroApps.GridServer.make_stimuli
+VisionEgg.PyroApps.MouseTargetServer.make_stimuli
+VisionEgg.PyroApps.SphereGratingServer.make_stimuli
+VisionEgg.PyroApps.SpinningDrumServer.make_stimuli
+VisionEgg.PyroApps.TargetServer.make_stimuli" class="py-name" href="#" onclick="return doclink('link-177', 'make_stimuli', 'link-177');">make_stimuli</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">    <tt class="py-name">stimulus</tt> <tt class="py-op">=</tt> <tt class="py-name">stimuli</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">    <tt class="py-name">viewport</tt> <tt class="py-op">=</tt> <tt id="link-178" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-178', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-179" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-179', 'Core', 'link-10');">Core</a></tt><tt class="py-op">.</tt><tt id="link-180" class="py-name" targets="Class VisionEgg.Core.Viewport=VisionEgg.Core.Viewport-class.html"><a title="VisionEgg.Core.Viewport" class="py-name" href="#" onclick="return doclink('link-180', 'Viewport', 'link-180');">Viewport</a></tt><tt class="py-op">(</tt><tt class="py-name">screen</tt><tt class="py-op">=</tt><tt class="py-name">screen</tt><tt class="py-op">,</tt><tt class="py-name">stimuli</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-name">stimulus</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">    <tt class="py-name">p</tt> <tt class="py-op">=</tt> <tt id="link-181" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-181', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-182" class="py-name"><a title="VisionEgg.FlowControl" class="py-name" href="#" onclick="return doclink('link-182', 'FlowControl', 'link-12');">FlowControl</a></tt><tt class="py-op">.</tt><tt id="link-183" class="py-name"><a title="VisionEgg.FlowControl.Presentation" class="py-name" href="#" onclick="return doclink('link-183', 'Presentation', 'link-55');">Presentation</a></tt><tt class="py-op">(</tt><tt class="py-name">viewports</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-name">viewport</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">    <tt class="py-comment"># now hand over control of grating and mask to FlatGratingExperimentMetaController</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-name">meta_controller</tt> <tt class="py-op">=</tt> <tt id="link-184" class="py-name"><a title="VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController" class="py-name" href="#" onclick="return doclink('link-184', 'MouseTargetExperimentMetaController', 'link-83');">MouseTargetExperimentMetaController</a></tt><tt class="py-op">(</tt><tt class="py-name">screen</tt><tt class="py-op">,</tt><tt class="py-name">p</tt><tt class="py-op">,</tt><tt class="py-name">stimuli</tt><tt class="py-op">)</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">    <tt class="py-name">pyro_server</tt><tt class="py-op">.</tt><tt id="link-185" class="py-name" targets="Method VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.connect()=VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame-class.html#connect,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.connect()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame-class.html#connect,Method VisionEgg.PyroHelpers.PyroServer.connect()=VisionEgg.PyroHelpers.PyroServer-class.html#connect"><a title="VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.connect
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.connect
+VisionEgg.PyroHelpers.PyroServer.connect" class="py-name" href="#" onclick="return doclink('link-185', 'connect', 'link-185');">connect</a></tt><tt class="py-op">(</tt><tt class="py-name">meta_controller</tt><tt class="py-op">,</tt><tt id="link-186" class="py-name" targets="Function VisionEgg.PyroApps.ColorCalServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.ColorCalServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.DropinServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.DropinServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.FlatGratingServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.FlatGratingServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.GridServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.GridServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.MouseTargetServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.MouseTargetServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.SphereGratingServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.SphereGratingServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.SpinningDrumServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.SpinningDrumServer-module.html#get_meta_controller_stimkey,Function VisionEgg.PyroApps.TargetServer.get_meta_controller_stimkey()=VisionEgg.PyroApps.TargetServer-module.html#get_meta_controller_stimkey"><a title="VisionEgg.PyroApps.ColorCalServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.DropinServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.FlatGratingServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.GridServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.MouseTargetServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.SphereGratingServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.SpinningDrumServer.get_meta_controller_stimkey
+VisionEgg.PyroApps.TargetServer.get_meta_controller_stimkey" class="py-name" href="#" onclick="return doclink('link-186', 'get_meta_controller_stimkey', 'link-186');">get_meta_controller_stimkey</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">    <tt class="py-comment"># get listener controller and register it</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-187" class="py-name"><a title="VisionEgg.FlowControl.Presentation.add_controller
+VisionEgg.PyroHelpers.PyroLocalDictController.add_controller" class="py-name" href="#" onclick="return doclink('link-187', 'add_controller', 'link-59');">add_controller</a></tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">pyro_server</tt><tt class="py-op">.</tt><tt id="link-188" class="py-name" targets="Method VisionEgg.PyroHelpers.PyroServer.create_listener_controller()=VisionEgg.PyroHelpers.PyroServer-class.html#create_listener_controller"><a title="VisionEgg.PyroHelpers.PyroServer.create_listener_controller" class="py-name" href="#" onclick="return doclink('link-188', 'create_listener_controller', 'link-188');">create_listener_controller</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line"> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">    <tt class="py-comment"># enter endless loop</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-189" class="py-name" targets="Method VisionEgg.FlowControl.Presentation.run_forever()=VisionEgg.FlowControl.Presentation-class.html#run_forever"><a title="VisionEgg.FlowControl.Presentation.run_forever" class="py-name" href="#" onclick="return doclink('link-189', 'run_forever', 'link-189');">run_forever</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:48 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

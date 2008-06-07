@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.Textures.SpinningDrum</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        <a href="VisionEgg.Textures-module.html">Module&nbsp;Textures</a> ::
+        Class&nbsp;SpinningDrum
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.Textures.SpinningDrum-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class SpinningDrum</h1><span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+         object --+            
+                  |            
+<a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a> --+        
+                      |        
+          <a href="VisionEgg.Core.Stimulus-class.html">Core.Stimulus</a> --+    
+                          |    
+   <a href="VisionEgg.Textures.TextureStimulusBaseClass-class.html">TextureStimulusBaseClass</a> --+
+                              |
+                             <strong class="uidshort">SpinningDrum</strong>
+</pre>
+
+<hr />
+<pre class="literalblock">
+Panoramic image texture mapped onto flat rectangle or 3D cylinder.
+
+
+Parameters
+==========
+anchor                -- only used when flat: same as anchor parameter of TextureStimulus (String)
+                         Default: center
+angular_position      -- may be best to clamp in range [0.0,360.0] (Real)
+                         Default: 0.0
+contrast              -- (Real)
+                         Default: 1.0
+drum_center_azimuth   -- changes orientation of drum in space (Real)
+                         Default: 0.0
+drum_center_elevation -- changes orientation of drum in space (Real)
+                         Default: 0.0
+flat                  -- toggles flat vs. cylinder (Boolean)
+                         Default: False
+flat_size             -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
+                         Default: (determined at runtime)
+flip_image            -- toggles normal vs. horizonally flipped image (Boolean)
+                         Default: False
+height                -- height of cyliner, automatically set by texel aspect ratio if &lt; 0. (Real)
+                         Default: -1
+num_sides             -- (UnsignedInteger)
+                         Default: 50
+on                    -- (Boolean)
+                         Default: True
+orientation           -- 0=right, 90=up (Real)
+                         Default: 0.0
+position              -- 3D: position of drum center, 2D (flat): same as position parameter for TextureStimulus (AnyOf(Sequence2 of Real or Sequence3 of Real))
+                         Default: (0.0, 0.0, 0.0)
+radius                -- radius if cylinder (not used if flat) (Real)
+                         Default: 1.0
+texture               -- source of texture data (Instance of &lt;class 'VisionEgg.Textures.Texture'&gt;)
+                         Inherited from TextureStimulusBaseClass
+                         Default: (determined at runtime)
+texture_mag_filter    -- OpenGL filter enum (Integer)
+                         Inherited from TextureStimulusBaseClass
+                         Default: GL_LINEAR (9729)
+texture_min_filter    -- OpenGL filter enum (Integer)
+                         Inherited from TextureStimulusBaseClass
+                         Default: (GL enum determined at runtime)
+texture_wrap_s        -- OpenGL texture wrap enum (Integer)
+                         Inherited from TextureStimulusBaseClass
+                         Default: (GL enum determined at runtime)
+texture_wrap_t        -- OpenGL texture wrap enum (Integer)
+                         Inherited from TextureStimulusBaseClass
+                         Default: (GL enum determined at runtime)
+
+Constant Parameters
+===================
+internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                     Default: GL_RGB (6407)
+mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                     Default: True
+shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                     Default: False
+
+</pre><br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Textures.SpinningDrum-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Textures.SpinningDrum-class.html#draw" class="summary-sig-name">draw</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Redraw the stimulus on every frame.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum.draw">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="rebuild_display_list"></a><span class="summary-sig-name">rebuild_display_list</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum.rebuild_display_list">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__getstate__">__getstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__setstate__">__setstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#get_specified_type">get_specified_type</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#is_constant_parameter">is_constant_parameter</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#set">set</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#verify_parameters">verify_parameters</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Textures.SpinningDrum-class.html#parameters_and_defaults" class="summary-name">parameters_and_defaults</a> = <code title="{'on':(True, ve_types.Boolean), 'height':(-1, ve_types.Real, 'height o\
+f cyliner, automatically set by texel aspect ratio if &lt; 0.',), 'num_si\
+des':(50, ve_types.UnsignedInteger), 'angular_position':(0.0, ve_types\
+.Real, 'may be best to clamp in range [0.0,360.0]'), 'contrast':(1.0, \
+ve_types.Real), 'flat':(False, ve_types.Boolean, 'toggles flat vs. cyl\
+inder'), 'flat_size':(None, ve_types.Sequence2(ve_types.Real), &quot;defaul\
+ts to texture data size (units: eye coordinates)&quot;), 'flip_image':(Fals\
+e, ve_types.Boolean, 'toggles normal vs. horizonally flipped image'), \
+...">{'on':(True, ve_types.Boolean), 'hei<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.Textures.TextureStimulusBaseClass-class.html">TextureStimulusBaseClass</a></code></b>:
+      <code><a href="VisionEgg.Textures.TextureStimulusBaseClass-class.html#constant_parameters_and_defaults">constant_parameters_and_defaults</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__safe_for_unpickling__">__safe_for_unpickling__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.Textures.TextureStimulusBaseClass-class.html#__init__">TextureStimulusBaseClass.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="draw"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">draw</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Textures-pysrc.html#SpinningDrum.draw">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Redraw the stimulus on every frame.
+        
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.Core.Stimulus-class.html#draw">Core.Stimulus.draw</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'on':(True, ve_types.Boolean), 'height':(-1, ve_types.Real, 'height o<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+f cyliner, automatically set by texel aspect ratio if &lt; 0.',), 'num_si<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+des':(50, ve_types.UnsignedInteger), 'angular_position':(0.0, ve_types<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+.Real, 'may be best to clamp in range [0.0,360.0]'), 'contrast':(1.0, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ve_types.Real), 'flat':(False, ve_types.Boolean, 'toggles flat vs. cyl<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+inder'), 'flat_size':(None, ve_types.Sequence2(ve_types.Real), &quot;defaul<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ts to texture data size (units: eye coordinates)&quot;), 'flip_image':(Fals<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+e, ve_types.Boolean, 'toggles normal vs. horizonally flipped image'), <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:47 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

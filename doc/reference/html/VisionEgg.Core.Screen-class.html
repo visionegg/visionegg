@@ -1,0 +1,827 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.Core.Screen</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        <a href="VisionEgg.Core-module.html">Module&nbsp;Core</a> ::
+        Class&nbsp;Screen
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.Core.Screen-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Screen</h1><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+         object --+    
+                  |    
+<a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a> --+
+                      |
+                     <strong class="uidshort">Screen</strong>
+</pre>
+
+<hr />
+<pre class="literalblock">
+An OpenGL window, possibly displayed across multiple displays.
+
+A Screen instance is an OpenGL window for the Vision Egg to draw
+in.  For an instance of Screen to do anything useful, it must
+contain one or more instances of the Viewport class and one or
+more instances of the Stimulus class.
+
+Currently, only one OpenGL window is supported by the library with
+which the Vision Egg initializes graphics (pygame/SDL).  However,
+this need not limit display to a single physical display device.
+Many video drivers, for example, allow applications to treat two
+separate monitors as one large array of contiguous pixels.  By
+sizing a window such that it occupies both monitors and creating
+separate viewports for the portion of the window on each monitor,
+a multiple screen effect can be created.
+
+Public read-only variables
+==========================
+size -- Tuple of 2 integers specifying width and height
+
+Parameters
+==========
+bgcolor -- background color (AnyOf(Sequence3 of Real or Sequence4 of Real))
+           Default: (0.5, 0.5, 0.5, 0.0)
+
+Constant Parameters
+===================
+alpha_bits          -- number of bits per pixel for alpha channel. Can be set with VISIONEGG_REQUEST_ALPHA_BITS (UnsignedInteger)
+                       Default: (determined at runtime)
+blue_bits           -- number of bits per pixel for blue channel. Can be set with VISIONEGG_REQUEST_BLUE_BITS (UnsignedInteger)
+                       Default: (determined at runtime)
+double_buffer       -- use double buffering? Can be set with VISIONEGG_DOUBLE_BUFFER (Boolean)
+                       Default: (determined at runtime)
+frameless           -- remove standard window frame? Can be set with VISIONEGG_FRAMELESS_WINDOW (Boolean)
+                       Default: (determined at runtime)
+fullscreen          -- use full screen? Can be set with VISIONEGG_FULLSCREEN (Boolean)
+                       Default: (determined at runtime)
+green_bits          -- number of bits per pixel for green channel. Can be set with VISIONEGG_REQUEST_GREEN_BITS (UnsignedInteger)
+                       Default: (determined at runtime)
+hide_mouse          -- hide the mouse cursor? Can be set with VISIONEGG_HIDE_MOUSE (Boolean)
+                       Default: (determined at runtime)
+is_stereo           -- allocate stereo framebuffers? Can be set with VISIONEGG_REQUEST_STEREO (Boolean)
+                       Default: (determined at runtime)
+maxpriority         -- raise priority? (platform dependent) Can be set with VISIONEGG_MAXPRIORITY (Boolean)
+                       Default: (determined at runtime)
+multisample_samples -- preferred number of multisamples for FSAA (UnsignedInteger)
+                       Default: (determined at runtime)
+preferred_bpp       -- preferred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_BPP (UnsignedInteger)
+                       Default: (determined at runtime)
+red_bits            -- number of bits per pixel for red channel. Can be set with VISIONEGG_REQUEST_RED_BITS (UnsignedInteger)
+                       Default: (determined at runtime)
+size                -- size (units: pixels) Can be set with VISIONEGG_SCREEN_W and VISIONEGG_SCREEN_H (Sequence2 of Real)
+                       Default: (determined at runtime)
+sync_swap           -- synchronize buffer swaps to vertical sync? Can be set with VISIONEGG_SYNC_SWAP (Boolean)
+                       Default: (determined at runtime)
+
+</pre><br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create self.parameters and set values.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_size"></a><span class="summary-sig-name">get_size</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.get_size">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_size"></a><span class="summary-sig-name">set_size</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.set_size">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_framebuffer_as_image"></a><span class="summary-sig-name">get_framebuffer_as_image</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">buffer</span>=<span class="summary-sig-default">'back'</span>,
+        <span class="summary-sig-arg">format</span>=<span class="summary-sig-default">gl.GL_RGB</span>,
+        <span class="summary-sig-arg">position</span>=<span class="summary-sig-default">(0,0)</span>,
+        <span class="summary-sig-arg">anchor</span>=<span class="summary-sig-default">'lowerleft'</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">None</span>)</span><br />
+      get pixel values from framebuffer to PIL image</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.get_framebuffer_as_image">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_framebuffer_as_array"></a><span class="summary-sig-name">get_framebuffer_as_array</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">buffer</span>=<span class="summary-sig-default">'back'</span>,
+        <span class="summary-sig-arg">format</span>=<span class="summary-sig-default">gl.GL_RGB</span>,
+        <span class="summary-sig-arg">position</span>=<span class="summary-sig-default">(0,0)</span>,
+        <span class="summary-sig-arg">anchor</span>=<span class="summary-sig-default">'lowerleft'</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">None</span>)</span><br />
+      get pixel values from framebuffer to Numeric array</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.get_framebuffer_as_array">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#put_pixels" class="summary-sig-name">put_pixels</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pixels</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">position</span>=<span class="summary-sig-default">(0,0)</span>,
+        <span class="summary-sig-arg">anchor</span>=<span class="summary-sig-default">'lowerleft'</span>,
+        <span class="summary-sig-arg">scale_x</span>=<span class="summary-sig-default">1.0</span>,
+        <span class="summary-sig-arg">scale_y</span>=<span class="summary-sig-default">1.0</span>,
+        <span class="summary-sig-arg">texture_min_filter</span>=<span class="summary-sig-default">gl.GL_NEAREST</span>,
+        <span class="summary-sig-arg">texture_mag_filter</span>=<span class="summary-sig-default">gl.GL_NEAREST</span>,
+        <span class="summary-sig-arg">internal_format</span>=<span class="summary-sig-default">gl.GL_RGB</span>)</span><br />
+      Put pixel values to screen.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.put_pixels">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="query_refresh_rate"></a><span class="summary-sig-name">query_refresh_rate</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.query_refresh_rate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#measure_refresh_rate" class="summary-sig-name">measure_refresh_rate</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">average_over_seconds</span>=<span class="summary-sig-default">0.1</span>)</span><br />
+      Measure the refresh rate.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.measure_refresh_rate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#clear" class="summary-sig-name">clear</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Called by Presentation instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.clear">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#make_current" class="summary-sig-name">make_current</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Called by Viewport instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.make_current">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#set_gamma_ramp" class="summary-sig-name">set_gamma_ramp</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Set the gamma_ramp, if supported.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.set_gamma_ramp">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Close the screen.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__del__"></a><span class="summary-sig-name">__del__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.__del__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__getstate__">__getstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__setstate__">__setstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#get_specified_type">get_specified_type</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#is_constant_parameter">is_constant_parameter</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#set">set</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#verify_parameters">verify_parameters</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Static Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.Core.Screen-class.html#create_default" class="summary-sig-name">create_default</a>()</span><br />
+      Alternative constructor using configuration variables.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.create_default">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Core.Screen-class.html#parameters_and_defaults" class="summary-name">parameters_and_defaults</a> = <code title="VisionEgg.ParameterDefinition({'bgcolor':((0.5, 0.5, 0.5, 0.0), ve_typ\
+es.AnyOf(ve_types.Sequence3(ve_types.Real), ve_types.Sequence4(ve_type\
+s.Real)), 'background color',),})">VisionEgg.ParameterDefinition({'bgco<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Core.Screen-class.html#constant_parameters_and_defaults" class="summary-name">constant_parameters_and_defaults</a> = <code title="VisionEgg.ParameterDefinition({'size':(None, ve_types.Sequence2(ve_typ\
+es.Real), 'size (units: pixels) Can be set with VISIONEGG_SCREEN_W and\
+ VISIONEGG_SCREEN_H'), 'fullscreen':(None, ve_types.Boolean, 'use full\
+ screen? Can be set with VISIONEGG_FULLSCREEN'), 'double_buffer':(None\
+, ve_types.Boolean, 'use double buffering? Can be set with VISIONEGG_D\
+OUBLE_BUFFER'), 'preferred_bpp':(None, ve_types.UnsignedInteger, 'pref\
+erred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_B\
+PP'), 'maxpriority':(None, ve_types.Boolean, 'raise priority? (platfor\
+...">VisionEgg.ParameterDefiniti<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="size"></a><span class="summary-name">size</span> = <code title="property(get_size, set_size)">property(get_size, set_size)</code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__safe_for_unpickling__">__safe_for_unpickling__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Create self.parameters and set values.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.ClassWithParameters-class.html#__init__">ClassWithParameters.__init__</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="put_pixels"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">put_pixels</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">pixels</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">position</span>=<span class="sig-default">(0,0)</span>,
+        <span class="sig-arg">anchor</span>=<span class="sig-default">'lowerleft'</span>,
+        <span class="sig-arg">scale_x</span>=<span class="sig-default">1.0</span>,
+        <span class="sig-arg">scale_y</span>=<span class="sig-default">1.0</span>,
+        <span class="sig-arg">texture_min_filter</span>=<span class="sig-default">gl.GL_NEAREST</span>,
+        <span class="sig-arg">texture_mag_filter</span>=<span class="sig-default">gl.GL_NEAREST</span>,
+        <span class="sig-arg">internal_format</span>=<span class="sig-default">gl.GL_RGB</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.put_pixels">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Put pixel values to screen.
+
+Pixel values become texture data using the VisionEgg.Textures
+module.  Any source of texture data accepted by that module is
+accepted here.
+
+This function could be sped up by allocating a fixed OpenGL texture object.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="measure_refresh_rate"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">measure_refresh_rate</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">average_over_seconds</span>=<span class="sig-default">0.1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.measure_refresh_rate">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Measure the refresh rate. Assumes swap buffers synced.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="clear"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">clear</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.clear">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Called by Presentation instance. Clear the screen.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="make_current"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">make_current</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.make_current">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Called by Viewport instance. Makes screen active for drawing.
+
+Can not be implemented until multiple screens are possible.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_gamma_ramp"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_gamma_ramp</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kw</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.set_gamma_ramp">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Set the gamma_ramp, if supported.
+
+Call pygame.display.set_gamma_ramp, if available.
+
+Returns True on success, False otherwise.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="close"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Close the screen.
+
+You can call this to close the screen.  Not necessary during
+normal operation because it gets automatically deleted.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="create_default"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">create_default</span>()</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.Core-pysrc.html#Screen.create_default">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Alternative constructor using configuration variables.
+
+Most of the time you can create and instance of Screen using
+this method.  If your script needs explicit control of the
+Screen parameters, initialize with the normal constructor.
+
+Uses VisionEgg.config.VISIONEGG_GUI_INIT to determine how the
+default screen parameters should are determined.  If this
+value is 0, the values from VisionEgg.cfg are used.  If this
+value is 1, a GUI panel is opened and allows manual settings
+of the screen parameters.  
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+VisionEgg.ParameterDefinition({'bgcolor':((0.5, 0.5, 0.5, 0.0), ve_typ<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+es.AnyOf(ve_types.Sequence3(ve_types.Real), ve_types.Sequence4(ve_type<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+s.Real)), 'background color',),})
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="constant_parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">constant_parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+VisionEgg.ParameterDefinition({'size':(None, ve_types.Sequence2(ve_typ<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+es.Real), 'size (units: pixels) Can be set with VISIONEGG_SCREEN_W and<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ VISIONEGG_SCREEN_H'), 'fullscreen':(None, ve_types.Boolean, 'use full<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ screen? Can be set with VISIONEGG_FULLSCREEN'), 'double_buffer':(None<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+, ve_types.Boolean, 'use double buffering? Can be set with VISIONEGG_D<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+OUBLE_BUFFER'), 'preferred_bpp':(None, ve_types.UnsignedInteger, 'pref<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+erred bits per pixel (bit depth) Can be set with VISIONEGG_PREFERRED_B<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+PP'), 'maxpriority':(None, ve_types.Boolean, 'raise priority? (platfor<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:46 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

@@ -1,0 +1,1116 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.Text</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        Module&nbsp;Text
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.Text-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="VisionEgg.Text-module.html">Module VisionEgg.Text</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># The Vision Egg: Text</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2001-2003 Andrew Straw.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2005,2008 California Institute of Technology</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># URL: &lt;http://www.visionegg.org/&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Distributed under the terms of the GNU Lesser General Public License</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># (LGPL). See LICENSE.TXT that came with this file.</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">Text stimuli.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment">####################################################################</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#        Import all the necessary packages</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">####################################################################</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">handlers</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package VisionEgg=VisionEgg-module.html"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-0', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Module VisionEgg.Core=VisionEgg.Core-module.html"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-1', 'Core', 'link-1');">Core</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-2" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-2', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Module VisionEgg.Textures=VisionEgg.Textures-module.html"><a title="VisionEgg.Textures" class="py-name" href="#" onclick="return doclink('link-3', 'Textures', 'link-3');">Textures</a></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-4" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-4', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Module VisionEgg.ParameterTypes=VisionEgg.ParameterTypes-module.html"><a title="VisionEgg.ParameterTypes" class="py-name" href="#" onclick="return doclink('link-5', 'ParameterTypes', 'link-5');">ParameterTypes</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">ve_types</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-6" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-6', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Module VisionEgg.GL=VisionEgg.GL-module.html"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-7', 'GL', 'link-7');">GL</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">gl</tt> <tt class="py-comment"># get all OpenGL stuff in one namespace</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">pygame</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt class="py-name">GLUT</tt> <tt class="py-keyword">as</tt> <tt class="py-name">glut</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt id="link-8" class="py-name" targets="Variable VisionEgg.Text.have_glut=VisionEgg.Text-module.html#have_glut"><a title="VisionEgg.Text.have_glut" class="py-name" href="#" onclick="return doclink('link-8', 'have_glut', 'link-8');">have_glut</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">    <tt id="link-9" class="py-name"><a title="VisionEgg.Text.have_glut" class="py-name" href="#" onclick="return doclink('link-9', 'have_glut', 'link-8');">have_glut</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt id="link-10" class="py-name" targets="Variable VisionEgg.Text._font_objects=VisionEgg.Text-module.html#_font_objects"><a title="VisionEgg.Text._font_objects" class="py-name" href="#" onclick="return doclink('link-10', '_font_objects', 'link-10');">_font_objects</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> <tt class="py-comment"># global variable to cache pygame font objects</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="Text"></a><div id="Text-def"><a name="L41"></a><tt class="py-lineno"> 41</tt> <a class="py-toggle" href="#" id="Text-toggle" onclick="return toggle('Text');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.Text.Text-class.html">Text</a><tt class="py-op">(</tt><tt class="py-base-class">VisionEgg</tt><tt class="py-op">.</tt><tt class="py-base-class">Textures</tt><tt class="py-op">.</tt><tt class="py-base-class">TextureStimulus</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Text-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Text-expanded"><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt class="py-docstring">"""Single line of text rendered using pygame/SDL true type fonts.</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring">    Parameters</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    ==========</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">    anchor                -- specifies how position parameter is interpreted (String)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: lowerleft</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    angle                 -- units: degrees, 0=right, 90=up (Real)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: 0.0</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    color                 -- texture environment color. alpha ignored (if given) for max_alpha parameter (AnyOf(Sequence3 of Real or Sequence4 of Real))</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (1.0, 1.0, 1.0)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">    depth_test            -- perform depth test? (Boolean)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: False</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">    ignore_size_parameter -- (Boolean)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: True</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">    mask                  -- optional masking function (Instance of &lt;class 'VisionEgg.Textures.Mask2D'&gt;)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (determined at runtime)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">    max_alpha             -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: 1.0</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">    on                    -- draw stimulus? (Boolean)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: True</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">    position              -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (0.0, 0.0)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-docstring">    size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (determined at runtime)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt class="py-docstring">    text                  -- (AnyOf(String or Unicode))</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: the string to display</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring">    texture               -- source of texture data (Instance of &lt;class 'VisionEgg.Textures.Texture'&gt;)</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (determined at runtime)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">    texture_mag_filter    -- OpenGL filter enum (Integer)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: GL_LINEAR (9729)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">    texture_min_filter    -- OpenGL filter enum (Integer)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (GL enum determined at runtime)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">    texture_wrap_s        -- OpenGL texture wrap enum (Integer)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (GL enum determined at runtime)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">    texture_wrap_t        -- OpenGL texture wrap enum (Integer)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">                             Default: (GL enum determined at runtime)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">    Constant Parameters</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">    ===================</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">    font_name         -- (AnyOf(String or Unicode))</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: (determined at runtime)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-docstring">    font_size         -- (UnsignedInteger)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: 30</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"><tt class="py-docstring">    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: GL_RGB (6407)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: True</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"><tt class="py-docstring">    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from VisionEgg.Textures.TextureStimulus</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: False</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Variable VisionEgg.ClassWithParameters.parameters_and_defaults=VisionEgg.ClassWithParameters-class.html#parameters_and_defaults,Variable VisionEgg.Core.FixationSpot.parameters_and_defaults=VisionEgg.Core.FixationSpot-class.html#parameters_and_defaults,Variable VisionEgg.Core.ProjectionBaseClass.parameters_and_defaults=VisionEgg.Core.ProjectionBaseClass-class.html#parameters_and_defaults,Variable VisionEgg.Core.Screen.parameters_and_defaults=VisionEgg.Core.Screen-class.html#parameters_and_defaults,Variable VisionEgg.Core.Viewport.parameters_and_defaults=VisionEgg.Core.Viewport-class.html#parameters_and_defaults,Variable VisionEgg.Daq.Buffered.parameters_and_defaults=VisionEgg.Daq.Buffered-class.html#parameters_and_defaults,Variable VisionEgg.Dots.DotArea2D.parameters_and_defaults=VisionEgg.Dots.DotArea2D-class.html#parameters_and_defaults,Variable VisionEgg.FlowControl.Presentation.parameters_and_defaults=VisionEgg.FlowControl.Presentation-class.html#parameters_and_defaults,Variable VisionEgg.Gratings.AlphaGratingCommon.parameters_and_defaults=VisionEgg.Gratings.AlphaGratingCommon-class.html#parameters_and_defaults,Variable VisionEgg.Gratings.LuminanceGratingCommon.parameters_and_defaults=VisionEgg.Gratings.LuminanceGratingCommon-class.html#parameters_and_defaults,Variable VisionEgg.Gratings.SinGrating2D.parameters_and_defaults=VisionEgg.Gratings.SinGrating2D-class.html#parameters_and_defaults,Variable VisionEgg.Gratings.SinGrating3D.parameters_and_defaults=VisionEgg.Gratings.SinGrating3D-class.html#parameters_and_defaults,Variable VisionEgg.MoreStimuli.Arrow.parameters_and_defaults=VisionEgg.MoreStimuli.Arrow-class.html#parameters_and_defaults,Variable VisionEgg.MoreStimuli.FilledCircle.parameters_and_defaults=VisionEgg.MoreStimuli.FilledCircle-class.html#parameters_and_defaults,Variable VisionEgg.MoreStimuli.Rectangle3D.parameters_and_defaults=VisionEgg.MoreStimuli.Rectangle3D-class.html#parameters_and_defaults,Variable VisionEgg.MoreStimuli.Target2D.parameters_and_defaults=VisionEgg.MoreStimuli.Target2D-class.html#parameters_and_defaults,Variable VisionEgg.PyroApps.EPhysGUI.Loop.parameters_and_defaults=VisionEgg.PyroApps.EPhysGUI.Loop-class.html#parameters_and_defaults,Variable VisionEgg.SphereMap.AzElGrid.parameters_and_defaults=VisionEgg.SphereMap.AzElGrid-class.html#parameters_and_defaults,Variable VisionEgg.SphereMap.SphereGrating.parameters_and_defaults=VisionEgg.SphereMap.SphereGrating-class.html#parameters_and_defaults,Variable VisionEgg.SphereMap.SphereMap.parameters_and_defaults=VisionEgg.SphereMap.SphereMap-class.html#parameters_and_defaults,Variable VisionEgg.SphereMap.SphereWindow.parameters_and_defaults=VisionEgg.SphereMap.SphereWindow-class.html#parameters_and_defaults,Variable VisionEgg.Text.BitmapText.parameters_and_defaults=VisionEgg.Text.BitmapText-class.html#parameters_and_defaults,Variable VisionEgg.Text.GlutTextBase.parameters_and_defaults=VisionEgg.Text.GlutTextBase-class.html#parameters_and_defaults,Variable VisionEgg.Text.StrokeText.parameters_and_defaults=VisionEgg.Text.StrokeText-class.html#parameters_and_defaults,Variable VisionEgg.Text.Text.parameters_and_defaults=VisionEgg.Text.Text-class.html#parameters_and_defaults,Variable VisionEgg.Textures.FixationCross.parameters_and_defaults=VisionEgg.Textures.FixationCross-class.html#parameters_and_defaults,Variable VisionEgg.Textures.SpinningDrum.parameters_and_defaults=VisionEgg.Textures.SpinningDrum-class.html#parameters_and_defaults,Variable VisionEgg.Textures.TextureStimulus.parameters_and_defaults=VisionEgg.Textures.TextureStimulus-class.html#parameters_and_defaults,Variable VisionEgg.Textures.TextureStimulus3D.parameters_and_defaults=VisionEgg.Textures.TextureStimulus3D-class.html#parameters_and_defaults,Variable VisionEgg.Textures.TextureStimulusBaseClass.parameters_and_defaults=VisionEgg.Textures.TextureStimulusBaseClass-class.html#parameters_and_defaults,Variable VisionEgg.WrappedText.WrappedText.parameters_and_defaults=VisionEgg.WrappedText.WrappedText-class.html#parameters_and_defaults"><a title="VisionEgg.ClassWithParameters.parameters_and_defaults
+VisionEgg.Core.FixationSpot.parameters_and_defaults
+VisionEgg.Core.ProjectionBaseClass.parameters_and_defaults
+VisionEgg.Core.Screen.parameters_and_defaults
+VisionEgg.Core.Viewport.parameters_and_defaults
+VisionEgg.Daq.Buffered.parameters_and_defaults
+VisionEgg.Dots.DotArea2D.parameters_and_defaults
+VisionEgg.FlowControl.Presentation.parameters_and_defaults
+VisionEgg.Gratings.AlphaGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.LuminanceGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.SinGrating2D.parameters_and_defaults
+VisionEgg.Gratings.SinGrating3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Arrow.parameters_and_defaults
+VisionEgg.MoreStimuli.FilledCircle.parameters_and_defaults
+VisionEgg.MoreStimuli.Rectangle3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Target2D.parameters_and_defaults
+VisionEgg.PyroApps.EPhysGUI.Loop.parameters_and_defaults
+VisionEgg.SphereMap.AzElGrid.parameters_and_defaults
+VisionEgg.SphereMap.SphereGrating.parameters_and_defaults
+VisionEgg.SphereMap.SphereMap.parameters_and_defaults
+VisionEgg.SphereMap.SphereWindow.parameters_and_defaults
+VisionEgg.Text.BitmapText.parameters_and_defaults
+VisionEgg.Text.GlutTextBase.parameters_and_defaults
+VisionEgg.Text.StrokeText.parameters_and_defaults
+VisionEgg.Text.Text.parameters_and_defaults
+VisionEgg.Textures.FixationCross.parameters_and_defaults
+VisionEgg.Textures.SpinningDrum.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus3D.parameters_and_defaults
+VisionEgg.Textures.TextureStimulusBaseClass.parameters_and_defaults
+VisionEgg.WrappedText.WrappedText.parameters_and_defaults" class="py-name" href="#" onclick="return doclink('link-11', 'parameters_and_defaults', 'link-11');">parameters_and_defaults</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt class="py-string">'text'</tt><tt class="py-op">:</tt> <tt class="py-op">(</tt> <tt class="py-string">'the string to display'</tt><tt class="py-op">,</tt> <tt class="py-comment">#changing this redraws texture, may cause slowdown</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                  <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Class VisionEgg.ParameterTypes.AnyOf=VisionEgg.ParameterTypes.AnyOf-class.html"><a title="VisionEgg.ParameterTypes.AnyOf" class="py-name" href="#" onclick="return doclink('link-12', 'AnyOf', 'link-12');">AnyOf</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Class VisionEgg.ParameterTypes.String=VisionEgg.ParameterTypes.String-class.html"><a title="VisionEgg.ParameterTypes.String" class="py-name" href="#" onclick="return doclink('link-13', 'String', 'link-13');">String</a></tt><tt class="py-op">,</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Class VisionEgg.ParameterTypes.Unicode=VisionEgg.ParameterTypes.Unicode-class.html"><a title="VisionEgg.ParameterTypes.Unicode" class="py-name" href="#" onclick="return doclink('link-14', 'Unicode', 'link-14');">Unicode</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-string">'ignore_size_parameter'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt class="py-comment"># when true, draws text at 100% size</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">                                 <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Class VisionEgg.ParameterTypes.Boolean=VisionEgg.ParameterTypes.Boolean-class.html"><a title="VisionEgg.ParameterTypes.Boolean" class="py-name" href="#" onclick="return doclink('link-15', 'Boolean', 'link-15');">Boolean</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-op">}</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">    <tt id="link-16" class="py-name" targets="Variable VisionEgg.ClassWithParameters.constant_parameters_and_defaults=VisionEgg.ClassWithParameters-class.html#constant_parameters_and_defaults,Variable VisionEgg.Core.Screen.constant_parameters_and_defaults=VisionEgg.Core.Screen-class.html#constant_parameters_and_defaults,Variable VisionEgg.Daq.Analog.constant_parameters_and_defaults=VisionEgg.Daq.Analog-class.html#constant_parameters_and_defaults,Variable VisionEgg.Daq.Channel.constant_parameters_and_defaults=VisionEgg.Daq.Channel-class.html#constant_parameters_and_defaults,Variable VisionEgg.Daq.SignalType.constant_parameters_and_defaults=VisionEgg.Daq.SignalType-class.html#constant_parameters_and_defaults,Variable VisionEgg.Dots.DotArea2D.constant_parameters_and_defaults=VisionEgg.Dots.DotArea2D-class.html#constant_parameters_and_defaults,Variable VisionEgg.SphereMap.AzElGrid.constant_parameters_and_defaults=VisionEgg.SphereMap.AzElGrid-class.html#constant_parameters_and_defaults,Variable VisionEgg.Text.Text.constant_parameters_and_defaults=VisionEgg.Text.Text-class.html#constant_parameters_and_defaults,Variable VisionEgg.Textures.FixationCross.constant_parameters_and_defaults=VisionEgg.Textures.FixationCross-class.html#constant_parameters_and_defaults,Variable VisionEgg.Textures.Mask2D.constant_parameters_and_defaults=VisionEgg.Textures.Mask2D-class.html#constant_parameters_and_defaults,Variable VisionEgg.Textures.TextureStimulusBaseClass.constant_parameters_and_defaults=VisionEgg.Textures.TextureStimulusBaseClass-class.html#constant_parameters_and_defaults,Variable VisionEgg.WrappedText.WrappedText.constant_parameters_and_defaults=VisionEgg.WrappedText.WrappedText-class.html#constant_parameters_and_defaults"><a title="VisionEgg.ClassWithParameters.constant_parameters_and_defaults
+VisionEgg.Core.Screen.constant_parameters_and_defaults
+VisionEgg.Daq.Analog.constant_parameters_and_defaults
+VisionEgg.Daq.Channel.constant_parameters_and_defaults
+VisionEgg.Daq.SignalType.constant_parameters_and_defaults
+VisionEgg.Dots.DotArea2D.constant_parameters_and_defaults
+VisionEgg.SphereMap.AzElGrid.constant_parameters_and_defaults
+VisionEgg.Text.Text.constant_parameters_and_defaults
+VisionEgg.Textures.FixationCross.constant_parameters_and_defaults
+VisionEgg.Textures.Mask2D.constant_parameters_and_defaults
+VisionEgg.Textures.TextureStimulusBaseClass.constant_parameters_and_defaults
+VisionEgg.WrappedText.WrappedText.constant_parameters_and_defaults" class="py-name" href="#" onclick="return doclink('link-16', 'constant_parameters_and_defaults', 'link-16');">constant_parameters_and_defaults</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt class="py-string">'font_size'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-number">30</tt><tt class="py-op">,</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">                     <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Class VisionEgg.ParameterTypes.UnsignedInteger=VisionEgg.ParameterTypes.UnsignedInteger-class.html"><a title="VisionEgg.ParameterTypes.UnsignedInteger" class="py-name" href="#" onclick="return doclink('link-17', 'UnsignedInteger', 'link-17');">UnsignedInteger</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-string">'font_name'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-comment"># None = use default font</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">                     <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="VisionEgg.ParameterTypes.AnyOf" class="py-name" href="#" onclick="return doclink('link-18', 'AnyOf', 'link-12');">AnyOf</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="VisionEgg.ParameterTypes.String" class="py-name" href="#" onclick="return doclink('link-19', 'String', 'link-13');">String</a></tt><tt class="py-op">,</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="VisionEgg.ParameterTypes.Unicode" class="py-name" href="#" onclick="return doclink('link-20', 'Unicode', 'link-14');">Unicode</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-op">}</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-name">__slots__</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-string">'font'</tt><tt class="py-op">,</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-string">'_text'</tt><tt class="py-op">,</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"> </tt>
+<a name="Text.__init__"></a><div id="Text.__init__-def"><a name="L129"></a><tt class="py-lineno">129</tt> <a class="py-toggle" href="#" id="Text.__init__-toggle" onclick="return toggle('Text.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.Text-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Text.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Text.__init__-expanded"><a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">:</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"no pygame font module"</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">.</tt><tt class="py-name">get_init</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">.</tt><tt class="py-name">init</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">.</tt><tt class="py-name">get_init</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"pygame doesn't init"</tt><tt class="py-op">)</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-comment"># override some defaults</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt class="py-string">'internal_format'</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">kw</tt><tt class="py-op">.</tt><tt class="py-name">keys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">            <tt class="py-name">kw</tt><tt class="py-op">[</tt><tt class="py-string">'internal_format'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_RGBA</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">'mipmaps_enabled'</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">kw</tt><tt class="py-op">.</tt><tt class="py-name">keys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">            <tt class="py-name">kw</tt><tt class="py-op">[</tt><tt class="py-string">'mipmaps_enabled'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">'texture_min_filter'</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">kw</tt><tt class="py-op">.</tt><tt class="py-name">keys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">            <tt class="py-name">kw</tt><tt class="py-op">[</tt><tt class="py-string">'texture_min_filter'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_LINEAR</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt id="link-21" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-21', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="VisionEgg.Textures" class="py-name" href="#" onclick="return doclink('link-22', 'Textures', 'link-3');">Textures</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Class VisionEgg.Textures.TextureStimulus=VisionEgg.Textures.TextureStimulus-class.html"><a title="VisionEgg.Textures.TextureStimulus" class="py-name" href="#" onclick="return doclink('link-23', 'TextureStimulus', 'link-23');">TextureStimulus</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method VisionEgg.ClassWithParameters.__init__()=VisionEgg.ClassWithParameters-class.html#__init__,Method VisionEgg.Configuration.Config.__init__()=VisionEgg.Configuration.Config-class.html#__init__,Method VisionEgg.Core.FixationSpot.__init__()=VisionEgg.Core.FixationSpot-class.html#__init__,Method VisionEgg.Core.FrameTimer.__init__()=VisionEgg.Core.FrameTimer-class.html#__init__,Method VisionEgg.Core.ModelView.__init__()=VisionEgg.Core.ModelView-class.html#__init__,Method VisionEgg.Core.OrthographicProjection.__init__()=VisionEgg.Core.OrthographicProjection-class.html#__init__,Method VisionEgg.Core.OrthographicProjectionNoZClip.__init__()=VisionEgg.Core.OrthographicProjectionNoZClip-class.html#__init__,Method VisionEgg.Core.PerspectiveProjection.__init__()=VisionEgg.Core.PerspectiveProjection-class.html#__init__,Method VisionEgg.Core.Projection.__init__()=VisionEgg.Core.Projection-class.html#__init__,Method VisionEgg.Core.ProjectionBaseClass.__init__()=VisionEgg.Core.ProjectionBaseClass-class.html#__init__,Method VisionEgg.Core.Screen.__init__()=VisionEgg.Core.Screen-class.html#__init__,Method VisionEgg.Core.SimplePerspectiveProjection.__init__()=VisionEgg.Core.SimplePerspectiveProjection-class.html#__init__,Method VisionEgg.Core.Stimulus.__init__()=VisionEgg.Core.Stimulus-class.html#__init__,Method VisionEgg.Core.Viewport.__init__()=VisionEgg.Core.Viewport-class.html#__init__,Method VisionEgg.Daq.Channel.__init__()=VisionEgg.Daq.Channel-class.html#__init__,Method VisionEgg.Daq.DaqMode.__init__()=VisionEgg.Daq.DaqMode-class.html#__init__,Method VisionEgg.Daq.Device.__init__()=VisionEgg.Daq.Device-class.html#__init__,Method VisionEgg.Daq.Functionality.__init__()=VisionEgg.Daq.Functionality-class.html#__init__,Method VisionEgg.Daq.SignalType.__init__()=VisionEgg.Daq.SignalType-class.html#__init__,Method VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__()=VisionEgg.DaqKeyboard.KeyboardTriggerInController-class.html#__init__,Method VisionEgg.DaqLPT.LPTChannel.__init__()=VisionEgg.DaqLPT.LPTChannel-class.html#__init__,Method VisionEgg.DaqLPT.LPTDevice.__init__()=VisionEgg.DaqLPT.LPTDevice-class.html#__init__,Method VisionEgg.DaqLPT.LPTTriggerInController.__init__()=VisionEgg.DaqLPT.LPTTriggerInController-class.html#__init__,Method VisionEgg.DaqLPT.LPTTriggerOutController.__init__()=VisionEgg.DaqLPT.LPTTriggerOutController-class.html#__init__,Method VisionEgg.Deprecated.Message.__init__()=VisionEgg.Deprecated.Message-class.html#__init__,Method VisionEgg.Dots.DotArea2D.__init__()=VisionEgg.Dots.DotArea2D-class.html#__init__,Method VisionEgg.FlowControl.ConstantController.__init__()=VisionEgg.FlowControl.ConstantController-class.html#__init__,Method VisionEgg.FlowControl.Controller.__init__()=VisionEgg.FlowControl.Controller-class.html#__init__,Method VisionEgg.FlowControl.EncapsulatedController.__init__()=VisionEgg.FlowControl.EncapsulatedController-class.html#__init__,Method VisionEgg.FlowControl.EvalStringController.__init__()=VisionEgg.FlowControl.EvalStringController-class.html#__init__,Method VisionEgg.FlowControl.ExecStringController.__init__()=VisionEgg.FlowControl.ExecStringController-class.html#__init__,Method VisionEgg.FlowControl.FunctionController.__init__()=VisionEgg.FlowControl.FunctionController-class.html#__init__,Method VisionEgg.FlowControl.Presentation.__init__()=VisionEgg.FlowControl.Presentation-class.html#__init__,Method VisionEgg.GLTrace.Wrapper.__init__()=VisionEgg.GLTrace.Wrapper-class.html#__init__,Method VisionEgg.GUI.AppWindow.__init__()=VisionEgg.GUI.AppWindow-class.html#__init__,Method VisionEgg.GUI.GetKeypressDialog.__init__()=VisionEgg.GUI.GetKeypressDialog-class.html#__init__,Method VisionEgg.GUI.GraphicsConfigurationWindow.__init__()=VisionEgg.GUI.GraphicsConfigurationWindow-class.html#__init__,Method VisionEgg.GUI.InfoFrame.__init__()=VisionEgg.GUI.InfoFrame-class.html#__init__,Method VisionEgg.GUI.ProgressBar.__init__()=VisionEgg.GUI.ProgressBar-class.html#__init__,Method VisionEgg.GUI.ToplevelDialog.__init__()=VisionEgg.GUI.ToplevelDialog-class.html#__init__,Method VisionEgg.Gratings.SinGrating2D.__init__()=VisionEgg.Gratings.SinGrating2D-class.html#__init__,Method VisionEgg.Gratings.SinGrating3D.__init__()=VisionEgg.Gratings.SinGrating3D-class.html#__init__,Method VisionEgg.MoreStimuli.Arrow.__init__()=VisionEgg.MoreStimuli.Arrow-class.html#__init__,Method VisionEgg.MoreStimuli.FilledCircle.__init__()=VisionEgg.MoreStimuli.FilledCircle-class.html#__init__,Method VisionEgg.MoreStimuli.Rectangle3D.__init__()=VisionEgg.MoreStimuli.Rectangle3D-class.html#__init__,Method VisionEgg.MoreStimuli.Target2D.__init__()=VisionEgg.MoreStimuli.Target2D-class.html#__init__,Method VisionEgg.ParameterTypes.AnyOf.__init__()=VisionEgg.ParameterTypes.AnyOf-class.html#__init__,Method VisionEgg.ParameterTypes.Instance.__init__()=VisionEgg.ParameterTypes.Instance-class.html#__init__,Method VisionEgg.ParameterTypes.Sequence.__init__()=VisionEgg.ParameterTypes.Sequence-class.html#__init__,Method VisionEgg.ParameterTypes.SubClass.__init__()=VisionEgg.ParameterTypes.SubClass-class.html#__init__,Method VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__()=VisionEgg.PyroApps.AST_ext.AST_Visitor-class.html#__init__,Method VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__()=VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame-class.html#__init__,Method VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__()=VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__()=VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController-class.html#__init__,Method VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__()=VisionEgg.PyroApps.DropinGUI.DropinControlFrame-class.html#__init__,Method VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__()=VisionEgg.PyroApps.DropinGUI.DropinMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__()=VisionEgg.PyroApps.DropinServer.DropinMetaController-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__()=VisionEgg.PyroApps.EPhysGUI.AppWindow-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.BarButton.__init__()=VisionEgg.PyroApps.EPhysGUI.BarButton-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__()=VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__()=VisionEgg.PyroApps.EPhysGUI.GammaFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__()=VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.Loop.__init__()=VisionEgg.PyroApps.EPhysGUI.Loop-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__()=VisionEgg.PyroApps.EPhysGUI.LoopContainedObject-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__()=VisionEgg.PyroApps.EPhysGUI.LoopParamDialog-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__()=VisionEgg.PyroApps.EPhysGUI.ScrollListFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__()=VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame-class.html#__init__,Method VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__()=VisionEgg.PyroApps.EPhysServer.EPhysServer-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__()=VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__()=VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__()=VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__()=VisionEgg.PyroApps.GridGUI.GridControlFrame-class.html#__init__,Method VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__()=VisionEgg.PyroApps.GridGUI.GridMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.GridServer.GridMetaController.__init__()=VisionEgg.PyroApps.GridServer.GridMetaController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__()=VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__()=VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__()=VisionEgg.PyroApps.MouseTargetServer.MousePositionController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__()=VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__()=VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController-class.html#__init__,Method VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__()=VisionEgg.PyroApps.MouseTargetServer.TargetPositionController-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__()=VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters-class.html#__init__,Method VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__()=VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__()=VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__()=VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__()=VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__()=VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__()=VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__()=VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController-class.html#__init__,Method VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__()=VisionEgg.PyroApps.TargetGUI.TargetControlFrame-class.html#__init__,Method VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__()=VisionEgg.PyroApps.TargetGUI.TargetMetaParameters-class.html#__init__,Method VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__()=VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController-class.html#__init__,Method VisionEgg.PyroClient.PyroClient.__init__()=VisionEgg.PyroClient.PyroClient-class.html#__init__,Method VisionEgg.PyroHelpers.PyroConstantController.__init__()=VisionEgg.PyroHelpers.PyroConstantController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__()=VisionEgg.PyroHelpers.PyroEncapsulatedController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroEvalStringController.__init__()=VisionEgg.PyroHelpers.PyroEvalStringController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroExecStringController.__init__()=VisionEgg.PyroHelpers.PyroExecStringController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroListenController.__init__()=VisionEgg.PyroHelpers.PyroListenController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroLocalDictController.__init__()=VisionEgg.PyroHelpers.PyroLocalDictController-class.html#__init__,Method VisionEgg.PyroHelpers.PyroServer.__init__()=VisionEgg.PyroHelpers.PyroServer-class.html#__init__,Method VisionEgg.QuickTime.MovieTexture.__init__()=VisionEgg.QuickTime.MovieTexture-class.html#__init__,Method VisionEgg.ResponseControl.KeyboardResponseController.__init__()=VisionEgg.ResponseControl.KeyboardResponseController-class.html#__init__,Method VisionEgg.ResponseControl.ResponseController.__init__()=VisionEgg.ResponseControl.ResponseController-class.html#__init__,Method VisionEgg.SphereMap.AzElGrid.__init__()=VisionEgg.SphereMap.AzElGrid-class.html#__init__,Method VisionEgg.SphereMap.SphereGrating.__init__()=VisionEgg.SphereMap.SphereGrating-class.html#__init__,Method VisionEgg.SphereMap.SphereMap.__init__()=VisionEgg.SphereMap.SphereMap-class.html#__init__,Method VisionEgg.SphereMap.SphereWindow.__init__()=VisionEgg.SphereMap.SphereWindow-class.html#__init__,Method VisionEgg.TCPController.SocketListenController.__init__()=VisionEgg.TCPController.SocketListenController-class.html#__init__,Method VisionEgg.TCPController.TCPController.__init__()=VisionEgg.TCPController.TCPController-class.html#__init__,Method VisionEgg.TCPController.TCPServer.__init__()=VisionEgg.TCPController.TCPServer-class.html#__init__,Method VisionEgg.Text.BitmapText.__init__()=VisionEgg.Text.BitmapText-class.html#__init__,Method VisionEgg.Text.GlutTextBase.__init__()=VisionEgg.Text.GlutTextBase-class.html#__init__,Method VisionEgg.Text.StrokeText.__init__()=VisionEgg.Text.StrokeText-class.html#__init__,Method VisionEgg.Text.Text.__init__()=VisionEgg.Text.Text-class.html#__init__,Method VisionEgg.Textures.FixationCross.__init__()=VisionEgg.Textures.FixationCross-class.html#__init__,Method VisionEgg.Textures.Mask2D.__init__()=VisionEgg.Textures.Mask2D-class.html#__init__,Method VisionEgg.Textures.SpinningDrum.__init__()=VisionEgg.Textures.SpinningDrum-class.html#__init__,Method VisionEgg.Textures.Texture.__init__()=VisionEgg.Textures.Texture-class.html#__init__,Method VisionEgg.Textures.TextureFromFile.__init__()=VisionEgg.Textures.TextureFromFile-class.html#__init__,Method VisionEgg.Textures.TextureObject.__init__()=VisionEgg.Textures.TextureObject-class.html#__init__,Method VisionEgg.Textures.TextureStimulusBaseClass.__init__()=VisionEgg.Textures.TextureStimulusBaseClass-class.html#__init__,Method VisionEgg.ThreeDeeMath.TransformMatrix.__init__()=VisionEgg.ThreeDeeMath.TransformMatrix-class.html#__init__,Method VisionEgg.WrappedText.WrappedText.__init__()=VisionEgg.WrappedText.WrappedText-class.html#__init__,Method VisionEgg.qtmovie.Movie.__init__()=VisionEgg.qtmovie.Movie-class.html#__init__,Method VisionEgg.qtmovie.Rect.__init__()=VisionEgg.qtmovie.Rect-class.html#__init__"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-24', '__init__', 'link-24');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-name">kw</tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-name">cp</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">constant_parameters</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-name">fontobject_args</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">cp</tt><tt class="py-op">.</tt><tt class="py-name">font_name</tt><tt class="py-op">,</tt><tt class="py-name">cp</tt><tt class="py-op">.</tt><tt class="py-name">font_size</tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">fontobject_args</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt id="link-25" class="py-name"><a title="VisionEgg.Text._font_objects" class="py-name" href="#" onclick="return doclink('link-25', '_font_objects', 'link-10');">_font_objects</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">            <tt class="py-comment"># make global cache of font objects</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">fontobject</tt> <tt class="py-op">=</tt> <tt class="py-name">pygame</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">.</tt><tt class="py-name">Font</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">fontobject_args</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">            <tt id="link-26" class="py-name"><a title="VisionEgg.Text._font_objects" class="py-name" href="#" onclick="return doclink('link-26', '_font_objects', 'link-10');">_font_objects</a></tt><tt class="py-op">[</tt><tt class="py-name">fontobject_args</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">fontobject</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-comment"># get font object from global cache</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">font</tt> <tt class="py-op">=</tt> <tt id="link-27" class="py-name"><a title="VisionEgg.Text._font_objects" class="py-name" href="#" onclick="return doclink('link-27', '_font_objects', 'link-10');">_font_objects</a></tt><tt class="py-op">[</tt><tt class="py-name">fontobject_args</tt><tt class="py-op">]</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_render_text</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"> </tt>
+<a name="Text._render_text"></a><div id="Text._render_text-def"><a name="L154"></a><tt class="py-lineno">154</tt> <a class="py-toggle" href="#" id="Text._render_text-toggle" onclick="return toggle('Text._render_text');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.Text-class.html#_render_text">_render_text</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Text._render_text-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Text._render_text-expanded"><a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-name">p</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">rendered_surf</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">.</tt><tt class="py-name">render</tt><tt class="py-op">(</tt><tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">text</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">255</tt><tt class="py-op">,</tt><tt class="py-number">255</tt><tt class="py-op">,</tt><tt class="py-number">255</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-comment"># pygame.Surface object</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-comment"># we could use put_new_image for speed (or put_sub_image for more)</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">texture</tt> <tt class="py-op">=</tt> <tt id="link-28" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-28', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="VisionEgg.Textures" class="py-name" href="#" onclick="return doclink('link-29', 'Textures', 'link-3');">Textures</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Class VisionEgg.Textures.Texture=VisionEgg.Textures.Texture-class.html"><a title="VisionEgg.Textures.Texture" class="py-name" href="#" onclick="return doclink('link-30', 'Texture', 'link-30');">Texture</a></tt><tt class="py-op">(</tt><tt class="py-name">rendered_surf</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_reload_texture</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_text</tt> <tt class="py-op">=</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">text</tt> <tt class="py-comment"># cache string so we know when to re-render</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">ignore_size_parameter</tt><tt class="py-op">:</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">            <tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Variable VisionEgg.Core.Screen.size=VisionEgg.Core.Screen-class.html#size"><a title="VisionEgg.Core.Screen.size" class="py-name" href="#" onclick="return doclink('link-31', 'size', 'link-31');">size</a></tt> <tt class="py-op">=</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">texture</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="VisionEgg.Core.Screen.size" class="py-name" href="#" onclick="return doclink('link-32', 'size', 'link-31');">size</a></tt> </tt>
+</div><a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"> </tt>
+<a name="Text.draw"></a><div id="Text.draw-def"><a name="L165"></a><tt class="py-lineno">165</tt> <a class="py-toggle" href="#" id="Text.draw-toggle" onclick="return toggle('Text.draw');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.Text-class.html#draw">draw</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Text.draw-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Text.draw-expanded"><a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-name">p</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">texture</tt> <tt class="py-op">!=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_using_texture</tt><tt class="py-op">:</tt> <tt class="py-comment"># self._using_texture is from TextureStimulusBaseClass</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"my texture has been modified, but it shouldn't be"</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">text</tt> <tt class="py-op">!=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_text</tt><tt class="py-op">:</tt> <tt class="py-comment"># new text</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_render_text</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">ignore_size_parameter</tt><tt class="py-op">:</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">            <tt class="py-name">p</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="VisionEgg.Core.Screen.size" class="py-name" href="#" onclick="return doclink('link-33', 'size', 'link-31');">size</a></tt> <tt class="py-op">=</tt> <tt class="py-name">p</tt><tt class="py-op">.</tt><tt class="py-name">texture</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="VisionEgg.Core.Screen.size" class="py-name" href="#" onclick="return doclink('link-34', 'size', 'link-31');">size</a></tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">        <tt id="link-35" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-35', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="VisionEgg.Textures" class="py-name" href="#" onclick="return doclink('link-36', 'Textures', 'link-3');">Textures</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="VisionEgg.Textures.TextureStimulus" class="py-name" href="#" onclick="return doclink('link-37', 'TextureStimulus', 'link-23');">TextureStimulus</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name" targets="Method VisionEgg.Core.FixationSpot.draw()=VisionEgg.Core.FixationSpot-class.html#draw,Method VisionEgg.Core.Stimulus.draw()=VisionEgg.Core.Stimulus-class.html#draw,Method VisionEgg.Core.Viewport.draw()=VisionEgg.Core.Viewport-class.html#draw,Method VisionEgg.Dots.DotArea2D.draw()=VisionEgg.Dots.DotArea2D-class.html#draw,Method VisionEgg.Gratings.SinGrating2D.draw()=VisionEgg.Gratings.SinGrating2D-class.html#draw,Method VisionEgg.Gratings.SinGrating3D.draw()=VisionEgg.Gratings.SinGrating3D-class.html#draw,Method VisionEgg.MoreStimuli.Arrow.draw()=VisionEgg.MoreStimuli.Arrow-class.html#draw,Method VisionEgg.MoreStimuli.FilledCircle.draw()=VisionEgg.MoreStimuli.FilledCircle-class.html#draw,Method VisionEgg.MoreStimuli.Rectangle3D.draw()=VisionEgg.MoreStimuli.Rectangle3D-class.html#draw,Method VisionEgg.MoreStimuli.Target2D.draw()=VisionEgg.MoreStimuli.Target2D-class.html#draw,Method VisionEgg.SphereMap.AzElGrid.draw()=VisionEgg.SphereMap.AzElGrid-class.html#draw,Method VisionEgg.SphereMap.SphereGrating.draw()=VisionEgg.SphereMap.SphereGrating-class.html#draw,Method VisionEgg.SphereMap.SphereMap.draw()=VisionEgg.SphereMap.SphereMap-class.html#draw,Method VisionEgg.SphereMap.SphereWindow.draw()=VisionEgg.SphereMap.SphereWindow-class.html#draw,Method VisionEgg.Text.BitmapText.draw()=VisionEgg.Text.BitmapText-class.html#draw,Method VisionEgg.Text.StrokeText.draw()=VisionEgg.Text.StrokeText-class.html#draw,Method VisionEgg.Text.Text.draw()=VisionEgg.Text.Text-class.html#draw,Method VisionEgg.Textures.FixationCross.draw()=VisionEgg.Textures.FixationCross-class.html#draw,Method VisionEgg.Textures.SpinningDrum.draw()=VisionEgg.Textures.SpinningDrum-class.html#draw,Method VisionEgg.Textures.TextureStimulus.draw()=VisionEgg.Textures.TextureStimulus-class.html#draw,Method VisionEgg.Textures.TextureStimulus3D.draw()=VisionEgg.Textures.TextureStimulus3D-class.html#draw,Method VisionEgg.WrappedText.WrappedText.draw()=VisionEgg.WrappedText.WrappedText-class.html#draw"><a title="VisionEgg.Core.FixationSpot.draw
+VisionEgg.Core.Stimulus.draw
+VisionEgg.Core.Viewport.draw
+VisionEgg.Dots.DotArea2D.draw
+VisionEgg.Gratings.SinGrating2D.draw
+VisionEgg.Gratings.SinGrating3D.draw
+VisionEgg.MoreStimuli.Arrow.draw
+VisionEgg.MoreStimuli.FilledCircle.draw
+VisionEgg.MoreStimuli.Rectangle3D.draw
+VisionEgg.MoreStimuli.Target2D.draw
+VisionEgg.SphereMap.AzElGrid.draw
+VisionEgg.SphereMap.SphereGrating.draw
+VisionEgg.SphereMap.SphereMap.draw
+VisionEgg.SphereMap.SphereWindow.draw
+VisionEgg.Text.BitmapText.draw
+VisionEgg.Text.StrokeText.draw
+VisionEgg.Text.Text.draw
+VisionEgg.Textures.FixationCross.draw
+VisionEgg.Textures.SpinningDrum.draw
+VisionEgg.Textures.TextureStimulus.draw
+VisionEgg.Textures.TextureStimulus3D.draw
+VisionEgg.WrappedText.WrappedText.draw" class="py-name" href="#" onclick="return doclink('link-38', 'draw', 'link-38');">draw</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> <tt class="py-comment"># call base class</tt> </tt>
+</div></div><a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt id="link-39" class="py-name"><a title="VisionEgg.Text.have_glut" class="py-name" href="#" onclick="return doclink('link-39', 'have_glut', 'link-8');">have_glut</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"> </tt>
+<a name="GlutTextBase"></a><div id="GlutTextBase-def"><a name="L177"></a><tt class="py-lineno">177</tt> <a class="py-toggle" href="#" id="GlutTextBase-toggle" onclick="return toggle('GlutTextBase');">-</a><tt class="py-line">    <tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.Text.GlutTextBase-class.html">GlutTextBase</a><tt class="py-op">(</tt><tt class="py-base-class">VisionEgg</tt><tt class="py-op">.</tt><tt class="py-base-class">Core</tt><tt class="py-op">.</tt><tt class="py-base-class">Stimulus</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlutTextBase-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlutTextBase-expanded"><a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-docstring">"""DEPRECATED. Base class: don't instantiate this class directly.</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"><tt class="py-docstring">        Base class that defines the common interface between the</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"><tt class="py-docstring">        other glut-based text stimuli.</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"><tt class="py-docstring">        Parameters</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line"><tt class="py-docstring">        ==========</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"><tt class="py-docstring">        color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: (1.0, 1.0, 1.0)</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"><tt class="py-docstring">        lowerleft -- (Sequence2 of Real)</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: (320, 240)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"><tt class="py-docstring">        on        -- (Boolean)</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: True</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">        text      -- (String)</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: the string to display</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt id="link-40" class="py-name"><a title="VisionEgg.ClassWithParameters.parameters_and_defaults
+VisionEgg.Core.FixationSpot.parameters_and_defaults
+VisionEgg.Core.ProjectionBaseClass.parameters_and_defaults
+VisionEgg.Core.Screen.parameters_and_defaults
+VisionEgg.Core.Viewport.parameters_and_defaults
+VisionEgg.Daq.Buffered.parameters_and_defaults
+VisionEgg.Dots.DotArea2D.parameters_and_defaults
+VisionEgg.FlowControl.Presentation.parameters_and_defaults
+VisionEgg.Gratings.AlphaGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.LuminanceGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.SinGrating2D.parameters_and_defaults
+VisionEgg.Gratings.SinGrating3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Arrow.parameters_and_defaults
+VisionEgg.MoreStimuli.FilledCircle.parameters_and_defaults
+VisionEgg.MoreStimuli.Rectangle3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Target2D.parameters_and_defaults
+VisionEgg.PyroApps.EPhysGUI.Loop.parameters_and_defaults
+VisionEgg.SphereMap.AzElGrid.parameters_and_defaults
+VisionEgg.SphereMap.SphereGrating.parameters_and_defaults
+VisionEgg.SphereMap.SphereMap.parameters_and_defaults
+VisionEgg.SphereMap.SphereWindow.parameters_and_defaults
+VisionEgg.Text.BitmapText.parameters_and_defaults
+VisionEgg.Text.GlutTextBase.parameters_and_defaults
+VisionEgg.Text.StrokeText.parameters_and_defaults
+VisionEgg.Text.Text.parameters_and_defaults
+VisionEgg.Textures.FixationCross.parameters_and_defaults
+VisionEgg.Textures.SpinningDrum.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus3D.parameters_and_defaults
+VisionEgg.Textures.TextureStimulusBaseClass.parameters_and_defaults
+VisionEgg.WrappedText.WrappedText.parameters_and_defaults" class="py-name" href="#" onclick="return doclink('link-40', 'parameters_and_defaults', 'link-11');">parameters_and_defaults</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">            <tt class="py-string">'on'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">                  <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="VisionEgg.ParameterTypes.Boolean" class="py-name" href="#" onclick="return doclink('link-41', 'Boolean', 'link-15');">Boolean</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">            <tt class="py-string">'color'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-number">1.0</tt><tt class="py-op">,</tt><tt class="py-number">1.0</tt><tt class="py-op">,</tt><tt class="py-number">1.0</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">                     <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="VisionEgg.ParameterTypes.AnyOf" class="py-name" href="#" onclick="return doclink('link-42', 'AnyOf', 'link-12');">AnyOf</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Class VisionEgg.ParameterTypes.Sequence3=VisionEgg.ParameterTypes.Sequence3-class.html"><a title="VisionEgg.ParameterTypes.Sequence3" class="py-name" href="#" onclick="return doclink('link-43', 'Sequence3', 'link-43');">Sequence3</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name" targets="Class VisionEgg.ParameterTypes.Real=VisionEgg.ParameterTypes.Real-class.html"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-44', 'Real', 'link-44');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">                                    <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Class VisionEgg.ParameterTypes.Sequence4=VisionEgg.ParameterTypes.Sequence4-class.html"><a title="VisionEgg.ParameterTypes.Sequence4" class="py-name" href="#" onclick="return doclink('link-45', 'Sequence4', 'link-45');">Sequence4</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-46', 'Real', 'link-44');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">            <tt class="py-string">'lowerleft'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-number">320</tt><tt class="py-op">,</tt><tt class="py-number">240</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">                         <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name" targets="Class VisionEgg.ParameterTypes.Sequence2=VisionEgg.ParameterTypes.Sequence2-class.html"><a title="VisionEgg.ParameterTypes.Sequence2" class="py-name" href="#" onclick="return doclink('link-47', 'Sequence2', 'link-47');">Sequence2</a></tt><tt class="py-op">(</tt><tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-48', 'Real', 'link-44');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">            <tt class="py-string">'text'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-string">'the string to display'</tt><tt class="py-op">,</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">                    <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="VisionEgg.ParameterTypes.String" class="py-name" href="#" onclick="return doclink('link-49', 'String', 'link-13');">String</a></tt><tt class="py-op">)</tt><tt class="py-op">}</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"> </tt>
+<a name="GlutTextBase.__init__"></a><div id="GlutTextBase.__init__-def"><a name="L206"></a><tt class="py-lineno">206</tt> <a class="py-toggle" href="#" id="GlutTextBase.__init__-toggle" onclick="return toggle('GlutTextBase.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.GlutTextBase-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlutTextBase.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="GlutTextBase.__init__-expanded"><a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-50', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Variable VisionEgg.config=VisionEgg-module.html#config"><a title="VisionEgg.config" class="py-name" href="#" onclick="return doclink('link-51', 'config', 'link-51');">config</a></tt><tt class="py-op">,</tt><tt class="py-string">"_GAVE_GLUT_TEXT_DEPRECATION"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">                <tt id="link-52" class="py-name" targets="Variable VisionEgg.logger=VisionEgg-module.html#logger"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-52', 'logger', 'link-52');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.Text'</tt><tt class="py-op">)</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">                <tt id="link-53" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-53', 'logger', 'link-52');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"Using GlutTextBase class.  This will be "</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">                               <tt class="py-string">"removed in a future release. Use "</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">                               <tt class="py-string">"VisionEgg.Text.Text instead."</tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">                <tt id="link-54" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-54', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="VisionEgg.config" class="py-name" href="#" onclick="return doclink('link-55', 'config', 'link-51');">config</a></tt><tt class="py-op">.</tt><tt class="py-name">_GAVE_GLUT_TEXT_DEPRECATION</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">                <tt id="link-56" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-56', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-57', 'Core', 'link-1');">Core</a></tt><tt class="py-op">.</tt><tt id="link-58" class="py-name" targets="Class VisionEgg.Core.Stimulus=VisionEgg.Core.Stimulus-class.html"><a title="VisionEgg.Core.Stimulus" class="py-name" href="#" onclick="return doclink('link-58', 'Stimulus', 'link-58');">Stimulus</a></tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-59', '__init__', 'link-24');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-name">kw</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line"> </tt>
+<a name="BitmapText"></a><div id="BitmapText-def"><a name="L215"></a><tt class="py-lineno">215</tt> <a class="py-toggle" href="#" id="BitmapText-toggle" onclick="return toggle('BitmapText');">-</a><tt class="py-line">    <tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.Text.BitmapText-class.html">BitmapText</a><tt class="py-op">(</tt><tt class="py-base-class">GlutTextBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BitmapText-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BitmapText-expanded"><a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-docstring">"""DEPRECATED. Bitmap fonts from GLUT.</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"><tt class="py-docstring">        Parameters</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"><tt class="py-docstring">        ==========</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"><tt class="py-docstring">        color     -- (AnyOf(Sequence3 of Real or Sequence4 of Real))</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"><tt class="py-docstring">                     Inherited from GlutTextBase</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: (1.0, 1.0, 1.0)</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"><tt class="py-docstring">        font      -- (Integer)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: 5</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"><tt class="py-docstring">        lowerleft -- (Sequence2 of Real)</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"><tt class="py-docstring">                     Inherited from GlutTextBase</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: (320, 240)</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"><tt class="py-docstring">        on        -- (Boolean)</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line"><tt class="py-docstring">                     Inherited from GlutTextBase</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: True</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"><tt class="py-docstring">        text      -- (String)</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line"><tt class="py-docstring">                     Inherited from GlutTextBase</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"><tt class="py-docstring">                     Default: the string to display</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line"> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">        <tt id="link-60" class="py-name"><a title="VisionEgg.ClassWithParameters.parameters_and_defaults
+VisionEgg.Core.FixationSpot.parameters_and_defaults
+VisionEgg.Core.ProjectionBaseClass.parameters_and_defaults
+VisionEgg.Core.Screen.parameters_and_defaults
+VisionEgg.Core.Viewport.parameters_and_defaults
+VisionEgg.Daq.Buffered.parameters_and_defaults
+VisionEgg.Dots.DotArea2D.parameters_and_defaults
+VisionEgg.FlowControl.Presentation.parameters_and_defaults
+VisionEgg.Gratings.AlphaGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.LuminanceGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.SinGrating2D.parameters_and_defaults
+VisionEgg.Gratings.SinGrating3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Arrow.parameters_and_defaults
+VisionEgg.MoreStimuli.FilledCircle.parameters_and_defaults
+VisionEgg.MoreStimuli.Rectangle3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Target2D.parameters_and_defaults
+VisionEgg.PyroApps.EPhysGUI.Loop.parameters_and_defaults
+VisionEgg.SphereMap.AzElGrid.parameters_and_defaults
+VisionEgg.SphereMap.SphereGrating.parameters_and_defaults
+VisionEgg.SphereMap.SphereMap.parameters_and_defaults
+VisionEgg.SphereMap.SphereWindow.parameters_and_defaults
+VisionEgg.Text.BitmapText.parameters_and_defaults
+VisionEgg.Text.GlutTextBase.parameters_and_defaults
+VisionEgg.Text.StrokeText.parameters_and_defaults
+VisionEgg.Text.Text.parameters_and_defaults
+VisionEgg.Textures.FixationCross.parameters_and_defaults
+VisionEgg.Textures.SpinningDrum.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus3D.parameters_and_defaults
+VisionEgg.Textures.TextureStimulusBaseClass.parameters_and_defaults
+VisionEgg.WrappedText.WrappedText.parameters_and_defaults" class="py-name" href="#" onclick="return doclink('link-60', 'parameters_and_defaults', 'link-11');">parameters_and_defaults</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">            <tt class="py-string">'font'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">glut</tt><tt class="py-op">.</tt><tt class="py-name">GLUT_BITMAP_TIMES_ROMAN_24</tt><tt class="py-op">,</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">                    <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name" targets="Class VisionEgg.ParameterTypes.Integer=VisionEgg.ParameterTypes.Integer-class.html"><a title="VisionEgg.ParameterTypes.Integer" class="py-name" href="#" onclick="return doclink('link-61', 'Integer', 'link-61');">Integer</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">            <tt class="py-op">}</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line"> </tt>
+<a name="BitmapText.__init__"></a><div id="BitmapText.__init__-def"><a name="L241"></a><tt class="py-lineno">241</tt> <a class="py-toggle" href="#" id="BitmapText.__init__-toggle" onclick="return toggle('BitmapText.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.BitmapText-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BitmapText.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="BitmapText.__init__-expanded"><a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">            <tt id="link-62" class="py-name" targets="Class VisionEgg.Text.GlutTextBase=VisionEgg.Text.GlutTextBase-class.html"><a title="VisionEgg.Text.GlutTextBase" class="py-name" href="#" onclick="return doclink('link-62', 'GlutTextBase', 'link-62');">GlutTextBase</a></tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-63', '__init__', 'link-24');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-name">kw</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"> </tt>
+<a name="BitmapText.draw"></a><div id="BitmapText.draw-def"><a name="L244"></a><tt class="py-lineno">244</tt> <a class="py-toggle" href="#" id="BitmapText.draw-toggle" onclick="return toggle('BitmapText.draw');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.BitmapText-class.html#draw">draw</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BitmapText.draw-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="BitmapText.draw-expanded"><a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">on</tt><tt class="py-op">:</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE_2D</tt><tt class="py-op">)</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_BLEND</tt><tt class="py-op">)</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_DEPTH_TEST</tt><tt class="py-op">)</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line"> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMatrixMode</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_MODELVIEW</tt><tt class="py-op">)</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glPushMatrix</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glTranslate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">lowerleft</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">lowerleft</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">                <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">color</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">)</tt><tt class="py-op">==</tt><tt class="py-number">3</tt><tt class="py-op">:</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glColor3f</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">                <tt class="py-keyword">elif</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">)</tt><tt class="py-op">==</tt><tt class="py-number">4</tt><tt class="py-op">:</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glColor4f</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE_2D</tt><tt class="py-op">)</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line"> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glRasterPos3f</tt><tt class="py-op">(</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">char</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">text</tt><tt class="py-op">:</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">                    <tt class="py-name">glut</tt><tt class="py-op">.</tt><tt class="py-name">glutBitmapCharacter</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">,</tt><tt class="py-name">ord</tt><tt class="py-op">(</tt><tt class="py-name">char</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glPopMatrix</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line"> </tt>
+<a name="StrokeText"></a><div id="StrokeText-def"><a name="L267"></a><tt class="py-lineno">267</tt> <a class="py-toggle" href="#" id="StrokeText-toggle" onclick="return toggle('StrokeText');">-</a><tt class="py-line">    <tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.Text.StrokeText-class.html">StrokeText</a><tt class="py-op">(</tt><tt class="py-base-class">GlutTextBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="StrokeText-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="StrokeText-expanded"><a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">        <tt class="py-docstring">"""DEPRECATED. Text rendered by GLUT using stroke fonts.</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line"><tt class="py-docstring">        Parameters</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line"><tt class="py-docstring">        ==========</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line"><tt class="py-docstring">        anti_aliasing -- (Boolean)</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: True</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line"><tt class="py-docstring">        color         -- (AnyOf(Sequence3 of Real or Sequence4 of Real))</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from GlutTextBase</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: (1.0, 1.0, 1.0)</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line"><tt class="py-docstring">        font          -- (Integer)</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: 0</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line"><tt class="py-docstring">        linewidth     -- (Real)</tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: 3.0</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line"><tt class="py-docstring">        lowerleft     -- (Sequence2 of Real)</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from GlutTextBase</tt> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: (320, 240)</tt> </tt>
+<a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line"><tt class="py-docstring">        on            -- (Boolean)</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from GlutTextBase</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: True</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line"><tt class="py-docstring">        orientation   -- (Real)</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: 0.0</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line"><tt class="py-docstring">        text          -- (String)</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line"><tt class="py-docstring">                         Inherited from GlutTextBase</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line"><tt class="py-docstring">                         Default: the string to display</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line"> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">        <tt id="link-64" class="py-name"><a title="VisionEgg.ClassWithParameters.parameters_and_defaults
+VisionEgg.Core.FixationSpot.parameters_and_defaults
+VisionEgg.Core.ProjectionBaseClass.parameters_and_defaults
+VisionEgg.Core.Screen.parameters_and_defaults
+VisionEgg.Core.Viewport.parameters_and_defaults
+VisionEgg.Daq.Buffered.parameters_and_defaults
+VisionEgg.Dots.DotArea2D.parameters_and_defaults
+VisionEgg.FlowControl.Presentation.parameters_and_defaults
+VisionEgg.Gratings.AlphaGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.LuminanceGratingCommon.parameters_and_defaults
+VisionEgg.Gratings.SinGrating2D.parameters_and_defaults
+VisionEgg.Gratings.SinGrating3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Arrow.parameters_and_defaults
+VisionEgg.MoreStimuli.FilledCircle.parameters_and_defaults
+VisionEgg.MoreStimuli.Rectangle3D.parameters_and_defaults
+VisionEgg.MoreStimuli.Target2D.parameters_and_defaults
+VisionEgg.PyroApps.EPhysGUI.Loop.parameters_and_defaults
+VisionEgg.SphereMap.AzElGrid.parameters_and_defaults
+VisionEgg.SphereMap.SphereGrating.parameters_and_defaults
+VisionEgg.SphereMap.SphereMap.parameters_and_defaults
+VisionEgg.SphereMap.SphereWindow.parameters_and_defaults
+VisionEgg.Text.BitmapText.parameters_and_defaults
+VisionEgg.Text.GlutTextBase.parameters_and_defaults
+VisionEgg.Text.StrokeText.parameters_and_defaults
+VisionEgg.Text.Text.parameters_and_defaults
+VisionEgg.Textures.FixationCross.parameters_and_defaults
+VisionEgg.Textures.SpinningDrum.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus.parameters_and_defaults
+VisionEgg.Textures.TextureStimulus3D.parameters_and_defaults
+VisionEgg.Textures.TextureStimulusBaseClass.parameters_and_defaults
+VisionEgg.WrappedText.WrappedText.parameters_and_defaults" class="py-name" href="#" onclick="return doclink('link-64', 'parameters_and_defaults', 'link-11');">parameters_and_defaults</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">            <tt class="py-string">'font'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">glut</tt><tt class="py-op">.</tt><tt class="py-name">GLUT_STROKE_ROMAN</tt><tt class="py-op">,</tt> </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">                    <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="VisionEgg.ParameterTypes.Integer" class="py-name" href="#" onclick="return doclink('link-65', 'Integer', 'link-61');">Integer</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line">            <tt class="py-string">'orientation'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">                           <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-66', 'Real', 'link-44');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">            <tt class="py-string">'linewidth'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-number">3.0</tt><tt class="py-op">,</tt> <tt class="py-comment"># pixels</tt> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line">                         <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="VisionEgg.ParameterTypes.Real" class="py-name" href="#" onclick="return doclink('link-67', 'Real', 'link-44');">Real</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">            <tt class="py-string">'anti_aliasing'</tt><tt class="py-op">:</tt><tt class="py-op">(</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">                             <tt class="py-name">ve_types</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="VisionEgg.ParameterTypes.Boolean" class="py-name" href="#" onclick="return doclink('link-68', 'Boolean', 'link-15');">Boolean</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line">            <tt class="py-op">}</tt> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line"> </tt>
+<a name="StrokeText.__init__"></a><div id="StrokeText.__init__-def"><a name="L305"></a><tt class="py-lineno">305</tt> <a class="py-toggle" href="#" id="StrokeText.__init__-toggle" onclick="return toggle('StrokeText.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.StrokeText-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="StrokeText.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="StrokeText.__init__-expanded"><a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">NotImplementedError</tt><tt class="py-op">(</tt><tt class="py-string">"There's something broken with StrokeText, and I haven't figured it out yet!"</tt><tt class="py-op">)</tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line">            <tt id="link-69" class="py-name"><a title="VisionEgg.Text.GlutTextBase" class="py-name" href="#" onclick="return doclink('link-69', 'GlutTextBase', 'link-62');">GlutTextBase</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="VisionEgg.ClassWithParameters.__init__
+VisionEgg.Configuration.Config.__init__
+VisionEgg.Core.FixationSpot.__init__
+VisionEgg.Core.FrameTimer.__init__
+VisionEgg.Core.ModelView.__init__
+VisionEgg.Core.OrthographicProjection.__init__
+VisionEgg.Core.OrthographicProjectionNoZClip.__init__
+VisionEgg.Core.PerspectiveProjection.__init__
+VisionEgg.Core.Projection.__init__
+VisionEgg.Core.ProjectionBaseClass.__init__
+VisionEgg.Core.Screen.__init__
+VisionEgg.Core.SimplePerspectiveProjection.__init__
+VisionEgg.Core.Stimulus.__init__
+VisionEgg.Core.Viewport.__init__
+VisionEgg.Daq.Channel.__init__
+VisionEgg.Daq.DaqMode.__init__
+VisionEgg.Daq.Device.__init__
+VisionEgg.Daq.Functionality.__init__
+VisionEgg.Daq.SignalType.__init__
+VisionEgg.DaqKeyboard.KeyboardTriggerInController.__init__
+VisionEgg.DaqLPT.LPTChannel.__init__
+VisionEgg.DaqLPT.LPTDevice.__init__
+VisionEgg.DaqLPT.LPTTriggerInController.__init__
+VisionEgg.DaqLPT.LPTTriggerOutController.__init__
+VisionEgg.Deprecated.Message.__init__
+VisionEgg.Dots.DotArea2D.__init__
+VisionEgg.FlowControl.ConstantController.__init__
+VisionEgg.FlowControl.Controller.__init__
+VisionEgg.FlowControl.EncapsulatedController.__init__
+VisionEgg.FlowControl.EvalStringController.__init__
+VisionEgg.FlowControl.ExecStringController.__init__
+VisionEgg.FlowControl.FunctionController.__init__
+VisionEgg.FlowControl.Presentation.__init__
+VisionEgg.GLTrace.Wrapper.__init__
+VisionEgg.GUI.AppWindow.__init__
+VisionEgg.GUI.GetKeypressDialog.__init__
+VisionEgg.GUI.GraphicsConfigurationWindow.__init__
+VisionEgg.GUI.InfoFrame.__init__
+VisionEgg.GUI.ProgressBar.__init__
+VisionEgg.GUI.ToplevelDialog.__init__
+VisionEgg.Gratings.SinGrating2D.__init__
+VisionEgg.Gratings.SinGrating3D.__init__
+VisionEgg.MoreStimuli.Arrow.__init__
+VisionEgg.MoreStimuli.FilledCircle.__init__
+VisionEgg.MoreStimuli.Rectangle3D.__init__
+VisionEgg.MoreStimuli.Target2D.__init__
+VisionEgg.ParameterTypes.AnyOf.__init__
+VisionEgg.ParameterTypes.Instance.__init__
+VisionEgg.ParameterTypes.Sequence.__init__
+VisionEgg.ParameterTypes.SubClass.__init__
+VisionEgg.PyroApps.AST_ext.AST_Visitor.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalControlFrame.__init__
+VisionEgg.PyroApps.ColorCalGUI.ColorCalMetaParameters.__init__
+VisionEgg.PyroApps.ColorCalServer.ColorCalMetaController.__init__
+VisionEgg.PyroApps.DropinGUI.DropinControlFrame.__init__
+VisionEgg.PyroApps.DropinGUI.DropinMetaParameters.__init__
+VisionEgg.PyroApps.DropinServer.DropinMetaController.__init__
+VisionEgg.PyroApps.EPhysGUI.AppWindow.__init__
+VisionEgg.PyroApps.EPhysGUI.BarButton.__init__
+VisionEgg.PyroApps.EPhysGUI.ContainedObjectBase.__init__
+VisionEgg.PyroApps.EPhysGUI.GammaFrame.__init__
+VisionEgg.PyroApps.EPhysGUI.ImageSequenceLauncher.__init__
+VisionEgg.PyroApps.EPhysGUI.Loop.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopContainedObject.__init__
+VisionEgg.PyroApps.EPhysGUI.LoopParamDialog.__init__
+VisionEgg.PyroApps.EPhysGUI.ScrollListFrame.__init__
+VisionEgg.PyroApps.EPhysGUIUtils.StimulusControlFrame.__init__
+VisionEgg.PyroApps.EPhysServer.EPhysServer.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingControlFrame.__init__
+VisionEgg.PyroApps.FlatGratingGUI.FlatGratingMetaParameters.__init__
+VisionEgg.PyroApps.FlatGratingServer.FlatGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.GridGUI.GridControlFrame.__init__
+VisionEgg.PyroApps.GridGUI.GridMetaParameters.__init__
+VisionEgg.PyroApps.GridServer.GridMetaController.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetControlFrame.__init__
+VisionEgg.PyroApps.MouseTargetGUI.MouseTargetMetaParameters.__init__
+VisionEgg.PyroApps.MouseTargetServer.MousePositionController.__init__
+VisionEgg.PyroApps.MouseTargetServer.MouseTargetExperimentMetaController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetOrientationController.__init__
+VisionEgg.PyroApps.MouseTargetServer.TargetPositionController.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.CallbackEntry.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionControlFrame.__init__
+VisionEgg.PyroApps.ScreenPositionGUI.ScreenPositionParameters.__init__
+VisionEgg.PyroApps.ScreenPositionServer.ScreenPositionMetaController.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingControlFrame.__init__
+VisionEgg.PyroApps.SphereGratingGUI.SphereGratingMetaParameters.__init__
+VisionEgg.PyroApps.SphereGratingServer.SphereGratingExperimentMetaController.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumControlFrame.__init__
+VisionEgg.PyroApps.SpinningDrumGUI.SpinningDrumMetaParameters.__init__
+VisionEgg.PyroApps.SpinningDrumServer.SpinningDrumExperimentMetaController.__init__
+VisionEgg.PyroApps.TargetGUI.TargetControlFrame.__init__
+VisionEgg.PyroApps.TargetGUI.TargetMetaParameters.__init__
+VisionEgg.PyroApps.TargetServer.TargetExperimentMetaController.__init__
+VisionEgg.PyroClient.PyroClient.__init__
+VisionEgg.PyroHelpers.PyroConstantController.__init__
+VisionEgg.PyroHelpers.PyroEncapsulatedController.__init__
+VisionEgg.PyroHelpers.PyroEvalStringController.__init__
+VisionEgg.PyroHelpers.PyroExecStringController.__init__
+VisionEgg.PyroHelpers.PyroListenController.__init__
+VisionEgg.PyroHelpers.PyroLocalDictController.__init__
+VisionEgg.PyroHelpers.PyroServer.__init__
+VisionEgg.QuickTime.MovieTexture.__init__
+VisionEgg.ResponseControl.KeyboardResponseController.__init__
+VisionEgg.ResponseControl.ResponseController.__init__
+VisionEgg.SphereMap.AzElGrid.__init__
+VisionEgg.SphereMap.SphereGrating.__init__
+VisionEgg.SphereMap.SphereMap.__init__
+VisionEgg.SphereMap.SphereWindow.__init__
+VisionEgg.TCPController.SocketListenController.__init__
+VisionEgg.TCPController.TCPController.__init__
+VisionEgg.TCPController.TCPServer.__init__
+VisionEgg.Text.BitmapText.__init__
+VisionEgg.Text.GlutTextBase.__init__
+VisionEgg.Text.StrokeText.__init__
+VisionEgg.Text.Text.__init__
+VisionEgg.Textures.FixationCross.__init__
+VisionEgg.Textures.Mask2D.__init__
+VisionEgg.Textures.SpinningDrum.__init__
+VisionEgg.Textures.Texture.__init__
+VisionEgg.Textures.TextureFromFile.__init__
+VisionEgg.Textures.TextureObject.__init__
+VisionEgg.Textures.TextureStimulusBaseClass.__init__
+VisionEgg.ThreeDeeMath.TransformMatrix.__init__
+VisionEgg.WrappedText.WrappedText.__init__
+VisionEgg.qtmovie.Movie.__init__
+VisionEgg.qtmovie.Rect.__init__" class="py-name" href="#" onclick="return doclink('link-70', '__init__', 'link-24');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-name">kw</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line"> </tt>
+<a name="StrokeText.draw"></a><div id="StrokeText.draw-def"><a name="L309"></a><tt class="py-lineno">309</tt> <a class="py-toggle" href="#" id="StrokeText.draw-toggle" onclick="return toggle('StrokeText.draw');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.Text.StrokeText-class.html#draw">draw</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="StrokeText.draw-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="StrokeText.draw-expanded"><a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">on</tt><tt class="py-op">:</tt> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE_2D</tt><tt class="py-op">)</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_DEPTH_TEST</tt><tt class="py-op">)</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line"> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMatrixMode</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_MODELVIEW</tt><tt class="py-op">)</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glPushMatrix</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glTranslate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">lowerleft</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">lowerleft</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glRotate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">orientation</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">0.0</tt><tt class="py-op">,</tt><tt class="py-number">1.0</tt><tt class="py-op">)</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line"> </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line">                <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">color</tt> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">)</tt><tt class="py-op">==</tt><tt class="py-number">3</tt><tt class="py-op">:</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glColor3f</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">                <tt class="py-keyword">elif</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">)</tt><tt class="py-op">==</tt><tt class="py-number">4</tt><tt class="py-op">:</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glColor4f</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line"> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glLineWidth</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">linewidth</tt><tt class="py-op">)</tt> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line"> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">anti_aliasing</tt><tt class="py-op">:</tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glEnable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_BLEND</tt><tt class="py-op">)</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glBlendFunc</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_SRC_ALPHA</tt><tt class="py-op">,</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_ONE_MINUS_SRC_ALPHA</tt><tt class="py-op">)</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glEnable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_LINE_SMOOTH</tt><tt class="py-op">)</tt> </tt>
+<a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line">                    <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glDisable</tt><tt class="py-op">(</tt><tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_BLEND</tt><tt class="py-op">)</tt> </tt>
+<a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line"> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line">    <tt class="py-comment">##            # This code successfully draws a box...</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glBegin(gl.GL_QUADS)</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glVertex2f(0.0,0.0)</tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glVertex2f(0.0,0.1)</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glVertex2f(0.1,0.1)</tt> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glVertex2f(0.1,0.0)</tt> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment">##            gl.glEnd()</tt> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line">                <tt class="py-comment"># But this code does not draw the string!?!</tt> </tt>
+<a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line"><tt class="py-comment"></tt>                <tt class="py-keyword">for</tt> <tt class="py-name">char</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">text</tt><tt class="py-op">:</tt> </tt>
+<a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line">                    <tt class="py-name">glut</tt><tt class="py-op">.</tt><tt class="py-name">glutStrokeCharacter</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parameters</tt><tt class="py-op">.</tt><tt class="py-name">font</tt><tt class="py-op">,</tt><tt class="py-name">ord</tt><tt class="py-op">(</tt><tt class="py-name">char</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line">                <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glPopMatrix</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:49 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

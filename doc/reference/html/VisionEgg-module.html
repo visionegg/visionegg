@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Package&nbsp;VisionEgg
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PACKAGE DESCRIPTION ==================== -->
+<h1 class="epydoc">Package VisionEgg</h1><span class="codelink"><a href="VisionEgg-pysrc.html">source&nbsp;code</a></span><br /><br />
+<pre class="literalblock">
+
+The Vision Egg package.
+
+The Vision Egg is a programming library (with demo applications) that
+uses standard, inexpensive computer graphics cards to produce visual
+stimuli for vision research experiments.
+
+Today's consumer computer graphics cards, thanks to the demands of
+computer gamers, are capable of drawing and updating computer graphics
+suitable for producing research-quality visual stimuli. The Vision Egg
+allows the vision scientist (or anyone else) to program these cards
+using OpenGL, the standard in computer graphics
+programming. Potentially difficult tasks, such as initializing
+graphics, getting precise timing information, controlling stimulus
+parameters in real-time, and synchronizing with data acquisition are
+greatly eased by routines within the Vision Egg.
+
+See the 'Core' module for the fundamental Vision Egg classes.
+
+</pre><br /><br />
+
+<hr />
+<div class="fields">      <p><strong>Version:</strong>
+        1.1.dev
+      </p>
+</div><!-- ==================== SUBMODULES ==================== -->
+<a name="section-Submodules"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Submodules</span></td>
+</tr>
+  <tr><td class="summary">
+  <ul class="nomargin">
+    <li> <strong class="uidlink"><a href="VisionEgg.Configuration-module.html">VisionEgg.Configuration</a></strong>: <em class="summary">Load config values from environment, config file, or defaults.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Core-module.html">VisionEgg.Core</a></strong>: <em class="summary">Core Vision Egg functionality.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Daq-module.html">VisionEgg.Daq</a></strong>: <em class="summary">Definition of data acquisition and triggering interfaces.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.DaqKeyboard-module.html">VisionEgg.DaqKeyboard</a></strong>: <em class="summary">Data acquisition and triggering over the keyboard.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.DaqLPT-module.html">VisionEgg.DaqLPT</a></strong>: <em class="summary">Data acquisition and triggering over the parallel port.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Deprecated-module.html">VisionEgg.Deprecated</a></strong>: <em class="summary">Bits of code which will be removed in the future.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Dots-module.html">VisionEgg.Dots</a></strong>: <em class="summary">Random dot stimuli.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.FlowControl-module.html">VisionEgg.FlowControl</a></strong>: <em class="summary">Flow control for the Vision Egg.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.GL-module.html">VisionEgg.GL</a></strong>: <em class="summary">Vision Egg GL module -- lump all OpenGL names in one namespace.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.GLTrace-module.html">VisionEgg.GLTrace</a></strong>: <em class="summary">Trace calls to OpenGL
+
+With this module, you can trace all calls made to OpenGL through PyOpenGL.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.GUI-module.html">VisionEgg.GUI</a></strong>: <em class="summary">Graphical user interface classes and functions.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Gratings-module.html">VisionEgg.Gratings</a></strong>: <em class="summary">Grating stimuli.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.MoreStimuli-module.html">VisionEgg.MoreStimuli</a></strong>: <em class="summary">Assorted stimuli.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.ParameterTypes-module.html">VisionEgg.ParameterTypes</a></strong>: <em class="summary">Type checking for the Vision Egg.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PlatformDependent-module.html">VisionEgg.PlatformDependent</a></strong>: <em class="summary">Implementations of functions which vary by platform.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps-module.html">VisionEgg.PyroApps</a></strong>: <em class="summary">VisionEgg subpackage providing support for demo applications based on Pyro</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.AST_ext-module.html">VisionEgg.PyroApps.AST_ext</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.ColorCalGUI-module.html">VisionEgg.PyroApps.ColorCalGUI</a></strong>: <em class="summary">Handle luminance and color calibration stimulus (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.ColorCalServer-module.html">VisionEgg.PyroApps.ColorCalServer</a></strong>: <em class="summary">Handle luminance and color calibration stimulus (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.DropinGUI-module.html">VisionEgg.PyroApps.DropinGUI</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.DropinServer-module.html">VisionEgg.PyroApps.DropinServer</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.EPhysGUI-module.html">VisionEgg.PyroApps.EPhysGUI</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.EPhysGUIUtils-module.html">VisionEgg.PyroApps.EPhysGUIUtils</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.EPhysServer-module.html">VisionEgg.PyroApps.EPhysServer</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.FlatGratingGUI-module.html">VisionEgg.PyroApps.FlatGratingGUI</a></strong>: <em class="summary">Handle sinusoidal gratings (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.FlatGratingServer-module.html">VisionEgg.PyroApps.FlatGratingServer</a></strong>: <em class="summary">Handle sinusoidal gratings (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.GridGUI-module.html">VisionEgg.PyroApps.GridGUI</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.GridServer-module.html">VisionEgg.PyroApps.GridServer</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.MouseTargetGUI-module.html">VisionEgg.PyroApps.MouseTargetGUI</a></strong>: <em class="summary">Handle mouse controlled small target stimulus (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.MouseTargetServer-module.html">VisionEgg.PyroApps.MouseTargetServer</a></strong>: <em class="summary">Handle mouse-controlled small targets (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.ScreenPositionGUI-module.html">VisionEgg.PyroApps.ScreenPositionGUI</a></strong>: <em class="summary">Handle 3D perspective projection (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.ScreenPositionServer-module.html">VisionEgg.PyroApps.ScreenPositionServer</a></strong>: <em class="summary">Handle 3D perspective projection (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.SphereGratingGUI-module.html">VisionEgg.PyroApps.SphereGratingGUI</a></strong>: <em class="summary">Handle perspective-distorted sinusoidal gratings (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.SphereGratingServer-module.html">VisionEgg.PyroApps.SphereGratingServer</a></strong>: <em class="summary">Handle perspective-distorted sinusoidal gratings (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.SpinningDrumGUI-module.html">VisionEgg.PyroApps.SpinningDrumGUI</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.SpinningDrumServer-module.html">VisionEgg.PyroApps.SpinningDrumServer</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.TargetGUI-module.html">VisionEgg.PyroApps.TargetGUI</a></strong>: <em class="summary">Handle small target stimulus (client-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.TargetServer-module.html">VisionEgg.PyroApps.TargetServer</a></strong>: <em class="summary">Handle small targets gratings (server-side)</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroApps.VarTypes-module.html">VisionEgg.PyroApps.VarTypes</a></strong>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroClient-module.html">VisionEgg.PyroClient</a></strong>: <em class="summary">Python Remote Objects support - Client side.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.PyroHelpers-module.html">VisionEgg.PyroHelpers</a></strong>: <em class="summary">Python Remote Objects support.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.QuickTime-module.html">VisionEgg.QuickTime</a></strong>: <em class="summary">QuickTime movies in the Vision Egg.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.ResponseControl-module.html">VisionEgg.ResponseControl</a></strong>: <em class="summary">Response control during a presentation is running.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.SphereMap-module.html">VisionEgg.SphereMap</a></strong>: <em class="summary">Stimuli on spheres, including texture maps.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.TCPController-module.html">VisionEgg.TCPController</a></strong>: <em class="summary">Allows control of parameter values over the network.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Text-module.html">VisionEgg.Text</a></strong>: <em class="summary">Text stimuli.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.Textures-module.html">VisionEgg.Textures</a></strong>: <em class="summary">Texture (images mapped onto polygons) stimuli.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.ThreeDeeMath-module.html">VisionEgg.ThreeDeeMath</a></strong>: <em class="summary">Vertex and matrix operations - simulate OpenGL transforms.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.WrappedText-module.html">VisionEgg.WrappedText</a></strong>: <em class="summary">Module containing the Multi-line text stimulus class WrappedText, as well
+as a simple example of its use.</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.darwin_getrefresh-module.html">VisionEgg.darwin_getrefresh</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.gl_qt-module.html">VisionEgg.gl_qt</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.posix_maxpriority-module.html">VisionEgg.posix_maxpriority</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.qtlowlevel-module.html">VisionEgg.qtlowlevel</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.qtmovie-module.html">VisionEgg.qtmovie</a></strong>: <em class="summary">high level QuickTime Movie wrapper</em>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.win32_getrefresh-module.html">VisionEgg.win32_getrefresh</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="VisionEgg.win32_maxpriority-module.html">VisionEgg.win32_maxpriority</a></strong>    </li>
+  </ul></td></tr>
+</table>
+
+<br />
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Parameters-class.html" class="summary-name">Parameters</a><br />
+      Parameter container.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.ParameterDefinition-class.html" class="summary-name">ParameterDefinition</a><br />
+      Define parameters used in ClassWithParameters...
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.ClassWithParameters-class.html" class="summary-name">ClassWithParameters</a><br />
+      Base class for any class that uses parameters.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="start_default_logging"></a><span class="summary-sig-name">start_default_logging</span>(<span class="summary-sig-arg">maxBytes</span>=<span class="summary-sig-default">100000</span>)</span><br />
+      Create and add log handlers</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#start_default_logging">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="watch_exceptions"></a><span class="summary-sig-name">watch_exceptions</span>()</span><br />
+      Catch exceptions, log them, and optionally open GUI.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#watch_exceptions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="stop_watching_exceptions"></a><span class="summary-sig-name">stop_watching_exceptions</span>()</span><br />
+      Stop catching exceptions, returning to previous state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#stop_watching_exceptions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="recursive_base_class_finder"></a><span class="summary-sig-name">recursive_base_class_finder</span>(<span class="summary-sig-arg">klass</span>)</span><br />
+      A function to find all base classes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#recursive_base_class_finder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="time_func_locked_to_frames"></a><span class="summary-sig-name">time_func_locked_to_frames</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#time_func_locked_to_frames">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_time_func_to_true_time"></a><span class="summary-sig-name">set_time_func_to_true_time</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#set_time_func_to_true_time">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_time_func_to_frame_locked"></a><span class="summary-sig-name">set_time_func_to_frame_locked</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#set_time_func_to_frame_locked">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg-module.html#timing_func" class="summary-sig-name">timing_func</a>()</span><br />
+      DEPRECATED.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#timing_func">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_type"></a><span class="summary-sig-name">get_type</span>(<span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#get_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="assert_type"></a><span class="summary-sig-name">assert_type</span>(<span class="summary-sig-arg">*args</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg-pysrc.html#assert_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="release_name"></a><span class="summary-name">release_name</span> = <code title="'1.1.dev'">'1.1.dev'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="config"></a><span class="summary-name">config</span> = <code title="VisionEgg.Configuration.Config()">VisionEgg.Configuration.Config()</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg-module.html#log_formatter" class="summary-name">log_formatter</a> = <code title="logging.Formatter('%(asctime)s (%(process)d) %(levelname)s: %(message)\
+s')">logging.Formatter('%(asctime)s (%(process)d) %<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="logger"></a><span class="summary-name">logger</span> = <code title="logging.getLogger('VisionEgg.Configuration')">logging.getLogger('VisionEgg.Configuration')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="true_time_func"></a><span class="summary-name">true_time_func</span> = <code title="time.time">time.time</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="time_func"></a><span class="summary-name">time_func</span> = <code title="time.time">time.time</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Function Details</span></td>
+</tr>
+</table>
+<a name="timing_func"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">timing_func</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg-pysrc.html#timing_func">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+DEPRECATED.  Use time_func instead
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="log_formatter"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">log_formatter</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+logging.Formatter('%(asctime)s (%(process)d) %(levelname)s: %(message)<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+s')
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:46 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>
