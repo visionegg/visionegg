@@ -257,14 +257,14 @@ else:
 print "extra Python info:",string.join(string.split(sys.version)[1:])
 
 try:
-    import Numeric
-    print "Numeric version %s"%(Numeric.__version__,),
-    if Numeric.__version__ >= '20.3':
+    import numpy
+    print "numpy version %s"%(numpy.__version__,),
+    if numpy.__version__ >= '1.0':
         print "(OK)"
     else:
         print "(Untested)"
 except:
-    print "Numeric failed"
+    print "numpy failed"
 
 try:
     import OpenGL
