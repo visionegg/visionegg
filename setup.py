@@ -7,7 +7,8 @@
 # (LGPL).
 
 name             = "visionegg"
-version          = "1.1" # setuptools will add ".dev"
+version          = "1.2" # setuptools will add ".dev", keep in sync
+                         # with VisionEgg/__init__.py
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
