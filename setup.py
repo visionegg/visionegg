@@ -7,7 +7,9 @@
 # (LGPL).
 
 name             = "visionegg"
-version          = "1.1" # also change __version__ in VisionEgg/__init__.py!
+version          = "1.1.1" # Also change __version__ in
+                           # VisionEgg/__init__.py! Setuptools will
+                           # add ".dev".
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"
