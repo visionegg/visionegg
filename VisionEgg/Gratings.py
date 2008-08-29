@@ -680,16 +680,16 @@ class SinGrating3D(LuminanceGratingCommon):
                 gl.glBegin(gl.GL_QUADS)
 
                 gl.glTexCoord2f(0.0,0.0)
-                gl.glVertex3f(*p.lowerleft)
+                gl.glVertex(*p.lowerleft)
 
                 gl.glTexCoord2f(1.0,0.0)
-                gl.glVertex3f(*p.lowerright)
+                gl.glVertex(*p.lowerright)
 
                 gl.glTexCoord2f(1.0,1.0)
-                gl.glVertex3f(*p.upperright)
+                gl.glVertex(*p.upperright)
 
                 gl.glTexCoord2f(0.0,1.0)
-                gl.glVertex3f(*p.upperleft)
+                gl.glVertex(*p.upperleft)
                 gl.glEnd() # GL_QUADS
 
             gl.glDisable(gl.GL_TEXTURE_1D)
