@@ -792,19 +792,23 @@ class Controller(object):
                  return_type = None):
         """Create instance of Controller.
 
-        Arguments:
+        Keyword arguments:
 
         eval_frequency -- Int, bitwise "or" of flags
         temporal_variables -- Int, bitwise "or" of flags
-        return_type -- Set to type() of the parameter under control
+        return_type -- a VisionEgg.ParameterTypes.ParameterTypeDef subclass
+
+        If return_type is not set, it calls the function once to get a
+        return value and then attempts to guess its type.
 
         """
-        if return_type is None: # Can be types.NoneType, but not None!
+        if return_type is None:
             raise ValueError("Must set argument 'return_type' in Controller.")
         if not ve_types.is_parameter_type_def(return_type):
-            if type(return_type) == types.TypeType:
-                raise TypeError("Argument 'return_type' in Controller must be a VisionEgg parameter type definition.  Hint: use VisionEgg.ParameterTypes.get_type() to get the type of your value")
-            raise TypeError("Argument 'return_type' in Controller must be a VisionEgg parameter type definition")
+            raise TypeError("Argument 'return_type' in Controller must be a "
+                            "VisionEgg parameter type definition. Hint: use "
+                            "VisionEgg.ParameterTypes.get_type() to get the "
+                            "type of your value")
         self.return_type = return_type
 
         self.temporal_variables = temporal_variables
@@ -868,7 +872,8 @@ class ConstantController(Controller):
                  between_go_value = None,
                  **kw
                  ):
-        kw.setdefault('return_type',ve_types.get_type(during_go_value))
+        if kw.get('return_type',None) is None:
+            kw.setdefault('return_type',ve_types.get_type(during_go_value))
         kw.setdefault('eval_frequency',ONCE | TRANSITIONS)
         Controller.__init__(self,**kw)
         if self.return_type is not types.NoneType and during_go_value is None:
@@ -883,10 +888,6 @@ class ConstantController(Controller):
     def set_during_go_value(self,during_go_value):
         ve_types.assert_type(ve_types.get_type(during_go_value),self.return_type)
         self.during_go_value = during_go_value
-##        if ve_types.get_type(during_go_value) is not self.return_type:
-##            raise TypeError("during_go_value must be %s"%str(self.return_type))
-##        else:
-##            self.during_go_value = during_go_value
 
     def get_during_go_value(self):
         return self.during_go_value
@@ -894,10 +895,6 @@ class ConstantController(Controller):
     def set_between_go_value(self,between_go_value):
         ve_types.assert_type(ve_types.get_type(between_go_value),self.return_type)
         self.between_go_value = between_go_value
-##        if ve_types.get_type(between_go_value) is not self.return_type:
-##            raise TypeError("between_go_value must be %s"%str(self.return_type))
-##        else:
-##            self.between_go_value = between_go_value
 
     def get_between_go_value(self):
         return self.between_go_value
@@ -965,7 +962,7 @@ class EvalStringController(Controller):
 
         # Check to make sure return_type is set
         set_return_type = 0
-        if not kw.has_key('return_type'):
+        if kw.get('return_type',None) is None:
             set_return_type = 1
             kw['return_type'] = types.NoneType
 
@@ -1084,7 +1081,7 @@ class ExecStringController(Controller):
 
         # Check to make sure return_type is set
         set_return_type = 0
-        if not kw.has_key('return_type'):
+        if kw.get('return_type',None) is None:
             set_return_type = 1
             kw['return_type'] = types.NoneType
 
@@ -1171,7 +1168,7 @@ class FunctionController(Controller):
     value of temporal_variables:
 
     The function can make use of temporal variables, which are made
-    available by passingkeyword argument(s) depending on the
+    available by passing keyword argument(s) depending on the
     controller's temporal_variables attribute. Note that only the
     absolute temporal variables are available when the go loop is not
     running.
@@ -1196,6 +1193,16 @@ class FunctionController(Controller):
         during_go_func -- function evaluted during go loop
         between_go_func -- function evaluted not during go loop
 
+        Keyword arguments:
+
+        temporal_variables -- a bitwise mask of constants
+        return_type -- a VisionEgg.ParameterTypes.ParameterTypeDef subclass
+
+        temporal_variables defaults to TIME_SEC_SINCE_GO.
+
+        If return_type is not set, it calls the function once to get a
+        return value and then attempts to guess its type.
+
         """
         import VisionEgg.Core # here to prevent circular import
 
@@ -1206,7 +1213,7 @@ class FunctionController(Controller):
         kw.setdefault('temporal_variables',TIME_SEC_SINCE_GO) # default value
 
         # Check to make sure return_type is set
-        if not kw.has_key('return_type'):
+        if kw.get('return_type',None) is None:
             logger = logging.getLogger('VisionEgg.FlowControl')
             logger.debug('Evaluating %s to test for return type.'%(str(during_go_func),))
             call_args = {}
