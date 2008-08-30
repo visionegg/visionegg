@@ -1244,19 +1244,19 @@ class Mask2D(VisionEgg.ClassWithParameters):
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,0.0)
-        gl.glVertexf(*v1)
+        gl.glVertex(*v1)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,0.0)
-        gl.glVertexf(*v2)
+        gl.glVertex(*v2)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,1.0)
-        gl.glVertexf(*v3)
+        gl.glVertex(*v3)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,1.0)
-        gl.glVertexf(*v4)
+        gl.glVertex(*v4)
 
         gl.glEnd() # GL_QUADS
         gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
