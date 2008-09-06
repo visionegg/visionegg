@@ -48,7 +48,7 @@ except NameError:
     True = 1==1
     False = 1==0
 
-### C version of draw_dots() isn't (yet) as fast as Python version: 
+### C version of draw_dots() isn't (yet) as fast as Python version:
 ##import VisionEgg._draw_in_c
 ##draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
 
@@ -60,7 +60,7 @@ def draw_dots(xs,ys,zs):
     for i in xrange(len(xs)):
         gl.glVertex3f(xs[i],ys[i],zs[i])
     gl.glEnd()
-        
+
 class DotArea2D(VisionEgg.Core.Stimulus):
     """Random dots of constant velocity
 
@@ -102,7 +102,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
     num_dots -- (UnsignedInteger)
                 Default: 100
     """
-    
+
     parameters_and_defaults = {
         'on' : ( True,
                  ve_types.Boolean ),
@@ -132,9 +132,9 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         'center' : (None,  # DEPRECATED -- don't use
                     ve_types.Sequence2(ve_types.Real),
                     "",
-                    VisionEgg.ParameterDefinition.DEPRECATED),        
+                    VisionEgg.ParameterDefinition.DEPRECATED),
         }
-    
+
     constant_parameters_and_defaults = {
         'num_dots' : ( 100,
                        ve_types.UnsignedInteger ),
@@ -148,7 +148,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         'start_times_sec',
         '_gave_alpha_warning',
         )
-    
+
     def __init__(self, **kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         # store positions normalized between 0 and 1 so that re-sizing is ok
@@ -164,7 +164,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         # XXX This method is not speed-optimized. I just wrote it to
         # get the job done. (Nonetheless, it seems faster than the C
         # version commented out above.)
-        
+
         p = self.parameters # shorthand
         if p.center is not None:
             if not hasattr(VisionEgg.config,"_GAVE_CENTER_DEPRECATION"):
@@ -180,7 +180,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
         if p.on:
             # calculate center
             center = VisionEgg._get_center(p.position,p.anchor,p.size)
-            
+
             if p.anti_aliasing:
                 if len(p.color) == 4 and not self._gave_alpha_warning:
                     if p.color[3] != 1.0:
@@ -200,7 +200,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
                 gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
             else:
                 gl.glDisable( gl.GL_BLEND )
-                
+
             now_sec = VisionEgg.time_func()
             if self.start_times_sec:
                 # compute extinct dots and generate new positions
@@ -246,13 +246,13 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             xs = (self.x_positions - 0.5) * p.size[0] + center[0]
             ys = (self.y_positions - 0.5) * p.size[1] + center[1]
 
-            gl.glColorf( p.color ) 
+            gl.glColorf( p.color )
             gl.glPointSize(p.dot_size)
 
             # Clear the modeview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            
+
             gl.glDisable(gl.GL_TEXTURE_2D)
 
             if p.depth is None:
