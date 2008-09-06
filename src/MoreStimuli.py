@@ -75,7 +75,7 @@ class Target2D(VisionEgg.Core.Stimulus):
     size          -- units: eye coordinates (Sequence2 of Real)
                      Default: (64.0, 16.0)
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean,
@@ -102,11 +102,11 @@ class Target2D(VisionEgg.Core.Stimulus):
                     ve_types.Sequence2(ve_types.Real),
                     "DEPRECATED: don't use"),
         }
-    
+
     __slots__ = (
         '_gave_alpha_warning',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         self._gave_alpha_warning = 0
@@ -208,7 +208,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
     vertex4 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
                Default: (10.0, 0.0, -10.0)
     """
-    
+
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
@@ -232,7 +232,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                                   ve_types.Sequence4(ve_types.Real)),
                  "units: eye coordinates"),
         }
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
 
@@ -251,7 +251,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
             gl.glVertex(*p.vertex3)
             gl.glVertex(*p.vertex4)
             gl.glEnd() # GL_QUADS
-                
+
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
@@ -462,7 +462,7 @@ class FilledCircle(VisionEgg.Core.Stimulus):
             # then the commented code above with the points)
             gl.glBegin(gl.GL_TRIANGLE_FAN)
             gl.glVertex3f(p.position[0], p.position[1], 0.0)
-            
+
             angles = Numeric.arange(p.num_triangles)/float(p.num_triangles)*2.0*math.pi
             verts = Numeric.zeros( (p.num_triangles,2), Numeric.Float )
             verts[:,0] = p.position[0] + p.radius * Numeric.cos(angles)

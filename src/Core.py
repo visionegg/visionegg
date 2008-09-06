@@ -140,7 +140,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                   ve_types.Sequence4(ve_types.Real)),
                    'background color',),
         })
-    
+
     constant_parameters_and_defaults = VisionEgg.ParameterDefinition({
         'size':(None,
                 ve_types.Sequence2(ve_types.Real),
@@ -185,17 +185,17 @@ class Screen(VisionEgg.ClassWithParameters):
                                ve_types.UnsignedInteger,
                                'preferred number of multisamples for FSAA'),
         })
-    
+
     __slots__ = (
         '__cursor_visible_func__',
         '__pygame_quit__',
         '_put_pixels_texture_stimulus',
         '_pixel_coord_projection',
         )
-    
+
     def __init__(self,**kw):
         logger = logging.getLogger('VisionEgg.Core')
-        
+
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
         cp = self.constant_parameters # shorthand
@@ -268,14 +268,14 @@ class Screen(VisionEgg.ClassWithParameters):
                          "only of concern if you use a stimulus that "
                          "needs this. In that case, the stimulus "
                          "should check for the desired feature(s).")
-            
+
         if not hasattr(pygame.display,"set_gamma_ramp"):
             logger.debug("set_gamma_ramp function not available "
                          "because you need pygame release 1.5 or "
                          "greater. This is only of concern if you "
                          "need this feature.")
         pygame.display.set_caption("Vision Egg")
-        
+
         flags = pygame.locals.OPENGL
         if cp.double_buffer:
             flags = flags | pygame.locals.DOUBLEBUF
@@ -296,13 +296,13 @@ class Screen(VisionEgg.ClassWithParameters):
                                                  cp.green_bits,
                                                  cp.blue_bits,
                                                  cp.alpha_bits)
-            
+
         logger.info("Requesting %s %d x %d %d bpp%s"%
                     (screen_mode,self.size[0],self.size[1],
                      try_bpp,append_str))
 
         pygame.display.set_mode(self.size, flags, try_bpp )
-        # set a global variable so we know workaround avoid pygame bug        
+        # set a global variable so we know workaround avoid pygame bug
         VisionEgg.config._pygame_started = 1
 
         try:
@@ -317,7 +317,7 @@ class Screen(VisionEgg.ClassWithParameters):
                     os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,
                                  'data','visionegg.tif'))
                 AppKit.NSApplication.setApplicationIconImage_(AppKit.NSApp(),im)
-                
+
         except Exception,x:
             logger.info("Error while trying to set_icon: %s: %s"%
                         (str(x.__class__),str(x)))
@@ -403,7 +403,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                    "specified.")
         # Check previously made OpenGL assumptions now that we have OpenGL window
         post_gl_init()
-        
+
         if cp.hide_mouse:
             self.__cursor_visible_func__(0)
 
@@ -413,7 +413,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # here for now.)
         if cp.maxpriority:
             VisionEgg.PlatformDependent.set_priority() # defaults to max priority
-            
+
         if hasattr(VisionEgg.config,'_open_screens'):
             VisionEgg.config._open_screens.append(self)
         else:
@@ -434,7 +434,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                  ):
         """get pixel values from framebuffer to PIL image"""
         import Image # Could import this at the beginning of the file, but it breaks sometimes.
-        
+
         fb_array = self.get_framebuffer_as_array(buffer=buffer,
                                                  format=format,
                                                  position=position,
@@ -522,12 +522,12 @@ class Screen(VisionEgg.ClassWithParameters):
         accepted here.
 
         This function could be sped up by allocating a fixed OpenGL texture object.
-        
+
         """
-        
+
         import VisionEgg.Textures # import here to avoid import loop
         make_new_texture_object = 0
-        if not hasattr(self, "_put_pixels_texture_stimulus"): 
+        if not hasattr(self, "_put_pixels_texture_stimulus"):
             make_new_texture_object = 1
         else:
             if internal_format != self._put_pixels_texture_stimulus.constant_parameters.internal_format:
@@ -561,10 +561,10 @@ class Screen(VisionEgg.ClassWithParameters):
 
         self._pixel_coord_projection.push_and_set_gl_projection() # Save projection
         self._put_pixels_texture_stimulus.draw() # Draw pixels as texture
-        
+
         gl.glMatrixMode(gl.GL_PROJECTION) # Restore projection
         gl.glPopMatrix()
-                
+
     def query_refresh_rate(self):
         return VisionEgg.PlatformDependent.query_refresh_rate(self)
 
@@ -635,7 +635,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # No access to the cursor visible function anymore
         if hasattr(self,"__cursor_visible_func__"):
             del self.__cursor_visible_func__
-            
+
     def __del__(self):
         # Make sure mouse is visible after screen closed.
         if hasattr(self,"__cursor_visible_func__"):
@@ -734,7 +734,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 v_88fp = int(round((v*255) * 256)) # convert to from [0.0,1.0] floating point to [0.0,255.0] 8.8 fixed point
             output_ramp[i] = v_88fp # 8.8 fixed point format
         return list(output_ramp) # convert to Python list
-        
+
     def _open_gamma_file(self, filename):
         fd = open(filename,"r")
         gamma_values = []
@@ -749,7 +749,7 @@ class Screen(VisionEgg.ClassWithParameters):
             raise ValueError("expected 256 gamma entries")
         red, green, blue = zip(*gamma_values)
         return red,green,blue
-            
+
 def get_default_screen():
     """Make an instance of Screen using a GUI window or from config file."""
     return Screen.create_default()
@@ -777,17 +777,17 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
 
     # WARNING: This implementation should really get cleaned up and
     # NOT use OpenGL except when purposefully setting matrices.
-    
+
     parameters_and_defaults = VisionEgg.ParameterDefinition({
         'matrix':( Numeric.identity(4), # 4x4 identity matrix
                    ve_types.Sequence4x4(ve_types.Real),
                    'matrix specifying projection'),
         })
-    
+
     __slots__ = (
         'projection_type',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.ClassWithParameters.__init__(self,**kw)
         self.projection_type = None # derived class must override
@@ -893,7 +893,7 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
             self.parameters.matrix = gl.glGetFloatv(self._get_matrix_type())
         finally:
             gl.glPopMatrix() # save current matrix
-        
+
     def eye_2_clip(self,eye_coords_vertex):
         """Transform eye coordinates to clip coordinates"""
         m = Numeric.array(self.parameters.matrix)
@@ -914,7 +914,7 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     def eye_2_norm_device(self,eye_coords_vertex):
         """Transform eye coordinates to normalized device coordinates"""
         return self.clip_2_norm_device(self.eye_2_clip(eye_coords_vertex))
-    
+
     def apply_to_vertex(self,vertex):
         """Perform multiplication on vertex to get transformed result"""
         M = VisionEgg.ThreeDeeMath.TransformMatrix(matrix=self.parameters.matrix)
@@ -938,11 +938,11 @@ class Projection(ProjectionBaseClass):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
+
     def __init__(self,*args,**kw):
         ProjectionBaseClass.__init__(self,*args,**kw)
         self.projection_type = gl.GL_PROJECTION
-    
+
 class ModelView(ProjectionBaseClass):
     """for use of OpenGL MODELVIEW_MATRIX
 
@@ -954,11 +954,11 @@ class ModelView(ProjectionBaseClass):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
+
     def __init__(self,*args,**kw):
         ProjectionBaseClass.__init__(self,*args,**kw)
         self.projection_type = gl.GL_MODELVIEW
-    
+
 class OrthographicProjection(Projection):
     """An orthographic projection.
 
@@ -995,7 +995,7 @@ class OrthographicProjection(Projection):
         #gl.glOrtho(left,right,bottom,top,z_clip_near,z_clip_far)
         #matrix = gl.glGetFloatv(gl.GL_PROJECTION_MATRIX)
         #gl.glPopMatrix() # restore original matrix
-            
+
         Projection.__init__(self,**{'matrix':matrix})
 
 class OrthographicProjectionNoZClip(Projection):
@@ -1009,7 +1009,7 @@ class OrthographicProjectionNoZClip(Projection):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
+
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0):
         """Create an orthographic projection without Z clipping.
 
@@ -1039,7 +1039,7 @@ class SimplePerspectiveProjection(Projection):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
+
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
         matrix = self._compute_matrix(fov_x,z_clip_near,z_clip_far,aspect_ratio)
         Projection.__init__(self,**{'matrix':matrix})
@@ -1063,7 +1063,7 @@ class SimplePerspectiveProjection(Projection):
         matrix[3][2] = -2.0 * z_clip_near * z_clip_far / delta_z # XXX and this might cause the matrix to need to be transposed
         matrix[3][3] = 0.0
         return matrix
-                                                  
+
 class PerspectiveProjection(Projection):
     """A perspective projection.
 
@@ -1075,7 +1075,7 @@ class PerspectiveProjection(Projection):
                         [0 0 1 0]
                         [0 0 0 1]]
     """
-    
+
     def __init__(self,left,right,bottom,top,near,far):
         # XXX right now this is done in OpenGL, we should do it ourselves
         gl.glMatrixMode(gl.GL_PROJECTION) # Set OpenGL matrix state to modify the projection matrix
@@ -1183,13 +1183,13 @@ class Stimulus(VisionEgg.ClassWithParameters):
 
         """
         VisionEgg.ClassWithParameters.__init__(self,**kw)
-        
+
     def draw(self):
         """Draw the stimulus. (Called by Viewport instance.)
-        
+
         This method is called every frame.  This method actually
         performs the OpenGL calls to draw the stimulus.
-        
+
         """
         pass
 
@@ -1258,13 +1258,13 @@ class Viewport(VisionEgg.ClassWithParameters):
                   'The screen in which this viewport is drawn'),
         'position':((0,0),
                     ve_types.Sequence2(ve_types.Real),
-                    'Position (in pixel units) within the screen'), 
+                    'Position (in pixel units) within the screen'),
         'anchor':('lowerleft',
                   ve_types.String,
                   'How position parameter is interpreted'),
         'depth_range':((0,1),
                        ve_types.Sequence2(ve_types.Real),
-                       'depth range (in object units) for rendering'), 
+                       'depth range (in object units) for rendering'),
         'size':(None, # will use screen.size if not specified
                 ve_types.Sequence2(ve_types.Real),
                 'Size (in pixel units)'),
@@ -1306,7 +1306,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         if self.parameters.screen is None:
             raise ValueError("Must specify screen when creating an instance of Viewport.")
-        
+
         p = self.parameters # shorthand
         if p.size is None:
             p.size = p.screen.constant_parameters.size
@@ -1327,7 +1327,7 @@ class Viewport(VisionEgg.ClassWithParameters):
     def make_current(self):
         p = self.parameters # shorthand
         p.screen.make_current()
-        
+
         if p.lowerleft != None:
             if not hasattr(Viewport,"_gave_lowerleft_warning"):
                 logger = logging.getLogger('VisionEgg.Core')
@@ -1338,9 +1338,9 @@ class Viewport(VisionEgg.ClassWithParameters):
                 Viewport._gave_lowerleft_warning = True
             p.anchor = 'lowerleft'
             p.position = p.lowerleft[0], p.lowerleft[1] # copy values (don't copy ref to tuple)
-            
+
         lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
-        
+
         gl.glViewport(lowerleft[0],
                       lowerleft[1],
                       p.size[0],
@@ -1357,7 +1357,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         for stimulus in self.parameters.stimuli:
             stimulus.draw()
         self._is_drawing = False
-            
+
     def norm_device_2_window(self,norm_device_vertex):
         """Transform normalized device coordinates to window coordinates"""
         v = Numeric.asarray(norm_device_vertex)
@@ -1374,7 +1374,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         # clamp n and f
         n = min(1.0,max(0.0,n))
-        f = min(1.0,max(0.0,f)) 
+        f = min(1.0,max(0.0,f))
 
         ox = x + w/2.0
         oy = y + h/2.0
@@ -1398,7 +1398,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         """Transform eye coordinates to window coordinates"""
         my_proj = self.parameters.projection
         return self.norm_device_2_window( my_proj.eye_2_norm_device( eye_coords_vertex ) )
-        
+
 ####################################################################
 #
 #        FixationSpot
@@ -1446,7 +1446,7 @@ class FixationSpot(Stimulus):
                     'position in eye coordinates',
                     VisionEgg.ParameterDefinition.DEPRECATED),
         })
-    
+
     def __init__(self,**kw):
         Stimulus.__init__(self,**kw)
 
@@ -1510,7 +1510,7 @@ class FrameTimer:
         self.save_all_frametimes = save_all_frametimes
         if self.save_all_frametimes:
             self.all_frametimes = []
-                    
+
     def tick(self):
         """Declare a frame has just been drawn."""
         true_time_now = VisionEgg.true_time_func()
@@ -1539,7 +1539,7 @@ class FrameTimer:
 
     def get_longest_frame_duration_sec(self):
         return self.longest_frame_draw_time_sec
-        
+
     def get_running_average_ifi_sec(self):
         if self.running_average_num_frames:
             frame_times = []
@@ -1550,7 +1550,7 @@ class FrameTimer:
                 return (frame_times[-1] - frame_times[0]) / len(frame_times)
         else:
             raise RuntimeError("running_average_num_frames not set when creating FrameTimer instance")
-    
+
     def get_average_ifi_sec(self):
         if self._true_time_last_frame is None:
             raise RuntimeError("No frames were drawn, can't calculate average IFI")
@@ -1562,7 +1562,7 @@ class FrameTimer:
                        "deprecated will stop being supported. Use "
                        "log_histogram() instead.")
         self.log_histogram()
-    
+
     def log_histogram(self):
         """Send histogram to logger."""
         buffer = StringIO.StringIO()
@@ -1575,7 +1575,7 @@ class FrameTimer:
         print >> buffer, '%d frames were drawn.'%int(n_frames)
         print >> buffer, 'Mean IFI was %.2f msec (%.2f fps), longest IFI was %.2f msec.'%(
             average_ifi_sec*1000.0,1.0/average_ifi_sec,self.longest_frame_draw_time_sec*1000.0)
-        
+
         h = hist = self.timing_histogram # shorthand
         maxhist = float(max(h))
         if maxhist == 0:
@@ -1607,11 +1607,11 @@ class FrameTimer:
                 num_str = " +++ "
             timing_string += num_str
         print >> buffer, timing_string
-        
+
         buffer.seek(0)
         logger = logging.getLogger('VisionEgg.Core')
         logger.info(buffer.read())
-        
+
 ####################################################################
 #
 #        Error handling and assumption checking
@@ -1622,7 +1622,7 @@ import VisionEgg.Deprecated
 Message = VisionEgg.Deprecated.Message
 
 message = VisionEgg.Deprecated.Message() # create instance of Message class for everything to use
-    
+
 gl_assumptions = []
 
 def add_gl_assumption(gl_variable,required_value,failure_callback):
@@ -1640,7 +1640,7 @@ def init_gl_extension(prefix,name):
         gl = VisionEgg.GLTrace.gl # manipulate original module for now
     else:
         watched = False
-    
+
     module_name = "OpenGL.GL.%(prefix)s.%(name)s"%locals()
     try:
         exec "import "+module_name
@@ -1668,20 +1668,20 @@ def init_gl_extension(prefix,name):
             continue
         elif type(attr) == type(VisionEgg): # module type
             continue
-        
+
         gl_attr_name = attr_name
         setattr(gl,gl_attr_name,attr)
-        
+
     if watched:
         VisionEgg.GLTrace.gl_trace_attach() # (re)scan namespace
         gl = VisionEgg.GLTrace # reinstall GLTrace
     return True # success!
-            
+
 def post_gl_init():
     """Called by Screen instance. Requires OpenGL context to be created."""
     global gl_vendor, gl_renderer, gl_version # set above
     logger = logging.getLogger('VisionEgg.Core')
-    
+
     if gl_version < '1.3':
         if not init_gl_extension('ARB','multitexture'):
             logger.warning("multitexturing not available.  Some features "
@@ -1699,7 +1699,7 @@ def post_gl_init():
             gl.glMultiTexCoord2fARB = gl.glMultiTexCoord2f
             gl.GL_TEXTURE0_ARB = gl.GL_TEXTURE0
             gl.GL_TEXTURE1_ARB = gl.GL_TEXTURE1
-        
+
     if gl_version < '1.2':
         if init_gl_extension('EXT','bgra'):
             # make sure gl.GL_BRGA is defined
@@ -1721,7 +1721,7 @@ def post_gl_init():
                     failure_callback()
             else:
                 raise RuntimeError, "Unknown gl_assumption: %s == %s"%(gl_variable,required_value)
-            
+
         elif gl_variable.upper() == "GL_VERSION":
             value_str = gl_version.split()[0]
             value_ints = map(int,value_str.split('.'))
@@ -1749,7 +1749,7 @@ def post_gl_init():
                 init_gl_extension('SGIS','texture_edge_clamp')
                 gl.GL_CLAMP_TO_EDGE = gl.GL_CLAMP_TO_EDGE_SGIS
             except:
-                
+
                 logger.warning("GL_CLAMP_TO_EDGE is not "
                                "available.  OpenGL version is "
                                "less than 1.2, and the "

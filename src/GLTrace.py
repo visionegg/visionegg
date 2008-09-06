@@ -144,5 +144,5 @@ def gl_trace_attach():
         globals()['glMultiTexCoord2fARB'] = gl.glMultiTexCoord2f
         globals()['GL_TEXTURE0_ARB'] = gl.GL_TEXTURE0
         globals()['GL_TEXTURE1_ARB'] = gl.GL_TEXTURE1
-    
+
 gl_trace_attach() # attach when imported

@@ -129,19 +129,19 @@ class Text(VisionEgg.Textures.TextureStimulus):
         'ignore_size_parameter':(True, # when true, draws text at 100% size
                                  ve_types.Boolean),
         }
-    
+
     constant_parameters_and_defaults = {
         'font_size':(30,
                      ve_types.UnsignedInteger),
         'font_name':(None, # None = use default font
                      ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
         }
-    
+
     __slots__ = (
         'font',
         '_text',
         )
-    
+
     def __init__(self,**kw):
         if not pygame.font:
             raise RuntimeError("no pygame font module")
@@ -151,27 +151,27 @@ class Text(VisionEgg.Textures.TextureStimulus):
                 raise RuntimeError("pygame doesn't init")
         # override some defaults
         if 'internal_format' not in kw.keys():
-            kw['internal_format'] = gl.GL_RGBA        
+            kw['internal_format'] = gl.GL_RGBA
         if 'mipmaps_enabled' not in kw.keys():
             kw['mipmaps_enabled'] = 0
         if 'texture_min_filter' not in kw.keys():
-            kw['texture_min_filter'] = gl.GL_LINEAR        
+            kw['texture_min_filter'] = gl.GL_LINEAR
         VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
         cp = self.constant_parameters
         self.font = pygame.font.Font(cp.font_name,cp.font_size)
         self._render_text()
-        
+
     def _render_text(self):
         p = self.parameters
         rendered_surf = self.font.render(p.text, 1, (255,255,255)) # pygame.Surface object
-        
+
         # we could use put_new_image for speed (or put_sub_image for more)
         p.texture = VisionEgg.Textures.Texture(rendered_surf)
         self._reload_texture()
         self._text = p.text # cache string so we know when to re-render
         if p.ignore_size_parameter:
             p.size = p.texture.size
-        
+
     def draw(self):
         p = self.parameters
         if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
