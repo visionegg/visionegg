@@ -1421,32 +1421,33 @@ class TextureStimulus(TextureStimulusBaseClass):
 
                 gl.glColor4f(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
-                # draw only if all values are finite
-                if numpy.alltrue( numpy.isfinite( numpy.concatenate((lowerleft,p.position)) ) ):
-                    l = lowerleft[0] - p.position[0]
-                    r = l + size[0]
-                    b = lowerleft[1] - p.position[1]
-                    t = b + size[1]
+                # Test to draw only if all values are finite is
+                # disabled for performance reasons.
+                #if numpy.alltrue( numpy.isfinite( numpy.concatenate((lowerleft,p.position)) ) ):
+                l = lowerleft[0] - p.position[0]
+                r = l + size[0]
+                b = lowerleft[1] - p.position[1]
+                t = b + size[1]
 
-                    tex.update()
+                tex.update()
 
-                    if p.mask:
-                        p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
-                                                l,r,b,t,0.0) # l,r,b,t in eye coordinates
-                    else:
-                        gl.glBegin(gl.GL_QUADS)
-                        gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                        gl.glVertex2f(l,b)
+                if p.mask:
+                    p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
+                                            l,r,b,t,0.0) # l,r,b,t in eye coordinates
+                else:
+                    gl.glBegin(gl.GL_QUADS)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                    gl.glVertex2f(l,b)
 
-                        gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                        gl.glVertex2f(r,b)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                    gl.glVertex2f(r,b)
 
-                        gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                        gl.glVertex2f(r,t)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                    gl.glVertex2f(r,t)
 
-                        gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                        gl.glVertex2f(l,t)
-                        gl.glEnd() # GL_QUADS
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                    gl.glVertex2f(l,t)
+                    gl.glEnd() # GL_QUADS
             finally:
                 gl.glPopMatrix()
 
