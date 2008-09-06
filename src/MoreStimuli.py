@@ -132,7 +132,7 @@ class Target2D(VisionEgg.Core.Stimulus):
             gl.glTranslate(center[0],center[1],0.0)
             gl.glRotate(p.orientation,0.0,0.0,1.0)
 
-            gl.glColorf(*p.color)
+            gl.glColor(*p.color)
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -239,7 +239,7 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
     def draw(self):
         p = self.parameters # shorthand
         if p.on:
-            gl.glColorf(*p.color)
+            gl.glColor(*p.color)
 
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_DEPTH_TEST)
@@ -322,7 +322,7 @@ class Arrow(VisionEgg.Core.Stimulus):
             gl.glTranslate(center[0],center[1],0.0)
             gl.glRotate(-p.orientation,0.0,0.0,1.0)
 
-            gl.glColorf(*p.color)
+            gl.glColor(*p.color)
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -447,7 +447,7 @@ class FilledCircle(VisionEgg.Core.Stimulus):
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
-            gl.glColorf(*p.color)
+            gl.glColor(*p.color)
 
             # Build filled circle from points
 #           gl.glBegin(gl.GL_POINTS)

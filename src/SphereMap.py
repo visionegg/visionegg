@@ -290,11 +290,11 @@ class AzElGrid(VisionEgg.Core.Stimulus):
             else:
                 gl.glDisable( gl.GL_BLEND )
 
-            gl.glColorf(p.minor_line_color)
+            gl.glColor(p.minor_line_color)
             gl.glLineWidth(p.minor_line_width)
             gl.glCallList(self.cached_minor_lines_display_list)
 
-            gl.glColorf(p.major_line_color)
+            gl.glColor(p.major_line_color)
             gl.glLineWidth(p.major_line_width)
             gl.glCallList(self.cached_major_lines_display_list)
 
@@ -526,7 +526,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
             gl.glPushMatrix()
-            gl.glColorf(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
+            gl.glColor(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in VisionEgg.Textures.TextureStimulusBaseClass._mipmap_modes:

@@ -246,7 +246,7 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             xs = (self.x_positions - 0.5) * p.size[0] + center[0]
             ys = (self.y_positions - 0.5) * p.size[1] + center[1]
 
-            gl.glColorf( p.color )
+            gl.glColor( p.color )
             gl.glPointSize(p.dot_size)
 
             # Clear the modeview matrix

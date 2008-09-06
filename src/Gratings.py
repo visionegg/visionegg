@@ -421,7 +421,7 @@ class SinGrating2D(LuminanceGratingCommon):
             # with color2,
             # the texel data linearly interpolates between color1 and color2
 
-            gl.glColorf(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
+            gl.glColor(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
 
             if p.mask:
                 p.mask.draw_masked_quad(0.0,1.0,0.0,1.0, # l,r,b,t for texture coordinates
@@ -693,7 +693,7 @@ class SinGrating3D(LuminanceGratingCommon):
             # with color2,
             # the texel data linearly interpolates between color1 and color2
 
-            gl.glColorf(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
+            gl.glColor(p.color1[0],p.color1[1],p.color1[2],p.max_alpha)
 
             if p.mask:
                 p.mask.draw_masked_quad_3d(0.0,1.0,0.0,1.0, # for texture coordinates

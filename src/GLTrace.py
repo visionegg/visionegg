@@ -50,7 +50,6 @@ gl_constants = {}
 # functions which we don't want to translate arguments to gl constant
 raw_args_by_function = {
     'glColor':[0,1,2,3],
-    'glColorf':[0,1,2,3],
     'glDepthRange':[0,1],
     'glGenTextures':[0],
     'glGetTexLevelParameteriv':[1],

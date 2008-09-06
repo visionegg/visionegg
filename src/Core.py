@@ -1470,7 +1470,7 @@ class FixationSpot(Stimulus):
             gl.glDisable(gl.GL_TEXTURE_2D)
             gl.glDisable(gl.GL_BLEND)
 
-            gl.glColorf(*p.color)
+            gl.glColor(*p.color)
 
             # This could go in a display list to speed it up, but then
             # size wouldn't be dynamically adjustable this way.  Could
