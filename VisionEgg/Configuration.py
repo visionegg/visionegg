@@ -121,7 +121,6 @@ class Config:
                 if not os.path.isfile(configFile):
                     configFile = None # No file, use defaults specified in environment variables then here
 
-        print 'configFile',configFile
         if configFile:
             cfg.read(configFile)
         else:
