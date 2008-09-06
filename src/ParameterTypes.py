@@ -46,14 +46,14 @@ class ParameterTypeDef(object):
         # override this method with type-checking code
         raise RuntimeError('must override base class method verify')
     verify = staticmethod(verify)
-    
+
 def get_all_classes_list(klass):
     #assert(type(klass) == types.ClassType)
     result = [klass]
     for base_klass in klass.__bases__:
         result.extend(get_all_classes_list(base_klass))
     return result
-            
+
 def is_parameter_type_def(item_type):
     if type(item_type) == types.ClassType:
         if Sequence in get_all_classes_list(item_type):
@@ -93,7 +93,7 @@ class NoneMC(type):
     """metaclass for NoneType"""
     def __str__(self):
         return 'None'
-    
+
 class NoneType(ParameterTypeDef):
     __metaclass__ = NoneMC
     def verify(is_none):
@@ -104,7 +104,7 @@ class BooleanMC(type):
     """metaclass for Boolean"""
     def __str__(self):
         return 'Boolean'
-    
+
 class Boolean(ParameterTypeDef):
     __metaclass__ = BooleanMC
     def verify(is_boolean):
@@ -118,7 +118,7 @@ class CallableMC(type):
     """metaclass for Callable"""
     def __str__(self):
         return 'Callable'
-    
+
 class Callable(ParameterTypeDef):
     __metaclass__ = CallableMC
     def verify(is_callable):
@@ -129,14 +129,14 @@ class AnyClassMC(type):
     """metaclass for AnyClass"""
     def __str__(self):
         return 'AnyClass'
-    
+
 class AnyClass(ParameterTypeDef):
     """parameter is a class"""
     __metaclass__ = AnyClassMC
     def verify(is_class):
         return type(is_class) == types.ClassType
     verify = staticmethod(verify)
-    
+
 class SubClass(ParameterTypeDef):
     """parameter is derived from base_class"""
     def __init__(self,base_class):
@@ -166,7 +166,7 @@ class IntegerMC(type):
     """metaclass for Integer"""
     def __str__(self):
         return 'Integer'
-    
+
 class Integer(ParameterTypeDef):
     __metaclass__ = IntegerMC
     def verify(is_integer):
@@ -177,7 +177,7 @@ class UnsignedIntegerMC(IntegerMC):
     """metaclass for UnsignedInteger"""
     def __str__(self):
         return 'UnsignedInteger'
-    
+
 class UnsignedInteger(Integer):
     __metaclass__ = UnsignedIntegerMC
     def verify(is_unsigned_integer):
@@ -190,7 +190,7 @@ class RealMC(type):
     """metaclass for Real"""
     def __str__(self):
         return 'Real'
-    
+
 class Real(ParameterTypeDef):
     __metaclass__ = RealMC
     def verify(is_real):
@@ -206,7 +206,7 @@ class Real(ParameterTypeDef):
                     return False
         return False
     verify = staticmethod(verify)
-    
+
 class Sequence(ParameterTypeDef):
     """A tuple, list or Numeric array"""
     def __init__(self,item_type):
@@ -225,7 +225,7 @@ class Sequence(ParameterTypeDef):
             if not self.item_type.verify(is_sequence[i]):
                 return False
         return True
-        
+
 class Sequence2(Sequence):
     def __str__(self):
         contained_string = str(self.item_type)
@@ -251,7 +251,7 @@ class Sequence3(Sequence):
 class Sequence4(Sequence):
     def __str__(self):
         contained_string = str(self.item_type)
-        return 'Sequence4 of %s'%contained_string    
+        return 'Sequence4 of %s'%contained_string
     def verify(self,is_sequence4):
         if not Sequence.verify(self,is_sequence4):
             return False
@@ -279,7 +279,7 @@ class StringMC(type):
     """metaclass for String"""
     def __str__(self):
         return 'String'
-    
+
 class String(ParameterTypeDef):
     __metaclass__ = StringMC
     def verify(is_string):
@@ -288,12 +288,12 @@ class String(ParameterTypeDef):
         else:
             return False
     verify = staticmethod(verify)
-    
+
 class UnicodeMC(type):
     """metaclass for Unicode"""
     def __str__(self):
         return 'Unicode'
-    
+
 class Unicode(ParameterTypeDef):
     __metaclass__ = UnicodeMC
     def verify(is_unicode):
@@ -306,7 +306,7 @@ class Unicode(ParameterTypeDef):
 def get_type(value):
     """Take a value and return best guess of ParameterTypeDef it is."""
     py_type = type(value)
-    
+
     try:
         bool # no 'bool' in Python 2.2
     except NameError:
@@ -314,7 +314,7 @@ def get_type(value):
     else:
         if py_type == bool:
             return Boolean
-    
+
     if value is None:
         return NoneType
     elif py_type == int:
@@ -416,9 +416,9 @@ def assert_type(check_type,require_type):
             return
         elif issubclass(check_class,Integer):
             return
-        
+
     if issubclass(require_class,Integer):
         if issubclass(check_class,Boolean):
             return
-        
+
     raise TypeError("%s not of type %s"%(check_type,require_type))
