@@ -741,7 +741,7 @@ def get_default_screen():
 ####################################################################
 
 class ProjectionBaseClass(VisionEgg.ClassWithParameters):
-    """Converts stimulus coordinates to viewport coordinates.
+    """Base class for 4x4 linear matrix transformation
 
     This is an abstract base class which should be subclassed for
     actual use.
@@ -912,6 +912,8 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
 class Projection(ProjectionBaseClass):
     """for use of OpenGL PROJECTION_MATRIX
 
+    Converts eye coordinates to clip coordinates.
+
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
@@ -927,6 +929,8 @@ class Projection(ProjectionBaseClass):
 
 class ModelView(ProjectionBaseClass):
     """for use of OpenGL MODELVIEW_MATRIX
+
+    Converts object coordinates to eye coordinates.
 
     Parameters
     ==========
@@ -1201,9 +1205,14 @@ class Viewport(VisionEgg.ClassWithParameters):
     projection, which is defined by an instance of the Projection
     class.
 
-    By default, a viewport has a projection which maps eye coordinates
-    to viewport coordinates in 1:1 manner.  In other words, eye
-    coordinates specify pixel location in the viewport.
+    By default, a viewport has a projection and viewport
+    transformation which maps eye coordinates to window coordinates in
+    1:1 manner.  In other words, eye coordinates specify pixel
+    location in the viewport window. For example, if the viewport was
+    640 pixels wide and 480 pixels high, the default projection would
+    take eye coordinate (320,240,0,1) and map it to normalized device
+    coordinates of (0.5,0.5,0.0). The default viewport transformation
+    would transform this to window coordinates of (320,240,0.5).
 
     For cases where pixel units are not natural to describe
     coordinates of a stimulus, the application should specify the a
