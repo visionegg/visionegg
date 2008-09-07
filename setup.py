@@ -8,7 +8,7 @@
 
 name             = "visionegg"
 version          = "1.2" # setuptools will add ".dev", keep in sync
-                         # with VisionEgg/__init__.py
+                         # with VisionEgg/__init__.py and doc/visionegg.tex.
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
 home_page        = "http://www.visionegg.org/"

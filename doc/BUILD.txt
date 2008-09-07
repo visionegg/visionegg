@@ -1,5 +1,6 @@
-This directory contains the source for the Vision Egg
-documentation. 
+This directory contains the source for the Vision Egg documentation.
+
+The bash script BUILD.sh implements the instructions in this file.
 
 The source for the manual is in LaTeX using the classes, styles, and
 tools from the Python language documentation itself. These files are
