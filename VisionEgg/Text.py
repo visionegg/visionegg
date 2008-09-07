@@ -38,6 +38,12 @@ except:
 
 _font_objects = {} # global variable to cache pygame font objects
 
+def delete_font_objects():
+    for key in _font_objects.keys():
+        del _font_objects[key]
+
+VisionEgg.Core.pygame_keeper.register_func_to_call_on_quit(delete_font_objects)
+
 class Text(VisionEgg.Textures.TextureStimulus):
     """Single line of text rendered using pygame/SDL true type fonts.
 

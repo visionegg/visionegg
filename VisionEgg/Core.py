@@ -53,6 +53,22 @@ def swap_buffers():
     VisionEgg.config._FRAMECOUNT_ABSOLUTE += 1
     return pygame.display.flip()
 
+class PygameKeeper(object):
+    """global object that calls any cleanup functions when quitting pygame"""
+    def __init__(self):
+        self.to_call_on_quit = []
+    def register_func_to_call_on_quit(self,func):
+        if func not in self.to_call_on_quit:
+            self.to_call_on_quit.append(func)
+    def unregister_func_to_call_on_quit(self,func):
+        idx = self.to_call_on_quit.index(func)
+        del self.to_call_on_quit[idx]
+    def quit(self):
+        for func in self.to_call_on_quit:
+            func()
+        pygame.quit()
+pygame_keeper = PygameKeeper()
+
 ####################################################################
 #
 #        Screen
@@ -354,7 +370,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # Save the address of these functions so they can be called
         # when closing the screen.
         self.__cursor_visible_func__ = pygame.mouse.set_visible
-        self.__pygame_quit__ = pygame.quit
+        self.__pygame_quit__ = pygame_keeper.quit
 
         #Check FSAA requests
         if cp.multisample_samples>0 :
@@ -611,7 +627,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 # no more open screens
                 if hasattr(self,"__cursor_visible_func__"):
                     self.__cursor_visible_func__(1)
-                pygame.quit()
+                pygame_keeper.quit()
         # No access to the cursor visible function anymore
         if hasattr(self,"__cursor_visible_func__"):
             del self.__cursor_visible_func__
@@ -661,7 +677,7 @@ class Screen(VisionEgg.ClassWithParameters):
                 # Opening screen failed.  Let's do any cleanup that Screen.__init__ missed.
                 try:
                     pygame.mouse.set_visible(1) # make sure mouse is visible
-                    pygame.quit() # close screen
+                    pygame_keeper.quit() # close screen
                 except pygame.error, x:
                     if str(x) != 'video system not initialized':
                         raise
