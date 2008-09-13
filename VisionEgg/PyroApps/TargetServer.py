@@ -35,7 +35,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         # get stimulus
         assert( stimuli[0][0] == '2d_overlay')
         target = stimuli[0][1]
-        
+
         self.meta_params = TargetMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
             raise ValueError("Expecting instance of VisionEgg.Core.Screen")
@@ -43,7 +43,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
             raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(target,VisionEgg.MoreStimuli.Target2D):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
-        
+
         self.screen = screen
         self.p = presentation
         self.stim = target
@@ -70,22 +70,22 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
             return 1 # on
         else:
             return 0 # off again
-        
+
     def on_function_between_go(self):
         return 0
-    
+
     def center_during_go(self,t):
         t_adjusted = t - self.meta_params.pre_stim_sec
         distance = self.meta_params.velocity_pps * t_adjusted
         x_offset = math.cos(self.meta_params.direction_deg / 180.0 * math.pi)*distance
         y_offset = math.sin(self.meta_params.direction_deg / 180.0 * math.pi)*distance
-        
+
         return (self.meta_params.start_x + x_offset,
                 self.meta_params.start_y + y_offset)
-        
+
     def center_between_go(self):
         return (0.0, 0.0) # doesn't matter -- it's off
-    
+
     def get_parameters(self):
         return self.meta_params
 
@@ -95,7 +95,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         else:
             raise ValueError("Argument to set_parameters must be instance of TargetMetaParameters")
         self.update()
-        
+
     def update(self):
         stim_params = self.stim.parameters # shorthand
         meta_params = self.meta_params # shorthand
@@ -107,7 +107,7 @@ class TargetExperimentMetaController( Pyro.core.ObjBase ):
         # size and orientation
         stim_params.size = (meta_params.width, meta_params.height)
         stim_params.orientation = meta_params.orientation_deg
-        
+
         self.p.parameters.go_duration = ( meta_params.pre_stim_sec + meta_params.stim_sec + meta_params.post_stim_sec, 'seconds')
 
     def go(self):
@@ -128,7 +128,7 @@ def get_meta_controller_stimkey():
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     screen = VisionEgg.Core.Screen.create_default()

@@ -49,30 +49,30 @@ def gen_assign_val_subtree(assign_val, assign_val_type):
 class AST_Visitor:
     def __init__(self, modifying_AST):
         # Flags:
-        
+
         # Checking assignment name (ie. "x = ..." where we are
         # checking if 'x' == 'assign_name'):
         self.checking_assign_name = 0
-        
+
         # Setting assignment value (we are changing a found occurrence
         # of "assign_name = x" to "assign_name = assign_val"):
         self.setting_assign_val = 0
-        
+
         # Index of where the AST visitor is currently at in the
         # 'name_sequence' defined earlier:
         self.name_seq_index = 0
-        
+
         # AST visitor expects a subtree associated with
         # assignment/"=":
         self.expecting_equals = 0
-        
+
         # Extracting assignment value (we are extracting the 'x' from
         # a found occurrence of "assign_name = x"):
         self.extracting_assign_val = 0
-        
+
         # Extracted assignment value:
         self.extracted_val = "not found"
-        
+
         # Are we modifying an AST? Otherwise we're extracting
         # information from an AST:
         self.modifying_AST = modifying_AST
@@ -89,7 +89,7 @@ class AST_Visitor:
             # If we are somewhere in the 'name_sequence' defined
             # earlier: [292, [293, [294, [295, [297, [298, [299, [300,
             # [301, [302, [303, [304, [305, ...
-            
+
             if self.name_seq_index > 0:
                 # If we are at the end of the 'name_sequence':
                 if self.name_seq_index == len(name_sequence) - 1 and AST_sublist[0] == name_sequence[self.name_seq_index]:

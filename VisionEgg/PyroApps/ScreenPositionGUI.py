@@ -34,7 +34,7 @@ class ScreenPositionParameters:
         self.bottom = -0.2
         self.near = 0.2
         self.far = 20.0
-        
+
         # position/orientation
         self.eye = (0.0, 0.0, 0.0) # observer position
         self.center = (0.0, 0.0, -1.0) # center of gaze
@@ -89,7 +89,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         pf_row = 0
         frustum_frame = Tkinter.Frame(param_frame)
         frustum_frame.grid(row=pf_row,column=0,columnspan=2,ipady=5)
-        
+
         ff_row = 0
         Tkinter.Label(frustum_frame,
                       text="Viewing volume size",
@@ -121,7 +121,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
                       self.send_values,
                       width=self.entry_width,
                       textvariable=self.top_tk_var).grid(row=ff_row,column=1)
-        
+
         ff_row += 1
         Tkinter.Label(frustum_frame,text="Bottom:").grid(row=ff_row,column=0)
         self.bottom_tk_var = Tkinter.DoubleVar()
@@ -154,25 +154,25 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         qf_frame.grid(row=1,column=2,rowspan=ff_row)
 
         qf_row = 0
-        Tkinter.Button(qf_frame,text="Taller",command=self.frustum_taller).grid(row=qf_row,column=0,columnspan=2)        
+        Tkinter.Button(qf_frame,text="Taller",command=self.frustum_taller).grid(row=qf_row,column=0,columnspan=2)
         qf_row += 1
         Tkinter.Button(qf_frame,text="Narrower",command=self.frustum_narrower).grid(row=qf_row,column=0)
         Tkinter.Button(qf_frame,text="Wider",command=self.frustum_wider).grid(row=qf_row,column=1)
         qf_row += 1
-        Tkinter.Button(qf_frame,text="Shorter",command=self.frustum_shorter).grid(row=qf_row,column=0,columnspan=2)        
+        Tkinter.Button(qf_frame,text="Shorter",command=self.frustum_shorter).grid(row=qf_row,column=0,columnspan=2)
 
         qf_row = 0
-        Tkinter.Button(qf_frame,text="Up",command=self.frustum_up).grid(row=qf_row,column=2,columnspan=2)        
+        Tkinter.Button(qf_frame,text="Up",command=self.frustum_up).grid(row=qf_row,column=2,columnspan=2)
         qf_row += 1
         Tkinter.Button(qf_frame,text="Left",command=self.frustum_left).grid(row=qf_row,column=2)
         Tkinter.Button(qf_frame,text="Right",command=self.frustum_right).grid(row=qf_row,column=3)
         qf_row += 1
-        Tkinter.Button(qf_frame,text="Down",command=self.frustum_down).grid(row=qf_row,column=2,columnspan=2)        
+        Tkinter.Button(qf_frame,text="Down",command=self.frustum_down).grid(row=qf_row,column=2,columnspan=2)
 
         pf_row += 1
         lookat_frame = Tkinter.Frame(param_frame)
         lookat_frame.grid(row=pf_row,column=0,columnspan=2,ipady=5)
-        
+
         la_row = 0
         Tkinter.Label(lookat_frame,
                       text="Viewing volume orientation",
@@ -221,7 +221,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         Tkinter.Button(quick_la_frame,text="Look at az +",command=self.az_increase).grid(row=qla_row,column=1)
         self.look_at_az_str = Tkinter.StringVar()
         Tkinter.Label(quick_la_frame,textvariable=self.look_at_az_str).grid(row=qla_row,column=2)
-        
+
         qla_row += 1
         Tkinter.Button(quick_la_frame,text="Look at el -",command=self.el_decrease).grid(row=qla_row,column=0)
         Tkinter.Button(quick_la_frame,text="Look at el +",command=self.el_increase).grid(row=qla_row,column=1)
@@ -231,7 +231,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         az,el = self.get_az_el(self.meta_params.center)
         self.look_at_az_str.set("%.1f"%az)
         self.look_at_el_str.set("%.1f"%el)
-        
+
         la_row += 1
         Tkinter.Label(lookat_frame,text="look at Y:").grid(row=la_row,column=0)
         self.center_y_tk_var = Tkinter.DoubleVar()
@@ -375,7 +375,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.center_y_tk_var.set("%.4f"%y)
         self.center_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def az_decrease(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.center)
         az = az - 5.0
@@ -385,7 +385,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.center_y_tk_var.set("%.4f"%y)
         self.center_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def el_increase(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.center)
         el = el + 5.0
@@ -396,7 +396,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.center_y_tk_var.set("%.4f"%y)
         self.center_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def el_decrease(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.center)
         el = el - 5.0
@@ -417,7 +417,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.up_y_tk_var.set("%.4f"%y)
         self.up_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def up_az_decrease(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.up)
         az = az - 5.0
@@ -427,7 +427,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.up_y_tk_var.set("%.4f"%y)
         self.up_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def up_el_increase(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.up)
         el = el + 5.0
@@ -438,7 +438,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.up_y_tk_var.set("%.4f"%y)
         self.up_z_tk_var.set("%.4f"%z)
         self.send_values()
-        
+
     def up_el_decrease(self,dummy_arg=None): # callback
         az,el = self.get_az_el(self.meta_params.up)
         el = el - 5.0
@@ -481,7 +481,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
 
     def get_type(self):
         return "screenPositionGUI"
-    
+
     def set_param_dict(self,new_param_dict):
         orig_params = dir(self.meta_params)
         for new_param_name in new_param_dict.keys():
@@ -504,7 +504,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         self.up_x_tk_var.set( self.meta_params.up[0] )
         self.up_y_tk_var.set( self.meta_params.up[1] )
         self.up_z_tk_var.set( self.meta_params.up[2] )
-    
+
     def get_parameters_as_strings(self):
         result = []
         for param_name in dir(self.meta_params):
@@ -522,7 +522,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         setattr(self.meta_params,meta_param_var_name,value)
         tk_var.set(value)
         self.update() # update screen with new tk_var value
-        
+
     def send_values(self,dummy_arg=None):
         self.meta_params.left = self.left_tk_var.get()
         self.meta_params.right = self.right_tk_var.get()
@@ -555,7 +555,7 @@ class ScreenPositionControlFrame(Tkinter.Frame):
         else:
             self.meta_params = self.projection_controller.get_parameters()
             self.set_param_dict( {} ) # updates screen values to self.meta_params
-        
+
     def quit_server(self,dummy=None):
         self.projection_controller.quit_server()
         self.connected = 0
@@ -565,4 +565,4 @@ if __name__=='__main__':
     frame = ScreenPositionControlFrame()
     frame.pack(expand=1,fill=Tkinter.BOTH)
     frame.winfo_toplevel().title("%s"%(os.path.basename(os.path.splitext(sys.argv[0])[0]),))
-    frame.mainloop()  
+    frame.mainloop()

@@ -31,7 +31,7 @@ class MouseTargetMetaParameters:
         # colors
         self.color = (0.0, 0.0, 0.0, 1.0)
         self.bgcolor = (1.0, 1.0, 1.0, 0.0)
-        
+
 class MouseTargetControlFrame(client_utils.StimulusControlFrame):
     title = "Mouse Controlled Moving Target"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -47,7 +47,7 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
         # Allow columns to expand
         param_frame.columnconfigure(0,weight=1)
         param_frame.columnconfigure(1,weight=1)
-        
+
         pf_row = 0
         Tkinter.Label(param_frame,text="Color:").grid(row=pf_row,column=0)
         self.color_tk_var = Tkinter.StringVar()
@@ -63,7 +63,7 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
                                  value="black on white",
                                  variable=self.color_tk_var,
                                  command=self.send_values)
-        bar['menu'] = bar.menu       
+        bar['menu'] = bar.menu
 
     def get_shortname(self):
         return "mouse_target"
@@ -75,7 +75,7 @@ class MouseTargetControlFrame(client_utils.StimulusControlFrame):
             self.color_tk_var.set( "white on black" )
         else:
             raise RuntimeError("Cannot set tk variable for color")
-        
+
     def send_values(self,dummy_arg=None):
         if self.color_tk_var.get() == "black on white":
             self.meta_params.color = (0.0,0.0,0.0,1.0)

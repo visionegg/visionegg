@@ -31,14 +31,14 @@ class DropinMetaController( Pyro.core.ObjBase ):
         self.meta_params = DropinMetaParameters()
         self.p = presentation
         print 'DropinMetaController presentation',self.p
-        
+
     def get_parameters(self):
         return self.meta_params
 
     def set_parameters(self, new_parameters):
         self.meta_params = new_parameters
         self.update()
-        
+
     def update(self):
         pass
 

@@ -254,19 +254,19 @@ def start_server( server_modules, server_class=EPhysServer ):
 
         if ephys_server.get_stimkey() == "dropin_server":
             wait_text.parameters.text = "Vision Egg script mode"
-            
+
             p.parameters.enter_go_loop = False
             p.parameters.quit = False
             p.run_forever()
-            
+
             # At this point quit signal was sent by client to either:
-            
+
             # 1) Execute the script (ie. "exec_demoscript_flag" has
             # been set)
-            
+
             # 2) Load a DIFFERENT script ("loadNewExpr" should be set
             # to False in this event)
-            
+
             # 3) Load a BUILT IN experiment ("loadNewExpr" should be
             # set to True in this event)
 
@@ -302,17 +302,17 @@ def start_server( server_modules, server_class=EPhysServer ):
             p.parameters.enter_go_loop = False
             p.parameters.quit = False
             p.run_forever()
-            
+
             # At this point quit signal was sent by client to either:
-            
+
             # 1) Load a script ("loadNewExpr" should be set to 1 in
             # this event)
-            
+
             # 2) Load a BUILT IN experiment ("loadNewExpr" should be
             # set to 1 in this event)
 
             pyro_server.disconnect(stimulus_meta_controller)
             del stimulus_meta_controller # we have to do this explicitly because Pyro keeps a copy of the reference
-            
+
 if __name__ == '__main__':
     start_server( server_modules )

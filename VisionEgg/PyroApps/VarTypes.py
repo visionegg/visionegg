@@ -10,7 +10,7 @@
 #
 # $Id$
 
-# Add your supported supported demo script "variable types" here: 
+# Add your supported supported demo script "variable types" here:
 
 def getID(var_type):
     if var_type == "float":
@@ -31,4 +31,4 @@ def getType(ID):
 	return "string"
     else:
 	return "undefined type"
-        
+
