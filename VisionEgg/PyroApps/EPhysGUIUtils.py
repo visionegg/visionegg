@@ -41,7 +41,7 @@ class StimulusControlFrame(Tkinter.Frame):
                       text=title,
                       font=("Helvetica",12,"bold")).pack(expand=Tkinter.YES,
                                                          fill=Tkinter.X)
-        
+
         if not suppress_go_buttons:
             connected_frame = Tkinter.Frame(self)
             connected_frame.pack(expand=Tkinter.YES,
@@ -53,7 +53,7 @@ class StimulusControlFrame(Tkinter.Frame):
             self.server_hostname.set( socket.getfqdn('') )
             self.server_port = Tkinter.IntVar()
             self.server_port.set( 7766 )
-            
+
             Tkinter.Label(connected_frame,
                           text="Server hostname").grid(row=0,
                                                        column=0)
@@ -72,10 +72,10 @@ class StimulusControlFrame(Tkinter.Frame):
                            text="Quit server",
                            command=self.quit_server).grid(row=1,
                                                           column=2)
-        
+
         self.param_frame = Tkinter.Frame(self)
         self.param_frame.pack(expand=Tkinter.YES,fill=Tkinter.BOTH)
-        
+
         if not suppress_go_buttons:
             Tkinter.Button(self,text="Begin Trial",command=self.go).pack()#expand=Tkinter.YES,fill=Tkinter.BOTH)
 
@@ -88,7 +88,7 @@ class StimulusControlFrame(Tkinter.Frame):
         e.bind('<Return>',self.send_values)
         e.bind('<Tab>',self.send_values)
         return e
-            
+
     def get_shortname(self):
         """Used as basename for saving parameter files and other ID purposes"""
         raise NotImplementedError("Must be overriden by derived class")
@@ -164,7 +164,7 @@ class StimulusControlFrame(Tkinter.Frame):
         setattr(self.meta_params,meta_param_var_name,value)
         tk_var.set(value)
         self.update() # update screen with new tk_var value
-        
+
     def send_values(self,dummy_arg=None):
         """Update meta_params variables with values from Tkinter fields"""
         raise NotImplementedError("Must be overriden by derived class")
@@ -214,7 +214,7 @@ class StimulusControlFrame(Tkinter.Frame):
                     raise # unknown error
 
         # attribute error: check: stimkey == short_name + "_server"
-        self.meta_params = self.meta_controller.get_parameters() 
+        self.meta_params = self.meta_controller.get_parameters()
 
         self.connected = 1
         if hasattr(self,'connected_text'): # EPhysGUI client suppresses this

@@ -41,7 +41,7 @@ class DropinControlFrame(client_utils.StimulusControlFrame):
       param_frame.columnconfigure(1,weight=1)
       self.vars_list = []
       self.error_names = []
-      
+
    def get_shortname(self):
       return "dropin"
 
@@ -53,10 +53,10 @@ class DropinControlFrame(client_utils.StimulusControlFrame):
 
       self.meta_params.vars_list = []
       self.error_names = []
-      
+
       if self.vars_list is None:
          return 0
-      
+
       for var in self.vars_list:
          if len(var) == 3:
             var_type = var[0]
@@ -80,7 +80,7 @@ class DropinControlFrame(client_utils.StimulusControlFrame):
                self.error_names.append(var_name)
 
 
-      
+
       if len(self.error_names) == 0:
          self.meta_controller.set_parameters( self.meta_params )
          return 1

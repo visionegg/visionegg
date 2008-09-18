@@ -29,7 +29,7 @@ def get_control_list():
 class ColorCalMetaParameters:
     def __init__(self):
         self.color = (1.0, 1.0, 1.0, 0.0)
-        
+
 class ColorCalControlFrame(client_utils.StimulusControlFrame):
     title = "Color Calibration"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -45,7 +45,7 @@ class ColorCalControlFrame(client_utils.StimulusControlFrame):
         # Allow columns to expand
         param_frame.columnconfigure(0,weight=1)
         param_frame.columnconfigure(1,weight=1)
-        
+
         pf_row = 0
         Tkinter.Label(param_frame,text="Red:").grid(row=pf_row,column=0)
         self.red_tk_var = Tkinter.DoubleVar()
@@ -71,7 +71,7 @@ class ColorCalControlFrame(client_utils.StimulusControlFrame):
         self.red_tk_var.set( self.meta_params.color[0] )
         self.green_tk_var.set( self.meta_params.color[1] )
         self.blue_tk_var.set( self.meta_params.color[2] )
-        
+
     def send_values(self,dummy_arg=None):
         self.meta_params.color =  ( self.red_tk_var.get(),
                                     self.green_tk_var.get(),

@@ -19,12 +19,6 @@ import socket
 import VisionEgg
 
 import logging                              # available in Python 2.3
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 import Pyro.core
 
 class PyroClient:

@@ -32,7 +32,7 @@ class SpinningDrumMetaParameters:
         self.pre_stim_sec = 1.0
         self.stim_sec = 5.0
         self.post_stim_sec = 1.0
-        
+
 class SpinningDrumControlFrame(client_utils.StimulusControlFrame):
     title = "Spinning Drum Experiment"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -75,13 +75,13 @@ class SpinningDrumControlFrame(client_utils.StimulusControlFrame):
         self.prestim_dur_tk_var = Tkinter.DoubleVar()
         self.prestim_dur_tk_var.set(self.meta_params.pre_stim_sec)
         self.make_callback_entry(textvariable=self.prestim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0)
         self.stim_dur_tk_var = Tkinter.DoubleVar()
         self.stim_dur_tk_var.set(self.meta_params.stim_sec)
         self.make_callback_entry(textvariable=self.stim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0)
         self.poststim_dur_tk_var = Tkinter.DoubleVar()
@@ -98,7 +98,7 @@ class SpinningDrumControlFrame(client_utils.StimulusControlFrame):
         self.startpos_tk_var.set( self.meta_params.startpos_deg )
         self.stim_dur_tk_var.set( self.meta_params.stim_sec )
         self.poststim_dur_tk_var.set( self.meta_params.post_stim_sec )
-    
+
     def send_values(self,dummy_arg=None):
         self.meta_params.contrast = self.contrast_tk_var.get()
         self.meta_params.velocity_dps = self.velocity_tk_var.get()

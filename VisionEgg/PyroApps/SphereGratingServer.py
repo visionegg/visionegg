@@ -29,7 +29,7 @@ class SphereGratingExperimentMetaController( Pyro.core.ObjBase ):
         assert( stimuli[1][0] == '3d_perspective')
         sphere_grating = stimuli[0][1]
         sphere_window = stimuli[1][1]
-        
+
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = SphereGratingMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
@@ -62,11 +62,11 @@ class SphereGratingExperimentMetaController( Pyro.core.ObjBase ):
             return 1 # on
         else:
             return 0 # off again
-        
+
     def on_function_between_go(self):
         """Compute when the grating is off"""
         return 0 # off again
-    
+
     def get_parameters(self):
         return self.meta_params
 
@@ -77,7 +77,7 @@ class SphereGratingExperimentMetaController( Pyro.core.ObjBase ):
             raise ValueError("Argument to set_parameters must be instance of SphereGratingMetaParameters")
 #        self.meta_params = new_parameters
         self.update()
-        
+
     def update(self):
         stim_params = self.stim.parameters # shorthand
         window_params = self.window.parameters # shorthand
@@ -115,7 +115,7 @@ def get_meta_controller_stimkey():
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     screen = VisionEgg.Core.Screen.create_default()
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     stimuli = make_stimuli()
     stimulus = stimuli[0][1]
     mask = stimuli[1][1]
-    
+
     temp = ScreenPositionParameters()
 
     left = temp.left

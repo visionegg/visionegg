@@ -55,7 +55,7 @@ def keydown(event):
         right = 1
     elif event.key == pygame.locals.K_LEFT:
         left = 1
-        
+
 def keyup(event):
     global up, down, left, right
     if event.key == pygame.locals.K_UP:
@@ -66,7 +66,7 @@ def keyup(event):
         right = 0
     elif event.key == pygame.locals.K_LEFT:
         left = 0
-        
+
 handle_event_callbacks = [(pygame.locals.KEYDOWN, keydown),
                           (pygame.locals.KEYUP, keyup)]
 
@@ -77,7 +77,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         # get stimulus
         assert( stimuli[0][0] == '2d_overlay')
         target = stimuli[0][1]
-        
+
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = MouseTargetMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
@@ -86,7 +86,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
             raise ValueError("Expecting instance of VisionEgg.FlowControl.Presentation")
         if not isinstance(target,VisionEgg.MoreStimuli.Target2D):
             raise ValueError("Expecting instance of VisionEgg.MoreStimuli.Target2D")
-        
+
         self.screen = screen
         self.p = presentation
         self.stim = target
@@ -108,7 +108,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         self.p.remove_controller(self.stim,'position')
         self.p.remove_controller(self.stim,'size')
         self.p.remove_controller(self.stim,'orientation')
-    
+
     def get_parameters(self):
         return self.meta_params
 
@@ -118,7 +118,7 @@ class MouseTargetExperimentMetaController( Pyro.core.ObjBase ):
         else:
             raise ValueError("Argument to set_parameters must be instance of MouseTargetMetaParameters")
         self.update()
-        
+
     def update(self):
         stim_params = self.stim.parameters # shorthand
         meta_params = self.meta_params # shorthand
@@ -166,7 +166,7 @@ class MousePositionController( VisionEgg.FlowControl.Controller ):
         if just_current_pos != mouse_position:
             last_mouse_position = just_current_pos
         return None
-        
+
 class TargetPositionController( VisionEgg.FlowControl.Controller ):
     def __init__(self):
         global mouse_position
@@ -189,7 +189,7 @@ def cross_product(b,c):
 def mag(b):
     """Magnitude of a vector."""
     return b[0]**2.0 + b[1]**2.0 + b[2]**2.0
-    
+
 class TargetOrientationController( VisionEgg.FlowControl.Controller ):
     def __init__(self):
         VisionEgg.FlowControl.Controller.__init__(self,
@@ -212,13 +212,13 @@ class TargetOrientationController( VisionEgg.FlowControl.Controller ):
             orientation_vector = cross_product(b,self.c)
             self.last_orientation = math.atan2(orientation_vector[1],orientation_vector[0])/math.pi*180.0
         return self.last_orientation
-        
+
 def get_target_size(t=None):
     global target_w, target_h
     global up, down, left, right
 
     amount = 0.02
-    
+
     if up:
         target_w = target_w+(amount*target_w)
     elif down:
@@ -229,12 +229,12 @@ def get_target_size(t=None):
         target_h = target_h-(amount*target_h)
     target_w = max(target_w,0.0)
     target_h = max(target_h,0.0)
-    
+
     return (target_w, target_h)
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     screen = VisionEgg.Core.Screen.create_default()

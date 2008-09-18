@@ -34,7 +34,7 @@ class FlatGratingExperimentMetaController( Pyro.core.ObjBase ):
         # get stimulus
         assert( stimuli[0][0] == '2d_overlay')
         grating = stimuli[0][1]
-        
+
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = FlatGratingMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
@@ -64,11 +64,11 @@ class FlatGratingExperimentMetaController( Pyro.core.ObjBase ):
             return 1 # on
         else:
             return 0 # off again
-        
+
     def on_function_between_go(self):
         """Compute when the grating is off"""
         return 0 # off again
-    
+
     def get_parameters(self):
         return self.meta_params
 
@@ -78,7 +78,7 @@ class FlatGratingExperimentMetaController( Pyro.core.ObjBase ):
         else:
             raise ValueError("Argument to set_parameters must be instance of FlatGratingMetaParameters")
         self.update()
-        
+
     def update(self):
         stim_params = self.stim.parameters # shorthand
         meta_params = self.meta_params # shorthand
@@ -111,7 +111,7 @@ def get_meta_controller_stimkey():
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     screen = VisionEgg.Core.Screen.create_default()

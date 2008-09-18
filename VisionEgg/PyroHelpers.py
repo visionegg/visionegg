@@ -39,11 +39,6 @@ import VisionEgg.Core
 import VisionEgg.FlowControl
 import VisionEgg.ParameterTypes as ve_types
 
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
 import Pyro.core
 import Pyro.errors
 
@@ -63,7 +58,7 @@ class PyroServer:
 
     def get_hostname_and_port(self):
         return self.daemon.hostname, self.daemon.port
-        
+
     def connect(self,object,name):
         """Serve an object under a name"""
         URI=self.daemon.connect(object,name)
@@ -76,7 +71,7 @@ class PyroServer:
             # workaround bug in Pyro pre-3.2
             del self.daemon.implementations[object.GUID()]
             object.setDaemon(None)
-            
+
     def create_listener_controller(self):
         if hasattr(self,'listen_controller'):
             raise RuntimeError("Only one pyro listen controller allowed per server!")
@@ -154,7 +149,7 @@ class PyroListenController(VisionEgg.FlowControl.Controller):
     def __init__(self,server=None,**kw):
         """Called by PyroServer. Creates a PyroListenerController instance."""
         if not isinstance(server,PyroServer):
-            raise ValueError("Must specify a Pyro Server.") 
+            raise ValueError("Must specify a Pyro Server.")
         if 'eval_frequency' not in kw.keys():
             kw['eval_frequency'] = VisionEgg.FlowControl.Controller.EVERY_FRAME
         if 'return_type' not in kw.keys():

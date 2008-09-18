@@ -39,7 +39,7 @@ class FlatGratingMetaParameters:
         self.pre_stim_sec = 1.0
         self.stim_sec = 2.0
         self.post_stim_sec = 1.0
-        
+
 class FlatGratingControlFrame(client_utils.StimulusControlFrame):
     title = "Grating (2D) Experiment"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -55,7 +55,7 @@ class FlatGratingControlFrame(client_utils.StimulusControlFrame):
         # Allow columns to expand
         param_frame.columnconfigure(0,weight=1)
         param_frame.columnconfigure(1,weight=1)
-        
+
         pf_row = 0
         Tkinter.Label(param_frame,text="Contrast:").grid(row=pf_row,column=0)
         self.contrast_tk_var = Tkinter.DoubleVar()
@@ -69,61 +69,61 @@ class FlatGratingControlFrame(client_utils.StimulusControlFrame):
         self.orient_tk_var.set(self.meta_params.orient)
         self.make_callback_entry(textvariable=self.orient_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Orientation"] = ("orient",self.orient_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Spatial frequency (Cpp):").grid(row=pf_row,column=0)
         self.sf_tk_var = Tkinter.DoubleVar()
         self.sf_tk_var.set(self.meta_params.sf)
         self.make_callback_entry(textvariable=self.sf_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Spatial frequency"] = ("sf",self.sf_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Temporal frequency (Hz):").grid(row=pf_row,column=0)
         self.tf_tk_var = Tkinter.DoubleVar()
         self.tf_tk_var.set(self.meta_params.tf)
         self.make_callback_entry(textvariable=self.tf_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Temporal frequency"] = ("tf",self.tf_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Size X (pixels):").grid(row=pf_row,column=0)
         self.size_x_tk_var = Tkinter.DoubleVar()
         self.size_x_tk_var.set(self.meta_params.size_x)
         self.make_callback_entry(textvariable=self.size_x_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Size X"] = ("size_x",self.size_x_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Size Y (pixels):").grid(row=pf_row,column=0)
         self.size_y_tk_var = Tkinter.DoubleVar()
         self.size_y_tk_var.set(self.meta_params.size_y)
         self.make_callback_entry(textvariable=self.size_y_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Size Y"] = ("size_y",self.size_y_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Center X (pixels):").grid(row=pf_row,column=0)
         self.center_x_tk_var = Tkinter.DoubleVar()
         self.center_x_tk_var.set(self.meta_params.center_x)
         self.make_callback_entry(textvariable=self.center_x_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Center X"] = ("center_x",self.center_x_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Center Y (pixels):").grid(row=pf_row,column=0)
         self.center_y_tk_var = Tkinter.DoubleVar()
         self.center_y_tk_var.set(self.meta_params.center_y)
         self.make_callback_entry(textvariable=self.center_y_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Center Y"] = ("center_y",self.center_y_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0)
         self.prestim_dur_tk_var = Tkinter.DoubleVar()
         self.prestim_dur_tk_var.set(self.meta_params.pre_stim_sec)
         self.make_callback_entry(textvariable=self.prestim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0)
         self.stim_dur_tk_var = Tkinter.DoubleVar()
         self.stim_dur_tk_var.set(self.meta_params.stim_sec)
         self.make_callback_entry(textvariable=self.stim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0)
         self.poststim_dur_tk_var = Tkinter.DoubleVar()
@@ -145,7 +145,7 @@ class FlatGratingControlFrame(client_utils.StimulusControlFrame):
         self.prestim_dur_tk_var.set( self.meta_params.pre_stim_sec )
         self.stim_dur_tk_var.set( self.meta_params.stim_sec )
         self.poststim_dur_tk_var.set( self.meta_params.post_stim_sec )
-    
+
     def send_values(self,dummy_arg=None):
         self.meta_params.contrast = self.contrast_tk_var.get()
         self.meta_params.orient = self.orient_tk_var.get()

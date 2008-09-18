@@ -34,7 +34,7 @@ class SpinningDrumExperimentMetaController( Pyro.core.ObjBase ):
         # get the instance of Stimulus that was created
         assert( stimuli[0][0] == '3d_perspective' )
         spinning_drum = stimuli[0][1]
-        
+
         Pyro.core.ObjBase.__init__(self)
         self.meta_params = SpinningDrumMetaParameters()
         if not isinstance(screen,VisionEgg.Core.Screen):
@@ -68,7 +68,7 @@ class SpinningDrumExperimentMetaController( Pyro.core.ObjBase ):
             return 1 # on
         else:
             return 0 # off again
-        
+
     def on_function_between_go(self):
         return 0 # off
 
@@ -88,7 +88,7 @@ class SpinningDrumExperimentMetaController( Pyro.core.ObjBase ):
         else:
             raise ValueError("Argument to set_parameters must be instance of SpinningDrumMetaParameters")
         self.update()
-        
+
     def update(self):
         stim_params = self.stim.parameters # shorthand
         meta_params = self.meta_params # shorthand
@@ -115,7 +115,7 @@ def get_meta_controller_stimkey():
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     screen = VisionEgg.Core.Screen.create_default()

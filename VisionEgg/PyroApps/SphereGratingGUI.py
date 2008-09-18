@@ -30,7 +30,7 @@ class SphereGratingMetaParameters:
         self.window_radius = 10.0
         self.window_az = 0.0
         self.window_el = 0.0
-        
+
 class SphereGratingControlFrame(client_utils.StimulusControlFrame):
     title = "Grating (Perspective-distorted) Experiment"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -46,7 +46,7 @@ class SphereGratingControlFrame(client_utils.StimulusControlFrame):
         # Allow columns to expand
         param_frame.columnconfigure(0,weight=1)
         param_frame.columnconfigure(1,weight=1)
-        
+
         pf_row = 0
         Tkinter.Label(param_frame,text="Contrast:").grid(row=pf_row,column=0)
         self.contrast_tk_var = Tkinter.DoubleVar()
@@ -60,33 +60,33 @@ class SphereGratingControlFrame(client_utils.StimulusControlFrame):
         self.orient_tk_var.set(self.meta_params.orient)
         self.make_callback_entry(textvariable=self.orient_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Orientation"] = ("orient",self.orient_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Spatial frequency (Cpd):").grid(row=pf_row,column=0)
         self.sf_tk_var = Tkinter.DoubleVar()
         self.sf_tk_var.set(self.meta_params.sf)
         self.make_callback_entry(textvariable=self.sf_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Spatial frequency"] = ("sf",self.sf_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Temporal frequency (Hz):").grid(row=pf_row,column=0)
         self.tf_tk_var = Tkinter.DoubleVar()
         self.tf_tk_var.set(self.meta_params.tf)
         self.make_callback_entry(textvariable=self.tf_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Temporal frequency"] = ("tf",self.tf_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0)
         self.prestim_dur_tk_var = Tkinter.DoubleVar()
         self.prestim_dur_tk_var.set(self.meta_params.pre_stim_sec)
         self.make_callback_entry(textvariable=self.prestim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0)
         self.stim_dur_tk_var = Tkinter.DoubleVar()
         self.stim_dur_tk_var.set(self.meta_params.stim_sec)
         self.make_callback_entry(textvariable=self.stim_dur_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0)
         self.poststim_dur_tk_var = Tkinter.DoubleVar()
@@ -109,27 +109,27 @@ class SphereGratingControlFrame(client_utils.StimulusControlFrame):
                                  variable=self.window_func_tk_var,
                                  command=self.send_values)
         bar['menu'] = bar.menu
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Window radius/sigma (deg):").grid(row=pf_row,column=0)
         self.window_radius_tk_var = Tkinter.DoubleVar()
         self.window_radius_tk_var.set(self.meta_params.window_radius)
         self.make_callback_entry(textvariable=self.window_radius_tk_var).grid(row=pf_row,column=1)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Window azimuth (deg):").grid(row=pf_row,column=0)
         self.window_az_tk_var = Tkinter.DoubleVar()
         self.window_az_tk_var.set(self.meta_params.window_az)
         self.make_callback_entry(textvariable=self.window_az_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Window azimuth"] = ("window_az",self.window_az_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Window elevation (deg):").grid(row=pf_row,column=0)
         self.window_el_tk_var = Tkinter.DoubleVar()
         self.window_el_tk_var.set(self.meta_params.window_el)
         self.make_callback_entry(textvariable=self.window_el_tk_var).grid(row=pf_row,column=1)
         self.loopable_variables["Window elevation"] = ("window_el",self.window_el_tk_var)
-        
+
     def get_shortname(self):
         return "sphere_grating"
 
@@ -145,7 +145,7 @@ class SphereGratingControlFrame(client_utils.StimulusControlFrame):
         self.window_radius_tk_var.set( self.meta_params.window_radius )
         self.window_az_tk_var.set( self.meta_params.window_az )
         self.window_el_tk_var.set( self.meta_params.window_el )
-    
+
     def send_values(self,dummy_arg=None):
         self.meta_params.contrast = self.contrast_tk_var.get()
         self.meta_params.orient = self.orient_tk_var.get()

@@ -27,7 +27,7 @@ def get_control_list():
 class GridMetaParameters:
     def __init__(self):
         pass
-        
+
 class GridControlFrame(client_utils.StimulusControlFrame):
     title = "Grid for 3D calibration"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -46,7 +46,7 @@ class GridControlFrame(client_utils.StimulusControlFrame):
 
     def update_tk_vars(self):
         pass
-    
+
     def send_values(self,dummy_arg=None):
         pass
         if self.connected:
