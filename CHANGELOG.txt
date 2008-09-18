@@ -1,7 +1,29 @@
 Changes for 1.1.1:
 ------------------
 
-* Various small bugfixes and performance improvements.
+* Various small bugfixes and performance improvements:
+
+  - Removed old CVS cruft from VisionEgg/PyroClient.py VisionEgg/PyroHelpers.py
+
+  - Fix trivial documentation bugs to have the correct version number.
+
+  - Workaraound pygame/SDL issue when creating Font objects. (r1491, reported by Jeremy Hill)
+
+  - bugfix: allow 4D as well as 3D vectors to specify vertices (r1472, r1474)
+
+  - fix comments: improve description of coordinate system transforms (r1473)
+
+  - Use standard Python idiom (r1475)
+
+  - Further removal of 'from blah import *' (r1476, r1501)
+
+  - Minor performance improvement (r1486)
+
+  - Remove unintended print statement (r1487 thanks to Jeremy Hill)
+
+  - properly detect String and Unicode types (r1470, reported by Dav Clark)
+
+  - update license to mention other code (r1502)
 
 Changes for 1.1:
 ----------------
