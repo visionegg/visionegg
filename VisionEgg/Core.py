@@ -1310,7 +1310,8 @@ class Viewport(VisionEgg.ClassWithParameters):
         position -- defaults to (0,0), position relative to screen by anchor (see below)
         anchor -- defaults to 'lowerleft'
         size -- defaults to screen.size
-        projection -- defaults to self.ma
+        projection -- defaults to self.make_new_pixel_coord_projection()
+        stimuli -- defaults to empty list
 
         """
         VisionEgg.ClassWithParameters.__init__(self,**kw)
