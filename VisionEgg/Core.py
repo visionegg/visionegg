@@ -1278,6 +1278,9 @@ class Viewport(VisionEgg.ClassWithParameters):
         'projection':(None,
                       ve_types.Instance(Projection),
                       'intrinsic camera parameter matrix (field of view, focal length, aspect ratio)'),
+        'auto_pixel_projection':(None,
+                                 ve_types.Boolean,
+                                 'reset the projection when the size changes to maintain pixel coordinates'),
         'camera_matrix':(None,
                          ve_types.Instance(ModelView),
                          'extrinsic camera parameter matrix (position and orientation)'),
@@ -1292,6 +1295,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     __slots__ = (
         '_is_drawing',
+        '_cached_size',
         )
 
     def __init__(self,**kw):
@@ -1306,8 +1310,8 @@ class Viewport(VisionEgg.ClassWithParameters):
         position -- defaults to (0,0), position relative to screen by anchor (see below)
         anchor -- defaults to 'lowerleft'
         size -- defaults to screen.size
-        projection -- defaults to self.make_new_pixel_coord_projection()
-        stimuli -- defaults to empty list
+        projection -- defaults to self.ma
+
         """
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
@@ -1317,9 +1321,18 @@ class Viewport(VisionEgg.ClassWithParameters):
         p = self.parameters # shorthand
         if p.size is None:
             p.size = p.screen.constant_parameters.size
+        self._cached_size = None
         if p.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             p.projection = self.make_new_pixel_coord_projection()
+            if p.auto_pixel_projection is None:
+                # default to maintaining pixel coordinates
+                p.auto_pixel_projection = True
+                self._cached_size = p.size
+        else:
+            if p.auto_pixel_projection is None:
+                # default to not maintaining
+                p.auto_pixel_projection = True
         if p.camera_matrix is None:
             p.camera_matrix = ModelView()
         if p.stimuli is None:
@@ -1334,6 +1347,10 @@ class Viewport(VisionEgg.ClassWithParameters):
     def make_current(self):
         p = self.parameters # shorthand
         p.screen.make_current()
+
+        if p.auto_pixel_projection and self._cached_size != p.size:
+            p.projection = self.make_new_pixel_coord_projection()
+            self._cached_size = p.size
 
         if p.lowerleft != None:
             if not hasattr(Viewport,"_gave_lowerleft_warning"):
