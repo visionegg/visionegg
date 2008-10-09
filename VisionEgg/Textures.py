@@ -569,7 +569,8 @@ class TextureObject(object):
                 elif texel_data.mode in ('RGBA','RGBX'):
                     data_format = gl.GL_RGBA
                 elif texel_data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
             elif isinstance(texel_data,pygame.surface.Surface):
@@ -757,7 +758,8 @@ class TextureObject(object):
                 elif texel_data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
                 elif texel_data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
             elif isinstance(texel_data,pygame.surface.Surface):
@@ -856,47 +858,47 @@ class TextureObject(object):
         gl.glBindTexture(self.target, self.gl_id)
 
         # Determine the data_format, data_type and rescale the data if needed
-        data = texel_data
 
         if data_format is None: # guess the format of the data
             if isinstance(texel_data,numpy.ndarray):
-                if len(data.shape) == self.dimensions:
+                if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
-                elif len(data.shape) == (self.dimensions+1):
-                    if data.shape[-1] == 3:
+                elif len(texel_data.shape) == (self.dimensions+1):
+                    if texel_data.shape[-1] == 3:
                         data_format = gl.GL_RGB
-                    elif data.shape[-1] == 4:
+                    elif texel_data.shape[-1] == 4:
                         data_format = gl.GL_RGBA
                     else:
                         raise RuntimeError("Couldn't determine a format for your texel_data.")
                 else:
                     raise RuntimeError("Couldn't determine a format for your texel_data.")
             elif isinstance(texel_data,Image.Image):
-                if data.mode == 'L':
+                if texel_data.mode == 'L':
                     data_format = gl.GL_LUMINANCE
-                elif data.mode == 'RGB':
+                elif texel_data.mode == 'RGB':
                     data_format = gl.GL_RGB
-                elif data.mode in ['RGBA','RGBX']:
+                elif texel_data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
-                elif data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                elif texel_data.mode == 'P':
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
-                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%data.mode)
+                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
             elif isinstance(texel_data,pygame.surface.Surface):
-                if data.get_alpha():
+                if texel_data.get_alpha():
                     data_format = gl.GL_RGBA
                 else:
                     data_format = gl.GL_RGB
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if isinstance(data,numpy.ndarray):
-                if data.dtype == numpy.float:
-                    data = data*255.0
+            if isinstance(texel_data,numpy.ndarray):
+                if texel_data.dtype == numpy.float:
+                    texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if isinstance(data,numpy.ndarray):
-                data = data.astype(numpy.uint8) # (re)cast if necessary
+            if isinstance(texel_data,numpy.ndarray):
+                texel_data = texel_data.astype(numpy.uint8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -905,8 +907,8 @@ class TextureObject(object):
                 x_offset = 0
             else:
                 x_offset = offset_tuple[0]
-            width = data.shape[0]
-            raw_data = data.astype(numpy.uint8).tostring()
+            width = texel_data.shape[0]
+            raw_data = texel_data.astype(numpy.uint8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
                                x_offset,
@@ -924,17 +926,17 @@ class TextureObject(object):
                 x_offset = y_offset = 0
             else:
                 x_offset, y_offset = offset_tuple
-            if isinstance(data,numpy.ndarray):
-                width = data.shape[1]
-                height = data.shape[0]
-                raw_data = data.astype(numpy.uint8).tostring()
+            if isinstance(texel_data,numpy.ndarray):
+                width = texel_data.shape[1]
+                height = texel_data.shape[0]
+                raw_data = texel_data.astype(numpy.uint8).tostring()
             elif isinstance(texel_data,Image.Image):
-                width = data.size[0]
-                height = data.size[1]
-                raw_data = data.tostring('raw',data.mode,0,-1)
+                width = texel_data.size[0]
+                height = texel_data.size[1]
+                raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
             elif isinstance(texel_data,pygame.surface.Surface):
                 width, height = texel_data.get_size()
-                if data.get_alpha():
+                if texel_data.get_alpha():
                     raw_data = pygame.image.tostring(texel_data,'RGBA',1)
                 else:
                     raw_data = pygame.image.tostring(texel_data,'RGB',1)
