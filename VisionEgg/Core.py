@@ -1348,10 +1348,10 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
 
-        gl.glViewport(lowerleft[0],
-                      lowerleft[1],
-                      p.size[0],
-                      p.size[1])
+        gl.glViewport(int(lowerleft[0]),
+                      int(lowerleft[1]),
+                      int(p.size[0]),
+                      int(p.size[1]))
         gl.glDepthRange(p.depth_range[0],p.depth_range[1])
 
         p.projection.apply_to_gl()
