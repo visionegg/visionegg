@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="visionegg.css" type='text/css' />
+<link rel='start' href='http://www.visionegg.org/' title='Vision Egg website' />
+<link rel="first" href="visionegg.html" title='The Vision Egg Programmer's Manual' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="controllers.html" />
+<link rel="prev" href="node3.html" />
+<link rel="parent" href="visionegg.html" />
+<link rel="next" href="controllers.html" />
+<meta name='aesop' content='information' />
+<title>2. Hierarchy of graphical objects </title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1. Coordinating events"
+  href="node3.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="3. Controlling stimulus parameters"
+  href="controllers.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node3.html">1. Coordinating events</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="controllers.html">3. Controlling stimulus parameters</A>
+</div>
+<hr /></div>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION004000000000000000000"></A><A NAME="hierarchy"></A>
+<BR>
+2. Hierarchy of graphical objects 
+</H1>
+
+<P>
+Currently, the Vision Egg supports only a single screen (window).
+However, it is designed to run simultaneously in multiple screens, so
+once this capability is available (perhaps in pyglet), the following
+priciples will continue to apply.
+
+<P>
+Each screen contains a list of least one ``viewport''. A viewport is
+defined to occupy a rectangular region of the screen and define how
+and where objects are drawn. The default viewport created with each
+screen fills the entire screen. In the Vision Egg <tt class="class">Viewport</tt>
+class, the screen position and size are specified in addition to the
+projection.  The projection, specified by the <tt class="class">Projection</tt>
+class, transforms 3D ``eye coordinates'' into ``clip coordinates''
+according to, for example, an orthographic or perspective projection.
+(Eye coordinates are the 3D coordinates of objects referenced from the
+observers eye in arbitrary units.  Clip coordinates are used to
+compute the final position of the 3D object on the 2D screen.)  The
+default <tt class="class">Projection</tt> created with a <tt class="class">Viewport</tt> is an
+orthographic projection that maps eye coordinates in a one to one
+manner to pixel coordinates, allowing specification of object position
+in absolute pixels. For more information, consult section 2.11,
+``Coordinate Transformations'' of the OpenGL Specification.
+
+<P>
+Multiple instances of the <tt class="class">Viewport</tt> class may occupy the same
+region of the screen.  This could be used, for example, to overlay
+objects with different projections such as in the targetBackground
+demo.  The order of the list of viewports is important, with the first
+in the list being drawn first and later viewports are drawn on top of
+earlier viewports.
+
+<P>
+An instance of the <tt class="class">Viewport</tt> class keeps an ordered list of the
+objects it draws.  Objects to be drawn on top of other objects should
+be drawn last and therefore placed last in the list.
+
+<P>
+The objects a viewport drawns are all instances of the
+<tt class="class">Stimulus</tt> class. The name ``Stimulus'' is perhaps a slightly
+inaccurate because instances of this class only define how to draw a
+set of graphics primitives. So for example, there are
+<tt class="class">SinGrating2D</tt> and <tt class="class">TextureStimulus</tt> subclasses of the
+<tt class="class">Stimulus</tt> class.
+
+<P>
+The Vision Egg draws objects in a hierarchical manner.  First, the
+screen(s) calls each of its viewports in turn.  Each viewport calls
+each of its stimuli in turn.  In this way, the occlusion of objects
+can be controlled by drawing order without employing more advanced
+concepts such as depth testing (which is also possible).
+
+<P>
+
+<DIV CLASS="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1. Coordinating events"
+  href="node3.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="3. Controlling stimulus parameters"
+  href="controllers.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node3.html">1. Coordinating events</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="controllers.html">3. Controlling stimulus parameters</A>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 1.1, documentation updated on June 7, 2008.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.SphereMap.AzElGrid</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        <a href="VisionEgg.SphereMap-module.html">Module&nbsp;SphereMap</a> ::
+        Class&nbsp;AzElGrid
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.SphereMap.AzElGrid-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class AzElGrid</h1><span class="codelink"><a href="VisionEgg.SphereMap-pysrc.html#AzElGrid">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+         object --+        
+                  |        
+<a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a> --+    
+                      |    
+          <a href="VisionEgg.Core.Stimulus-class.html">Core.Stimulus</a> --+
+                          |
+                         <strong class="uidshort">AzElGrid</strong>
+</pre>
+
+<hr />
+<pre class="literalblock">
+Spherical grid of iso-azimuth and iso-elevation lines.
+
+Parameters
+==========
+anti_aliasing    -- (Boolean)
+                    Default: True
+center_azimuth   -- (Real)
+                    Default: 0.0
+center_elevation -- (Real)
+                    Default: 0.0
+major_line_color -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                    Default: (0.0, 0.0, 0.0)
+major_line_width -- (Real)
+                    Default: 2.0
+minor_line_color -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                    Default: (0.0, 0.0, 1.0)
+minor_line_width -- (Real)
+                    Default: 1.0
+my_viewport      -- (Instance of &lt;class 'VisionEgg.Core.Viewport'&gt;)
+                    Default: (determined at runtime)
+on               -- (Boolean)
+                    Default: True
+text_offset      -- (Sequence2 of Real)
+                    Default: (3, -2)
+
+Constant Parameters
+===================
+az_major_spacing       -- (Real)
+                          Default: 30.0
+az_minor_spacing       -- (Real)
+                          Default: 10.0
+el_major_spacing       -- (Real)
+                          Default: 30.0
+el_minor_spacing       -- (Real)
+                          Default: 10.0
+font_size              -- (UnsignedInteger)
+                          Default: 24
+num_samples_per_circle -- (UnsignedInteger)
+                          Default: 100
+radius                 -- (Real)
+                          Default: 1.0
+text_anchor            -- (String)
+                          Default: lowerleft
+text_color             -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                          Default: (0.0, 0.0, 0.0)
+use_text               -- (Boolean)
+                          Default: True
+
+</pre><br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.SphereMap.AzElGrid-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Instantiate and get ready to draw.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.SphereMap-pysrc.html#AzElGrid.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.SphereMap.AzElGrid-class.html#draw" class="summary-sig-name">draw</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Draw the stimulus.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.SphereMap-pysrc.html#AzElGrid.draw">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__getstate__">__getstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__setstate__">__setstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#get_specified_type">get_specified_type</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#is_constant_parameter">is_constant_parameter</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#set">set</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#verify_parameters">verify_parameters</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.SphereMap.AzElGrid-class.html#parameters_and_defaults" class="summary-name">parameters_and_defaults</a> = <code title="{'on':(True, ve_types.Boolean), 'center_azimuth':(0.0, ve_types.Real),\
+ 'center_elevation':(0.0, ve_types.Real), 'minor_line_width':(1.0, ve_\
+types.Real), 'major_line_width':(2.0, ve_types.Real), 'minor_line_colo\
+r':((0.0, 0.0, 1.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),\
+ ve_types.Sequence4(ve_types.Real))), 'major_line_color':((0.0, 0.0, 0\
+.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real), ve_types.Sequen\
+ce4(ve_types.Real))), 'my_viewport':(None, ve_types.Instance(VisionEgg\
+.Core.Viewport)), 'text_offset':((3,-2), ve_types.Sequence2(ve_types.R\
+...">{'on':(True, ve_types.Boolean), 'cen<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.SphereMap.AzElGrid-class.html#constant_parameters_and_defaults" class="summary-name">constant_parameters_and_defaults</a> = <code title="{'use_text':(True, ve_types.Boolean), 'radius':(1.0, ve_types.Real), '\
+az_minor_spacing':(10.0, ve_types.Real), 'az_major_spacing':(30.0, ve_\
+types.Real), 'el_minor_spacing':(10.0, ve_types.Real), 'el_major_spaci\
+ng':(30.0, ve_types.Real), 'num_samples_per_circle':(100, ve_types.Uns\
+ignedInteger), 'font_size':(24, ve_types.UnsignedInteger), 'text_color\
+':((0.0, 0.0, 0.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real), \
+ve_types.Sequence4(ve_types.Real))), 'text_anchor':('lowerleft', ve_ty\
+pes.String),}">{'use_text':(True, ve_types<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__safe_for_unpickling__">__safe_for_unpickling__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.SphereMap-pysrc.html#AzElGrid.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Instantiate and get ready to draw.
+
+Set parameter values and create anything needed to draw the
+stimulus including OpenGL state variables such display lists
+and texture objects.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.Core.Stimulus-class.html#__init__">Core.Stimulus.__init__</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="draw"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">draw</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.SphereMap-pysrc.html#AzElGrid.draw">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Draw the stimulus. (Called by Viewport instance.)
+
+This method is called every frame.  This method actually
+performs the OpenGL calls to draw the stimulus.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.Core.Stimulus-class.html#draw">Core.Stimulus.draw</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'on':(True, ve_types.Boolean), 'center_azimuth':(0.0, ve_types.Real),<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ 'center_elevation':(0.0, ve_types.Real), 'minor_line_width':(1.0, ve_<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+types.Real), 'major_line_width':(2.0, ve_types.Real), 'minor_line_colo<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+r':((0.0, 0.0, 1.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ ve_types.Sequence4(ve_types.Real))), 'major_line_color':((0.0, 0.0, 0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real), ve_types.Sequen<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ce4(ve_types.Real))), 'my_viewport':(None, ve_types.Instance(VisionEgg<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+.Core.Viewport)), 'text_offset':((3,-2), ve_types.Sequence2(ve_types.R<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="constant_parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">constant_parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'use_text':(True, ve_types.Boolean), 'radius':(1.0, ve_types.Real), '<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+az_minor_spacing':(10.0, ve_types.Real), 'az_major_spacing':(30.0, ve_<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+types.Real), 'el_minor_spacing':(10.0, ve_types.Real), 'el_major_spaci<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ng':(30.0, ve_types.Real), 'num_samples_per_circle':(100, ve_types.Uns<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ignedInteger), 'font_size':(24, ve_types.UnsignedInteger), 'text_color<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+':((0.0, 0.0, 0.0), ve_types.AnyOf(ve_types.Sequence3(ve_types.Real), <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ve_types.Sequence4(ve_types.Real))), 'text_anchor':('lowerleft', ve_ty<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+pes.String),}
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:47 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

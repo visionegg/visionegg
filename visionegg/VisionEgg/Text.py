@@ -19,24 +19,14 @@ Text stimuli.
 #
 ####################################################################
 
-try:
-    import logging
-    import logging.handlers
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
+import logging.handlers
 
 import VisionEgg.Core
 import VisionEgg.Textures
 import VisionEgg.ParameterTypes as ve_types
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 try:
     import OpenGL.GLUT as glut
@@ -45,6 +35,12 @@ except:
     have_glut = False
 
 _font_objects = {} # global variable to cache pygame font objects
+
+def delete_font_objects():
+    for key in _font_objects.keys():
+        del _font_objects[key]
+
+VisionEgg.Core.pygame_keeper.register_func_to_call_on_quit(delete_font_objects)
 
 class Text(VisionEgg.Textures.TextureStimulus):
     """Single line of text rendered using pygame/SDL true type fonts.
@@ -87,7 +83,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                              Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                             Default: GL_LINEAR
+                             Default: GL_LINEAR (9729)
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                              Default: (GL enum determined at runtime)
@@ -106,7 +102,7 @@ class Text(VisionEgg.Textures.TextureStimulus):
                          Default: 30
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
                          Inherited from VisionEgg.Textures.TextureStimulus
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Inherited from VisionEgg.Textures.TextureStimulus
                          Default: True

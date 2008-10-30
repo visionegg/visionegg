@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.GL</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        Module&nbsp;GL
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.GL-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="VisionEgg.GL-module.html">Module VisionEgg.GL</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># The Vision Egg: GL</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2001-2003 Andrew Straw.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Author: Andrew Straw &lt;astraw@users.sourceforge.net&gt;</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># URL: &lt;http://www.visionegg.org/&gt;</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Distributed under the terms of the GNU Lesser General Public License</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># (LGPL). See LICENSE.TXT that came with this file.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># $Id$</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-docstring">Vision Egg GL module -- lump all OpenGL names in one namespace.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module VisionEgg.GL=VisionEgg.GL-module.html"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-0', 'GL', 'link-0');">GL</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> <tt class="py-comment"># get everything from OpenGL.GL</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">numpy</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt id="link-1" class="py-name" targets="Variable VisionEgg.DaqKeyboard.__version__=VisionEgg.DaqKeyboard-module.html#__version__,Variable VisionEgg.DaqLPT.__version__=VisionEgg.DaqLPT-module.html#__version__,Variable VisionEgg.GL.__version__=VisionEgg.GL-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUI.__version__=VisionEgg.PyroApps.EPhysGUI-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__version__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__version__,Variable VisionEgg.PyroApps.EPhysServer.__version__=VisionEgg.PyroApps.EPhysServer-module.html#__version__,Variable VisionEgg.PyroApps.GridGUI.__version__=VisionEgg.PyroApps.GridGUI-module.html#__version__,Variable VisionEgg.PyroApps.GridServer.__version__=VisionEgg.PyroApps.GridServer-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__version__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionServer.__version__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__version__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumServer.__version__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__version__,Variable VisionEgg.PyroHelpers.__version__=VisionEgg.PyroHelpers-module.html#__version__,Variable VisionEgg.QuickTime.__version__=VisionEgg.QuickTime-module.html#__version__,Variable VisionEgg.ResponseControl.__version__=VisionEgg.ResponseControl-module.html#__version__,Variable VisionEgg.SphereMap.__version__=VisionEgg.SphereMap-module.html#__version__,Variable VisionEgg.TCPController.__version__=VisionEgg.TCPController-module.html#__version__"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-1', '__version__', 'link-1');">__version__</a></tt> <tt class="py-op">=</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-2', '__version__', 'link-1');">__version__</a></tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-comment"># tell py2exe we want these modules</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-3', 'GL', 'link-0');">GL</a></tt><tt class="py-op">.</tt><tt class="py-name">GL__init___</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-4', 'GL', 'link-0');">GL</a></tt><tt class="py-op">.</tt><tt class="py-name">ARB</tt><tt class="py-op">.</tt><tt class="py-name">multitexture</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-5', 'GL', 'link-0');">GL</a></tt><tt class="py-op">.</tt><tt class="py-name">EXT</tt><tt class="py-op">.</tt><tt class="py-name">bgra</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">SGIS</tt><tt class="py-op">.</tt><tt class="py-name">texture_edge_clamp</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"><tt class="py-comment"># why doesn't PyOpenGL define this?!</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable VisionEgg.GL.GL_UNSIGNED_INT_8_8_8_8_REV=VisionEgg.GL-module.html#GL_UNSIGNED_INT_8_8_8_8_REV"><a title="VisionEgg.GL.GL_UNSIGNED_INT_8_8_8_8_REV" class="py-name" href="#" onclick="return doclink('link-6', 'GL_UNSIGNED_INT_8_8_8_8_REV', 'link-6');">GL_UNSIGNED_INT_8_8_8_8_REV</a></tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">NameError</tt><tt class="py-op">:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">    <tt id="link-7" class="py-name"><a title="VisionEgg.GL.GL_UNSIGNED_INT_8_8_8_8_REV" class="py-name" href="#" onclick="return doclink('link-7', 'GL_UNSIGNED_INT_8_8_8_8_REV', 'link-6');">GL_UNSIGNED_INT_8_8_8_8_REV</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0x8367</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-8', '__version__', 'link-1');">__version__</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-string">'3'</tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-9', '__version__', 'link-1');">__version__</a></tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">'3.0.0a'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-op">(</tt><tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-10', '__version__', 'link-1');">__version__</a></tt> <tt class="py-op">==</tt> <tt class="py-string">'3.0.0b1'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">        <tt class="py-comment"># A bug in early PyOpenGL 3.x had problems with some arrays</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt id="link-11" class="py-name" targets="Variable VisionEgg.GL._orig_glLoadMatrixf=VisionEgg.GL-module.html#_orig_glLoadMatrixf"><a title="VisionEgg.GL._orig_glLoadMatrixf" class="py-name" href="#" onclick="return doclink('link-11', '_orig_glLoadMatrixf', 'link-11');">_orig_glLoadMatrixf</a></tt> <tt class="py-op">=</tt> <tt id="link-12" class="py-name" targets="Function VisionEgg.GL.glLoadMatrixf()=VisionEgg.GL-module.html#glLoadMatrixf"><a title="VisionEgg.GL.glLoadMatrixf" class="py-name" href="#" onclick="return doclink('link-12', 'glLoadMatrixf', 'link-12');">glLoadMatrixf</a></tt> </tt>
+<a name="glLoadMatrixf"></a><div id="glLoadMatrixf-def"><a name="L51"></a><tt class="py-lineno">51</tt> <a class="py-toggle" href="#" id="glLoadMatrixf-toggle" onclick="return toggle('glLoadMatrixf');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.GL-module.html#glLoadMatrixf">glLoadMatrixf</a><tt class="py-op">(</tt><tt class="py-param">M</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="glLoadMatrixf-collapsed" style="display:none;" pad="++" indent="++++++++++++++++"></div><div id="glLoadMatrixf-expanded"><a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">            <tt class="py-name">M</tt> <tt class="py-op">=</tt> <tt class="py-name">numpy</tt><tt class="py-op">.</tt><tt class="py-name">array</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-name">Mi</tt> <tt class="py-keyword">for</tt> <tt class="py-name">Mi</tt> <tt class="py-keyword">in</tt> <tt class="py-name">M</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-13" class="py-name"><a title="VisionEgg.GL._orig_glLoadMatrixf" class="py-name" href="#" onclick="return doclink('link-13', '_orig_glLoadMatrixf', 'link-11');">_orig_glLoadMatrixf</a></tt><tt class="py-op">(</tt><tt class="py-name">M</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:47 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

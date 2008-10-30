@@ -54,10 +54,7 @@ try:
 except:
     pass
 
-try:
-    import logging
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
 
 __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
@@ -132,7 +129,7 @@ class TCPServer:
                 self.server_address = (hostname,port)
                 self.clicked_ok = 1
                 self.winfo_toplevel().destroy()
-                
+
         bound = 0
         if not bound:
 #        while not bound: # don't loop until the code is cleaner
@@ -215,7 +212,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
 
     TCP commands (sent over network socket)
     =======================================
-    
+
     close -- close the connection
     exit -- close the connection
     quit -- quit the server program
@@ -243,7 +240,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
     temporal_variables = TIME_SEC_SINCE_GO
     return_type = (evaluates during_go function to find)
     between_go = (see below, depends on assignment type)
-    
+
     The only difference between the assignment commands are in the
     first two arguments.  For "const(...)", the first two arguments
     are constant values, for "eval_str(...)" they are strings that
@@ -280,9 +277,9 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
     <name>=exec_str("print 'Time since go=%f'%(t,)\nx=t*360.0","x=0.0",EVERY_FRAME,TIME_SEC_SINCE_GO)
 
     """
-    
+
     help_string = r"""    TCP commands (sent over network socket):
-    
+
     close -- close the connection
     exit -- close the connection
     quit -- quit the server program
@@ -327,11 +324,11 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
             # Warning -- no ability to accept further incoming sockets...
             pass
         self.server_socket = server_socket
-        
+
         logger = logging.getLogger('VisionEgg.TCPController')
         logger.info("Handling connection from %s"%(self.socket.getsockname(),))
         self.socket.setblocking(0) # don't block on this socket
-        
+
         self.socket.send("Hello. This is %s version %s.\n"%(self.__class__,__version__))
         self.socket.send(SocketListenController.help_string+"\n")
         self.socket.send("Begin sending commands now.\n")
@@ -366,7 +363,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                 if len(new) == 0: # When disconnected, this happens on unix
                     # Disconnected
                     self.socket.close() # close socket
-                    self.socket = None 
+                    self.socket = None
                     if not self.disconnect_ok:
                         raise RuntimeError("Socket disconnected!")
                     else:
@@ -386,7 +383,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                 # Handle each line for which we have a tcp_name
                 for tcp_name in self.names.keys():
                     (controller, name_re_str, parser, require_type) = self.names[tcp_name]
-                    
+
                     # If the following line makes a match, it
                     # sticks the result in self.last_command[tcp_name] by calling the parser function.
                     self.buffer = name_re_str.sub(parser,self.buffer)
@@ -411,7 +408,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
                     self.socket.send('"%s" controllable with this connection.\n'%tcp_name)
             except socket.error, x:
                 pass
-                        
+
     def __unprocessed_line(self,match):
         text = match.group(1)
         text = string.strip(text).lower()
@@ -448,7 +445,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
         tcp_name -- String to reference new TCPController over TCP
 
         Optional arguments:
-        
+
         initial_controller -- Initial value of TCPController instance
         require_type -- force this as TCPController instance's return_type
         """
@@ -519,7 +516,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
             kw_args['temporal_variables'] = match_groups[3]
         if match_groups[4] is not None:
             kw_args['return_type'] = match_groups[4]
-            
+
     def __do_assignment_command(self,tcp_name,command,require_type):
         new_contained_controller = None
         match = SocketListenController._re_const.match(command)
@@ -627,7 +624,7 @@ class SocketListenController(VisionEgg.FlowControl.Controller):
 
         Overrides base class Controller method."""
         self.__check_socket()
-        return None   
+        return None
 
 class TCPController(VisionEgg.FlowControl.EncapsulatedController):
     """Control a parameter from a network (TCP) connection.

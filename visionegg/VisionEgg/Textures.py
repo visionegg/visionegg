@@ -19,10 +19,7 @@ Texture (images mapped onto polygons) stimuli.
 #
 ####################################################################
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
+import logging                              # available in Python 2.3
 
 import VisionEgg
 import VisionEgg.Core
@@ -42,13 +39,6 @@ import pyglet.gl as glu
 # make executables using Intaller if you remove these lines.
 import _imaging
 import ImageFile, ImageFileIO, BmpImagePlugin, JpegImagePlugin, PngImagePlugin
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 if Image.VERSION >= '1.1.3':
     shrink_filter = Image.ANTIALIAS # Added in PIL 1.1.3
@@ -569,7 +559,8 @@ class TextureObject(object):
                 elif texel_data.mode in ('RGBA','RGBX'):
                     data_format = gl.GL_RGBA
                 elif texel_data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
 
@@ -747,7 +738,8 @@ class TextureObject(object):
                 elif texel_data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
                 elif texel_data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
                     raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
 
@@ -832,42 +824,42 @@ class TextureObject(object):
         gl.glBindTexture(self.target, self.gl_id)
 
         # Determine the data_format, data_type and rescale the data if needed
-        data = texel_data
 
         if data_format is None: # guess the format of the data
             if isinstance(texel_data,numpy.ndarray):
-                if len(data.shape) == self.dimensions:
+                if len(texel_data.shape) == self.dimensions:
                     data_format = gl.GL_LUMINANCE
-                elif len(data.shape) == (self.dimensions+1):
-                    if data.shape[-1] == 3:
+                elif len(texel_data.shape) == (self.dimensions+1):
+                    if texel_data.shape[-1] == 3:
                         data_format = gl.GL_RGB
-                    elif data.shape[-1] == 4:
+                    elif texel_data.shape[-1] == 4:
                         data_format = gl.GL_RGBA
                     else:
                         raise RuntimeError("Couldn't determine a format for your texel_data.")
                 else:
                     raise RuntimeError("Couldn't determine a format for your texel_data.")
             elif isinstance(texel_data,Image.Image):
-                if data.mode == 'L':
+                if texel_data.mode == 'L':
                     data_format = gl.GL_LUMINANCE
-                elif data.mode == 'RGB':
+                elif texel_data.mode == 'RGB':
                     data_format = gl.GL_RGB
-                elif data.mode in ['RGBA','RGBX']:
+                elif texel_data.mode in ['RGBA','RGBX']:
                     data_format = gl.GL_RGBA
-                elif data.mode == 'P':
-                    raise NotImplementedError("Paletted images are not supported.")
+                elif texel_data.mode == 'P':
+                    texel_data=texel_data.convert('RGBA') # convert to RGBA from paletted
+                    data_format = gl.GL_RGBA
                 else:
-                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%data.mode)
+                    raise RuntimeError("Couldn't determine format for your texel_data. (PIL mode = '%s')"%texel_data.mode)
 
         if data_type is None: # guess the data type
             data_type = gl.GL_UNSIGNED_BYTE
-            if isinstance(data,numpy.ndarray):
-                if data.dtype == numpy.float:
-                    data = data*255.0
+            if isinstance(texel_data,numpy.ndarray):
+                if texel_data.dtype == numpy.float:
+                    texel_data = texel_data*255.0
 
         if data_type == gl.GL_UNSIGNED_BYTE:
-            if isinstance(data,numpy.ndarray):
-                data = data.astype(numpy.uint8) # (re)cast if necessary
+            if isinstance(texel_data,numpy.ndarray):
+                texel_data = texel_data.astype(numpy.uint8) # (re)cast if necessary
         else:
             raise NotImplementedError("Only data_type GL_UNSIGNED_BYTE currently supported")
 
@@ -876,8 +868,8 @@ class TextureObject(object):
                 x_offset = 0
             else:
                 x_offset = offset_tuple[0]
-            width = data.shape[0]
-            raw_data = data.astype(numpy.uint8).tostring()
+            width = texel_data.shape[0]
+            raw_data = texel_data.astype(numpy.uint8).tostring()
             gl.glTexSubImage1D(gl.GL_TEXTURE_1D,
                                mipmap_level,
                                x_offset,
@@ -895,14 +887,14 @@ class TextureObject(object):
                 x_offset = y_offset = 0
             else:
                 x_offset, y_offset = offset_tuple
-            if isinstance(data,numpy.ndarray):
-                width = data.shape[1]
-                height = data.shape[0]
-                raw_data = data.astype(numpy.uint8).tostring()
+            if isinstance(texel_data,numpy.ndarray):
+                width = texel_data.shape[1]
+                height = texel_data.shape[0]
+                raw_data = texel_data.astype(numpy.uint8).tostring()
             elif isinstance(texel_data,Image.Image):
-                width = data.size[0]
-                height = data.size[1]
-                raw_data = data.tostring('raw',data.mode,0,-1)
+                width = texel_data.size[0]
+                height = texel_data.size[1]
+                raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
             gl.glTexSubImage2D(target,
                                mipmap_level,
                                x_offset,
@@ -989,7 +981,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     texture            -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Default: (GL enum determined at runtime)
     texture_wrap_s     -- OpenGL texture wrap enum (Integer)
@@ -1000,7 +992,7 @@ class TextureStimulusBaseClass(VisionEgg.Core.Stimulus):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1209,19 +1201,19 @@ class Mask2D(VisionEgg.ClassWithParameters):
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,0.0)
-        gl.glVertex3f(*v1)
+        gl.glVertex(*v1)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,bt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,0.0)
-        gl.glVertex3f(*v2)
+        gl.glVertex(*v2)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,rt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,1.0,1.0)
-        gl.glVertex3f(*v3)
+        gl.glVertex(*v3)
 
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE0_ARB,lt,tt)
         gl.glMultiTexCoord2fARB(gl.GL_TEXTURE1_ARB,0.0,1.0)
-        gl.glVertex3f(*v4)
+        gl.glVertex(*v4)
 
         gl.glEnd() # GL_QUADS
         gl.glDisable(gl.GL_TEXTURE_2D) # turn off texturing in this texture unit
@@ -1269,7 +1261,7 @@ class TextureStimulus(TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -1283,7 +1275,7 @@ class TextureStimulus(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1386,32 +1378,33 @@ class TextureStimulus(TextureStimulusBaseClass):
 
                 gl.glColor4f(p.color[0],p.color[1],p.color[2],p.max_alpha)
 
-                # draw only if all values are finite
-                if numpy.alltrue( numpy.isfinite( numpy.concatenate((lowerleft,p.position)) ) ):
-                    l = lowerleft[0] - p.position[0]
-                    r = l + size[0]
-                    b = lowerleft[1] - p.position[1]
-                    t = b + size[1]
+                # Test to draw only if all values are finite is
+                # disabled for performance reasons.
+                #if numpy.alltrue( numpy.isfinite( numpy.concatenate((lowerleft,p.position)) ) ):
+                l = lowerleft[0] - p.position[0]
+                r = l + size[0]
+                b = lowerleft[1] - p.position[1]
+                t = b + size[1]
 
-                    tex.update()
+                tex.update()
 
-                    if p.mask:
-                        p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
-                                                l,r,b,t,0.0) # l,r,b,t in eye coordinates
-                    else:
-                        gl.glBegin(gl.GL_QUADS)
-                        gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
-                        gl.glVertex2f(l,b)
+                if p.mask:
+                    p.mask.draw_masked_quad(tex.buf_lf,tex.buf_rf,tex.buf_bf,tex.buf_tf, # l,r,b,t for texture coordinates
+                                            l,r,b,t,0.0) # l,r,b,t in eye coordinates
+                else:
+                    gl.glBegin(gl.GL_QUADS)
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_bf)
+                    gl.glVertex2f(l,b)
 
-                        gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
-                        gl.glVertex2f(r,b)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_bf)
+                    gl.glVertex2f(r,b)
 
-                        gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
-                        gl.glVertex2f(r,t)
+                    gl.glTexCoord2f(tex.buf_rf,tex.buf_tf)
+                    gl.glVertex2f(r,t)
 
-                        gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
-                        gl.glVertex2f(l,t)
-                        gl.glEnd() # GL_QUADS
+                    gl.glTexCoord2f(tex.buf_lf,tex.buf_tf)
+                    gl.glVertex2f(l,t)
+                    gl.glEnd() # GL_QUADS
             finally:
                 gl.glPopMatrix()
 
@@ -1433,7 +1426,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -1451,7 +1444,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -1552,6 +1545,8 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: (determined at runtime)
     flip_image            -- toggles normal vs. horizonally flipped image (Boolean)
                              Default: False
+    height                -- height of cyliner, automatically set by texel aspect ratio if < 0. (Real)
+                             Default: -1
     num_sides             -- (UnsignedInteger)
                              Default: 50
     on                    -- (Boolean)
@@ -1567,7 +1562,7 @@ class SpinningDrum(TextureStimulusBaseClass):
                              Default: (determined at runtime)
     texture_mag_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
-                             Default: GL_LINEAR
+                             Default: GL_LINEAR (9729)
     texture_min_filter    -- OpenGL filter enum (Integer)
                              Inherited from TextureStimulusBaseClass
                              Default: (GL enum determined at runtime)
@@ -1581,7 +1576,7 @@ class SpinningDrum(TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)

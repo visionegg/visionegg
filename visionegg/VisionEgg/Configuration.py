@@ -79,6 +79,8 @@ defaults= {
     'VISIONEGG_TKINTER_OK':           1,
     'SYNCLYNC_PRESENT':               0,
     }
+if sys.platform.startswith('linux'):
+    defaults['VISIONEGG_PREFERRED_BPP']=24
 
 extra_darwin_defaults = {
     'VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME'  : 1,
@@ -119,7 +121,6 @@ class Config:
                 if not os.path.isfile(configFile):
                     configFile = None # No file, use defaults specified in environment variables then here
 
-        print 'configFile',configFile
         if configFile:
             cfg.read(configFile)
         else:

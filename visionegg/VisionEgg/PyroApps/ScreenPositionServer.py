@@ -62,19 +62,19 @@ class ScreenPositionMetaController( Pyro.core.ObjBase ):
         eye = (self.meta_params.eye[0],
                self.meta_params.eye[1],
                self.meta_params.eye[2])
-        
+
         center = (self.meta_params.center[0],
                self.meta_params.center[1],
                self.meta_params.center[2])
-        
+
         up = (self.meta_params.up[0],
                self.meta_params.up[1],
                self.meta_params.up[2])
-        
+
         temp = VisionEgg.Core.PerspectiveProjection(left,right,bottom,top,near,far)
         temp.look_at(eye,center,up)
         self.proj.parameters.matrix = temp.get_matrix()
-                                                    
+
     def go(self):
         self.p.parameters.enter_go_loop = 1
 
@@ -83,7 +83,7 @@ class ScreenPositionMetaController( Pyro.core.ObjBase ):
 
 # Don't do anything unless this script is being run
 if __name__ == '__main__':
-    
+
     pyro_server = VisionEgg.PyroHelpers.PyroServer()
 
     # get Vision Egg stimulus ready to go

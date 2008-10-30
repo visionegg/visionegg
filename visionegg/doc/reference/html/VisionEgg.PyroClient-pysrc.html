@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.PyroClient</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        Module&nbsp;PyroClient
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.PyroClient-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="VisionEgg.PyroClient-module.html">Module VisionEgg.PyroClient</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># The Vision Egg: PyroClient</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2001-2003 Andrew Straw.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2008 California Insitute of Technology</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Author: Andrew Straw &lt;astraw@users.sourceforge.net&gt;</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># URL: &lt;http://www.visionegg.org/&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Distributed under the terms of the GNU Lesser General Public License</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># (LGPL). See LICENSE.TXT that came with this file.</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># $Id$</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-docstring">Python Remote Objects support - Client side.</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">socket</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package VisionEgg=VisionEgg-module.html"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-0', 'VisionEgg', 'link-0');">VisionEgg</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt>                              <tt class="py-comment"># available in Python 2.3</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt id="link-1" class="py-name" targets="Variable VisionEgg.DaqKeyboard.__version__=VisionEgg.DaqKeyboard-module.html#__version__,Variable VisionEgg.DaqLPT.__version__=VisionEgg.DaqLPT-module.html#__version__,Variable VisionEgg.GL.__version__=VisionEgg.GL-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUI.__version__=VisionEgg.PyroApps.EPhysGUI-module.html#__version__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__version__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__version__,Variable VisionEgg.PyroApps.EPhysServer.__version__=VisionEgg.PyroApps.EPhysServer-module.html#__version__,Variable VisionEgg.PyroApps.GridGUI.__version__=VisionEgg.PyroApps.GridGUI-module.html#__version__,Variable VisionEgg.PyroApps.GridServer.__version__=VisionEgg.PyroApps.GridServer-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__version__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__version__,Variable VisionEgg.PyroApps.ScreenPositionServer.__version__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__version__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__version__,Variable VisionEgg.PyroApps.SpinningDrumServer.__version__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__version__,Variable VisionEgg.PyroHelpers.__version__=VisionEgg.PyroHelpers-module.html#__version__,Variable VisionEgg.QuickTime.__version__=VisionEgg.QuickTime-module.html#__version__,Variable VisionEgg.ResponseControl.__version__=VisionEgg.ResponseControl-module.html#__version__,Variable VisionEgg.SphereMap.__version__=VisionEgg.SphereMap-module.html#__version__,Variable VisionEgg.TCPController.__version__=VisionEgg.TCPController-module.html#__version__"><a title="VisionEgg.DaqKeyboard.__version__
+VisionEgg.DaqLPT.__version__
+VisionEgg.GL.__version__
+VisionEgg.PyroApps.EPhysGUI.__version__
+VisionEgg.PyroApps.EPhysGUIUtils.__version__
+VisionEgg.PyroApps.EPhysServer.__version__
+VisionEgg.PyroApps.GridGUI.__version__
+VisionEgg.PyroApps.GridServer.__version__
+VisionEgg.PyroApps.ScreenPositionGUI.__version__
+VisionEgg.PyroApps.ScreenPositionServer.__version__
+VisionEgg.PyroApps.SpinningDrumGUI.__version__
+VisionEgg.PyroApps.SpinningDrumServer.__version__
+VisionEgg.PyroHelpers.__version__
+VisionEgg.QuickTime.__version__
+VisionEgg.ResponseControl.__version__
+VisionEgg.SphereMap.__version__
+VisionEgg.TCPController.__version__" class="py-name" href="#" onclick="return doclink('link-1', '__version__', 'link-1');">__version__</a></tt> <tt class="py-op">=</tt> <tt id="link-2" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-2', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Variable VisionEgg.release_name=VisionEgg-module.html#release_name"><a title="VisionEgg.release_name" class="py-name" href="#" onclick="return doclink('link-3', 'release_name', 'link-3');">release_name</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt id="link-4" class="py-name" targets="Variable VisionEgg.PyroApps.ColorCalGUI.__cvs__=VisionEgg.PyroApps.ColorCalGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.ColorCalServer.__cvs__=VisionEgg.PyroApps.ColorCalServer-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysGUI.__cvs__=VisionEgg.PyroApps.EPhysGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__cvs__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__cvs__,Variable VisionEgg.PyroApps.EPhysServer.__cvs__=VisionEgg.PyroApps.EPhysServer-module.html#__cvs__,Variable VisionEgg.PyroApps.FlatGratingGUI.__cvs__=VisionEgg.PyroApps.FlatGratingGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.FlatGratingServer.__cvs__=VisionEgg.PyroApps.FlatGratingServer-module.html#__cvs__,Variable VisionEgg.PyroApps.GridGUI.__cvs__=VisionEgg.PyroApps.GridGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.GridServer.__cvs__=VisionEgg.PyroApps.GridServer-module.html#__cvs__,Variable VisionEgg.PyroApps.MouseTargetGUI.__cvs__=VisionEgg.PyroApps.MouseTargetGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.MouseTargetServer.__cvs__=VisionEgg.PyroApps.MouseTargetServer-module.html#__cvs__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__cvs__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.ScreenPositionServer.__cvs__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__cvs__,Variable VisionEgg.PyroApps.SphereGratingGUI.__cvs__=VisionEgg.PyroApps.SphereGratingGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.SphereGratingServer.__cvs__=VisionEgg.PyroApps.SphereGratingServer-module.html#__cvs__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__cvs__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.SpinningDrumServer.__cvs__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__cvs__,Variable VisionEgg.PyroApps.TargetGUI.__cvs__=VisionEgg.PyroApps.TargetGUI-module.html#__cvs__,Variable VisionEgg.PyroApps.TargetServer.__cvs__=VisionEgg.PyroApps.TargetServer-module.html#__cvs__,Variable VisionEgg.PyroClient.__cvs__=VisionEgg.PyroClient-module.html#__cvs__,Variable VisionEgg.PyroHelpers.__cvs__=VisionEgg.PyroHelpers-module.html#__cvs__,Variable VisionEgg.TCPController.__cvs__=VisionEgg.TCPController-module.html#__cvs__"><a title="VisionEgg.PyroApps.ColorCalGUI.__cvs__
+VisionEgg.PyroApps.ColorCalServer.__cvs__
+VisionEgg.PyroApps.EPhysGUI.__cvs__
+VisionEgg.PyroApps.EPhysGUIUtils.__cvs__
+VisionEgg.PyroApps.EPhysServer.__cvs__
+VisionEgg.PyroApps.FlatGratingGUI.__cvs__
+VisionEgg.PyroApps.FlatGratingServer.__cvs__
+VisionEgg.PyroApps.GridGUI.__cvs__
+VisionEgg.PyroApps.GridServer.__cvs__
+VisionEgg.PyroApps.MouseTargetGUI.__cvs__
+VisionEgg.PyroApps.MouseTargetServer.__cvs__
+VisionEgg.PyroApps.ScreenPositionGUI.__cvs__
+VisionEgg.PyroApps.ScreenPositionServer.__cvs__
+VisionEgg.PyroApps.SphereGratingGUI.__cvs__
+VisionEgg.PyroApps.SphereGratingServer.__cvs__
+VisionEgg.PyroApps.SpinningDrumGUI.__cvs__
+VisionEgg.PyroApps.SpinningDrumServer.__cvs__
+VisionEgg.PyroApps.TargetGUI.__cvs__
+VisionEgg.PyroApps.TargetServer.__cvs__
+VisionEgg.PyroClient.__cvs__
+VisionEgg.PyroHelpers.__cvs__
+VisionEgg.TCPController.__cvs__" class="py-name" href="#" onclick="return doclink('link-4', '__cvs__', 'link-4');">__cvs__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'$Revision$'</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt id="link-5" class="py-name" targets="Variable VisionEgg.PyroApps.ColorCalGUI.__date__=VisionEgg.PyroApps.ColorCalGUI-module.html#__date__,Variable VisionEgg.PyroApps.ColorCalServer.__date__=VisionEgg.PyroApps.ColorCalServer-module.html#__date__,Variable VisionEgg.PyroApps.EPhysGUI.__date__=VisionEgg.PyroApps.EPhysGUI-module.html#__date__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__date__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__date__,Variable VisionEgg.PyroApps.EPhysServer.__date__=VisionEgg.PyroApps.EPhysServer-module.html#__date__,Variable VisionEgg.PyroApps.FlatGratingGUI.__date__=VisionEgg.PyroApps.FlatGratingGUI-module.html#__date__,Variable VisionEgg.PyroApps.FlatGratingServer.__date__=VisionEgg.PyroApps.FlatGratingServer-module.html#__date__,Variable VisionEgg.PyroApps.GridGUI.__date__=VisionEgg.PyroApps.GridGUI-module.html#__date__,Variable VisionEgg.PyroApps.GridServer.__date__=VisionEgg.PyroApps.GridServer-module.html#__date__,Variable VisionEgg.PyroApps.MouseTargetGUI.__date__=VisionEgg.PyroApps.MouseTargetGUI-module.html#__date__,Variable VisionEgg.PyroApps.MouseTargetServer.__date__=VisionEgg.PyroApps.MouseTargetServer-module.html#__date__,Variable VisionEgg.PyroApps.ScreenPositionGUI.__date__=VisionEgg.PyroApps.ScreenPositionGUI-module.html#__date__,Variable VisionEgg.PyroApps.ScreenPositionServer.__date__=VisionEgg.PyroApps.ScreenPositionServer-module.html#__date__,Variable VisionEgg.PyroApps.SphereGratingGUI.__date__=VisionEgg.PyroApps.SphereGratingGUI-module.html#__date__,Variable VisionEgg.PyroApps.SphereGratingServer.__date__=VisionEgg.PyroApps.SphereGratingServer-module.html#__date__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__date__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__date__,Variable VisionEgg.PyroApps.SpinningDrumServer.__date__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__date__,Variable VisionEgg.PyroApps.TargetGUI.__date__=VisionEgg.PyroApps.TargetGUI-module.html#__date__,Variable VisionEgg.PyroApps.TargetServer.__date__=VisionEgg.PyroApps.TargetServer-module.html#__date__,Variable VisionEgg.PyroClient.__date__=VisionEgg.PyroClient-module.html#__date__,Variable VisionEgg.PyroHelpers.__date__=VisionEgg.PyroHelpers-module.html#__date__,Variable VisionEgg.TCPController.__date__=VisionEgg.TCPController-module.html#__date__"><a title="VisionEgg.PyroApps.ColorCalGUI.__date__
+VisionEgg.PyroApps.ColorCalServer.__date__
+VisionEgg.PyroApps.EPhysGUI.__date__
+VisionEgg.PyroApps.EPhysGUIUtils.__date__
+VisionEgg.PyroApps.EPhysServer.__date__
+VisionEgg.PyroApps.FlatGratingGUI.__date__
+VisionEgg.PyroApps.FlatGratingServer.__date__
+VisionEgg.PyroApps.GridGUI.__date__
+VisionEgg.PyroApps.GridServer.__date__
+VisionEgg.PyroApps.MouseTargetGUI.__date__
+VisionEgg.PyroApps.MouseTargetServer.__date__
+VisionEgg.PyroApps.ScreenPositionGUI.__date__
+VisionEgg.PyroApps.ScreenPositionServer.__date__
+VisionEgg.PyroApps.SphereGratingGUI.__date__
+VisionEgg.PyroApps.SphereGratingServer.__date__
+VisionEgg.PyroApps.SpinningDrumGUI.__date__
+VisionEgg.PyroApps.SpinningDrumServer.__date__
+VisionEgg.PyroApps.TargetGUI.__date__
+VisionEgg.PyroApps.TargetServer.__date__
+VisionEgg.PyroClient.__date__
+VisionEgg.PyroHelpers.__date__
+VisionEgg.TCPController.__date__" class="py-name" href="#" onclick="return doclink('link-5', '__date__', 'link-5');">__date__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">' '</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-string">'$Date$'</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt id="link-6" class="py-name" targets="Variable VisionEgg.PyroApps.EPhysGUI.__author__=VisionEgg.PyroApps.EPhysGUI-module.html#__author__,Variable VisionEgg.PyroApps.EPhysGUIUtils.__author__=VisionEgg.PyroApps.EPhysGUIUtils-module.html#__author__,Variable VisionEgg.PyroApps.EPhysServer.__author__=VisionEgg.PyroApps.EPhysServer-module.html#__author__,Variable VisionEgg.PyroApps.GridGUI.__author__=VisionEgg.PyroApps.GridGUI-module.html#__author__,Variable VisionEgg.PyroApps.GridServer.__author__=VisionEgg.PyroApps.GridServer-module.html#__author__,Variable VisionEgg.PyroApps.SpinningDrumGUI.__author__=VisionEgg.PyroApps.SpinningDrumGUI-module.html#__author__,Variable VisionEgg.PyroApps.SpinningDrumServer.__author__=VisionEgg.PyroApps.SpinningDrumServer-module.html#__author__"><a title="VisionEgg.PyroApps.EPhysGUI.__author__
+VisionEgg.PyroApps.EPhysGUIUtils.__author__
+VisionEgg.PyroApps.EPhysServer.__author__
+VisionEgg.PyroApps.GridGUI.__author__
+VisionEgg.PyroApps.GridServer.__author__
+VisionEgg.PyroApps.SpinningDrumGUI.__author__
+VisionEgg.PyroApps.SpinningDrumServer.__author__" class="py-name" href="#" onclick="return doclink('link-6', '__author__', 'link-6');">__author__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'Andrew Straw &lt;astraw@users.sourceforge.net&gt;'</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">Pyro</tt><tt class="py-op">.</tt><tt class="py-name">core</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"> </tt>
+<a name="PyroClient"></a><div id="PyroClient-def"><a name="L30"></a><tt class="py-lineno">30</tt> <a class="py-toggle" href="#" id="PyroClient-toggle" onclick="return toggle('PyroClient');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="VisionEgg.PyroClient.PyroClient-class.html">PyroClient</a><tt class="py-op">:</tt> </tt>
+</div><div id="PyroClient-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="PyroClient-expanded"><a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">    <tt class="py-docstring">"""Simplifies getting PyroControllers from a remote computer."""</tt> </tt>
+<a name="PyroClient.__init__"></a><div id="PyroClient.__init__-def"><a name="L32"></a><tt class="py-lineno">32</tt> <a class="py-toggle" href="#" id="PyroClient.__init__-toggle" onclick="return toggle('PyroClient.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroClient.PyroClient-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">server_hostname</tt><tt class="py-op">=</tt><tt class="py-string">''</tt><tt class="py-op">,</tt><tt class="py-param">server_port</tt><tt class="py-op">=</tt><tt class="py-number">7766</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PyroClient.__init__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="PyroClient.__init__-expanded"><a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">        <tt class="py-docstring">"""Initialize Pyro client."""</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">        <tt class="py-name">Pyro</tt><tt class="py-op">.</tt><tt class="py-name">core</tt><tt class="py-op">.</tt><tt class="py-name">initClient</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server_hostname</tt> <tt class="py-op">=</tt> <tt class="py-name">socket</tt><tt class="py-op">.</tt><tt class="py-name">getfqdn</tt><tt class="py-op">(</tt><tt class="py-name">server_hostname</tt><tt class="py-op">)</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt><tt class="py-op">,</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">            <tt id="link-7" class="py-name" targets="Variable VisionEgg.logger=VisionEgg-module.html#logger"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-7', 'logger', 'link-7');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PyroClient'</tt><tt class="py-op">)</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">            <tt id="link-8" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-8', 'logger', 'link-7');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"while getting fully qualified domain name: %s: %s"</tt><tt class="py-op">%</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">                           <tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server_hostname</tt> <tt class="py-op">=</tt> <tt class="py-name">server_hostname</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server_port</tt> <tt class="py-op">=</tt> <tt class="py-name">server_port</tt> </tt>
+</div><a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"> </tt>
+<a name="PyroClient.get"></a><div id="PyroClient.get-def"><a name="L44"></a><tt class="py-lineno">44</tt> <a class="py-toggle" href="#" id="PyroClient.get-toggle" onclick="return toggle('PyroClient.get');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PyroClient.PyroClient-class.html#get">get</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PyroClient.get-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="PyroClient.get-expanded"><a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return a remote Pyro object being served by Pyro server."""</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt class="py-name">URI</tt> <tt class="py-op">=</tt> <tt class="py-string">"PYROLOC://%s:%d/%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server_hostname</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server_port</tt><tt class="py-op">,</tt> <tt class="py-name">name</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">Pyro</tt><tt class="py-op">.</tt><tt class="py-name">core</tt><tt class="py-op">.</tt><tt class="py-name">getProxyForURI</tt><tt class="py-op">(</tt><tt class="py-name">URI</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:50 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

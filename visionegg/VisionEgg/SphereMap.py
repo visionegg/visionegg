@@ -1,15 +1,13 @@
 # The Vision Egg: SphereMap
 #
 # Copyright (C) 2001-2004 Andrew Straw.
-# Copyright (C) 2005-2007 California Institute of Technology
+# Copyright (C) 2005-2008 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """
 Stimuli on spheres, including texture maps.
@@ -18,10 +16,7 @@ Stimuli on spheres, including texture maps.
 
 import math, types
 
-try:
-    import logging
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
 
 import VisionEgg.Core
 import VisionEgg.Textures
@@ -37,16 +32,6 @@ import Image
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 __version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 class AzElGrid(VisionEgg.Core.Stimulus):
     """Spherical grid of iso-azimuth and iso-elevation lines.
@@ -122,7 +107,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         'anti_aliasing' : ( True,
                             ve_types.Boolean ),
         }
-    
+
     constant_parameters_and_defaults = {
         'use_text':(True,
                     ve_types.Boolean),
@@ -146,7 +131,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         'text_anchor':('lowerleft',
                        ve_types.String),
         }
-    
+
     __slots__ = (
         'cached_minor_lines_display_list',
         'cached_major_lines_display_list',
@@ -156,7 +141,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         'labels',
         'labels_xyz',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Core.Stimulus.__init__(self,**kw)
         self.cached_minor_lines_display_list = gl.glGenLists(1) # Allocate a new display list
@@ -164,7 +149,7 @@ class AzElGrid(VisionEgg.Core.Stimulus):
         self.__rebuild_display_lists()
         self.text_viewport = None # not set yet
         self._gave_alpha_warning = False
-        
+
     def __rebuild_display_lists(self):
         def get_xyz(theta,phi,radius):
             # theta normally between 0 and pi (north pole to south pole)
@@ -396,7 +381,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                           Default: (determined at runtime)
     texture_mag_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                          Default: GL_LINEAR
+                          Default: GL_LINEAR (9729)
     texture_min_filter -- OpenGL filter enum (Integer)
                           Inherited from VisionEgg.Textures.TextureStimulusBaseClass
                           Default: (GL enum determined at runtime)
@@ -410,7 +395,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
     Constant Parameters
     ===================
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
-                         Default: GL_RGB
+                         Default: GL_RGB (6407)
     mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
                          Default: True
     shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
@@ -426,7 +411,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                           ve_types.Real),
         'center_elevation':(0.0, # 0=right, 90=up
                             ve_types.Real),
-        
+
         # Changing these parameters will cause re-computation of display list (may cause frame skip)
         'radius':(1.0,
                   ve_types.Real),
@@ -446,7 +431,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
         VisionEgg.Textures.TextureStimulusBaseClass.__init__(self,**kw)
         self.cached_display_list = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
-        
+
     def __rebuild_display_list(self):
         p = self.parameters
 
@@ -480,7 +465,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
                 z_start_upper = w_upper * math.sin(phi_start)
                 z_start_lower = w_lower * math.sin(phi_start)
                 z_stop_upper = w_upper * math.sin(phi_stop)
-                z_stop_lower = w_lower * math.sin(phi_stop)                
+                z_stop_lower = w_lower * math.sin(phi_stop)
 
                 tex_l = slice_start_frac*s_gain+s_offs
                 tex_r = slice_stop_frac*s_gain+s_offs
@@ -512,7 +497,7 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
 
         if self._cached_radius != p.radius or self._cached_slices != p.slices or self._cached_stacks != p.stacks:
             self.__rebuild_display_list()
-            
+
         if p.on:
             # Set OpenGL state variables
             gl.glEnable( gl.GL_DEPTH_TEST )
@@ -533,15 +518,15 @@ class SphereMap(VisionEgg.Textures.TextureStimulusBaseClass):
             # appropriate values for glBlendFunc, adds the product of
             # fragment alpha (contrast) and fragment color to the
             # product of one minus fragment alpha (contrast) and what
-            # was already in the framebuffer. 
+            # was already in the framebuffer.
 
             gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-            
+
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL)
-            
+
             # clear modelview matrix
             gl.glMatrixMode(gl.GL_MODELVIEW)
-            gl.glPushMatrix()            
+            gl.glPushMatrix()
             gl.glColor4f(0.5,0.5,0.5,p.contrast) # Set the polygons' fragment color (implements contrast)
 
             if not self.constant_parameters.mipmaps_enabled:
@@ -580,7 +565,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     lowpass_cutoff_cycles_per_texel -- helps prevent spatial aliasing (Real)
                                        Default: 0.5
     min_filter                      -- OpenGL filter enum (Integer)
-                                       Default: GL_LINEAR
+                                       Default: GL_LINEAR (9729)
     num_samples                     -- (UnsignedInteger)
                                        Default: 1024
     on                              -- (Boolean)
@@ -644,7 +629,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         'stacks':(30,
                   ve_types.UnsignedInteger),
         }
-    
+
     __slots__ = (
         'texture_object_id',
         'cached_display_list_id',
@@ -653,7 +638,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
         '_cached_slices',
         '_cached_stacks',
         )
-    
+
     def __init__(self,**kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self,**kw)
 
@@ -662,14 +647,14 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
 
         self.texture_object_id = gl.glGenTextures(1) # Allocate a new texture object
         self.__rebuild_texture_object()
-        
+
         self.cached_display_list_id = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_list()
 
     def __rebuild_texture_object(self):
         gl.glBindTexture(gl.GL_TEXTURE_1D,self.texture_object_id)
         p = self.parameters # shorthand
-        
+
         # Do error-checking on texture to make sure it will load
         max_dim = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
         if p.num_samples > max_dim:
@@ -762,7 +747,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                 z_start_upper = w_upper * math.sin(phi_start)
                 z_start_lower = w_lower * math.sin(phi_start)
                 z_stop_upper = w_upper * math.sin(phi_stop)
-                z_stop_lower = w_lower * math.sin(phi_stop)                
+                z_stop_lower = w_lower * math.sin(phi_stop)
 
                 tex_l = slice_start_frac
                 tex_r = slice_stop_frac
@@ -791,13 +776,13 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
     	"""Redraw the scene on every frame.
         """
         p = self.parameters
-        
+
         if self._cached_radius != p.radius or self._cached_slices != p.slices or self._cached_stacks != p.stacks:
             self.__rebuild_display_list()
-            
+
         if self._cached_num_samples != p.num_samples:
             self.__rebuild_texture_object()
-            
+
         if p.on:
             if p.bit_depth != self.cached_bit_depth:
                 self.calculate_bit_depth_dependencies()
@@ -812,7 +797,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
 
             l = 0.0
             r = 360.0
-            
+
             mipmap_level = 0
             this_mipmap_level_num_samples = p.num_samples
             while this_mipmap_level_num_samples >= 1:
@@ -830,7 +815,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                 else:
                     blank = 0.5*Numeric.ones((this_mipmap_level_num_samples,),'d')
                     texel_data = (blank*self.max_int_val).astype(self.numpy_dtype).tostring()
-                        
+
                 gl.glTexSubImage1D(gl.GL_TEXTURE_1D,           # target
                                 mipmap_level,                  # level
                                 0,                             # x offset
@@ -838,11 +823,11 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
                                 self.format,                   # data format
                                 self.gl_type,                  # data type
                                 texel_data)
-                
+
                 # prepare for next mipmap level
                 this_mipmap_level_num_samples = this_mipmap_level_num_samples/2 # integer division
                 mipmap_level += 1
-                
+
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)
 
             # clear modelview matrix
@@ -859,7 +844,7 @@ class SphereGrating(VisionEgg.Gratings.LuminanceGratingCommon):
 
             gl.glDisable( gl.GL_TEXTURE_1D )
             gl.glPopMatrix()
-                
+
 class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
     """This draws an opaque sphere with a single window in it.
 
@@ -909,15 +894,15 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         'window_shape':('gaussian', # can be 'circle' or 'gaussian'
                         ve_types.String,
                         "can be 'circle', 'gaussian', or 'lat-long rectangle'",
-                        ), 
+                        ),
         'window_shape_radius_parameter':(36.0,
                                          ve_types.Real,
                                          'radius of circle, sigma of gaussian, width of lat-long rectangle (in degrees)',
-                                         ), 
+                                         ),
         'window_shape_parameter2':(30.0,
                                    ve_types.Real,
                                    '(currently only used for) height of lat-long rectangle (in degrees)',
-                                   ), 
+                                   ),
         'num_s_samples':(512,  # number of horizontal spatial samples, should be a power of 2
                          ve_types.UnsignedInteger),
         'num_t_samples':(512,  # number of vertical spatial samples, should be a power of 2
@@ -930,7 +915,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         'stacks':(30,
                   ve_types.UnsignedInteger),
         }
-    
+
     __slots__ = (
         'texture_object_id',
         'windowed_display_list_id',
@@ -945,7 +930,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         '_cached_stacks',
         '_texture_s_is_azimuth',
         )
-    
+
     def __init__(self, **kw):
         VisionEgg.Gratings.LuminanceGratingCommon.__init__(self, **kw )
 
@@ -956,10 +941,10 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             self._texture_s_is_azimuth = True
         else:
             self._texture_s_is_azimuth = False
-        
+
         self.texture_object_id = gl.glGenTextures(1)
         self.__rebuild_texture_object()
-        
+
         self.windowed_display_list_id = gl.glGenLists(1) # Allocate a new display list
         self.opaque_display_list_id = gl.glGenLists(1) # Allocate a new display list
         self.__rebuild_display_lists()
@@ -974,7 +959,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             raise VisionEgg.Gratings.NumSamplesTooLargeError("SphereWindow num_s_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
         if p.num_t_samples > max_dim:
             raise VisionEgg.Gratings.NumSamplesTooLargeError("SphereWindow num_t_samples too large for video system.\nOpenGL reports maximum size of %d"%(max_dim,))
-        
+
         self.calculate_bit_depth_dependencies()
         self.gl_internal_format = gl.GL_ALPHA # change from luminance to alpha
         self.format = gl.GL_ALPHA
@@ -986,7 +971,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         if p.window_shape == 'circle':
             if self._texture_s_is_azimuth:
                 self.__rebuild_display_lists()
-                
+
             # XXX this is aliased
             s_axis = (Numeric.arange(p.num_s_samples)/float(p.num_s_samples)-0.5)**2
             t_axis = (Numeric.arange(p.num_t_samples)/float(p.num_t_samples)-0.5)**2
@@ -997,14 +982,14 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         elif p.window_shape == 'gaussian':
             if self._texture_s_is_azimuth:
                 self.__rebuild_display_lists()
-                
+
             MIN_EXP = -745.0
             MAX_EXP =  709.0
-            
+
             s = Numeric.arange(0.0,p.num_s_samples,1.0,'f')/p.num_s_samples
             t = Numeric.arange(0.0,p.num_t_samples,1.0,'f')/p.num_t_samples
             sigma_normalized = p.window_shape_radius_parameter / 90.0 * 0.5
-            
+
             check_s = -((s-0.5)**2/(2.0*sigma_normalized**2))
             try:
                 # some platforms raise OverflowError when doing this on small numbers
@@ -1038,7 +1023,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         else:
             raise RuntimeError('Unknown window_shape "%s"'%(p.window_shape,))
         texel_data = (floating_point_window * self.max_int_val).astype(self.numpy_dtype).tostring()
-   
+
         # Because the MAX_TEXTURE_SIZE method is insensitive to the current
         # state of the video system, another check must be done using
         # "proxy textures".
@@ -1057,7 +1042,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glGetTexLevelParameteriv(gl.GL_PROXY_TEXTURE_2D,
                                         0,
                                         gl.GL_TEXTURE_HEIGHT) == 0):
-            raise VisionEgg.Gratings.NumSamplesTooLargeError("SphereWindow num_s_samples or num_t_samples is too large for your video system!")     
+            raise VisionEgg.Gratings.NumSamplesTooLargeError("SphereWindow num_s_samples or num_t_samples is too large for your video system!")
 
         gl.glTexImage2D(gl.GL_TEXTURE_2D,      # target
                         0,                              # mipmap_level
@@ -1068,7 +1053,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                         self.format,                    # format of image data
                         self.gl_type,                   # type of image data
                         texel_data)                     # texel data
-        
+
         # Set some texture object defaults
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_S,gl.GL_CLAMP_TO_EDGE)
         gl.glTexParameteri(gl.GL_TEXTURE_2D,gl.GL_TEXTURE_WRAP_T,gl.GL_CLAMP_TO_EDGE)
@@ -1117,7 +1102,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                 z_start_upper = w_upper * math.sin(phi_start)
                 z_start_lower = w_lower * math.sin(phi_start)
                 z_stop_upper = w_upper * math.sin(phi_stop)
-                z_stop_lower = w_lower * math.sin(phi_stop)                
+                z_stop_lower = w_lower * math.sin(phi_stop)
 
                 o = 0.5
                 g = 0.5 / p.radius
@@ -1169,7 +1154,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
                 z_start_upper = w_upper * math.sin(phi_start)
                 z_start_lower = w_lower * math.sin(phi_start)
                 z_stop_upper = w_upper * math.sin(phi_stop)
-                z_stop_lower = w_lower * math.sin(phi_stop)                
+                z_stop_lower = w_lower * math.sin(phi_stop)
 
                 gl.glVertex3f(x_start_upper, y_upper, z_start_upper)
 
@@ -1185,24 +1170,24 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
         self._cached_slices = p.slices
         self._cached_stacks = p.stacks
         gl.glPopMatrix()
-        
+
     def draw(self):
     	"""Redraw the scene on every frame.
         """
         p = self.parameters
-        
+
         if self._cached_radius != p.radius or self._cached_slices != p.slices or self._cached_stacks != p.stacks:
             self.__rebuild_display_lists()
-            
+
         if self._cached_window_shape != p.window_shape or self._cached_shape_radius_parameter != p.window_shape_radius_parameter:
             self.__rebuild_texture_object()
 
         if p.window_shape == 'lat-long rectangle' and self._cached_shape_parameter2 != p.window_shape_parameter2:
             self.__rebuild_texture_object()
-            
+
         if self._cached_num_s_samples != p.num_s_samples or self._cached_num_t_samples != p.num_t_samples:
             self.__rebuild_texture_object()
-            
+
         if p.on:
             #gl.glPolygonMode( gl.GL_FRONT_AND_BACK, gl.GL_LINE )
             if p.bit_depth != self.cached_bit_depth:
@@ -1215,7 +1200,7 @@ class SphereWindow(VisionEgg.Gratings.LuminanceGratingCommon):
             gl.glEnable( gl.GL_BLEND )
 
             gl.glBlendFunc( gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA ) # alpha 1.0 = transparent
-            
+
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object_id)
             gl.glColor4f( *p.opaque_color )
             gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_REPLACE)

@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.PlatformDependent</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        Module&nbsp;PlatformDependent
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.PlatformDependent-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="VisionEgg.PlatformDependent-module.html">Module VisionEgg.PlatformDependent</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># The Vision Egg: PlatformDependent</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2001-2003 Andrew Straw.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Copyright (C) 2008 California Institute of Technology</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># URL: &lt;http://www.visionegg.org/&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># Distributed under the terms of the GNU Lesser General Public License</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># (LGPL). See LICENSE.TXT that came with this file.</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">Implementations of functions which vary by platform.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment">####################################################################</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#        Import all the necessary packages</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">#</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment">####################################################################</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt><tt class="py-op">,</tt> <tt class="py-name">os</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package VisionEgg=VisionEgg-module.html"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-0', 'VisionEgg', 'link-0');">VisionEgg</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-1', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Module VisionEgg.Core=VisionEgg.Core-module.html"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-2', 'Core', 'link-2');">Core</a></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-3" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-3', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Module VisionEgg.GL=VisionEgg.GL-module.html"><a title="VisionEgg.GL" class="py-name" href="#" onclick="return doclink('link-4', 'GL', 'link-4');">GL</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">gl</tt> <tt class="py-comment"># get all OpenGL stuff in one namespace</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"> </tt>
+<a name="set_priority"></a><div id="set_priority-def"><a name="L30"></a><tt class="py-lineno"> 30</tt> <a class="py-toggle" href="#" id="set_priority-toggle" onclick="return toggle('set_priority');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#set_priority">set_priority</a><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">,</tt><tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="set_priority-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="set_priority-expanded"><a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-docstring">"""Set the priority of the Vision Egg application.</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    Defaults to maximum priority, but can be changed via keyword</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    arguments.</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    Raises an exception on failure.</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt class="py-comment"># potential keywords</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-name">parse_me</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"darwin_realtime_period_denom"</tt><tt class="py-op">,</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                <tt class="py-string">"darwin_realtime_computation_denom"</tt><tt class="py-op">,</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                <tt class="py-string">"darwin_realtime_constraint_denom"</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">                <tt class="py-string">"darwin_realtime_preemptible"</tt><tt class="py-op">,</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">                <tt class="py-string">"darwin_maxpriority_conventional_not_realtime"</tt><tt class="py-op">,</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">                <tt class="py-string">"darwin_conventional_priority"</tt><tt class="py-op">,</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                <tt class="py-string">"darwin_pthread_priority"</tt><tt class="py-op">]</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">    <tt id="link-5" class="py-name" targets="Variable VisionEgg.logger=VisionEgg-module.html#logger"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-5', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PlatformDependent'</tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">    <tt class="py-name">params</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-comment"># set variable in local namespace</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-keyword">for</tt> <tt class="py-name">word</tt> <tt class="py-keyword">in</tt> <tt class="py-name">parse_me</tt><tt class="py-op">:</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-comment"># set the value from VisionEgg.config</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">config_name</tt> <tt class="py-op">=</tt> <tt class="py-string">"VISIONEGG_"</tt><tt class="py-op">+</tt><tt class="py-name">word</tt><tt class="py-op">.</tt><tt class="py-name">upper</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt id="link-6" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-6', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Variable VisionEgg.config=VisionEgg-module.html#config"><a title="VisionEgg.config" class="py-name" href="#" onclick="return doclink('link-7', 'config', 'link-7');">config</a></tt><tt class="py-op">,</tt><tt class="py-name">config_name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-8', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="VisionEgg.config" class="py-name" href="#" onclick="return doclink('link-9', 'config', 'link-7');">config</a></tt><tt class="py-op">,</tt><tt class="py-name">config_name</tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-comment"># override default value if present in keyword arguments</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt class="py-name">word</tt> <tt class="py-keyword">in</tt> <tt class="py-name">kw</tt><tt class="py-op">.</tt><tt class="py-name">keys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">kw</tt><tt class="py-op">[</tt><tt class="py-name">word</tt><tt class="py-op">]</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">value</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">            <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-name">word</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'darwin'</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-comment"># Everything to support realtime in Apple Mac OS X is based on</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># the following two things:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment">#</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># 1) http://developer.apple.com/techpubs/macosx/Darwin/General/KernelProgramming/scheduler/Using_Mach__pplications.html</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment">#</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># 2) The Mac OS X port of the Esound daemon.</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt class="py-name">darwin_maxpriority</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_maxpriority_conventional_not_realtime'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-name">process</tt> <tt class="py-op">=</tt> <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt class="py-name">PRIO_PROCESS</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-name">policy</tt> <tt class="py-op">=</tt> <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Variable VisionEgg.posix_maxpriority.SCHED_RR=VisionEgg.posix_maxpriority-module.html#SCHED_RR"><a title="VisionEgg.posix_maxpriority.SCHED_RR" class="py-name" href="#" onclick="return doclink('link-10', 'SCHED_RR', 'link-10');">SCHED_RR</a></tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt id="link-11" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-11', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Setting max priority mode for darwin platform "</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                        <tt class="py-string">"using conventional priority %d."</tt><tt class="py-op">%</tt><tt class="py-op">(</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                        <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_conventional_priority'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">            <tt class="py-comment"># set the priority of the current process</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt class="py-name">setpriority</tt><tt class="py-op">(</tt><tt class="py-name">process</tt><tt class="py-op">,</tt><tt class="py-number">0</tt><tt class="py-op">,</tt><tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_conventional_priority'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt class="py-comment"># This sets the pthread priority, which only prioritizes</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-comment"># threads in the process.  Might as well do it, but it</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-comment"># shouldn't matter unless we're running multi-threaded.</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">darwin_pthread_priority</tt> <tt class="py-op">=</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_pthread_priority'</tt><tt class="py-op">]</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">darwin_pthread_priority</tt> <tt class="py-op">==</tt> <tt class="py-string">"max"</tt><tt class="py-op">:</tt> <tt class="py-comment"># should otherwise be an int</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">                <tt class="py-name">darwin_pthread_priority</tt> <tt class="py-op">=</tt> <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Variable VisionEgg.posix_maxpriority.sched_get_priority_max=VisionEgg.posix_maxpriority-module.html#sched_get_priority_max"><a title="VisionEgg.posix_maxpriority.sched_get_priority_max" class="py-name" href="#" onclick="return doclink('link-12', 'sched_get_priority_max', 'link-12');">sched_get_priority_max</a></tt><tt class="py-op">(</tt><tt class="py-name">policy</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt class="py-name">set_self_pthread_priority</tt><tt class="py-op">(</tt><tt class="py-name">policy</tt><tt class="py-op">,</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                                                            <tt class="py-name">darwin_pthread_priority</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"set_self_pthread failed."</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt class="py-name">bus_speed</tt> <tt class="py-op">=</tt> <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt class="py-name">get_bus_speed</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt id="link-13" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-13', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Setting max priority mode for darwin platform "</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">                        <tt class="py-string">"using realtime threads. ( period = %d / %d, "</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">                        <tt class="py-string">"computation = %d / %d, constraint = %d / %d, "</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                        <tt class="py-string">"preemptible = %d )"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                        <tt class="py-name">bus_speed</tt><tt class="py-op">,</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_period_denom'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">                        <tt class="py-name">bus_speed</tt><tt class="py-op">,</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_computation_denom'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">                        <tt class="py-name">bus_speed</tt><tt class="py-op">,</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_constraint_denom'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">                        <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_preemptible'</tt><tt class="py-op">]</tt> <tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt class="py-name">period</tt> <tt class="py-op">=</tt> <tt class="py-name">bus_speed</tt> <tt class="py-op">/</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_period_denom'</tt><tt class="py-op">]</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-name">computation</tt> <tt class="py-op">=</tt> <tt class="py-name">bus_speed</tt> <tt class="py-op">/</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_computation_denom'</tt><tt class="py-op">]</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-name">constraint</tt> <tt class="py-op">=</tt> <tt class="py-name">bus_speed</tt> <tt class="py-op">/</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_constraint_denom'</tt><tt class="py-op">]</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-name">preemptible</tt> <tt class="py-op">=</tt> <tt class="py-name">params</tt><tt class="py-op">[</tt><tt class="py-string">'darwin_realtime_preemptible'</tt><tt class="py-op">]</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-name">darwin_maxpriority</tt><tt class="py-op">.</tt><tt class="py-name">set_self_thread_time_constraint_policy</tt><tt class="py-op">(</tt> <tt class="py-name">period</tt><tt class="py-op">,</tt> <tt class="py-name">computation</tt><tt class="py-op">,</tt> <tt class="py-name">constraint</tt><tt class="py-op">,</tt> <tt class="py-name">preemptible</tt> <tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Module VisionEgg.win32_maxpriority=VisionEgg.win32_maxpriority-module.html"><a title="VisionEgg.win32_maxpriority" class="py-name" href="#" onclick="return doclink('link-14', 'win32_maxpriority', 'link-14');">win32_maxpriority</a></tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt id="link-15" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-15', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Setting priority for win32 platform to "</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">                    <tt class="py-string">"HIGH_PRIORITY_CLASS, THREAD_PRIORITY_HIGHEST. "</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                    <tt class="py-string">"(This is Microsoft's maximum recommended priority, "</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">                    <tt class="py-string">"but you could still raise it higher.)"</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt id="link-16" class="py-name"><a title="VisionEgg.win32_maxpriority" class="py-name" href="#" onclick="return doclink('link-16', 'win32_maxpriority', 'link-14');">win32_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Variable VisionEgg.win32_maxpriority.set_self_process_priority_class=VisionEgg.win32_maxpriority-module.html#set_self_process_priority_class"><a title="VisionEgg.win32_maxpriority.set_self_process_priority_class" class="py-name" href="#" onclick="return doclink('link-17', 'set_self_process_priority_class', 'link-17');">set_self_process_priority_class</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt id="link-18" class="py-name"><a title="VisionEgg.win32_maxpriority" class="py-name" href="#" onclick="return doclink('link-18', 'win32_maxpriority', 'link-14');">win32_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Variable VisionEgg.win32_maxpriority.HIGH_PRIORITY_CLASS=VisionEgg.win32_maxpriority-module.html#HIGH_PRIORITY_CLASS"><a title="VisionEgg.win32_maxpriority.HIGH_PRIORITY_CLASS" class="py-name" href="#" onclick="return doclink('link-19', 'HIGH_PRIORITY_CLASS', 'link-19');">HIGH_PRIORITY_CLASS</a></tt> <tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt id="link-20" class="py-name"><a title="VisionEgg.win32_maxpriority" class="py-name" href="#" onclick="return doclink('link-20', 'win32_maxpriority', 'link-14');">win32_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Variable VisionEgg.win32_maxpriority.set_self_thread_priority=VisionEgg.win32_maxpriority-module.html#set_self_thread_priority"><a title="VisionEgg.win32_maxpriority.set_self_thread_priority" class="py-name" href="#" onclick="return doclink('link-21', 'set_self_thread_priority', 'link-21');">set_self_thread_priority</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">            <tt id="link-22" class="py-name"><a title="VisionEgg.win32_maxpriority" class="py-name" href="#" onclick="return doclink('link-22', 'win32_maxpriority', 'link-14');">win32_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Variable VisionEgg.win32_maxpriority.THREAD_PRIORITY_HIGHEST=VisionEgg.win32_maxpriority-module.html#THREAD_PRIORITY_HIGHEST"><a title="VisionEgg.win32_maxpriority.THREAD_PRIORITY_HIGHEST" class="py-name" href="#" onclick="return doclink('link-23', 'THREAD_PRIORITY_HIGHEST', 'link-23');">THREAD_PRIORITY_HIGHEST</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">'irix'</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">'linux'</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">'posix'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name" targets="Module VisionEgg.posix_maxpriority=VisionEgg.posix_maxpriority-module.html"><a title="VisionEgg.posix_maxpriority" class="py-name" href="#" onclick="return doclink('link-24', 'posix_maxpriority', 'link-24');">posix_maxpriority</a></tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-name">policy</tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name"><a title="VisionEgg.posix_maxpriority" class="py-name" href="#" onclick="return doclink('link-25', 'posix_maxpriority', 'link-24');">posix_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Variable VisionEgg.posix_maxpriority.SCHED_FIFO=VisionEgg.posix_maxpriority-module.html#SCHED_FIFO"><a title="VisionEgg.posix_maxpriority.SCHED_FIFO" class="py-name" href="#" onclick="return doclink('link-26', 'SCHED_FIFO', 'link-26');">SCHED_FIFO</a></tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-name">max_priority</tt> <tt class="py-op">=</tt> <tt id="link-27" class="py-name"><a title="VisionEgg.posix_maxpriority" class="py-name" href="#" onclick="return doclink('link-27', 'posix_maxpriority', 'link-24');">posix_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="VisionEgg.posix_maxpriority.sched_get_priority_max" class="py-name" href="#" onclick="return doclink('link-28', 'sched_get_priority_max', 'link-12');">sched_get_priority_max</a></tt><tt class="py-op">(</tt> <tt class="py-name">policy</tt> <tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt id="link-29" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-29', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Setting priority for POSIX-compatible platform to "</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                    <tt class="py-string">"policy SCHED_FIFO and priority to "</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                    <tt class="py-string">"%d"</tt><tt class="py-op">%</tt><tt class="py-name">max_priority</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt id="link-30" class="py-name"><a title="VisionEgg.posix_maxpriority" class="py-name" href="#" onclick="return doclink('link-30', 'posix_maxpriority', 'link-24');">posix_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Variable VisionEgg.posix_maxpriority.set_self_policy_priority=VisionEgg.posix_maxpriority-module.html#set_self_policy_priority"><a title="VisionEgg.posix_maxpriority.set_self_policy_priority" class="py-name" href="#" onclick="return doclink('link-31', 'set_self_policy_priority', 'link-31');">set_self_policy_priority</a></tt><tt class="py-op">(</tt> <tt class="py-name">policy</tt><tt class="py-op">,</tt> <tt class="py-name">max_priority</tt> <tt class="py-op">)</tt> <tt class="py-comment"># Fails if you don't have permission (try running as root)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt id="link-32" class="py-name"><a title="VisionEgg.posix_maxpriority" class="py-name" href="#" onclick="return doclink('link-32', 'posix_maxpriority', 'link-24');">posix_maxpriority</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name" targets="Variable VisionEgg.posix_maxpriority.stop_memory_paging=VisionEgg.posix_maxpriority-module.html#stop_memory_paging"><a title="VisionEgg.posix_maxpriority.stop_memory_paging" class="py-name" href="#" onclick="return doclink('link-33', 'stop_memory_paging', 'link-33');">stop_memory_paging</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"Cannot change priority.  Unknown platform '%s'"</tt><tt class="py-op">%</tt><tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="linux_but_unknown_drivers"></a><div id="linux_but_unknown_drivers-def"><a name="L137"></a><tt class="py-lineno">137</tt> <a class="py-toggle" href="#" id="linux_but_unknown_drivers-toggle" onclick="return toggle('linux_but_unknown_drivers');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#linux_but_unknown_drivers">linux_but_unknown_drivers</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="linux_but_unknown_drivers-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="linux_but_unknown_drivers-expanded"><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">    <tt class="py-docstring">"""Warn that platform is linux, but drivers not known."""</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">    <tt class="py-comment"># If you've added support for other drivers to sync with VBLANK under</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt class="py-comment"># linux, please let me know how!</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-comment"></tt>    <tt id="link-34" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-34', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PlatformDependent'</tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt id="link-35" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-35', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"Could not sync buffer swapping to vblank because "</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">                   <tt class="py-string">"you are running linux but not known/supported "</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">                   <tt class="py-string">"drivers (only nVidia and recent Mesa DRI Radeon "</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">                   <tt class="py-string">"currently supported)."</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="sync_swap_with_vbl_pre_gl_init"></a><div id="sync_swap_with_vbl_pre_gl_init-def"><a name="L147"></a><tt class="py-lineno">147</tt> <a class="py-toggle" href="#" id="sync_swap_with_vbl_pre_gl_init-toggle" onclick="return toggle('sync_swap_with_vbl_pre_gl_init');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#sync_swap_with_vbl_pre_gl_init">sync_swap_with_vbl_pre_gl_init</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="sync_swap_with_vbl_pre_gl_init-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="sync_swap_with_vbl_pre_gl_init-expanded"><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">    <tt class="py-docstring">"""Try to synchronize buffer swapping and vertical retrace before starting OpenGL."""</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">    <tt class="py-name">success</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">"linux"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-comment"># Unfotunately, cannot check do glGetString(GL_VENDOR) to</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># check if drivers are nVidia because we have to do that requires</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># OpenGL context started, but this variable must be set</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># before OpenGL context started!</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-comment"># Assume drivers are nVidia or recent ATI</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt id="link-36" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-36', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-37', 'Core', 'link-2');">Core</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name" targets="Function VisionEgg.Core.add_gl_assumption()=VisionEgg.Core-module.html#add_gl_assumption"><a title="VisionEgg.Core.add_gl_assumption" class="py-name" href="#" onclick="return doclink('link-38', 'add_gl_assumption', 'link-38');">add_gl_assumption</a></tt><tt class="py-op">(</tt><tt class="py-string">"__SPECIAL__"</tt><tt class="py-op">,</tt><tt class="py-string">"linux_nvidia_or_new_ATI"</tt><tt class="py-op">,</tt><tt id="link-39" class="py-name" targets="Function VisionEgg.PlatformDependent.linux_but_unknown_drivers()=VisionEgg.PlatformDependent-module.html#linux_but_unknown_drivers"><a title="VisionEgg.PlatformDependent.linux_but_unknown_drivers" class="py-name" href="#" onclick="return doclink('link-39', 'linux_but_unknown_drivers', 'link-39');">linux_but_unknown_drivers</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-comment"># Set for nVidia linux</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">[</tt><tt class="py-string">"__GL_SYNC_TO_VBLANK"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"1"</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-comment"># Set for recent linux Mesa DRI Radeon</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">[</tt><tt class="py-string">"LIBGL_SYNC_REFRESH"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"1"</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-name">success</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">"irix"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-comment"># I think this is set using the GLX swap_control SGI</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># extension.  A C extension could be to be written to change</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># this value. (It probably cannot be set through an OpenGL</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># extension or an SDL/pygame feature.)</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt id="link-40" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-40', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PlatformDependent'</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">        <tt id="link-41" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-41', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"IRIX platform detected, assuming retrace sync."</tt><tt class="py-op">)</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">success</tt> </tt>
+</div><a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"> </tt>
+<a name="sync_swap_with_vbl_post_gl_init"></a><div id="sync_swap_with_vbl_post_gl_init-def"><a name="L172"></a><tt class="py-lineno">172</tt> <a class="py-toggle" href="#" id="sync_swap_with_vbl_post_gl_init-toggle" onclick="return toggle('sync_swap_with_vbl_post_gl_init');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#sync_swap_with_vbl_post_gl_init">sync_swap_with_vbl_post_gl_init</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="sync_swap_with_vbl_post_gl_init-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="sync_swap_with_vbl_post_gl_init-expanded"><a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">    <tt class="py-docstring">"""Try to synchronize buffer swapping and vertical retrace after starting OpenGL."""</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">    <tt class="py-name">success</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">"win32"</tt><tt class="py-op">:</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">            <tt class="py-keyword">import</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt class="py-name">WGL</tt><tt class="py-op">.</tt><tt class="py-name">EXT</tt><tt class="py-op">.</tt><tt class="py-name">swap_control</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt class="py-name">WGL</tt><tt class="py-op">.</tt><tt class="py-name">EXT</tt><tt class="py-op">.</tt><tt class="py-name">swap_control</tt><tt class="py-op">.</tt><tt class="py-name">wglInitSwapControlARB</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-comment"># Returns 1 if it's working</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">                <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt class="py-name">WGL</tt><tt class="py-op">.</tt><tt class="py-name">EXT</tt><tt class="py-op">.</tt><tt class="py-name">swap_control</tt><tt class="py-op">.</tt><tt class="py-name">wglSwapIntervalEXT</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> <tt class="py-comment"># Swap only at frame syncs</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">OpenGL</tt><tt class="py-op">.</tt><tt class="py-name">WGL</tt><tt class="py-op">.</tt><tt class="py-name">EXT</tt><tt class="py-op">.</tt><tt class="py-name">swap_control</tt><tt class="py-op">.</tt><tt class="py-name">wglGetSwapIntervalEXT</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">                    <tt class="py-name">success</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">"darwin"</tt><tt class="py-op">:</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">                <tt class="py-keyword">import</tt> <tt class="py-name">_darwin_sync_swap</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">                <tt class="py-name">_darwin_sync_swap</tt><tt class="py-op">.</tt><tt class="py-name">sync_swap</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">                <tt class="py-name">success</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt><tt class="py-op">,</tt><tt class="py-name">x</tt><tt class="py-op">:</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">                <tt id="link-42" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-42', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PlatformDependent'</tt><tt class="py-op">)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">                <tt id="link-43" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-43', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"Failed trying to synchronize buffer "</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">                               <tt class="py-string">"swapping on darwin: %s: %s"</tt><tt class="py-op">%</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">success</tt> </tt>
+</div><a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"> </tt>
+<a name="query_refresh_rate"></a><div id="query_refresh_rate-def"><a name="L196"></a><tt class="py-lineno">196</tt> <a class="py-toggle" href="#" id="query_refresh_rate-toggle" onclick="return toggle('query_refresh_rate');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#query_refresh_rate">query_refresh_rate</a><tt class="py-op">(</tt><tt class="py-param">screen</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="query_refresh_rate-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="query_refresh_rate-expanded"><a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt id="link-44" class="py-name" targets="Module VisionEgg.win32_getrefresh=VisionEgg.win32_getrefresh-module.html"><a title="VisionEgg.win32_getrefresh" class="py-name" href="#" onclick="return doclink('link-44', 'win32_getrefresh', 'link-44');">win32_getrefresh</a></tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-45" class="py-name"><a title="VisionEgg.win32_getrefresh" class="py-name" href="#" onclick="return doclink('link-45', 'win32_getrefresh', 'link-44');">win32_getrefresh</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Variable VisionEgg.darwin_getrefresh.getrefresh=VisionEgg.darwin_getrefresh-module.html#getrefresh,Variable VisionEgg.win32_getrefresh.getrefresh=VisionEgg.win32_getrefresh-module.html#getrefresh"><a title="VisionEgg.darwin_getrefresh.getrefresh
+VisionEgg.win32_getrefresh.getrefresh" class="py-name" href="#" onclick="return doclink('link-46', 'getrefresh', 'link-46');">getrefresh</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'darwin'</tt><tt class="py-op">:</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt id="link-47" class="py-name" targets="Module VisionEgg.darwin_getrefresh=VisionEgg.darwin_getrefresh-module.html"><a title="VisionEgg.darwin_getrefresh" class="py-name" href="#" onclick="return doclink('link-47', 'darwin_getrefresh', 'link-47');">darwin_getrefresh</a></tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-48" class="py-name"><a title="VisionEgg.darwin_getrefresh" class="py-name" href="#" onclick="return doclink('link-48', 'darwin_getrefresh', 'link-47');">darwin_getrefresh</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="VisionEgg.darwin_getrefresh.getrefresh
+VisionEgg.win32_getrefresh.getrefresh" class="py-name" href="#" onclick="return doclink('link-49', 'getrefresh', 'link-46');">getrefresh</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">NotImplementedError</tt><tt class="py-op">(</tt><tt class="py-string">"Platform dependent code to query frame rate not implemented on this platform."</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"> </tt>
+<a name="attempt_to_load_multitexturing"></a><div id="attempt_to_load_multitexturing-def"><a name="L206"></a><tt class="py-lineno">206</tt> <a class="py-toggle" href="#" id="attempt_to_load_multitexturing-toggle" onclick="return toggle('attempt_to_load_multitexturing');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="VisionEgg.PlatformDependent-module.html#attempt_to_load_multitexturing">attempt_to_load_multitexturing</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="attempt_to_load_multitexturing-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="attempt_to_load_multitexturing-expanded"><a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">    <tt class="py-docstring">"""Attempt to load multitexturing functions and constants.</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"><tt class="py-docstring">    Inserts the results into the gl module, which makes them globally</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"><tt class="py-docstring">    available."""</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">    <tt id="link-50" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-50', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">'VisionEgg.PlatformDependent'</tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt class="py-keyword">import</tt> <tt class="py-name">ctypes</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt><tt class="py-op">.</tt><tt class="py-name">startswith</tt><tt class="py-op">(</tt><tt class="py-string">'linux'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">            <tt class="py-name">libGL</tt> <tt class="py-op">=</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">cdll</tt><tt class="py-op">.</tt><tt class="py-name">LoadLibrary</tt><tt class="py-op">(</tt><tt class="py-string">'/usr/lib/libGL.so'</tt><tt class="py-op">)</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">            <tt class="py-name">libGL</tt> <tt class="py-op">=</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">cdll</tt><tt class="py-op">.</tt><tt class="py-name">LoadLibrary</tt><tt class="py-op">(</tt><tt class="py-string">'opengl32.dll'</tt><tt class="py-op">)</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">NotImplementedError</tt><tt class="py-op">(</tt><tt class="py-string">"ctypes support not added for this platform"</tt><tt class="py-op">)</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-comment"># make sure libGL has the appropriate functions</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">libGL</tt><tt class="py-op">.</tt><tt class="py-name">glGetString</tt><tt class="py-op">.</tt><tt class="py-name">restype</tt> <tt class="py-op">=</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_char_p</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">        <tt class="py-name">vers</tt> <tt class="py-op">=</tt> <tt class="py-name">libGL</tt><tt class="py-op">.</tt><tt class="py-name">glGetString</tt><tt class="py-op">(</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_int</tt><tt class="py-op">(</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_VERSION</tt> <tt class="py-op">)</tt> <tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt id="link-51" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-51', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"ctypes loaded OpenGL %s"</tt><tt class="py-op">%</tt><tt class="py-name">vers</tt><tt class="py-op">)</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glActiveTexture</tt> <tt class="py-op">=</tt> <tt class="py-name">libGL</tt><tt class="py-op">.</tt><tt class="py-name">glActiveTexture</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glActiveTexture</tt><tt class="py-op">.</tt><tt class="py-name">argtypes</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_int</tt><tt class="py-op">]</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMultiTexCoord2f</tt> <tt class="py-op">=</tt> <tt class="py-name">libGL</tt><tt class="py-op">.</tt><tt class="py-name">glMultiTexCoord2f</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMultiTexCoord2f</tt><tt class="py-op">.</tt><tt class="py-name">argtypes</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_int</tt><tt class="py-op">,</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_float</tt><tt class="py-op">,</tt> <tt class="py-name">ctypes</tt><tt class="py-op">.</tt><tt class="py-name">c_float</tt><tt class="py-op">]</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-comment"># assign constants found by looking at gl.h</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE0</tt> <tt class="py-op">=</tt> <tt class="py-number">0x84C0</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE1</tt> <tt class="py-op">=</tt> <tt class="py-number">0x84C1</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line"> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">        <tt id="link-52" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-52', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"ctypes loaded OpenGL library and multitexture names "</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">                     <tt class="py-string">"are present.  Workaround appears successful. "</tt><tt class="py-op">)</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt><tt class="py-op">,</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">        <tt id="link-53" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-53', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"ctypes loading of OpenGL library failed %s: "</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">                     <tt class="py-string">"%s"</tt><tt class="py-op">%</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-54" class="py-name"><a title="VisionEgg" class="py-name" href="#" onclick="return doclink('link-54', 'VisionEgg', 'link-0');">VisionEgg</a></tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="VisionEgg.Core" class="py-name" href="#" onclick="return doclink('link-55', 'Core', 'link-2');">Core</a></tt><tt class="py-op">.</tt><tt id="link-56" class="py-name" targets="Function VisionEgg.Core.init_gl_extension()=VisionEgg.Core-module.html#init_gl_extension"><a title="VisionEgg.Core.init_gl_extension" class="py-name" href="#" onclick="return doclink('link-56', 'init_gl_extension', 'link-56');">init_gl_extension</a></tt><tt class="py-op">(</tt><tt class="py-string">'ARB'</tt><tt class="py-op">,</tt><tt class="py-string">'multitexture'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">            <tt class="py-comment"># copy from extenstion</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glActiveTexture</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glActiveTextureARB</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">            <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMultiTexCoord2f</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">glMultiTexCoord2fARB</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">            <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE0</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE0_ARB</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">            <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE1</tt> <tt class="py-op">=</tt> <tt class="py-name">gl</tt><tt class="py-op">.</tt><tt class="py-name">GL_TEXTURE1_ARB</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">            <tt id="link-57" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-57', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"loaded multitexturing ARB extension"</tt><tt class="py-op">)</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">            <tt id="link-58" class="py-name"><a title="VisionEgg.logger" class="py-name" href="#" onclick="return doclink('link-58', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"multitexturing not available after trying "</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">                           <tt class="py-string">"ctypes and the OpenGL ARB extension. Some "</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">                           <tt class="py-string">"features will not be available"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:47 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

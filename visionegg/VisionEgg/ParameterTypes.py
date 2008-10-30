@@ -32,13 +32,6 @@ try:
 except ImportError:
     pass
 
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
-
 class ParameterTypeDef(object):
     """Base class for all parameter type definitions"""
     def verify(value):
@@ -322,6 +315,10 @@ def get_type(value):
         return Instance(value.__class__)
     elif callable(value):
         return Callable
+    elif isinstance(value,str):
+        return String
+    elif isinstance(value,unicode):
+        return Unicode
     else:
         try:
             len(value)
@@ -396,6 +393,7 @@ def assert_type(check_type,require_type):
                     return # it's ok
                 except:
                     pass
+            raise TypeError("%s not of type %s"%(check_type,require_type))
         else:
             require_class = require_type.__class__
     else:

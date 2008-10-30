@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2001-2004 Andrew Straw.
 # Copyright (C) 2004 Imran S. Ali, Lachlan Dowd
-# Copyright (C) 2004 California Institute of Technology
+# Copyright (C) 2004, 2008 California Institute of Technology
 #
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
@@ -19,13 +19,6 @@ __version__ = VisionEgg.release_name
 __cvs__ = '$Revision$'.split()[1]
 __date__ = ' '.join('$Date$'.split()[1:3])
 __author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 import sys, socket, re, time, string, types, os
 import parser, symbol, token, compiler
@@ -1307,7 +1300,7 @@ class AppWindow(Tkinter.Frame):
 
                 # new stimulus type
                 self.stim_frame.quit_server() # disconnect
-                
+
                 # in case of loaded Vision Egg script, quit_server()
                 # sends a signal to stop the "wait" loop, WITHOUT
                 # raising a flag to run the script

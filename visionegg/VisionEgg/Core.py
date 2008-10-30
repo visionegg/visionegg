@@ -57,6 +57,22 @@ def swap_buffers():
         w.flip()
     return
 
+class PygameKeeper(object):
+    """global object that calls any cleanup functions when quitting pygame"""
+    def __init__(self):
+        self.to_call_on_quit = []
+    def register_func_to_call_on_quit(self,func):
+        if func not in self.to_call_on_quit:
+            self.to_call_on_quit.append(func)
+    def unregister_func_to_call_on_quit(self,func):
+        idx = self.to_call_on_quit.index(func)
+        del self.to_call_on_quit[idx]
+    def quit(self):
+        for func in self.to_call_on_quit:
+            func()
+        pygame.quit()
+pygame_keeper = PygameKeeper()
+
 ####################################################################
 #
 #        Screen
@@ -318,7 +334,7 @@ class Screen(VisionEgg.ClassWithParameters):
         # Save the address of these functions so they can be called
         # when closing the screen.
         '''
-        self.__pygame_quit__ = pygame.quit
+        self.__pygame_quit__ = pygame_keeper.quit
 
         #Check FSAA requests
         if cp.multisample_samples>0 :
@@ -578,7 +594,7 @@ def get_default_screen(pyglet_screen=None):
 ####################################################################
 
 class ProjectionBaseClass(VisionEgg.ClassWithParameters):
-    """Converts stimulus coordinates to viewport coordinates.
+    """Base class for 4x4 linear matrix transformation
 
     This is an abstract base class which should be subclassed for
     actual use.
@@ -749,6 +765,8 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
 class Projection(ProjectionBaseClass):
     """for use of OpenGL PROJECTION_MATRIX
 
+    Converts eye coordinates to clip coordinates.
+
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
@@ -764,6 +782,8 @@ class Projection(ProjectionBaseClass):
 
 class ModelView(ProjectionBaseClass):
     """for use of OpenGL MODELVIEW_MATRIX
+
+    Converts object coordinates to eye coordinates.
 
     Parameters
     ==========
@@ -1038,9 +1058,14 @@ class Viewport(VisionEgg.ClassWithParameters):
     projection, which is defined by an instance of the Projection
     class.
 
-    By default, a viewport has a projection which maps eye coordinates
-    to viewport coordinates in 1:1 manner.  In other words, eye
-    coordinates specify pixel location in the viewport.
+    By default, a viewport has a projection and viewport
+    transformation which maps eye coordinates to window coordinates in
+    1:1 manner.  In other words, eye coordinates specify pixel
+    location in the viewport window. For example, if the viewport was
+    640 pixels wide and 480 pixels high, the default projection would
+    take eye coordinate (320,240,0,1) and map it to normalized device
+    coordinates of (0.5,0.5,0.0). The default viewport transformation
+    would transform this to window coordinates of (320,240,0.5).
 
     For cases where pixel units are not natural to describe
     coordinates of a stimulus, the application should specify the a
@@ -1090,6 +1115,9 @@ class Viewport(VisionEgg.ClassWithParameters):
         'projection':(None,
                       ve_types.Instance(Projection),
                       'intrinsic camera parameter matrix (field of view, focal length, aspect ratio)'),
+        'auto_pixel_projection':(None,
+                                 ve_types.Boolean,
+                                 'reset the projection when the size changes to maintain pixel coordinates'),
         'camera_matrix':(None,
                          ve_types.Instance(ModelView),
                          'extrinsic camera parameter matrix (position and orientation)'),
@@ -1104,6 +1132,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     __slots__ = (
         '_is_drawing',
+        '_cached_size',
         )
 
     def __init__(self,**kw):
@@ -1120,6 +1149,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         size -- defaults to screen.size
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
+
         """
         super(Viewport, self).__init__(**kw)
 
@@ -1129,9 +1159,18 @@ class Viewport(VisionEgg.ClassWithParameters):
         p = self.parameters # shorthand
         if p.size is None:
             p.size = p.screen.constant_parameters.size
+        self._cached_size = None
         if p.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             p.projection = self.make_new_pixel_coord_projection()
+            if p.auto_pixel_projection is None:
+                # default to maintaining pixel coordinates
+                p.auto_pixel_projection = True
+                self._cached_size = p.size
+        else:
+            if p.auto_pixel_projection is None:
+                # default to not maintaining
+                p.auto_pixel_projection = True
         if p.camera_matrix is None:
             p.camera_matrix = ModelView()
         if p.stimuli is None:
@@ -1147,6 +1186,10 @@ class Viewport(VisionEgg.ClassWithParameters):
         p = self.parameters # shorthand
         p.screen.make_current()
 
+        if p.auto_pixel_projection and self._cached_size != p.size:
+            p.projection = self.make_new_pixel_coord_projection()
+            self._cached_size = p.size
+
         if p.lowerleft != None:
             if not hasattr(Viewport,"_gave_lowerleft_warning"):
                 logger = logging.getLogger('VisionEgg.Core')
@@ -1160,10 +1203,10 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
 
-        gl.glViewport(lowerleft[0],
-                      lowerleft[1],
-                      p.size[0],
-                      p.size[1])
+        gl.glViewport(int(lowerleft[0]),
+                      int(lowerleft[1]),
+                      int(p.size[0]),
+                      int(p.size[1]))
         gl.glDepthRange(p.depth_range[0],p.depth_range[1])
 
         p.projection.apply_to_gl()

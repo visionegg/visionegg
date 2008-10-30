@@ -1,5 +1,41 @@
+Changes for 1.1.1:
+------------------
+
+* Various small bugfixes and performance improvements:
+
+  - Removed old CVS cruft from VisionEgg/PyroClient.py VisionEgg/PyroHelpers.py
+
+  - Fix trivial documentation bugs to have the correct version number.
+
+  - Workaraound pygame/SDL issue when creating Font objects. (r1491, reported by Jeremy Hill)
+
+  - bugfix: allow 4D as well as 3D vectors to specify vertices (r1472, r1474)
+
+  - fix comments: improve description of coordinate system transforms (r1473)
+
+  - Use standard Python idiom (r1475)
+
+  - Further removal of 'from blah import *' (r1476, r1501)
+
+  - Minor performance improvement (r1486)
+
+  - Remove unintended print statement (r1487 thanks to Jeremy Hill)
+
+  - properly detect String and Unicode types (r1470, reported by Dav Clark)
+
+  - update license to mention other code (r1502)
+
 Changes for 1.1:
 ----------------
+
+* Explicitly require Python 2.3 by removing duplicate of Python
+  standard library's logging module and assume the "True" and "False"
+  are defined. There were probably other assumptions depending on 2.3
+  creeping into the code, as well.
+
+* Removed Lib3DS module.
+
+* Workaround PyOpenGL 3.0.0a and 3.0.0b1 bug in glLoadMatrixf().
 
 * Fix SphereMap.AzElGrid() to properly draw iso elevation and azimuth
   lines at specified intervals.
@@ -7,7 +43,7 @@ Changes for 1.1:
 * Change to use numpy at the core instead of Numeric. (Require numpy,
   no longer require Numeric.)
 
-* Requre setuptools
+* Require setuptools
 
 * No longer supporting Python 2.2
 
@@ -16,7 +52,7 @@ Changes for 1.1:
 * Update to work with PyOpenGL 3
 
 * Changes so to reflect standard idioms on Python project layouts:
-    - src/ directory renamed to VisionEgg/ 
+    - src/ directory renamed to VisionEgg/
          (but .c files need to be moved back to src/)
     - use 'package_data' distutils argument
   This enables setuptools to work with the Vision Egg.
@@ -55,7 +91,7 @@ Changes for 1.0:
   GL_PROJECTION matrix and put them in the GL_MODELVIEW matrix, where
   they belong.
 
-* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT. 
+* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT.
 
 * Added win32_vretrace.WaitForRetrace() (but it's not used for much,
   yet)
@@ -295,7 +331,7 @@ computer.  Check out the the demos in the demo/Pyro directory.
 Requires python package "Pyro" (Python Remote Objects).
 
 New configuration system added.  VisionEgg.config holds system-wide
-configuration defaults. 
+configuration defaults.
 
 Changed VisionEgg.py to Core.py, so now you must do "import
 VisionEgg.Core".

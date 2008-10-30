@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.Configuration</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        Module&nbsp;Configuration
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.Configuration-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module Configuration</h1><span class="codelink"><a href="VisionEgg.Configuration-pysrc.html">source&nbsp;code</a></span><br /><br />
+<pre class="literalblock">
+
+Load config values from environment, config file, or defaults.
+
+Applications should not import this module directly.  Instead, 'import
+VisionEgg' will result in an attribute 'VisionEgg.config', which has
+the configuration options as attributes.
+
+This module searches for configuration options from the following
+places: environment variables, configuration file, generic defaults.
+Environment variables take precedence over the configuration file,
+which takes precedence over the generic defaults.
+
+This module also determines the location of the Vision Egg
+directories.  The VISIONEGG_SYSTEM_DIR directory is by default the
+'VisionEgg' directory in Python's site-packages.  VISIONEGG_USER_DIR
+is by default 'VisionEgg' in the directory specified by the
+environment variable HOME, if it exists, and os.curdir otherwise.
+
+You can create a configuration file that contains defaults for your
+system.  This should be a text file with key/value pairs.  Blank lines
+and anything after the pound symbol ('#') will be treated as a
+comment.  Each key/value pairs should be on its own line and in the
+format 'KEY=VALUE'.  By default the file 'VisionEgg.cfg' from the
+VISIONEGG_USER_DIR or VISIONEGG_SYSTEM_DIR as specified above.
+However, You can specify a different filename and directory by setting
+the environment variable VISIONEGG_CONFIG_FILE.
+
+</pre><br /><br />
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Configuration.Config-class.html" class="summary-name">Config</a><br />
+      Holds global Vision Egg configuration information.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="save_settings"></a><span class="summary-sig-name">save_settings</span>()</span><br />
+      Save the current values to the config file, overwriting what is there.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.Configuration-pysrc.html#save_settings">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Configuration-module.html#defaults" class="summary-name">defaults</a> = <code title="{'VISIONEGG_ALWAYS_START_LOGGING': 0, 'VISIONEGG_DOUBLE_BUFFER': 1, 'V\
+ISIONEGG_FRAMELESS_WINDOW': 0, 'VISIONEGG_FULLSCREEN': 0, 'VISIONEGG_G\
+UI_INIT': 1, 'VISIONEGG_GAMMA_INVERT_RED': 2.1, 'VISIONEGG_GAMMA_INVER\
+T_GREEN': 2.1, 'VISIONEGG_GAMMA_INVERT_BLUE': 2.1, 'VISIONEGG_GAMMA_FI\
+LE': 'custom.ve_gamma', 'VISIONEGG_GAMMA_SOURCE': 'none', 'VISIONEGG_G\
+UI_ON_ERROR': 1, 'VISIONEGG_HIDE_MOUSE': 1, 'VISIONEGG_LOG_FILE': 'Vis\
+ionEgg.log', 'VISIONEGG_LOG_TO_STDERR': 1, 'VISIONEGG_MAXPRIORITY': 0,\
+ 'VISIONEGG_MONITOR_REFRESH_HZ': 60.0, 'VISIONEGG_MULTISAMPLE_SAMPLES'\
+...">{'VISIONEGG_ALWAYS_START_LOGGING': 0, 'VISIONEGG_DO<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.Configuration-module.html#extra_darwin_defaults" class="summary-name">extra_darwin_defaults</a> = <code title="{'VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME': 1, 'VISIONE\
+GG_DARWIN_CONVENTIONAL_PRIORITY':-20, 'VISIONEGG_DARWIN_REALTIME_PERIO\
+D_DENOM': 120, 'VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM': 2400, 'V\
+ISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM': 1200, 'VISIONEGG_DARWIN_RE\
+ALTIME_PREEMPTIBLE': 0, 'VISIONEGG_DARWIN_PTHREAD_PRIORITY': 'max',}">{'VISIONEGG_DARWIN_MAXPRIORITY_CONVENT<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'VISIONEGG_ALWAYS_START_LOGGING': 0, 'VISIONEGG_DOUBLE_BUFFER': 1, 'V<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ISIONEGG_FRAMELESS_WINDOW': 0, 'VISIONEGG_FULLSCREEN': 0, 'VISIONEGG_G<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+UI_INIT': 1, 'VISIONEGG_GAMMA_INVERT_RED': 2.1, 'VISIONEGG_GAMMA_INVER<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+T_GREEN': 2.1, 'VISIONEGG_GAMMA_INVERT_BLUE': 2.1, 'VISIONEGG_GAMMA_FI<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+LE': 'custom.ve_gamma', 'VISIONEGG_GAMMA_SOURCE': 'none', 'VISIONEGG_G<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+UI_ON_ERROR': 1, 'VISIONEGG_HIDE_MOUSE': 1, 'VISIONEGG_LOG_FILE': 'Vis<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ionEgg.log', 'VISIONEGG_LOG_TO_STDERR': 1, 'VISIONEGG_MAXPRIORITY': 0,<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ 'VISIONEGG_MONITOR_REFRESH_HZ': 60.0, 'VISIONEGG_MULTISAMPLE_SAMPLES'<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="extra_darwin_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">extra_darwin_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'VISIONEGG_DARWIN_MAXPRIORITY_CONVENTIONAL_NOT_REALTIME': 1, 'VISIONE<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+GG_DARWIN_CONVENTIONAL_PRIORITY':-20, 'VISIONEGG_DARWIN_REALTIME_PERIO<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+D_DENOM': 120, 'VISIONEGG_DARWIN_REALTIME_COMPUTATION_DENOM': 2400, 'V<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ISIONEGG_DARWIN_REALTIME_CONSTRAINT_DENOM': 1200, 'VISIONEGG_DARWIN_RE<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ALTIME_PREEMPTIBLE': 0, 'VISIONEGG_DARWIN_PTHREAD_PRIORITY': 'max',}
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:46 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

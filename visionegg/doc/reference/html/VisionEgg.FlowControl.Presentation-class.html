@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>VisionEgg.FlowControl.Presentation</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="VisionEgg-module.html">Package&nbsp;VisionEgg</a> ::
+        <a href="VisionEgg.FlowControl-module.html">Module&nbsp;FlowControl</a> ::
+        Class&nbsp;Presentation
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="VisionEgg.FlowControl.Presentation-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Presentation</h1><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+         object --+    
+                  |    
+<a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a> --+
+                      |
+                     <strong class="uidshort">Presentation</strong>
+</pre>
+
+<hr />
+<pre class="literalblock">
+Handles the timing and coordination of stimulus presentation.
+
+This class is the key to the real-time operation of the Vision
+Egg. It contains the main 'go' loop, and maintains the association
+between 'controllers', instances of the Controller class, and the
+parameters they control.
+
+During the main 'go' loop and at other specific times, the
+parameters are updated via function calls to the controllers.
+
+Between entries into the 'go' loop, a Vision Egg application
+should call the method between_presentations as often as possible
+to ensure parameter values are kept up to date and any
+housekeeping done by controllers is done.
+
+No OpenGL environment I know of can guarantee that a new frame is
+drawn and the double buffers swapped before the monitor's next
+vertical retrace sync pulse.  Still, although one can worry
+endlessly about this problem, it works.  In other words, on a fast
+computer with a fast graphics card running even a pre-emptive
+multi-tasking operating system (see below for specific
+information), a new frame is drawn before every monitor update. If
+this did become a problem, the go() method could be re-implemented
+in C, along with the functions it calls.  This would probably
+result in speed gains, but without skipping frames at 200 Hz, why
+bother?
+
+Parameters
+==========
+check_events                 -- allow input event checking during 'go' loop? (Boolean)
+                                Default: True
+collect_timing_info          -- log timing statistics during go loop? (Boolean)
+                                Default: True
+enter_go_loop                -- test used by run_forever() to enter go loop (Boolean)
+                                Default: False
+go_duration                  -- Tuple to specify 'go' loop duration. Either (value,units) or ('forever',) (Sequence of AnyOf(Real or String))
+                                Default: (5.0, 'seconds')
+handle_event_callbacks       -- List of tuples to handle events. (event_type,event_callback_func) (Sequence of Sequence2 of AnyOf(Integer or Callable))
+                                Default: (determined at runtime)
+override_t_abs_sec           -- Override t_abs. Set only when reconstructing experiments. (units: seconds) (Real)
+                                Default: (determined at runtime)
+quit                         -- quit the run_forever loop? (Boolean)
+                                Default: False
+trigger_armed                -- test trigger on go loop? (Boolean)
+                                Default: True
+trigger_go_if_armed          -- trigger go loop? (Boolean)
+                                Default: True
+viewports                    -- list of Viewport instances to draw. Order is important. (Sequence of Instance of &lt;class 'VisionEgg.ClassWithParameters'&gt;)
+                                Default: (determined at runtime)
+warn_longest_frame_threshold -- threshold to print frame skipped warning (units: factor of inter-frame-interval) (Real)
+                                Default: 2.0
+warn_mean_fps_threshold      -- threshold to print observered vs. expected frame rate warning (fraction units) (Real)
+                                Default: 0.01
+
+</pre><br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.FlowControl.Presentation-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kw</span>)</span><br />
+      Create self.parameters and set values.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_controller"></a><span class="summary-sig-name">add_controller</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">class_with_parameters</span>,
+        <span class="summary-sig-arg">parameter_name</span>,
+        <span class="summary-sig-arg">controller</span>)</span><br />
+      Add a controller</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.add_controller">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.FlowControl.Presentation-class.html#remove_controller" class="summary-sig-name">remove_controller</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">class_with_parameters</span>,
+        <span class="summary-sig-arg">parameter_name</span>,
+        <span class="summary-sig-arg">controller</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Remove one (or more--see below) controller(s).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.remove_controller">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.FlowControl.Presentation-class.html#is_in_go_loop" class="summary-sig-name">is_in_go_loop</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Queries if the presentation is in a go loop.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.is_in_go_loop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="were_frames_dropped_in_last_go_loop"></a><span class="summary-sig-name">were_frames_dropped_in_last_go_loop</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.were_frames_dropped_in_last_go_loop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_last_go_loop_start_time_absolute_sec"></a><span class="summary-sig-name">get_last_go_loop_start_time_absolute_sec</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.get_last_go_loop_start_time_absolute_sec">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.FlowControl.Presentation-class.html#go" class="summary-sig-name">go</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Main control loop during stimulus presentation.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.go">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="export_movie_go"></a><span class="summary-sig-name">export_movie_go</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">frames_per_sec</span>=<span class="summary-sig-default">12.0</span>,
+        <span class="summary-sig-arg">filename_suffix</span>=<span class="summary-sig-default">&quot;.tif&quot;</span>,
+        <span class="summary-sig-arg">filename_base</span>=<span class="summary-sig-default">&quot;visionegg_movie&quot;</span>,
+        <span class="summary-sig-arg">path</span>=<span class="summary-sig-default">&quot;.&quot;</span>)</span><br />
+      Emulates method 'go' but saves a movie.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.export_movie_go">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="run_forever"></a><span class="summary-sig-name">run_forever</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Main control loop between go loops.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.run_forever">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="VisionEgg.FlowControl.Presentation-class.html#between_presentations" class="summary-sig-name">between_presentations</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Maintain display while between stimulus presentations.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.between_presentations">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__getstate__">__getstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__setstate__">__setstate__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#get_specified_type">get_specified_type</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#is_constant_parameter">is_constant_parameter</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#set">set</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#verify_parameters">verify_parameters</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="VisionEgg.FlowControl.Presentation-class.html#parameters_and_defaults" class="summary-name">parameters_and_defaults</a> = <code title="{'viewports':(None, ve_types.Sequence(ve_types.Instance(VisionEgg.Clas\
+sWithParameters)), 'list of Viewport instances to draw. Order is impor\
+tant.'), 'collect_timing_info':(True, ve_types.Boolean, 'log timing st\
+atistics during go loop?'), 'go_duration':((5.0, 'seconds'), ve_types.\
+Sequence(ve_types.AnyOf(ve_types.Real, ve_types.String)), &quot;Tuple to sp\
+ecify 'go' loop duration. Either (value,units) or ('forever',)&quot;), 'che\
+ck_events':(True, ve_types.Boolean, &quot;allow input event checking during\
+ 'go' loop?&quot;), 'handle_event_callbacks':(None, ve_types.Sequence(ve_ty\
+...">{'viewports':(None, ve_types.Sequenc<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="VisionEgg.ClassWithParameters-class.html">ClassWithParameters</a></code></b>:
+      <code><a href="VisionEgg.ClassWithParameters-class.html#__safe_for_unpickling__">__safe_for_unpickling__</a></code>,
+      <code><a href="VisionEgg.ClassWithParameters-class.html#constant_parameters_and_defaults">constant_parameters_and_defaults</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kw</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Create self.parameters and set values.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="VisionEgg.ClassWithParameters-class.html#__init__">ClassWithParameters.__init__</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="remove_controller"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">remove_controller</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">class_with_parameters</span>,
+        <span class="sig-arg">parameter_name</span>,
+        <span class="sig-arg">controller</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.remove_controller">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Remove one (or more--see below) controller(s).
+
+If controller is None, all controllers affecting the
+specified parameter are removed.
+
+If class_with_parameters and paramter_name are None, the
+controller is removed completely
+
+If class_with_parameters, paramter_name, and controller are
+all None, all controllers are removed.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="is_in_go_loop"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">is_in_go_loop</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.is_in_go_loop">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Queries if the presentation is in a go loop.
+
+This is useful to check the state of the Vision Egg
+application from a remote client over Pyro.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="go"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">go</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.go">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Main control loop during stimulus presentation.
+
+This is the heart of realtime control in the Vision Egg, and
+contains the main loop during a stimulus presentation. This
+coordinates the timing of calling the controllers.
+
+In the main loop, the current time (in absolute seconds,
+go-loop-start-relative seconds, and go-loop-start-relative
+frames) is computed, the appropriate controllers are called
+with this information, the screen is cleared, each viewport is
+drawn to the back buffer (while the video card continues
+painting the front buffer on the display), and the buffers are
+swapped.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="between_presentations"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">between_presentations</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="VisionEgg.FlowControl-pysrc.html#Presentation.between_presentations">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+Maintain display while between stimulus presentations.
+
+This function gets called as often as possible when in the
+'run_forever' loop except when execution has shifted to the
+'go' loop.
+
+Other than the difference in the time variable passed to the
+controllers, this routine is very similar to the inside of the
+main loop in the go method.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="parameters_and_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">parameters_and_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'viewports':(None, ve_types.Sequence(ve_types.Instance(VisionEgg.Clas<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+sWithParameters)), 'list of Viewport instances to draw. Order is impor<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+tant.'), 'collect_timing_info':(True, ve_types.Boolean, 'log timing st<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+atistics during go loop?'), 'go_duration':((5.0, 'seconds'), ve_types.<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+Sequence(ve_types.AnyOf(ve_types.Real, ve_types.String)), &quot;Tuple to sp<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ecify 'go' loop duration. Either (value,units) or ('forever',)&quot;), 'che<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ck_events':(True, ve_types.Boolean, &quot;allow input event checking during<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ 'go' loop?&quot;), 'handle_event_callbacks':(None, ve_types.Sequence(ve_ty<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="VisionEgg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.visionegg.org">Vision Egg</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sat Jun  7 09:06:46 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

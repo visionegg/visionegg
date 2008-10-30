@@ -8,16 +8,19 @@ to create simple experiments this way."""
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
-from VisionEgg.Core import *
+
+from VisionEgg.Core import Screen, Viewport, swap_buffers, FrameTimer, \
+     get_default_screen
 import pygame
-from pygame.locals import *
-from VisionEgg.Text import *
-from VisionEgg.Dots import *
+from pygame.locals import QUIT,KEYDOWN,MOUSEBUTTONDOWN
+from VisionEgg.Text import Text
+from VisionEgg.Dots import DotArea2D
 
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.0) # black (RGB)
 
-dots = DotArea2D( position                = ( screen.size[0]/2.0, screen.size[1]/2.0 ),
+dots = DotArea2D( position                = ( screen.size[0]/2.0,
+                                              screen.size[1]/2.0 ),
                   size                    = ( 300.0 , 300.0 ),
                   signal_fraction         = 0.1,
                   signal_direction_deg    = 180.0,

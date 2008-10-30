@@ -19,10 +19,7 @@ Implementations of functions which vary by platform.
 #
 ####################################################################
 
-try:
-    import logging
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
 
 import sys, os
 import VisionEgg

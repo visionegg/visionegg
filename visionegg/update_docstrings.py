@@ -10,9 +10,7 @@ import VisionEgg.Daq
 import VisionEgg.DaqKeyboard
 import VisionEgg.Dots
 import VisionEgg.FlowControl
-import VisionEgg.GLTrace
 import VisionEgg.Gratings
-import VisionEgg.Lib3DS
 import VisionEgg.MoreStimuli
 import VisionEgg.ResponseControl
 import VisionEgg.SphereMap
@@ -26,7 +24,6 @@ mods = [VisionEgg,
         VisionEgg.Dots,
         VisionEgg.FlowControl,
         VisionEgg.Gratings,
-        VisionEgg.Lib3DS,
         VisionEgg.MoreStimuli,
         VisionEgg.ResponseControl,
         VisionEgg.SphereMap,
@@ -42,7 +39,7 @@ for mod in mods:
     orig_file = mod.__file__
     if orig_file.endswith('pyc'):
         orig_file = orig_file[:-1]
-    cur_file = os.path.join('src',os.path.split(orig_file)[1])
+    cur_file = os.path.join('VisionEgg',os.path.split(orig_file)[1])
     mod_name_to_file[mod.__name__] = cur_file
 
 def get_str(xx,const=0):
@@ -64,7 +61,7 @@ def get_str(xx,const=0):
             done_parameters_and_defaults.append(pd)
     ks = class_by_key.keys()
     ks.sort()
-        
+
     if len(ks):
         out_strs = []
         if not const:
@@ -103,7 +100,7 @@ def get_str(xx,const=0):
                 else:
                     mod_name = ''
                 out_strs.append( ' '*(max_len+4)+'Inherited from %s%s\n'%(mod_name,klass.__name__,))
-                
+
             tmp = str(default).split('\n')
             if default is None:
                 tmp = ['(determined at runtime)']
@@ -112,7 +109,7 @@ def get_str(xx,const=0):
                     if default is None:
                         gl_name = '(GL enum determined at runtime)'
                     else:
-                        gl_name = VisionEgg.GLTrace.gl_constants[default]
+                        gl_name = str(default)
                     tmp = [gl_name]
             out_strs.append( ' '*(max_len+4)+'Default: '+tmp[0]+'\n')
             if len(tmp) > 1:
@@ -136,7 +133,7 @@ for mod in mods:
 
     digest = cur_hash.digest()
     if orig_hash.digest() != digest:
-        raise RuntimeError('%s is different in src and site-packages'%fname)
+        raise RuntimeError('%s is different in VisionEgg and site-packages'%fname)
     for x in mod.__dict__.keys():
         xx = getattr(mod,x)
         xl.append(xx)
@@ -179,7 +176,7 @@ for xx in xl:
             if doc_one_liner_find.search(buf[doc_start]):
                 doc_stop = doc_start
                 del_doc_stop = doc_stop+1
-                
+
                 doc_lines = buf[doc_start:del_doc_stop]
                 del buf[doc_start:del_doc_stop]
             else:
@@ -193,7 +190,7 @@ for xx in xl:
 
                 doc_lines = buf[doc_start:del_doc_stop-1]
                 del buf[doc_start:del_doc_stop]
-            
+
             trimmed_doc_lines = []
             for doc_line in doc_lines:
                 doc_line = doc_line.replace('"""','')
@@ -242,11 +239,11 @@ for xx in xl:
                 else:
                     final_new_lines.append( '    '+new_line )
             new_lines = final_new_lines
-            
+
             buf[line_no+1:line_no+1] = new_lines # insert new docstring
-            
+
             file_buffers[fname] = buf # reassign new buffer
-            
+
 for fname, buf in file_buffers.iteritems():
     buf = ''.join(buf)
     new_hash = md5.new()

@@ -1,6 +1,7 @@
 # The Vision Egg: PyroClient
 #
 # Copyright (C) 2001-2003 Andrew Straw.
+# Copyright (C) 2008 California Insitute of Technology
 # Author: Andrew Straw <astraw@users.sourceforge.net>
 # URL: <http://www.visionegg.org/>
 #
@@ -17,24 +18,8 @@ Python Remote Objects support - Client side.
 import socket
 import VisionEgg
 
-try:
-    import logging                              # available in Python 2.3
-except ImportError:
-    import VisionEgg.py_logging as logging      # use local copy otherwise
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
-
+import logging                              # available in Python 2.3
 import Pyro.core
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 class PyroClient:
     """Simplifies getting PyroControllers from a remote computer."""

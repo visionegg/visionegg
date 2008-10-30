@@ -31,22 +31,22 @@ class TargetMetaParameters:
         # colors
         self.color = (0.0, 0.0, 0.0, 1.0)
         self.bgcolor = (1.0, 1.0, 1.0, 0.0)
-        
+
         # motion parameters
         self.start_x = 10.0
         self.start_y = 50.0
         self.velocity_pps = 100.0 # pixels per second
         self.direction_deg = 0.0
-        
+
         # size and orientation
         self.width = 10.0
         self.height = 30.0
         self.orientation_deg = 0.0
-        
+
         self.pre_stim_sec = 1.0
         self.stim_sec = 2.0
         self.post_stim_sec = 1.0
-        
+
 class TargetControlFrame(client_utils.StimulusControlFrame):
     title = "Moving Target Experiment"
     def __init__(self, master=None, suppress_go_buttons=0,**kw):
@@ -65,21 +65,21 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         self.start_x_tk_var.set(self.meta_params.start_x)
         self.make_callback_entry(textvariable=self.start_x_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Start X"] = ("start_x",self.start_x_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Start Y (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.start_y_tk_var = Tkinter.DoubleVar()
         self.start_y_tk_var.set(self.meta_params.start_y)
         self.make_callback_entry(textvariable=self.start_y_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Start Y"] = ("start_y",self.start_y_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Velocity (pixels/sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.velocity_tk_var = Tkinter.DoubleVar()
         self.velocity_tk_var.set(self.meta_params.velocity_pps)
         self.make_callback_entry(textvariable=self.velocity_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Velocity"] = ("velocity_pps",self.velocity_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Direction (degrees):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.direction_tk_var = Tkinter.DoubleVar()
@@ -102,7 +102,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
                                  value="black on white",
                                  variable=self.color_tk_var,
                                  command=self.send_values)
-        bar['menu'] = bar.menu       
+        bar['menu'] = bar.menu
 
         pf_row += 1
         Tkinter.Label(param_frame,text="Orientation (degrees):").grid(row=pf_row,column=0,sticky=Tkinter.E)
@@ -112,47 +112,47 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         manual = Tkinter.Radiobutton( param_frame, text="Manual",
                                       variable=self.ortho_tk_var, value="manual")
         manual.grid(row=pf_row,column=1)
-        
+
         self.orient_tk_var = Tkinter.DoubleVar()
         self.orient_tk_var.set(self.meta_params.orientation_deg)
-        
+
         manual_entry = Tkinter.Entry( param_frame,
                                       textvariable=self.orient_tk_var,
                                       width=self.entry_width )
         manual_entry.grid(row=pf_row,column=2)
-        
+
         ortho = Tkinter.Radiobutton( param_frame, text="Orthogonal to motion",
                                      variable=self.ortho_tk_var, value="ortho")
         ortho.grid(row=pf_row,column=3)
         self.loopable_variables["Orientation"] = ("orientation_deg",self.orient_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Width (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.width_tk_var = Tkinter.DoubleVar()
         self.width_tk_var.set(self.meta_params.width)
         self.make_callback_entry(textvariable=self.width_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Width"] = ("width",self.width_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Height (pixels):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.height_tk_var = Tkinter.DoubleVar()
         self.height_tk_var.set(self.meta_params.height)
         self.make_callback_entry(textvariable=self.height_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Height"] = ("height",self.height_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Pre stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.prestim_dur_tk_var = Tkinter.DoubleVar()
         self.prestim_dur_tk_var.set(self.meta_params.pre_stim_sec)
         self.make_callback_entry(textvariable=self.prestim_dur_tk_var).grid(row=pf_row,column=2)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.stim_dur_tk_var = Tkinter.DoubleVar()
         self.stim_dur_tk_var.set(self.meta_params.stim_sec)
         self.make_callback_entry(textvariable=self.stim_dur_tk_var).grid(row=pf_row,column=2)
         self.loopable_variables["Duration"] = ("stim_sec",self.stim_dur_tk_var)
-        
+
         pf_row += 1
         Tkinter.Label(param_frame,text="Post stimulus duration (sec):").grid(row=pf_row,column=0,sticky=Tkinter.E)
         self.poststim_dur_tk_var = Tkinter.DoubleVar()
@@ -180,7 +180,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
             self.color_tk_var.set( "white on black" )
         else:
             raise RuntimeError("Cannot set tk variable for color")
-        
+
     def send_values(self,dummy_arg=None):
         self.meta_params.start_x = self.start_x_tk_var.get()
         self.meta_params.start_y = self.start_y_tk_var.get()
@@ -192,7 +192,7 @@ class TargetControlFrame(client_utils.StimulusControlFrame):
         elif self.color_tk_var.get() == "white on black":
             self.meta_params.color = (1.0,1.0,1.0,1.0)
             self.meta_params.bgcolor = (0.0,0.0,0.0,0.0)
-        
+
         if self.ortho_tk_var.get() == "ortho":
             self.meta_params.orientation_deg = math.fmod(self.meta_params.direction_deg,360.0)
         else: # it's "manual"

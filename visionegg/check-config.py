@@ -23,10 +23,10 @@ if sys.platform == 'darwin':
 
     try:
         if not os.path.isabs(sys.argv[0]):
-            
+
             print """Mac OS X - It appears you are running this script
             from the commandline -- turning off GUIs."""
-            
+
             gui_ok = 0
     except Exception, x:
         raise
@@ -65,28 +65,28 @@ if sys.platform in ['darwin','mac','win32'] and gui_ok:
                 b.bind('<Return>',self.close_window)
                 self.mainloop()
         if sys.platform == 'darwin':
-            
+
             add_str = """ To see this information, switch to the
             Terminal window that should have opened when you launched
             this program."""
-            
+
         elif sys.platform == 'win32':
-            
+
             add_str = """ After this script has finished, a second GUI
             window will appear.  Until the second window is closed,
             the console will be available for viewing."""
 
         else:
-            
+
             add_str = """ Information specific to your platform has
             not been written yet."""
-            
+
         showwarning(title="Conole location warning",
                     message=
-                    
+
             """This script displays information on the console, which
             is not readily visible on this platform."""+add_str)
-        
+
     except:
         print "(Failed to open dialog box-- is Tkinter installed?)"
 
@@ -99,9 +99,9 @@ try:
     import VisionEgg
 except ImportError:
     print """Could not import the VisionEgg module.
-    
+
     This is probably because it is not yet installed.
-    
+
     Try installing by running 'python setup.py install' from the
     command line (as root if necessary).
 
@@ -201,7 +201,7 @@ if 'VisionEgg' in globals().keys():
             The new demos (and documentation) are no longer installed,
             but available with the source code or as a separate
             package.
-            
+
             ************************************************************
             """%locals()
     # These things have been removed from the installed library directory.
@@ -222,7 +222,7 @@ if 'VisionEgg' in globals().keys():
             ancient_files.append(filename)
     if len(ancient_files):
         print """        ************************************************************
-        
+
         WARNING: The following files were found in your VisionEgg
         library directory:
 
@@ -233,9 +233,9 @@ if 'VisionEgg' in globals().keys():
         These files are from old installations of the Vision
         Egg. Although they will not cause problems unless your scripts
         import them, they may lead to confusion.
-        
+
         ************************************************************
-        
+
         """%(string.join(ancient_files),os.path.abspath(os.path.dirname(VisionEgg.__file__)))
 else:
     print "VisionEgg not installed (or other VisionEgg import problems)"
@@ -248,28 +248,27 @@ print "Version checklist:"
 print
 
 print "Python version %s"%(string.split(sys.version)[0],),
-if sys.version >= '2.2' and sys.platform != 'darwin':
-    print "(OK)"
-elif sys.version >= '2.3' and sys.platform == 'darwin':
+if sys.version >= '2.3':
     print "(OK)"
 else:
     print "(Unsupported, probably won't work)"
 print "extra Python info:",string.join(string.split(sys.version)[1:])
 
 try:
-    import Numeric
-    print "Numeric version %s"%(Numeric.__version__,),
-    if Numeric.__version__ >= '20.3':
+    import numpy
+    print "numpy version %s"%(numpy.__version__,),
+    if numpy.__version__ >= '1.0':
         print "(OK)"
     else:
         print "(Untested)"
 except:
-    print "Numeric failed"
+    print "numpy failed"
 
 try:
     import OpenGL
     print 'PyOpenGL (package "OpenGL") version %s'%(OpenGL.__version__,),
-    if OpenGL.__version__ >= '2.0': 
+    if OpenGL.__version__ >= '2.0':
+        # 2.x is OK
         print "(OK)"
     else:
         print "(WILL FAIL)"
@@ -295,7 +294,7 @@ try:
         print "(Untested)"
 except:
     print 'Python Imaging Library (package "Image") failed'
-    
+
 print
 
 print "Optional module(s):"
@@ -327,7 +326,7 @@ if sys.platform == 'win32':
 if gui_ok and sys.platform == 'win32':
     showwarning(title="View the console",
                              message=
-        
+
         """This dialog keeps the console open until you close it.
         Although by default the Vision Egg prints everything
         (including errors) to VisionEgg.log, it may be necessary to

@@ -8,9 +8,9 @@
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
-from VisionEgg.Core import *
+from VisionEgg.Core import get_default_screen, Viewport
 from VisionEgg.FlowControl import Presentation
-from VisionEgg.Dots import *
+from VisionEgg.Dots import DotArea2D
 
 #####################################
 #  Initialize OpenGL window/screen  #

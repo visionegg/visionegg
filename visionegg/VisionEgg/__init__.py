@@ -29,7 +29,7 @@ greatly eased by routines within the Vision Egg.
 See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-release_name = '1.1.dev'
+release_name = '1.2.dev' # keep in sync with ../setup.py
 
 __version__ = release_name
 
@@ -42,18 +42,8 @@ import warnings
 import traceback
 import StringIO
 
-try:
-    import logging
-    import logging.handlers
-except ImportError:
-    import VisionEgg.py_logging as logging
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
+import logging  # available in Python 2.3
+import logging.handlers
 
 if not hasattr(Numeric,'UInt8'):
     Numeric.UInt8 = 'b'

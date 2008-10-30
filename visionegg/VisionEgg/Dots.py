@@ -19,10 +19,7 @@ Random dot stimuli.
 #
 ####################################################################
 
-try:
-    import logging
-except ImportError:
-    import VisionEgg.py_logging as logging
+import logging
 
 import VisionEgg
 import VisionEgg.Core
@@ -32,13 +29,6 @@ import numpy.oldnumeric as Numeric, numpy.oldnumeric.random_array as RandomArray
 import math, types, string
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
-
-# Use Python's bool constants if available, make aliases if not
-try:
-    True
-except NameError:
-    True = 1==1
-    False = 1==0
 
 ### C version of draw_dots() isn't (yet) as fast as Python version:
 ##import VisionEgg._draw_in_c

@@ -65,5 +65,5 @@ while not quit_now:
     frame_timer.tick()
     if movie.IsMovieDone():
         movie.GoToBeginningOfMovie()
-        
-frame_timer.print_histogram()
+
+frame_timer.log_histogram()

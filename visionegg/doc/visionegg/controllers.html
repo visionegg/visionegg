@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="visionegg.css" type='text/css' />
+<link rel='start' href='http://www.visionegg.org/' title='Vision Egg website' />
+<link rel="first" href="visionegg.html" title='The Vision Egg Programmer's Manual' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="node6.html" />
+<link rel="prev" href="hierarchy.html" />
+<link rel="parent" href="visionegg.html" />
+<link rel="next" href="node6.html" />
+<meta name='aesop' content='information' />
+<title>3. Controlling stimulus parameters in realtime </title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="2. Hierarchy of graphical"
+  href="hierarchy.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="4. Other general information"
+  href="node6.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="hierarchy.html">2. Hierarchy of graphical</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node6.html">4. Other general information</A>
+</div>
+<hr /></div>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION005000000000000000000"></A><A NAME="controllers"></A>
+<BR>
+3. Controlling stimulus parameters in realtime 
+</H1>
+
+<P>
+When using the <tt class="class">Presentation</tt> class, you have a powerful method
+of updating parameters in realtime available to you.  ``Controllers''
+are instances of the class <tt class="class">Controller</tt>.  A controller is called
+at pre-defined intervals and updates the value of some stimulus
+parameter.  For example, in the ``target'' demo script, the ``center''
+parameter of a <tt class="class">Target2D</tt> stimulus is updated on every frame by
+a function which computes position based upon the current time.  You
+can also control parameters without using controllers by simply
+changing the values as your program executes.
+
+<P>
+Instances of <tt class="class">Controller</tt> are called by instances of the
+<tt class="class">Presentation</tt> class.  After creating an instance of
+<tt class="class">Controller</tt>, it must be ``registered'' by calling the
+<tt class="method">add_controller</tt> method of <tt class="class">Presentation</tt>, during which
+the stimulus parameter under control is specified.  The
+<tt class="class">Presentation</tt> takes care of calling the controller from this
+point. Specifically, the <tt class="method">during_go_eval()</tt> is called during a
+<tt class="method">go()</tt> loop, and <tt class="method">between_go_eval()</tt> is called by
+<tt class="method">between_presentations()</tt> (during <tt class="method">run_forever()</tt>, for
+example.)  These ``eval'' methods return a value which becomes the
+new value of the parameter being controller.
+
+<P>
+The frequency with which <tt class="method">during_go_eval()</tt> and
+<tt class="method">between_go_eval()</tt> are evaluated is determined by the
+<var>eval_frequency</var> attribute of the controller.  The default
+<var>eval_frequency</var> is every frame.
+
+<P>
+The <var>temporal_variables</var> attribute of the controller specifies
+what temporal variables the ``eval'' methods have available to base
+calculations on.  The default value is TIME_SEC_SINCE_GO, so when
+<tt class="method">during_go_eval()</tt> is called, the instance will have an
+attribute <var>time_sec_since_go</var> set to the time since the onset of
+the <tt class="method">go()</tt> loop.
+
+<P>
+For more information, see the documentation for the <tt class="class">Controller</tt>
+and <tt class="class">Presentation</tt> classes in the <tt class="module">VisionEgg.Core</tt>
+module.
+
+<P>
+
+<DIV CLASS="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="2. Hierarchy of graphical"
+  href="hierarchy.html"><img src='../images/previous.png'
+border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+<td class='online-navigation'><a rel="parent" title="The Vision Egg Programmer's"
+  href="visionegg.html"><img src='../images/up.png'
+border='0' height='32'  alt='Up One Level' width='32' /></A></td>
+<td class='online-navigation'><a rel="next" title="4. Other general information"
+  href="node6.html"><img src='../images/next.png'
+border='0' height='32'  alt='Next Page' width='32' /></A></td>
+<td align="center" width="100%">The Vision Egg Programmer's Manual</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='../images/contents.png'
+border='0' height='32'  alt='Contents' width='32' /></A></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='../images/blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="hierarchy.html">2. Hierarchy of graphical</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="visionegg.html">The Vision Egg Programmer's</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node6.html">4. Other general information</A>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 1.1, documentation updated on June 7, 2008.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
