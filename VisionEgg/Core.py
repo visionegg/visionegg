@@ -775,7 +775,7 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     # NOT use OpenGL except when purposefully setting matrices.
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
-        'matrix':( Numeric.identity(4), # 4x4 identity matrix
+        'matrix':( numpy.eye(4), # 4x4 identity matrix
                    ve_types.Sequence4x4(ve_types.Real),
                    'matrix specifying projection'),
         })
