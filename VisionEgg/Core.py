@@ -1331,9 +1331,11 @@ class Viewport(VisionEgg.ClassWithParameters):
                 p.auto_pixel_projection = True
                 self._cached_size = p.size
         else:
+            # If the user *did* specify a projection, it is likely
+            # that they want that to be maintained.
             if p.auto_pixel_projection is None:
                 # default to not maintaining
-                p.auto_pixel_projection = True
+                p.auto_pixel_projection = False
         if p.camera_matrix is None:
             p.camera_matrix = ModelView()
         if p.stimuli is None:
