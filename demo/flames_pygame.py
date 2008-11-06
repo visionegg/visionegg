@@ -39,9 +39,15 @@ This runs at about 40fps on my celeron-400
 
 import pygame
 from pygame.surfarray import *
-from pygame.locals import *
-import Numeric
+import pygame.surfarray
 import numpy as np
+if hasattr(pygame.surfarray,'use_arraytype'):
+    use_arraytype('numpy')
+    pygame_array_module = np
+else:
+    import Numeric
+    pygame_array_module = Numeric
+from pygame.locals import *
 from numpy.oldnumeric import *
 from numpy.oldnumeric.random_array import *
 
@@ -141,7 +147,7 @@ def blitdouble(screen, flame, doubleflame):
     doubleflame[::2,:-2:2] = flame[:,:-4]
     doubleflame[1::2,:-2:2] = flame[:,:-4]
     doubleflame[:,1:-2:2] = doubleflame[:,:-2:2]
-    to_blit = Numeric.array( doubleflame.astype(np.uint8) )
+    to_blit = pygame_array_module.array(doubleflame.astype(np.uint8))
     blit_array(screen, to_blit)
 
 
