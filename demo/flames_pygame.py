@@ -43,10 +43,10 @@ import pygame.surfarray
 import numpy as np
 if hasattr(pygame.surfarray,'use_arraytype'):
     use_arraytype('numpy')
-    pygame_array_module = np
+    pygame_array_func = np.asarray
 else:
     import Numeric
-    pygame_array_module = Numeric
+    pygame_array_func = Numeric.array
 from pygame.locals import *
 from numpy.oldnumeric import *
 from numpy.oldnumeric.random_array import *
@@ -147,7 +147,7 @@ def blitdouble(screen, flame, doubleflame):
     doubleflame[::2,:-2:2] = flame[:,:-4]
     doubleflame[1::2,:-2:2] = flame[:,:-4]
     doubleflame[:,1:-2:2] = doubleflame[:,:-2:2]
-    to_blit = pygame_array_module.array(doubleflame.astype(np.uint8))
+    to_blit = pygame_array_func( doubleflame.astype(np.uint8))
     blit_array(screen, to_blit)
 
 
