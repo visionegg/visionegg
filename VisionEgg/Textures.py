@@ -235,8 +235,17 @@ class Texture(object):
                 raise NotImplementedError("Currently only luminance data can be converted to images")
         elif isinstance(self.texels, Image.Image):
             return self.texels
+        elif isinstance(self.texels, pygame.surface.Surface):
+            width, height = self.texels.get_size()
+            if self.texels.get_alpha():
+                raw_data = pygame.image.tostring(self.texels,'RGBA',1)
+                return Image.fromstring('RGBA', (width, height), raw_data)
+            else:
+                raw_data = pygame.image.tostring(self.texels,'RGB',1)
+                return Image.fromstring('RGB', (width, height), raw_data)
         else:
-            raise NotImplementedError("Don't know how to convert texel data to PIL image")
+            raise NotImplementedError("Don't know how to convert texel data %s "
+                                      "to PIL image"%(self.texels,))
 
     def get_pixels_as_image(self):
         logger = logging.getLogger('VisionEgg.Textures')
