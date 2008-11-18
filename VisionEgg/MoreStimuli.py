@@ -239,16 +239,6 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
             gl.glVertex(*p.vertex4)
             gl.glEnd() # GL_QUADS
 
-            gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_BLEND)
-
-            gl.glBegin(gl.GL_QUADS)
-            gl.glVertex(*p.vertex1)
-            gl.glVertex(*p.vertex2)
-            gl.glVertex(*p.vertex3)
-            gl.glVertex(*p.vertex4)
-            gl.glEnd() # GL_QUADS
-
 class Arrow(VisionEgg.Core.Stimulus):
     """Arrow stimulus.
 
