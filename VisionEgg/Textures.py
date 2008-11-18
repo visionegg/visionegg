@@ -247,6 +247,48 @@ class Texture(object):
             raise NotImplementedError("Don't know how to convert texel data %s "
                                       "to PIL image"%(self.texels,))
 
+    def get_texels_as_array(self):
+        """Return texel data as numpy array"""
+        if isinstance(self.texels,numpy.ndarray):
+            return self.texels
+        elif isinstance(self.texels, Image.Image):
+            width, height = self.texels.size
+
+            if self.texels.mode == 'P':
+                texel_data=self.texels.convert('RGBA') # convert to RGBA from paletted
+                data_format = gl.GL_RGBA
+            else:
+                texel_data = self.texels
+
+            raw_data = texel_data.tostring('raw',texel_data.mode,0,-1)
+            if texel_data.mode == 'L':
+                shape = (height,width)
+            elif texel_data.mode == 'RGB':
+                shape = (height,width,3)
+            elif texel_data.mode in ('RGBA','RGBX'):
+                shape = (height,width,4)
+            else:
+                raise NotImplementedError('mode %s not supported'%(
+                    texel_data.mode,))
+            arr = numpy.fromstring( raw_data, dtype=numpy.uint8 )
+            arr.shape = shape
+            return arr
+        elif isinstance(self.texels, pygame.surface.Surface):
+            width, height = self.texels.get_size()
+            if self.texels.get_alpha():
+                raw_data = pygame.image.tostring(self.texels,'RGBA',1)
+                arr = numpy.fromstring( raw_data, dtype=numpy.uint8 )
+                arr.shape = (height,width,4)
+                return arr
+            else:
+                raw_data = pygame.image.tostring(self.texels,'RGB',1)
+                arr = numpy.fromstring( raw_data, dtype=numpy.uint8 )
+                arr.shape = (height,width,3)
+                return arr
+        else:
+            raise NotImplementedError("Don't know how to convert texel data %s "
+                                      "to numpy array"%(self.texels,))
+
     def get_pixels_as_image(self):
         logger = logging.getLogger('VisionEgg.Textures')
         logger.warning("Using deprecated method get_pixels_as_image(). "
