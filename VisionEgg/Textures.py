@@ -247,6 +247,28 @@ class Texture(object):
             raise NotImplementedError("Don't know how to convert texel data %s "
                                       "to PIL image"%(self.texels,))
 
+    def get_texels_as_array(self):
+        """Return texel data as PIL image"""
+        if isinstance(self.texels,numpy.ndarray):
+            return self.texels
+        ## elif isinstance(self.texels, Image.Image):
+        ##     return self.texels
+        elif isinstance(self.texels, pygame.surface.Surface):
+            width, height = self.texels.get_size()
+            if self.texels.get_alpha():
+                raw_data = pygame.image.tostring(self.texels,'RGBA',1)
+                arr = np.fromstring( raw_data, dtype=np.uint8 )
+                arr.shape = (height,width,4)
+                return arr
+            else:
+                raw_data = pygame.image.tostring(self.texels,'RGB',1)
+                arr = np.fromstring( raw_data, dtype=np.uint8 )
+                arr.shape = (height,width,3)
+                return arr
+        else:
+            raise NotImplementedError("Don't know how to convert texel data %s "
+                                      "to numpy array"%(self.texels,))
+
     def get_pixels_as_image(self):
         logger = logging.getLogger('VisionEgg.Textures')
         logger.warning("Using deprecated method get_pixels_as_image(). "
