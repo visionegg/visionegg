@@ -39,9 +39,17 @@ This runs at about 40fps on my celeron-400
 
 import pygame
 from pygame.surfarray import *
+import pygame.surfarray
+import numpy as np
+if hasattr(pygame.surfarray,'use_arraytype'):
+    use_arraytype('numpy')
+    pygame_array_func = np.asarray
+else:
+    import Numeric
+    pygame_array_func = Numeric.array
 from pygame.locals import *
-from Numeric import *
-from RandomArray import *
+from numpy.oldnumeric import *
+from numpy.oldnumeric.random_array import *
 
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
@@ -55,14 +63,14 @@ VARMIN, VARMAX = -2, 3
 
 def main():
     "main function called when the script is run"
-    #first we just init pygame and create some empty arrays to work with    
+    #first we just init pygame and create some empty arrays to work with
     pygame.init()
     screen = pygame.display.set_mode(RES, 0, 8)
     print screen.get_flags()
     setpalette(screen)
     flame = zeros(RES/2 + (0,3))
     doubleflame = zeros(RES)
-    randomflamebase(flame)    
+    randomflamebase(flame)
 
     #the mainloop is pretty simple, the work is done in these funcs
     frame_timer = FrameTimer()
@@ -107,7 +115,7 @@ def modifyflamebase(flame):
 
 def processflame(flame):
     "this function does the real work, tough to follow"
-    notbottom = flame[:,:-1]    
+    notbottom = flame[:,:-1]
 
     #first we multiply by about 60%
     multiply(notbottom, 146, notbottom)
@@ -139,10 +147,11 @@ def blitdouble(screen, flame, doubleflame):
     doubleflame[::2,:-2:2] = flame[:,:-4]
     doubleflame[1::2,:-2:2] = flame[:,:-4]
     doubleflame[:,1:-2:2] = doubleflame[:,:-2:2]
-    blit_array(screen, doubleflame)
+    to_blit = pygame_array_func( doubleflame.astype(np.uint8))
+    blit_array(screen, to_blit)
 
 
 
 if __name__ == '__main__': main()
 
-  
+

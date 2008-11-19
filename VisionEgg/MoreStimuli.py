@@ -196,6 +196,11 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
     parameters_and_defaults = {
         'on':(True,
               ve_types.Boolean),
+
+        # different default than TextureStimulus3D due to not break backwards compatibility
+        'depth_test':(False,
+                      ve_types.Boolean),
+
         'color':((1.0,1.0,1.0,1.0),
                  ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                 ve_types.Sequence4(ve_types.Real))),
@@ -229,17 +234,10 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                 gl.glColor4f(*p.color)
 
             gl.glDisable(gl.GL_TEXTURE_2D)
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_BLEND)
-
-            gl.glBegin(gl.GL_QUADS)
-            gl.glVertex(*p.vertex1)
-            gl.glVertex(*p.vertex2)
-            gl.glVertex(*p.vertex3)
-            gl.glVertex(*p.vertex4)
-            gl.glEnd() # GL_QUADS
-
-            gl.glDisable(gl.GL_TEXTURE_2D)
+            if p.depth_test:
+                gl.glEnable(gl.GL_DEPTH_TEST)
+            else:
+                gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_BLEND)
 
             gl.glBegin(gl.GL_QUADS)

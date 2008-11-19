@@ -775,7 +775,7 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     # NOT use OpenGL except when purposefully setting matrices.
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({
-        'matrix':( Numeric.identity(4), # 4x4 identity matrix
+        'matrix':( numpy.eye(4), # 4x4 identity matrix
                    ve_types.Sequence4x4(ve_types.Real),
                    'matrix specifying projection'),
         })
@@ -1278,6 +1278,9 @@ class Viewport(VisionEgg.ClassWithParameters):
         'projection':(None,
                       ve_types.Instance(Projection),
                       'intrinsic camera parameter matrix (field of view, focal length, aspect ratio)'),
+        'auto_pixel_projection':(None,
+                                 ve_types.Boolean,
+                                 'reset the projection when the size changes to maintain pixel coordinates'),
         'camera_matrix':(None,
                          ve_types.Instance(ModelView),
                          'extrinsic camera parameter matrix (position and orientation)'),
@@ -1292,6 +1295,7 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     __slots__ = (
         '_is_drawing',
+        '_cached_size',
         )
 
     def __init__(self,**kw):
@@ -1308,6 +1312,7 @@ class Viewport(VisionEgg.ClassWithParameters):
         size -- defaults to screen.size
         projection -- defaults to self.make_new_pixel_coord_projection()
         stimuli -- defaults to empty list
+
         """
         VisionEgg.ClassWithParameters.__init__(self,**kw)
 
@@ -1317,9 +1322,20 @@ class Viewport(VisionEgg.ClassWithParameters):
         p = self.parameters # shorthand
         if p.size is None:
             p.size = p.screen.constant_parameters.size
+        self._cached_size = None
         if p.projection is None:
             # Default projection maps eye coordinates 1:1 on window (pixel) coordinates
             p.projection = self.make_new_pixel_coord_projection()
+            if p.auto_pixel_projection is None:
+                # default to maintaining pixel coordinates
+                p.auto_pixel_projection = True
+                self._cached_size = p.size
+        else:
+            # If the user *did* specify a projection, it is likely
+            # that they want that to be maintained.
+            if p.auto_pixel_projection is None:
+                # default to not maintaining
+                p.auto_pixel_projection = False
         if p.camera_matrix is None:
             p.camera_matrix = ModelView()
         if p.stimuli is None:
@@ -1335,6 +1351,10 @@ class Viewport(VisionEgg.ClassWithParameters):
         p = self.parameters # shorthand
         p.screen.make_current()
 
+        if p.auto_pixel_projection and self._cached_size != p.size:
+            p.projection = self.make_new_pixel_coord_projection()
+            self._cached_size = p.size
+
         if p.lowerleft != None:
             if not hasattr(Viewport,"_gave_lowerleft_warning"):
                 logger = logging.getLogger('VisionEgg.Core')
@@ -1348,10 +1368,10 @@ class Viewport(VisionEgg.ClassWithParameters):
 
         lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
 
-        gl.glViewport(lowerleft[0],
-                      lowerleft[1],
-                      p.size[0],
-                      p.size[1])
+        gl.glViewport(int(lowerleft[0]),
+                      int(lowerleft[1]),
+                      int(p.size[0]),
+                      int(p.size[1]))
         gl.glDepthRange(p.depth_range[0],p.depth_range[1])
 
         p.projection.apply_to_gl()

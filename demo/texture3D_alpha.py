@@ -2,7 +2,7 @@
 """Display a texture in 3D coordinates using alpha."""
 # This is a fusion of sprial.py and texture3D_alpha.py
 
-import os
+import os, sys
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
@@ -11,7 +11,10 @@ from VisionEgg.FlowControl import Presentation, FunctionController
 from VisionEgg.Textures import Texture, TextureStimulus3D
 import OpenGL.GL as gl
 
-filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","spiral.png")
+if len(sys.argv)>1:
+    filename = sys.argv[1]
+else:
+    filename = os.path.join(VisionEgg.config.VISIONEGG_SYSTEM_DIR,"data","spiral.png")
 texture = Texture(filename)
 
 screen = get_default_screen()

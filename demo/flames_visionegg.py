@@ -17,6 +17,15 @@ import pygame.surface, pygame.locals
 import pygame.surfarray
 import OpenGL.GL as gl
 import flames_pygame as flames # "flames" from the pygame code repository
+import pygame.surfarray
+import numpy as np
+if hasattr(pygame.surfarray,'use_arraytype'):
+    use_arraytype('numpy')
+    pygame_array_func = np.asarray
+else:
+    import Numeric
+    pygame_array_func = Numeric.array
+import numpy.oldnumeric as Numeric
 
 screen = get_default_screen()
 
@@ -58,9 +67,10 @@ def update_flames():
     # this does the work of updating the flames
     flames.modifyflamebase( flame )
     flames.processflame( flame )
-    pygame.surfarray.blit_array(pygame_surface, flame)
+    to_blit = pygame_array_func( flame.astype( np.uint8) )
+    pygame.surfarray.blit_array(pygame_surface, to_blit)
     texture_object.put_sub_image( pygame_surface )
-    
+
 viewport = Viewport(screen=screen,
                     stimuli=[stimulus,text])
 
@@ -68,11 +78,11 @@ p = Presentation(go_duration=('forever',),viewports=[viewport])
 
 def quit(dummy_arg=None):
     p.parameters.go_duration = (0,'frames')
-    
+
 def keydown(event):
     if event.key == pygame.locals.K_ESCAPE:
         quit()
-        
+
 p.parameters.handle_event_callbacks=[(pygame.locals.QUIT, quit),
                                      (pygame.locals.KEYDOWN, keydown)]
 p.add_controller(None,None,FunctionController(during_go_func=update_flames,
