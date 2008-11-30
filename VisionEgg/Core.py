@@ -495,9 +495,11 @@ class Screen(VisionEgg.ClassWithParameters):
                 fb_array = fb_array[:,:,:3]
         elif format == gl.GL_RGBA:
             if raw_format == 'BGRA':
-                alpha = fb_array[:,:,0,Numeric.NewAxis]
-                fb_array = fb_array[:,:,1:]
-                fb_array = Numeric.concatenate( (fb_array,alpha), axis=2)
+                B = fb_array[:,:,0,Numeric.NewAxis]
+                G = fb_array[:,:,1,Numeric.NewAxis]
+                R   = fb_array[:,:,2,Numeric.NewAxis]
+                A = fb_array[:,:,3,Numeric.NewAxis]
+                fb_array = Numeric.concatenate( (R,G,B,A), axis=2)
             elif raw_format == 'RGBA':
                 pass
         else:
