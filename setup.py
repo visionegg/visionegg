@@ -2,12 +2,12 @@
 """Setup script for the Vision Egg distribution.
 """
 # Copyright (C) 2001-2003 Andrew Straw
-# Copyright (C) 2004-2008 California Institute of Technology
+# Copyright (C) 2004-2009 California Institute of Technology
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL).
 
 name             = "visionegg"
-version          = "1.1.1" # Also change __version__ in
+version          = "1.1.2" # Also change __version__ in
                            # VisionEgg/__init__.py and doc/visionegg.tex.
 author           = "Andrew Straw"
 author_email     = "astraw@users.sourceforge.net"
