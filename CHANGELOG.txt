@@ -1,3 +1,27 @@
+Changes for 1.1.2:
+------------------
+
+* Various small bugfixes and improvements:
+  
+  - bugfix: cast to int to prevent breaking ctypes based PyOpenGL 3 (r1506)
+  
+  - make default projection retain pixel coordinates by default when
+    size changes (answers issue of Marcus Leinweber) (r1507)
+
+  - support for paletted images (r1508)
+    
+  - use numpy instead of Numeric (r1511, r1513, r1514)
+      
+  - bugfix: don't auto-adjust projection if user-specified (r1512)
+    
+  - allow conversion of pygame surface texture to image (r1518)
+
+  - allow export of texel data as numpy array. includes example (r1522)
+
+  - add depth_test_enabled parameter to Rectangle3D stimulus type (r1523)
+    
+  - make depth_test parameter compatible with TextureStimulus3D (r1524)
+    
 Changes for 1.1.1:
 ------------------
 
