@@ -39,6 +39,7 @@ import pygame.display
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import numpy
+import numpy as np
 import numpy.oldnumeric as Numeric # emulate old Numeric Python package
 
 # Define "sum" if it's not available as Python function
@@ -467,25 +468,13 @@ class Screen(VisionEgg.ClassWithParameters):
         else:
             raise ValueError('No support for "%s" framebuffer'%buffer)
 
-        # according to Apple's glGrab demo, this should force DMA transfers:
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 4)
-        gl.glPixelStorei(gl.GL_PACK_ROW_LENGTH, 0)
-        gl.glPixelStorei(gl.GL_PACK_SKIP_ROWS, 0)
-        gl.glPixelStorei(gl.GL_PACK_SKIP_PIXELS, 0)
-        if gl_version >= '1.2' and hasattr(gl,'GL_BGRA'):
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
-                                                 size[0],size[1],
-                                                 gl.GL_BGRA,
-                                                 gl.GL_UNSIGNED_INT_8_8_8_8_REV)
-            raw_format = 'BGRA'
-        else:
-            framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
-                                                 size[0],size[1],
-                                                 gl.GL_RGBA,
-                                                 gl.GL_UNSIGNED_BYTE)
-            raw_format = 'RGBA'
-        fb_array = Numeric.fromstring(framebuffer_pixels,Numeric.UInt8)
-        fb_array = Numeric.reshape(fb_array,(size[1],size[0],4))
+        framebuffer_pixels = gl.glReadPixels(lowerleft[0],lowerleft[1],
+                                             size[0],size[1],
+                                             gl.GL_RGBA,
+                                             gl.GL_UNSIGNED_BYTE)
+        raw_format = 'RGBA'
+        fb_array = np.fromstring(framebuffer_pixels,np.uint8)
+        fb_array = np.reshape(fb_array,(size[1],size[0],4))
         # These work, but I don't know why.  There must be something I
         # don't understand about byte ordering!
         if format == gl.GL_RGB:
