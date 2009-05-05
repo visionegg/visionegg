@@ -1582,6 +1582,7 @@ class TextureStimulus3D(TextureStimulusBaseClass):
 
             gl.glEnable(gl.GL_TEXTURE_2D)
             gl.glBindTexture(gl.GL_TEXTURE_2D,self.texture_object.gl_id)
+            gl.glColor4f(1,1,1,1) # set fragment color to white
 
             if not self.constant_parameters.mipmaps_enabled:
                 if p.texture_min_filter in TextureStimulusBaseClass._mipmap_modes:
