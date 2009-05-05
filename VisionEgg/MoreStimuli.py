@@ -197,6 +197,9 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
         'on':(True,
               ve_types.Boolean),
 
+        'blending_enabled':(False,
+                    ve_types.Boolean),
+
         # different default than TextureStimulus3D due to not break backwards compatibility
         'depth_test':(False,
                       ve_types.Boolean),
@@ -238,7 +241,10 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
                 gl.glEnable(gl.GL_DEPTH_TEST)
             else:
                 gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_BLEND)
+            if p.blending_enabled:
+                gl.glEnable(gl.GL_BLEND)
+            else:
+                gl.glDisable(gl.GL_BLEND)
 
             gl.glBegin(gl.GL_QUADS)
             gl.glVertex(*p.vertex1)
