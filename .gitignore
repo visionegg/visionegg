@@ -1,0 +1,7 @@
+*.pyc
+*.so
+.installed.cfg
+bin
+build
+dist
+*~
