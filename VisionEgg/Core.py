@@ -40,7 +40,6 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 
 import numpy
 import numpy as np
-import numpy.oldnumeric as Numeric # emulate old Numeric Python package
 
 # Define "sum" if it's not available as Python function
 try:
@@ -457,7 +456,7 @@ class Screen(VisionEgg.ClassWithParameters):
                                  anchor='lowerleft',
                                  size=None, # if None, use full screen
                                  ):
-        """get pixel values from framebuffer to Numeric array"""# (SLOW)"""
+        """get pixel values from framebuffer to numpy array"""# (SLOW)"""
         if size is None:
             size = self.size
         lowerleft = VisionEgg._get_lowerleft(position,anchor,size)
@@ -484,11 +483,11 @@ class Screen(VisionEgg.ClassWithParameters):
                 fb_array = fb_array[:,:,:3]
         elif format == gl.GL_RGBA:
             if raw_format == 'BGRA':
-                B = fb_array[:,:,0,Numeric.NewAxis]
-                G = fb_array[:,:,1,Numeric.NewAxis]
-                R   = fb_array[:,:,2,Numeric.NewAxis]
-                A = fb_array[:,:,3,Numeric.NewAxis]
-                fb_array = Numeric.concatenate( (R,G,B,A), axis=2)
+                B = fb_array[:,:,0,np.newaxis]
+                G = fb_array[:,:,1,np.newaxis]
+                R   = fb_array[:,:,2,np.newaxis]
+                A = fb_array[:,:,3,np.newaxis]
+                fb_array = np.concatenate( (R,G,B,A), axis=2)
             elif raw_format == 'RGBA':
                 pass
         else:
@@ -710,8 +709,8 @@ class Screen(VisionEgg.ClassWithParameters):
         # in range [0.0,1.0], as is OpenGL standard.
         c = 1.0
         inc = 1.0/255
-        target_luminances = Numeric.arange(0.0,1.0+inc,inc)
-        output_ramp = Numeric.zeros(target_luminances.shape,Numeric.Int)
+        target_luminances = np.arange(0.0,1.0+inc,inc)
+        output_ramp = np.zeros(target_luminances.shape,dtype=np.int)
         for i in range(len(target_luminances)):
             L = target_luminances[i]
             if L == 0.0:
@@ -866,10 +865,10 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
         side = normalize(side)
         new_up = cross(side,forward) # recompute up
         # XXX I might have to transpose this matrix
-        m = Numeric.array([[side[0], new_up[0], -forward[0], 0.0],
-                           [side[1], new_up[1], -forward[1], 0.0],
-                           [side[2], new_up[2], -forward[2], 0.0],
-                           [    0.0,       0.0,         0.0, 1.0]])
+        m = np.array([[side[0], new_up[0], -forward[0], 0.0],
+                      [side[1], new_up[1], -forward[1], 0.0],
+                      [side[2], new_up[2], -forward[2], 0.0],
+                      [    0.0,       0.0,         0.0, 1.0]])
         # XXX This should get optimized -- don't do it in OpenGL
         gl.glMatrixMode(self.projection_type) # Set OpenGL matrix state to modify the projection matrix
         gl.glPushMatrix() # save current matrix
@@ -883,12 +882,12 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
 
     def eye_2_clip(self,eye_coords_vertex):
         """Transform eye coordinates to clip coordinates"""
-        m = Numeric.array(self.parameters.matrix)
-        v = Numeric.array(eye_coords_vertex)
+        m = np.array(self.parameters.matrix)
+        v = np.array(eye_coords_vertex)
         homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
         r = numpy.dot(homog,m)
         if len(homog.shape) > len(v.shape):
-            r = Numeric.reshape(r,(4,))
+            r = np.reshape(r,(4,))
         return r
     def clip_2_norm_device(self,clip_coords_vertex):
         """Transform clip coordinates to normalized device coordinates"""
@@ -898,7 +897,7 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
         r = (homog/homog[:,3,numpy.newaxis])[:,:3]
         numpy.seterr(**err)
         if len(homog.shape) > len(v.shape):
-            r = Numeric.reshape(r,(3,))
+            r = np.reshape(r,(3,))
         return r
     def eye_2_norm_device(self,eye_coords_vertex):
         """Transform eye coordinates to normalized device coordinates"""
@@ -974,12 +973,12 @@ class OrthographicProjection(Projection):
         between these clipping planes will be displayed.
         """
 
-        # using Numeric (from the OpenGL spec):
-        matrix = Numeric.array([[ 2./(right-left), 0.,              0.,                           -(right+left)/(right-left)],
-                                [ 0.,              2./(top-bottom), 0.,                           -(top+bottom)/(top-bottom)],
-                                [ 0.,              0.,              -2./(z_clip_far-z_clip_near), -(z_clip_far+z_clip_near)/(z_clip_far-z_clip_near)],
-                                [ 0.,              0.,              0.,                           1.0]])
-        matrix = Numeric.transpose(matrix) # convert to OpenGL format
+        # using numpy (from the OpenGL spec):
+        matrix = np.array([[ 2./(right-left), 0.,              0.,                           -(right+left)/(right-left)],
+                           [ 0.,              2./(top-bottom), 0.,                           -(top+bottom)/(top-bottom)],
+                           [ 0.,              0.,              -2./(z_clip_far-z_clip_near), -(z_clip_far+z_clip_near)/(z_clip_far-z_clip_near)],
+                           [ 0.,              0.,              0.,                           1.0]])
+        matrix = np.transpose(matrix) # convert to OpenGL format
 
         ## same as above, but use OpenGL
         #gl.glMatrixMode(gl.GL_PROJECTION)
@@ -1012,12 +1011,12 @@ class OrthographicProjectionNoZClip(Projection):
         (pixel) coordinates.
         """
 
-        # using Numeric (from the OpenGL spec):
-        matrix = Numeric.array([[ 2./(right-left), 0,               0, -(right+left)/(right-left)],
-                                [ 0,               2./(top-bottom), 0, -(top+bottom)/(top-bottom)],
-                                [ 0,               0,              -1, -1.],
-                                [ 0,               0,               0,  1]])
-        matrix = Numeric.transpose(matrix) # convert to OpenGL format
+        # using numpy (from the OpenGL spec):
+        matrix = np.array([[ 2./(right-left), 0,               0, -(right+left)/(right-left)],
+                           [ 0,               2./(top-bottom), 0, -(top+bottom)/(top-bottom)],
+                           [ 0,               0,              -1, -1.],
+                           [ 0,               0,               0,  1]])
+        matrix = np.transpose(matrix) # convert to OpenGL format
 
         Projection.__init__(self,**{'matrix':matrix})
 
@@ -1048,7 +1047,7 @@ class SimplePerspectiveProjection(Projection):
         if (delta_z == 0.0) or (sine == 0.0) or (aspect_ratio == 0.0):
             raise ValueError("Invalid parameters passed to SimpleProjection.__init__()")
         cotangent = math.cos(radians) / sine
-        matrix = Numeric.zeros((4,4),'f')
+        matrix = np.zeros((4,4))
         matrix[0][0] = cotangent/aspect_ratio
         matrix[1][1] = cotangent
         matrix[2][2] = -(z_clip_far + z_clip_near) / delta_z
@@ -1080,8 +1079,7 @@ class PerspectiveProjection(Projection):
         if matrix is None:
             # OpenGL wasn't started
             raise RuntimeError("OpenGL matrix operations can only take place once OpenGL context started.")
-        if type(matrix) != Numeric.ArrayType:
-            matrix = Numeric.array(matrix) # Convert to Numeric array
+        matrix = np.asarray(matrix) # make sure it's numpy array
         Projection.__init__(self,**{'matrix':matrix})
 
 ####################################################################
@@ -1378,11 +1376,11 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     def norm_device_2_window(self,norm_device_vertex):
         """Transform normalized device coordinates to window coordinates"""
-        v = Numeric.asarray(norm_device_vertex)
+        v = np.asarray(norm_device_vertex)
         homog = VisionEgg.ThreeDeeMath.make_homogeneous_coord_rows(v)
-        xd = homog[:,0,Numeric.NewAxis]
-        yd = homog[:,1,Numeric.NewAxis]
-        zd = homog[:,2,Numeric.NewAxis]
+        xd = homog[:,0,np.newaxis]
+        yd = homog[:,1,np.newaxis]
+        zd = homog[:,2,np.newaxis]
 
         p = self.parameters # shorthand
         lowerleft = VisionEgg._get_lowerleft(p.position,p.anchor,p.size)
@@ -1403,10 +1401,10 @@ class Viewport(VisionEgg.ClassWithParameters):
         zw = ((f-n)/2.0)*zd + (n+f)/2.0
         # XXX I think zw (or zd) is clamped in OpenGL, but I can't
         # find it in any spec!
-        #zw = Numeric.clip(zw,0.0,1.0) # clamp
-        r = Numeric.concatenate((xw,yw,zw),axis=1)
+        #zw = np.clip(zw,0.0,1.0) # clamp
+        r = np.concatenate((xw,yw,zw),axis=1)
         if len(homog.shape) > len(v.shape):
-            r = Numeric.reshape(r,(3,))
+            r = np.reshape(r,(3,))
         return r
     def clip_2_window(self,eye_coords_vertex):
         """Transform clip coordinates to window coordinates"""
@@ -1518,9 +1516,9 @@ class FrameTimer:
     """Time inter frame intervals and compute frames per second."""
     def __init__(self, bin_start_msec=2, bin_stop_msec=28, bin_width_msec=2, running_average_num_frames=0,save_all_frametimes=False):
         """Create instance of FrameTimer."""
-        self.bins = Numeric.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
+        self.bins = np.arange( bin_start_msec, bin_stop_msec, bin_width_msec )
         self.bin_width_msec = float(bin_width_msec)
-        self.timing_histogram = Numeric.zeros( self.bins.shape, Numeric.Float ) # make float to avoid (early) overflow errors
+        self.timing_histogram = np.zeros(self.bins.shape)
         self._true_time_last_frame = None # no frames yet
         self.longest_frame_draw_time_sec = None
         self.first_tick_sec = None
@@ -1608,7 +1606,7 @@ class FrameTimer:
         for line in range(lines):
             val = float(lines)-1.0-float(line)
             timing_string = "%6d   "%(round(maxhist*val/lines),)
-            q = Numeric.greater(hist,val)
+            q = np.greater(hist,val)
             for qi in q:
                 s = ' '
                 if qi:
