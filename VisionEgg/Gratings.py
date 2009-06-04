@@ -540,6 +540,15 @@ class SinGrating3D(LuminanceGratingCommon):
                       ve_types.AnyOf(ve_types.Sequence3(ve_types.Real),
                                      ve_types.Sequence4(ve_types.Real)),
                       "vertex position (units: eye coordinates)"),
+        'polygon_offset_enabled':(False,
+                                  ve_types.Boolean,
+                                  "perform polygon offset?"),
+        'polygon_offset_factor':(1.0,
+                                 ve_types.Real,
+                                 "polygon factor"),
+        'polygon_offset_units':(1.0,
+                                ve_types.Real,
+                                "polygon units"),
         })
 
     __slots__ = (
@@ -623,6 +632,9 @@ class SinGrating3D(LuminanceGratingCommon):
                 gl.glEnable(gl.GL_DEPTH_TEST)
             else:
                 gl.glDisable(gl.GL_DEPTH_TEST)
+            if p.polygon_offset_enabled:
+                gl.glEnable(gl.GL_POLYGON_OFFSET_EXT)
+                gl.glPolygonOffset(p.polygon_offset_factor, p.polygon_offset_units)
             gl.glBindTexture(gl.GL_TEXTURE_1D,self._texture_object_id)
             gl.glEnable(gl.GL_TEXTURE_1D)
             gl.glDisable(gl.GL_TEXTURE_2D)
@@ -693,6 +705,8 @@ class SinGrating3D(LuminanceGratingCommon):
                 gl.glEnd() # GL_QUADS
 
             gl.glDisable(gl.GL_TEXTURE_1D)
+            if p.polygon_offset_enabled:
+                gl.glDisable(gl.GL_POLYGON_OFFSET_EXT)
 
 class NumSamplesTooLargeError( RuntimeError ):
     pass
