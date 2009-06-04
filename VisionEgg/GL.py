@@ -17,6 +17,10 @@ Vision Egg GL module -- lump all OpenGL names in one namespace.
 from OpenGL.GL import * # get everything from OpenGL.GL
 import OpenGL
 import numpy
+if OpenGL.__version__.startswith('3.0.0b'):
+    raise RuntimeError('PyOpenGL 3beta has known incompatibilities '
+                       'with the Vision Egg. Please upgrade to PyOpenGL 3.')
+
 __version__ = OpenGL.__version__
 
 # tell py2exe we want these modules
