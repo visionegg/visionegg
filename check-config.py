@@ -7,9 +7,6 @@ number of the Vision Egg.
 """
 
 import sys, string, os, traceback
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 # Mac OS X weirdness:
 
