@@ -5,10 +5,6 @@
 # of the GNU Lesser General Public License (LGPL).
 
 import VisionEgg, string
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 import sys, os, math
 import VisionEgg.Core

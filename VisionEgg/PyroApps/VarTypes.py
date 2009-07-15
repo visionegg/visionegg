@@ -7,8 +7,6 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 # Add your supported supported demo script "variable types" here:
 

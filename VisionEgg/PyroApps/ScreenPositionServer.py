@@ -8,8 +8,6 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """Handle 3D perspective projection (server-side)"""
 
@@ -23,11 +21,6 @@ import VisionEgg.Textures
 import VisionEgg.PyroHelpers
 
 from VisionEgg.PyroApps.ScreenPositionGUI import ScreenPositionParameters
-
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class ScreenPositionMetaController( Pyro.core.ObjBase ):
     """Encapsulates all parameters controlling screen position"""

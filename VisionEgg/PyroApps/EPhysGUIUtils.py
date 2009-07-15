@@ -8,19 +8,12 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 import sys, os, time, types, socket
 import Tkinter
 import Pyro.core
 
 import VisionEgg.PyroClient
-
-__version__ = VisionEgg.release_name
-__cvs__ = '$Revision$'.split()[1]
-__date__ = ' '.join('$Date$'.split()[1:3])
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class StimulusControlFrame(Tkinter.Frame):
     def __init__(self,

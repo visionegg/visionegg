@@ -8,8 +8,6 @@
 #
 # Distributed under the terms of the GNU Lesser General Public License
 # (LGPL). See LICENSE.TXT that came with this file.
-#
-# $Id$
 
 """Handle 3D perspective projection (client-side)"""
 
@@ -18,11 +16,6 @@ import Tkinter, tkFileDialog
 import Pyro.core
 import VisionEgg.PyroClient
 import StringIO
-
-__version__ = VisionEgg.release_name
-__cvs__ = string.split('$Revision$')[1]
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__author__ = 'Andrew Straw <astraw@users.sourceforge.net>'
 
 class ScreenPositionParameters:
     def __init__(self):
