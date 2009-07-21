@@ -1,7 +1,7 @@
 # The Vision Egg
 #
 # Copyright (C) 2001-2004 Andrew Straw
-# Copyright (C) 2004-2008 California Institute of Technology
+# Copyright (C) 2004-2009 California Institute of Technology
 #
 # URL: <http://www.visionegg.org/>
 #
@@ -29,7 +29,7 @@ greatly eased by routines within the Vision Egg.
 See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-release_name = '1.2.dev' # keep in sync with ../setup.py
+release_name = '1.2.1' # keep in sync with ../setup.py
 
 __version__ = release_name
 
