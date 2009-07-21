@@ -11,12 +11,6 @@
 #  Import various modules  #
 ############################
 
-#import math
-#import warnings
-#import random
-#import sys
-#import time
-import Numeric, RandomArray
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
