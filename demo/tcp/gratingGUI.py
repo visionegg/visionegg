@@ -25,7 +25,7 @@ kind of stuff!"""
 # This script can be run on computers without the Vision Egg installed
 import Tkinter, tkMessageBox
 import sys, socket, time, select, re, string, types, traceback
-import Numeric, math
+import numpy, math
 
 # Save a copy of everything sent?
 log_stream = sys.stdout
@@ -602,7 +602,7 @@ class GratingControl(Tkinter.Frame):
 _re_const = re.compile(r'^const\(\s?(.*)\s?\)$',re.DOTALL)
 _re_eval_str = re.compile(r'^eval_str\(\s?(.*)\s?\)$',re.DOTALL)
 _re_exec_str = re.compile(r'^exec_str\(\s?(\*)?\s?(.*)\s?\)$',re.DOTALL)
-_parse_args_globals = {'Numeric':Numeric,'math':math}
+_parse_args_globals = {'numpy':numpy,'math':math}
 _parse_args_locals = {}
 eval_frequency_flags = {
     # eval_frequency flags:
@@ -622,9 +622,9 @@ temporal_variables_flags = {
     'FRAMES_SINCE_GO'   : 0x08,
     }
 
-for key in dir(Numeric):
+for key in dir(numpy):
     if key[:2] != "__":
-        _parse_args_locals[key] = getattr(Numeric,key)
+        _parse_args_locals[key] = getattr(numpy,key)
 for key in dir(math):
     if key[:2] != "__":
         _parse_args_locals[key] = getattr(math,key)
