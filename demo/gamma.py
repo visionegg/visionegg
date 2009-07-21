@@ -4,12 +4,12 @@
 import VisionEgg
 VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
-from VisionEgg.Core import *
+from VisionEgg.Core import Viewport, get_default_screen
 from VisionEgg.FlowControl import Presentation
-from VisionEgg.Gratings import *
-from VisionEgg.Text import *
-from Numeric import *
+from VisionEgg.Gratings import SinGrating2D
+from VisionEgg.Text import Text
 import pygame
+import numpy as np
 
 if not hasattr(pygame.display,"set_gamma_ramp"):
     raise RuntimeError("Need pygame 1.5 or greater for set_gamma_ramp function.")
@@ -53,7 +53,7 @@ def keydown(event):
         
 def do_gamma():
     global gamma_scale, text2
-    r = (arange(256)*256*gamma_scale).astype('i')
+    r = (np.arange(256)*256*gamma_scale).astype('i')
     g = r
     b = r
     worked = pygame.display.set_gamma_ramp(r,g,b)
