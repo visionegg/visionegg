@@ -19,12 +19,15 @@ def main():
     
     URI = "PYROLOC://%s:%d/%s" % (hostname,port,name)
     dot_server_instance = Pyro.core.getProxyForURI(URI)
+    dot_server_instance.set_text('') # clear the "awaiting connection" text
 
     try:
         while True:
             dot_server_instance.set_signal_fraction(1.0)
+            print 'signal 1.0'
             time.sleep(0.5)
             dot_server_instance.set_signal_fraction(0.1)
+            print 'signal 0.1'
             time.sleep(0.5)
     finally:
         dot_server_instance.quit()

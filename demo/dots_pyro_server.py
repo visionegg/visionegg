@@ -40,16 +40,20 @@ class DotServer(Pyro.core.ObjBase):
             dot_lifespan_sec        = 5.0,
             dot_size                = 3.0,
             num_dots                = 100)
-        text = VisionEgg.Text.Text(
-            text = "Vision Egg dot_simple_loop demo.",
+        self.text = VisionEgg.Text.Text(
+            text = "awaiting connection from dots_pyro_client",
             position = (screen.size[0]/2,2),
             anchor = 'bottom',
             color = (1.0,1.0,1.0))
         
         self.screen = screen
-        self.viewport = VisionEgg.Core.Viewport( screen=screen, stimuli=[self.dots,text] )
+        self.viewport = VisionEgg.Core.Viewport( screen=screen, 
+                                                 stimuli=[self.dots,self.text] )
         self.frame_timer = VisionEgg.Core.FrameTimer()
         self.quit_now = False
+
+    def set_text(self,t):
+        self.text.parameters.text = t
 
     def set_signal_fraction(self,f):
         self.dots.set(signal_fraction=f)
