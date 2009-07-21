@@ -1477,10 +1477,14 @@ class TextureStimulus(TextureStimulusBaseClass):
                 # Test to draw only if all values are finite is
                 # disabled for performance reasons.
                 #if numpy.alltrue( numpy.isfinite( numpy.concatenate((lowerleft,p.position)) ) ):
-                l = lowerleft[0] - p.position[0]
-                r = l + size[0]
-                b = lowerleft[1] - p.position[1]
-                t = b + size[1]
+                try:
+                    l = lowerleft[0] - p.position[0]
+                    r = l + size[0]
+                    b = lowerleft[1] - p.position[1]
+                    t = b + size[1]
+                except FloatingPointError:
+                    # don't draw texture
+                    return
 
                 tex.update()
 
