@@ -20,7 +20,7 @@ import flames_pygame as flames # "flames" from the pygame code repository
 import pygame.surfarray
 import numpy as np
 if hasattr(pygame.surfarray,'use_arraytype'):
-    use_arraytype('numpy')
+    pygame.surfarray.use_arraytype('numpy')
     pygame_array_func = np.asarray
 else:
     import Numeric
