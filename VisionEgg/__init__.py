@@ -93,7 +93,10 @@ def start_default_logging(maxBytes=100000):
         log_handler_logfile.setFormatter( log_formatter )
         logger.addHandler( log_handler_logfile )
 
-    script_name = sys.argv[0]
+    if hasattr(sys,'argv'):
+        script_name = sys.argv[0]
+    else:
+        script_name = '(unknown script)'
     if not script_name:
         script_name = "(interactive shell)"
     logger.info("Script "+script_name+" started Vision Egg %s with process id %d."%(VisionEgg.release_name,os.getpid()))
@@ -102,7 +105,7 @@ def start_default_logging(maxBytes=100000):
 
 ############# Default exception handler #############
 
-if not sys.argv[0]: # Interactive mode
+if hasattr(sys,'argv'): and not sys.argv[0]: # Interactive mode
     config.VISIONEGG_GUI_ON_ERROR = 0
 
 class _ExceptionHookKeeper:
