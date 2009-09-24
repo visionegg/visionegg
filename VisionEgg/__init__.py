@@ -29,7 +29,7 @@ greatly eased by routines within the Vision Egg.
 See the 'Core' module for the fundamental Vision Egg classes.
 
 """
-release_name = '1.2.1' # keep in sync with ../setup.py
+release_name = '1.2.1+git' # keep in sync with ../setup.py and ../doc/visionegg.tex
 
 __version__ = release_name
 
