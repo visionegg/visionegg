@@ -105,7 +105,7 @@ def start_default_logging(maxBytes=100000):
 
 ############# Default exception handler #############
 
-if hasattr(sys,'argv'): and not sys.argv[0]: # Interactive mode
+if hasattr(sys,'argv') and not sys.argv[0]: # Interactive mode
     config.VISIONEGG_GUI_ON_ERROR = 0
 
 class _ExceptionHookKeeper:

@@ -98,7 +98,7 @@ class Config:
         """Load global Vision Egg configuration information."""
         cfg = ConfigParser.ConfigParser()
 
-        if hasattr(sys.'argv') and sys.executable == sys.argv[0]: # Windows binary
+        if hasattr(sys,'argv') and sys.executable == sys.argv[0]: # Windows binary
             self.VISIONEGG_SYSTEM_DIR = os.curdir
             self.VISIONEGG_USER_DIR = os.curdir
         else:
