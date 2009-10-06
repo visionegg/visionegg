@@ -42,7 +42,7 @@ screen = get_default_screen()
 # allocate temporary texture in grayscale mode for dynamic texture
 temp_grayscale_image = Image.new("L",dynamic_checkerboard_size,0)
 temp_texture = Texture(temp_grayscale_image)
-    
+
 # create TextureStimulus for dynamic stimulus
 scaled_dynamic_size = (scale*dynamic_checkerboard_size[0],scale*dynamic_checkerboard_size[1])
 
@@ -62,7 +62,7 @@ dynamic_checkerboard = TextureStimulus(texture=temp_texture,
 # (Note: numpy arrays have indices flipped from images, thus the re-ordering)
 static_data = numpy.random.randint(0,2,size=(static_checkerboard_size[1],static_checkerboard_size[0]))*255
 static_texture = Texture(static_data)
-    
+
 # create TextureStimulus for static stimulus
 scaled_static_size = (scale*static_checkerboard_size[0],scale*static_checkerboard_size[1])
 static_checkerboard = TextureStimulus(texture=static_texture,
