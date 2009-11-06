@@ -397,7 +397,7 @@ class GraphicsConfigurationWindow(Tkinter.Frame):
         ef_row = 0
 
         # frame rate
-        Tkinter.Label(entry_frame,text="What will your monitor refresh's rate be (Hz):").grid(row=ef_row,column=0,sticky=Tkinter.E)
+        Tkinter.Label(entry_frame,text="What will your monitor's refresh rate be (Hz):").grid(row=ef_row,column=0,sticky=Tkinter.E)
         self.frame_rate = Tkinter.StringVar()
         self.frame_rate.set("%s"%str(VisionEgg.config.VISIONEGG_MONITOR_REFRESH_HZ))
         Tkinter.Entry(entry_frame,textvariable=self.frame_rate).grid(row=ef_row,column=1,sticky=Tkinter.W)
