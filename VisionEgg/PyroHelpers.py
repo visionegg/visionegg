@@ -41,6 +41,7 @@ import VisionEgg.ParameterTypes as ve_types
 
 import Pyro.core
 import Pyro.errors
+import Pyro.constants
 
 Pyro.config.PYRO_MULTITHREADED = 0 # No multithreading!
 
@@ -65,7 +66,7 @@ class PyroServer:
         return URI
 
     def disconnect(self,object):
-        if Pyro.core.constants.VERSION >= '3.2':
+        if Pyro.constants.VERSION >= '3.2':
             self.daemon.disconnect(object)
         else:
             # workaround bug in Pyro pre-3.2
