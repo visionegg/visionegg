@@ -20,6 +20,7 @@ Text stimuli.
 ####################################################################
 
 import os
+import warnings
 import logging
 import logging.handlers
 
@@ -155,7 +156,10 @@ class Text(VisionEgg.Textures.TextureStimulus):
             font_name, font_size = fontobject_args
             if not os.path.exists(font_name):
                 if font_name is not None:
-                    font_name = pygame.font.match_font(font_name)
+                    new_font_name = pygame.font.match_font(font_name)
+                    if new_font_name is None:
+                        warnings.warn('no match for font "%s"'%font_name)
+                    font_name = new_font_name
             use_fontobject_args = (font_name, font_size)
             fontobject = pygame.font.Font(*use_fontobject_args)
             _font_objects[fontobject_args] = fontobject
