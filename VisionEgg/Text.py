@@ -126,7 +126,8 @@ class Text(VisionEgg.Textures.TextureStimulus):
         'font_size':(30,
                      ve_types.UnsignedInteger),
         'font_name':(None, # None = use default font
-                     ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
+                     ve_types.AnyOf(ve_types.String,ve_types.Unicode),
+                     'short name (e.g. "arial") or full path to .ttf file'),
         }
 
     __slots__ = (

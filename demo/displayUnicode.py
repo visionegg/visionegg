@@ -33,7 +33,7 @@ from pygame.locals import *
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,1.0) # background blue (RGB)
 
-font_name = 'arial'
+font_name = 'arial' # short name (e.g. "arial") or full path to .ttf file
 
 text = Text(color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
             position=(screen.size[0]/2,screen.size[1]/2),
