@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """Display unicode text strings."""
 
 # data from http://www.columbia.edu/kermit/utf8.html
