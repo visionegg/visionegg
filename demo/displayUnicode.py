@@ -15,6 +15,7 @@ phrases = {'English':                           u"I can eat glass and it doesn't
            'Korean':                            u"나는 유리를 먹을 수 있어요. 그래도 아프지 않아요",
            'Arabic':                            u"أنا قادر على أكل الزجاج و هذا لا يؤلمني.",
            'Hebrew':                            u"אני יכול לאכול זכוכית וזה לא מזיק לי.",
+           'Hindi':                             u"मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती.",
 }
 
 # collect above data into 2 sequences:
