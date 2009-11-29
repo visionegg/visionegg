@@ -33,21 +33,11 @@ from pygame.locals import *
 screen = get_default_screen()
 screen.parameters.bgcolor = (0.0,0.0,0.2) # background blue (RGB)
 
-if not hasattr( VisionEgg.Text, 'PangoText' ):
-    font_name = 'arial' # short name (e.g. "arial") or full path to .ttf file
-    text=VisionEgg.Text.Text(
-        color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
-        position=(0,screen.size[1]/2),
-        ignore_size_parameter=False, # ignore font size (use texture size)
-        size = (screen.size[0],max(screen.size[0]/10,10)),
-        anchor='left',
-        font_name=font_name)
-else:
-    text=VisionEgg.Text.PangoText(
-        color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
-        position=(0,screen.size[1]/2),
-        size = (screen.size[0],max(screen.size[0]/10,10)),
-        anchor='left')
+text=VisionEgg.Text.PangoText(
+    color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
+    position=(0,screen.size[1]/2),
+    size = (screen.size[0],max(screen.size[0]/10,10)),
+    anchor='left')
 
 viewport = Viewport(screen=screen,
                     size=screen.size,
