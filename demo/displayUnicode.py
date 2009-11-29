@@ -26,21 +26,28 @@ VisionEgg.start_default_logging(); VisionEgg.watch_exceptions()
 
 from VisionEgg.Core import *
 from VisionEgg.FlowControl import Presentation
-from VisionEgg.Text import *
+import VisionEgg.Text
 import pygame
 from pygame.locals import *
 
 screen = get_default_screen()
-screen.parameters.bgcolor = (0.0,0.0,1.0) # background blue (RGB)
+screen.parameters.bgcolor = (0.0,0.0,0.2) # background blue (RGB)
 
-font_name = 'arial' # short name (e.g. "arial") or full path to .ttf file
-
-text = Text(color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
-            position=(screen.size[0]/2,screen.size[1]/2),
-            ignore_size_parameter=False, # ignore font size (use texture size)
-            size = (screen.size[0],max(screen.size[0]/10,10)),
-            anchor='center',
-            font_name=font_name)
+if not hasattr( VisionEgg.Text, 'PangoText' ):
+    font_name = 'arial' # short name (e.g. "arial") or full path to .ttf file
+    text=VisionEgg.Text.Text(
+        color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
+        position=(0,screen.size[1]/2),
+        ignore_size_parameter=False, # ignore font size (use texture size)
+        size = (screen.size[0],max(screen.size[0]/10,10)),
+        anchor='left',
+        font_name=font_name)
+else:
+    text=VisionEgg.Text.PangoText(
+        color=(1.0,1.0,1.0), # alpha is ignored (set with max_alpha_param)
+        position=(0,screen.size[1]/2),
+        size = (screen.size[0],max(screen.size[0]/10,10)),
+        anchor='left')
 
 viewport = Viewport(screen=screen,
                     size=screen.size,
