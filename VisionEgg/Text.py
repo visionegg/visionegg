@@ -22,6 +22,7 @@ Text stimuli.
 import os
 import warnings
 import numpy
+import pango, pangocairo, cairo
 import logging
 import logging.handlers
 
@@ -47,153 +48,145 @@ def delete_font_objects():
 
 VisionEgg.Core.pygame_keeper.register_func_to_call_on_quit(delete_font_objects)
 
-try:
-    import pango, pangocairo, cairo
-    have_pango = True
-except ImportError:
-    have_pango = False
+class PangoText(VisionEgg.Textures.TextureStimulus):
+    """text rendered using pango.
 
-if have_pango:
-
-    class PangoText(VisionEgg.Textures.TextureStimulus):
-        """text rendered using pango.
-
-        Parameters
-        ==========
-        anchor                -- specifies how position parameter is interpreted (String)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: lowerleft
-        angle                 -- units: degrees, 0=right, 90=up (Real)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: 0.0
-        color                 -- texture environment color. alpha ignored (if given) for max_alpha parameter (AnyOf(Sequence3 of Real or Sequence4 of Real))
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: (1.0, 1.0, 1.0)
-        depth_test            -- perform depth test? (Boolean)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: False
-        ignore_size_parameter -- (Boolean)
-                                 Default: True
-        mask                  -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: (determined at runtime)
-        max_alpha             -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: 1.0
-        on                    -- draw stimulus? (Boolean)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: True
-        position              -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: (0.0, 0.0)
-        size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
-                                 Inherited from VisionEgg.Textures.TextureStimulus
-                                 Default: (determined at runtime)
-        text                  -- (AnyOf(String or Unicode))
-                                 Default: the string to display
-        texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
-                                 Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                                 Default: (determined at runtime)
-        texture_mag_filter    -- OpenGL filter enum (Integer)
-                                 Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                                 Default: GL_LINEAR (9729)
-        texture_min_filter    -- OpenGL filter enum (Integer)
-                                 Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                                 Default: (GL enum determined at runtime)
-        texture_wrap_s        -- OpenGL texture wrap enum (Integer)
-                                 Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                                 Default: (GL enum determined at runtime)
-        texture_wrap_t        -- OpenGL texture wrap enum (Integer)
-                                 Inherited from VisionEgg.Textures.TextureStimulusBaseClass
-                                 Default: (GL enum determined at runtime)
-
-        Constant Parameters
-        ===================
-        font_descr_string -- (UnsignedInteger)
-                             Default: 30
-        internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+    Parameters
+    ==========
+    anchor                -- specifies how position parameter is interpreted (String)
                              Inherited from VisionEgg.Textures.TextureStimulus
-                             Default: GL_RGB (6407)
-        mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                             Default: lowerleft
+    angle                 -- units: degrees, 0=right, 90=up (Real)
                              Inherited from VisionEgg.Textures.TextureStimulus
-                             Default: True
-        shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                             Default: 0.0
+    color                 -- texture environment color. alpha ignored (if given) for max_alpha parameter (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (1.0, 1.0, 1.0)
+    depth_test            -- perform depth test? (Boolean)
                              Inherited from VisionEgg.Textures.TextureStimulus
                              Default: False
-        """
+    ignore_size_parameter -- (Boolean)
+                             Default: True
+    mask                  -- optional masking function (Instance of <class 'VisionEgg.Textures.Mask2D'>)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (determined at runtime)
+    max_alpha             -- controls opacity. 1.0=copletely opaque, 0.0=completely transparent (Real)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: 1.0
+    on                    -- draw stimulus? (Boolean)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: True
+    position              -- units: eye coordinates (AnyOf(Sequence2 of Real or Sequence3 of Real or Sequence4 of Real))
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (0.0, 0.0)
+    size                  -- defaults to texture data size (units: eye coordinates) (Sequence2 of Real)
+                             Inherited from VisionEgg.Textures.TextureStimulus
+                             Default: (determined at runtime)
+    text                  -- (AnyOf(String or Unicode))
+                             Default: the string to display
+    texture               -- source of texture data (Instance of <class 'VisionEgg.Textures.Texture'>)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (determined at runtime)
+    texture_mag_filter    -- OpenGL filter enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: GL_LINEAR (9729)
+    texture_min_filter    -- OpenGL filter enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at runtime)
+    texture_wrap_s        -- OpenGL texture wrap enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at runtime)
+    texture_wrap_t        -- OpenGL texture wrap enum (Integer)
+                             Inherited from VisionEgg.Textures.TextureStimulusBaseClass
+                             Default: (GL enum determined at runtime)
 
-        parameters_and_defaults = {
-            'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
-                      ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
-            'ignore_size_parameter':(True, # when true, draws text at 100% size
-                                     ve_types.Boolean),
-            }
+    Constant Parameters
+    ===================
+    font_descr_string -- (UnsignedInteger)
+                         Default: 30
+    internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: GL_RGB (6407)
+    mipmaps_enabled   -- Are mipmaps enabled? (Boolean)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: True
+    shrink_texture_ok -- Allow automatic shrinking of texture if too big? (Boolean)
+                         Inherited from VisionEgg.Textures.TextureStimulus
+                         Default: False
+    """
 
-        constant_parameters_and_defaults = {
-            'font_descr_string':('normal 20',
-                                 ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
-            }
+    parameters_and_defaults = {
+        'text': ( 'the string to display', #changing this redraws texture, may cause slowdown
+                  ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
+        'ignore_size_parameter':(True, # when true, draws text at 100% size
+                                 ve_types.Boolean),
+        }
 
-        __slots__ = (
-            '_text',
-            )
+    constant_parameters_and_defaults = {
+        'font_descr_string':('normal 20',
+                             ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
+        }
 
-        def __init__(self,**kw):
-            # override some defaults
-            if 'internal_format' not in kw.keys():
-                kw['internal_format'] = gl.GL_RGBA
-            if 'mipmaps_enabled' not in kw.keys():
-                kw['mipmaps_enabled'] = 0
-            if 'texture_min_filter' not in kw.keys():
-                kw['texture_min_filter'] = gl.GL_LINEAR
-            VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
+    __slots__ = (
+        '_text',
+        )
+
+    def __init__(self,**kw):
+        # override some defaults
+        if 'internal_format' not in kw.keys():
+            kw['internal_format'] = gl.GL_RGBA
+        if 'mipmaps_enabled' not in kw.keys():
+            kw['mipmaps_enabled'] = 0
+        if 'texture_min_filter' not in kw.keys():
+            kw['texture_min_filter'] = gl.GL_LINEAR
+        VisionEgg.Textures.TextureStimulus.__init__(self,**kw)
+        self._render_text()
+
+    def _render_text(self):
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 0, 0)
+        cr = pangocairo.CairoContext(cairo.Context(surface))
+        layout = cr.create_layout()
+        descr = pango.FontDescription(self.constant_parameters.font_descr_string)
+        layout.set_font_description(descr)
+
+        p = self.parameters
+        layout.set_text(p.text)
+
+        ink, rect = layout.get_pixel_extents ()
+        w,h = rect[2],rect[3]
+
+        surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, w,h)
+        cr = pangocairo.CairoContext (cairo.Context (surface))
+
+        cr.set_source_rgba (0., 0., 0., 0.)
+        cr.paint ()
+
+        cr.move_to (-rect[0], -rect[1])
+        cr.set_source_rgba (1., 1., 1., 1.)
+        cr.show_layout (layout)
+
+        buf = surface.get_data()
+
+        rendered_surf = numpy.frombuffer(buf, numpy.uint8)
+        rendered_surf.shape = (h,w, 4)
+        rendered_surf = rendered_surf[::-1] # flip UD (should do this in cairo)
+
+        # we could use put_new_image for speed (or put_sub_image for more)
+        p.texture = VisionEgg.Textures.Texture(rendered_surf)
+        self._reload_texture()
+        self._text = p.text # cache string so we know when to re-render
+        if p.ignore_size_parameter:
+            p.size = p.texture.size
+
+    def draw(self):
+        p = self.parameters
+        if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
+            raise RuntimeError("my texture has been modified, but it shouldn't be")
+        if p.text != self._text: # new text
             self._render_text()
-
-        def _render_text(self):
-            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 0, 0)
-            cr = pangocairo.CairoContext(cairo.Context(surface))
-            layout = cr.create_layout()
-            descr = pango.FontDescription(self.constant_parameters.font_descr_string)
-            layout.set_font_description(descr)
-
-            p = self.parameters
-            layout.set_text(p.text)
-
-            ink, rect = layout.get_pixel_extents ()
-            w,h = rect[2],rect[3]
-
-            surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, w,h)
-            cr = pangocairo.CairoContext (cairo.Context (surface))
-
-            cr.set_source_rgba (0., 0., 0., 0.)
-            cr.paint ()
-
-            cr.move_to (-rect[0], -rect[1])
-            cr.set_source_rgba (1., 1., 1., 1.)
-            cr.show_layout (layout)
-
-            buf = surface.get_data()
-
-            rendered_surf = numpy.frombuffer(buf, numpy.uint8)
-            rendered_surf.shape = (h,w, 4)
-            rendered_surf = rendered_surf[::-1] # flip UD (should do this in cairo)
-
-            # we could use put_new_image for speed (or put_sub_image for more)
-            p.texture = VisionEgg.Textures.Texture(rendered_surf)
-            self._reload_texture()
-            self._text = p.text # cache string so we know when to re-render
-            if p.ignore_size_parameter:
-                p.size = p.texture.size
-
-        def draw(self):
-            p = self.parameters
-            if p.texture != self._using_texture: # self._using_texture is from TextureStimulusBaseClass
-                raise RuntimeError("my texture has been modified, but it shouldn't be")
-            if p.text != self._text: # new text
-                self._render_text()
-            if p.ignore_size_parameter:
-                p.size = p.texture.size
-            VisionEgg.Textures.TextureStimulus.draw(self) # call base class
+        if p.ignore_size_parameter:
+            p.size = p.texture.size
+        VisionEgg.Textures.TextureStimulus.draw(self) # call base class
 
 class PygameText(VisionEgg.Textures.TextureStimulus):
     """Single line of text rendered using pygame/SDL true type fonts.
