@@ -124,7 +124,9 @@ class PangoText(VisionEgg.Textures.TextureStimulus):
 
     constant_parameters_and_defaults = {
         'font_descr_string':('normal 20',
-                             ve_types.AnyOf(ve_types.String,ve_types.Unicode)),
+                             ve_types.AnyOf(ve_types.String,ve_types.Unicode),
+                             'font description passed to Pango.FontDescription',
+                             ),
         }
 
     __slots__ = (
