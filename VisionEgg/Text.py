@@ -102,8 +102,8 @@ class PangoText(VisionEgg.Textures.TextureStimulus):
 
     Constant Parameters
     ===================
-    font_descr_string -- (UnsignedInteger)
-                         Default: 30
+    font_descr_string -- font description passed to Pango.FontDescription (AnyOf(String or Unicode))
+                         Default: normal 20
     internal_format   -- format with which OpenGL uses texture data (OpenGL data type enum) (Integer)
                          Inherited from VisionEgg.Textures.TextureStimulus
                          Default: GL_RGB (6407)
@@ -244,7 +244,7 @@ class PygameText(VisionEgg.Textures.TextureStimulus):
 
     Constant Parameters
     ===================
-    font_name         -- (AnyOf(String or Unicode))
+    font_name         -- short name (e.g. "arial") or full path to .ttf file (AnyOf(String or Unicode))
                          Default: (determined at runtime)
     font_size         -- (UnsignedInteger)
                          Default: 30

@@ -755,10 +755,10 @@ class ProjectionBaseClass(VisionEgg.ClassWithParameters):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     # WARNING: This implementation should really get cleaned up and
@@ -923,10 +923,10 @@ class Projection(ProjectionBaseClass):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,*args,**kw):
@@ -941,10 +941,10 @@ class ModelView(ProjectionBaseClass):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,*args,**kw):
@@ -957,10 +957,10 @@ class OrthographicProjection(Projection):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0,z_clip_near=0.0,z_clip_far=1.0):
@@ -996,10 +996,10 @@ class OrthographicProjectionNoZClip(Projection):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,left=0.0,right=640.0,bottom=0.0,top=480.0):
@@ -1026,10 +1026,10 @@ class SimplePerspectiveProjection(Projection):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,fov_x=45.0,z_clip_near = 0.1,z_clip_far=10000.0,aspect_ratio=4.0/3.0):
@@ -1062,10 +1062,10 @@ class PerspectiveProjection(Projection):
     Parameters
     ==========
     matrix -- matrix specifying projection (Sequence4x4 of Real)
-              Default: [[1 0 0 0]
-                        [0 1 0 0]
-                        [0 0 1 0]
-                        [0 0 0 1]]
+              Default: [[ 1.  0.  0.  0.]
+                        [ 0.  1.  0.  0.]
+                        [ 0.  0.  1.  0.]
+                        [ 0.  0.  0.  1.]]
     """
 
     def __init__(self,left,right,bottom,top,near,far):
@@ -1230,22 +1230,24 @@ class Viewport(VisionEgg.ClassWithParameters):
 
     Parameters
     ==========
-    anchor        -- How position parameter is interpreted (String)
-                     Default: lowerleft
-    camera_matrix -- extrinsic camera parameter matrix (position and orientation) (Instance of <class 'VisionEgg.Core.ModelView'>)
-                     Default: (determined at runtime)
-    depth_range   -- depth range (in object units) for rendering (Sequence2 of Real)
-                     Default: (0, 1)
-    position      -- Position (in pixel units) within the screen (Sequence2 of Real)
-                     Default: (0, 0)
-    projection    -- intrinsic camera parameter matrix (field of view, focal length, aspect ratio) (Instance of <class 'VisionEgg.Core.Projection'>)
-                     Default: (determined at runtime)
-    screen        -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
-                     Default: (determined at runtime)
-    size          -- Size (in pixel units) (Sequence2 of Real)
-                     Default: (determined at runtime)
-    stimuli       -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
-                     Default: (determined at runtime)
+    anchor                -- How position parameter is interpreted (String)
+                             Default: lowerleft
+    auto_pixel_projection -- reset the projection when the size changes to maintain pixel coordinates (Boolean)
+                             Default: (determined at runtime)
+    camera_matrix         -- extrinsic camera parameter matrix (position and orientation) (Instance of <class 'VisionEgg.Core.ModelView'>)
+                             Default: (determined at runtime)
+    depth_range           -- depth range (in object units) for rendering (Sequence2 of Real)
+                             Default: (0, 1)
+    position              -- Position (in pixel units) within the screen (Sequence2 of Real)
+                             Default: (0, 0)
+    projection            -- intrinsic camera parameter matrix (field of view, focal length, aspect ratio) (Instance of <class 'VisionEgg.Core.Projection'>)
+                             Default: (determined at runtime)
+    screen                -- The screen in which this viewport is drawn (Instance of <class 'VisionEgg.Core.Screen'>)
+                             Default: (determined at runtime)
+    size                  -- Size (in pixel units) (Sequence2 of Real)
+                             Default: (determined at runtime)
+    stimuli               -- sequence of stimuli to draw in screen (Sequence of Instance of <class 'VisionEgg.Core.Stimulus'>)
+                             Default: (determined at runtime)
     """
 
     parameters_and_defaults = VisionEgg.ParameterDefinition({

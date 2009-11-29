@@ -465,6 +465,12 @@ class SinGrating3D(LuminanceGratingCommon):
                                    Default: 0.5
     phase_at_t0                 -- (Real)
                                    Default: 0.0
+    polygon_offset_enabled      -- perform polygon offset? (Boolean)
+                                   Default: False
+    polygon_offset_factor       -- polygon factor (Real)
+                                   Default: 1.0
+    polygon_offset_units        -- polygon units (Real)
+                                   Default: 1.0
     recalculate_phase_tolerance -- (Real)
                                    Default: (determined at runtime)
     size                        -- defines coordinate size of grating (in eye coordinates) (Sequence2 of Real)

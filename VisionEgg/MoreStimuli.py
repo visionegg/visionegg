@@ -179,18 +179,22 @@ class Rectangle3D(VisionEgg.Core.Stimulus):
 
     Parameters
     ==========
-    color   -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (1.0, 1.0, 1.0, 1.0)
-    on      -- (Boolean)
-               Default: True
-    vertex1 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (-10.0, 0.0, -10.0)
-    vertex2 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (-10.0, 0.0, 10.0)
-    vertex3 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (10.0, 0.0, 10.0)
-    vertex4 -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
-               Default: (10.0, 0.0, -10.0)
+    blending_enabled -- (Boolean)
+                        Default: False
+    color            -- (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (1.0, 1.0, 1.0, 1.0)
+    depth_test       -- (Boolean)
+                        Default: False
+    on               -- (Boolean)
+                        Default: True
+    vertex1          -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (-10.0, 0.0, -10.0)
+    vertex2          -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (-10.0, 0.0, 10.0)
+    vertex3          -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (10.0, 0.0, 10.0)
+    vertex4          -- units: eye coordinates (AnyOf(Sequence3 of Real or Sequence4 of Real))
+                        Default: (10.0, 0.0, -10.0)
     """
 
     parameters_and_defaults = {
