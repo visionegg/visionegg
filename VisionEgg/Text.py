@@ -299,7 +299,7 @@ class PygameText(VisionEgg.Textures.TextureStimulus):
         if fontobject_args not in _font_objects:
             # make global cache of font objects
             font_name, font_size = fontobject_args
-            if not os.path.exists(font_name):
+            if font_name is not None and not os.path.exists(font_name):
                 if font_name is not None:
                     new_font_name = pygame.font.match_font(font_name)
                     if new_font_name is None:
