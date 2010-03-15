@@ -26,6 +26,7 @@ import VisionEgg.Core
 import VisionEgg.ParameterTypes as ve_types
 
 import numpy.oldnumeric as Numeric, numpy.oldnumeric.random_array as RandomArray
+import numpy as np
 import math, types, string
 
 import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
@@ -34,12 +35,14 @@ import VisionEgg.GL as gl # get all OpenGL stuff in one namespace
 ##import VisionEgg._draw_in_c
 ##draw_dots = VisionEgg._draw_in_c.draw_dots # draw in C for speed
 
-def draw_dots(xs,ys,zs):
+def draw_dots(xs,ys,zs,colors=None):
     """Python method for drawing dots.  May be replaced by a faster C version."""
     if not (len(xs) == len(ys) == len(zs)):
         raise ValueError("All input arguments must be same length")
     gl.glBegin(gl.GL_POINTS)
     for i in xrange(len(xs)):
+        if colors is not None:
+            gl.glColor4f( *colors[i] )
         gl.glVertex3f(xs[i],ys[i],zs[i])
     gl.glEnd()
 
@@ -249,4 +252,121 @@ class DotArea2D(VisionEgg.Core.Stimulus):
             draw_dots(xs,ys,zs)
             if p.anti_aliasing:
                 gl.glDisable( gl.GL_POINT_SMOOTH ) # turn off
+            gl.glPopMatrix()
+
+class Dots3D(VisionEgg.Core.Stimulus):
+    """Random dots of constant velocity (3D)
+
+    Every dot has the same 3D velocity. Each dot has a lifespan. Some
+    dots can be black, while the rest are white.
+
+    This is just one example of the endless variations on drawing random dots.
+
+    Parameters
+    ==========
+    dot_lifespan_sec        -- (Real)
+                               Default: 5.0
+    dot_size                -- (Real)
+                               Default: 4.0
+    on                      -- (Boolean)
+                               Default: True
+    signal_vec              -- (Sequence3 of Real)
+                               Default: (0, 0, 0)
+    start_position_mean     -- (Sequence3 of Real)
+                               Default: (0, 0, 0)
+    start_position_variance -- (Real)
+                               Default: 1
+
+    Constant Parameters
+    ===================
+    num_dark -- (UnsignedInteger)
+                Default: 100
+    num_dots -- (UnsignedInteger)
+                Default: 200
+    """
+
+    parameters_and_defaults = {
+        'on' : ( True,
+                 ve_types.Boolean ),
+        'start_position_mean' : ( ( 0,0,0 ), # in world coordinates
+                            ve_types.Sequence3(ve_types.Real) ),
+        'start_position_variance' :   (  1, ve_types.Real ), # sigma**2
+        'signal_vec' : ( ( 0,0,0 ), # in world coordinates
+                         ve_types.Sequence3(ve_types.Real) ),
+        'dot_size' : (4.0, # pixels
+                      ve_types.Real),
+        'dot_lifespan_sec' : ( 5.0,
+                               ve_types.Real ),
+        }
+
+    constant_parameters_and_defaults = {
+        'num_dots' : ( 200,
+                       ve_types.UnsignedInteger ),
+        'num_dark' : ( 100, # the number of total that are black
+                       ve_types.UnsignedInteger ),
+        }
+
+    __slots__ = (
+        'centers',
+        'colors',
+        'last_time_sec',
+        'start_times_sec',
+        )
+
+    def __init__(self, **kw):
+        VisionEgg.Core.Stimulus.__init__(self,**kw)
+        # store positions normalized around 0 so that re-sizing is ok
+        num_dots = self.constant_parameters.num_dots # shorthand
+        self.centers = np.random.standard_normal((3,num_dots))
+        self.colors = np.ones((num_dots,4))
+        self.colors[:self.constant_parameters.num_dark,:3] = 0
+        self.last_time_sec = VisionEgg.time_func()
+        self.start_times_sec = None # setup variable, assign later
+
+    def draw(self):
+        # XXX This method is not speed-optimized. I just wrote it to
+        # get the job done. (Nonetheless, it seems faster than the C
+        # version commented out above.)
+
+        p = self.parameters # shorthand
+        if p.on:
+
+            now_sec = VisionEgg.time_func()
+            if self.start_times_sec is not None:
+                # compute extinct dots and generate new positions
+                replace_indices = Numeric.nonzero( Numeric.greater( now_sec - self.start_times_sec, p.dot_lifespan_sec) )
+                Numeric.put( self.start_times_sec, replace_indices, now_sec )
+
+                new_centers = np.random.standard_normal((3,len(replace_indices)))
+                for i in range(3):
+                    Numeric.put( self.centers[i,:], replace_indices, new_centers[i,:] )
+            else:
+                # initialize dot extinction values to random (uniform) distribution
+                self.start_times_sec = RandomArray.uniform( now_sec - p.dot_lifespan_sec, now_sec,
+                                                            (self.constant_parameters.num_dots,))
+
+            time_delta_sec = now_sec - self.last_time_sec
+            self.last_time_sec = now_sec # reset for next loop
+            self.centers = self.centers + np.array(p.signal_vec)[:,np.newaxis]*time_delta_sec
+
+            xyz = self.centers*p.start_position_variance + np.array(p.start_position_mean)[:,np.newaxis]
+            xs = xyz[0,:]
+            ys = xyz[1,:]
+            zs = xyz[2,:]
+
+            gl.glEnable( gl.GL_POINT_SMOOTH )
+            # allow max_alpha value to control blending
+            gl.glEnable( gl.GL_BLEND )
+            gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
+
+            gl.glPointSize(p.dot_size)
+
+            # Clear the modeview matrix
+            gl.glMatrixMode(gl.GL_MODELVIEW)
+            gl.glPushMatrix()
+
+            gl.glDisable(gl.GL_TEXTURE_2D)
+
+            draw_dots(xs,ys,zs,self.colors)
+            gl.glDisable( gl.GL_POINT_SMOOTH ) # turn off
             gl.glPopMatrix()
