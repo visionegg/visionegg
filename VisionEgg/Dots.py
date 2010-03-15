@@ -329,31 +329,31 @@ class Dots3D(VisionEgg.Core.Stimulus):
         # version commented out above.)
 
         p = self.parameters # shorthand
+
+        now_sec = VisionEgg.time_func()
+        if self.start_times_sec is not None:
+            # compute extinct dots and generate new positions
+            replace_indices = Numeric.nonzero( Numeric.greater( now_sec - self.start_times_sec, p.dot_lifespan_sec) )
+            Numeric.put( self.start_times_sec, replace_indices, now_sec )
+
+            new_centers = np.random.standard_normal((3,len(replace_indices)))
+            for i in range(3):
+                Numeric.put( self.centers[i,:], replace_indices, new_centers[i,:] )
+        else:
+            # initialize dot extinction values to random (uniform) distribution
+            self.start_times_sec = RandomArray.uniform( now_sec - p.dot_lifespan_sec, now_sec,
+                                                        (self.constant_parameters.num_dots,))
+
+        time_delta_sec = now_sec - self.last_time_sec
+        self.last_time_sec = now_sec # reset for next loop
+        self.centers = self.centers + np.array(p.signal_vec)[:,np.newaxis]*time_delta_sec
+
+        xyz = self.centers*p.start_position_variance + np.array(p.start_position_mean)[:,np.newaxis]
+        xs = xyz[0,:]
+        ys = xyz[1,:]
+        zs = xyz[2,:]
+
         if p.on:
-
-            now_sec = VisionEgg.time_func()
-            if self.start_times_sec is not None:
-                # compute extinct dots and generate new positions
-                replace_indices = Numeric.nonzero( Numeric.greater( now_sec - self.start_times_sec, p.dot_lifespan_sec) )
-                Numeric.put( self.start_times_sec, replace_indices, now_sec )
-
-                new_centers = np.random.standard_normal((3,len(replace_indices)))
-                for i in range(3):
-                    Numeric.put( self.centers[i,:], replace_indices, new_centers[i,:] )
-            else:
-                # initialize dot extinction values to random (uniform) distribution
-                self.start_times_sec = RandomArray.uniform( now_sec - p.dot_lifespan_sec, now_sec,
-                                                            (self.constant_parameters.num_dots,))
-
-            time_delta_sec = now_sec - self.last_time_sec
-            self.last_time_sec = now_sec # reset for next loop
-            self.centers = self.centers + np.array(p.signal_vec)[:,np.newaxis]*time_delta_sec
-
-            xyz = self.centers*p.start_position_variance + np.array(p.start_position_mean)[:,np.newaxis]
-            xs = xyz[0,:]
-            ys = xyz[1,:]
-            zs = xyz[2,:]
-
             gl.glEnable( gl.GL_POINT_SMOOTH )
             # allow max_alpha value to control blending
             gl.glEnable( gl.GL_BLEND )
