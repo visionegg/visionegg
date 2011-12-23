@@ -89,8 +89,14 @@ if not skip_c_compilation:
         gl_libraries = []
 
     if sys.platform == 'win32':
-        qt_include_dirs = [r'C:\Program Files\QuickTime SDK\CIncludes']
-        qt_library_dirs = [r'C:\Program Files\QuickTime SDK\Libraries']
+        qt_include_dirs = []
+        qt_library_dirs = []
+        qt_sdk_dirs = [r'C:\Program Files\QuickTime SDK',
+                       r'C:\Program Files (x86)\QuickTime SDK']
+        for test_qt_sdk_dir in qt_sdk_dirs:
+            if os.path.exists(test_qt_sdk_dir):
+                qt_include_dirs = [os.path.join(test_qt_sdk_dir,'CIncludes')]
+                qt_library_dirs = [os.path.join(test_qt_sdk_dir,'Libraries')]
         qt_libraries = ['qtmlClient']
         if 1:
             # from http://lab.msdn.microsoft.com/express/visualc/usingpsdk/default.aspx
