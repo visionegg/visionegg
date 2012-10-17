@@ -2,7 +2,15 @@ import os, sys
 import ctypes
 
 if os.name=='nt':
-    QTMLClient = ctypes.CDLL(r'C:\Program Files\QuickTime\QTSystem\QTMLClient.dll')
+    locations = [r'C:\Program Files\QuickTime\QTSystem\QTMLClient.dll',
+                 r'C:\Program Files (x86)\QuickTime\QTSystem\QTMLClient.dll']
+    QTMLClient = None
+    for location in locations:
+        if os.path.exists(location):
+            QTMLClient = ctypes.CDLL(location)
+            break
+    if QTMLClient is None:
+        raise RuntimeError('QTMLClient.dll not found in %r'%locations)
 elif sys.platform.startswith('darwin'):
     # There was once a functional Mac QuickTime implementation, but it
     # used a combination of the Python stdlib's quicktime module and
