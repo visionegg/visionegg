@@ -23,45 +23,29 @@ To download the development tree, see the SourceRepository_ page.
 Eye Tracking
 ============
 
-**.. raw:: html
-Rendering of reStructured text is not possible, please install Docutils.**
-
-
-
+<p><a class="http reference external" href="http://www.eyelinkinfo.com">SR Research</a>, the makers of eye tracking hardware and software, have
+released <a class="http reference external" href="http://www.eyelinkinfo.com/mount_software.php#Python">Pylink</a>.</p>
+<p>Pylink can be used with the Vision Egg!</p>
+<p>According to SR Research:</p>
 ::
 
-   `SR Research`_, the makers of eye tracking hardware and software, have
-   released Pylink_.
+Pylink allows for tracker control, real-time data access, and
+external synchronization with eye data via custom messaging.
 
-   Pylink can be used with the Vision Egg!
-
-   According to SR Research::
-
-     Pylink allows for tracker control, real-time data access, and
-     external synchronization with eye data via custom messaging.
-
-     Many people find Python to be a simpler, yet still powerful,
-     alternative to C.  Pylink can also be used in combination with the
-     excellent third party open source Vision Egg software; providing a
-     combined visual presentation and eye tracking scripting package.
-
-   Distributed with Pylink is a modified Vision Egg demo using realtime
-   tracker data to move a Gaussian-windowed grating in a gaze-contingent
-   fashion. Following this example, it should be easy to create other
-   VisionEgg/Pylink scripts for a variety of vision experiments involving
-   eye tracking.
-
-   .. _`SR Research`: http://www.eyelinkinfo.com
-   .. _`Pylink`: http://www.eyelinkinfo.com/mount_software.php#Python
-
-
-   Question: Is pylink open source?
-   "The pylink module just wraps our C library for the EyeLink system, so
-   although the pylink source itself is 'open', it is just a thin wrapper for a
-   C API that is not open.
-   Sol Simpson
-   SR Research Ltd."
-
+Many people find Python to be a simpler, yet still powerful,
+alternative to C.  Pylink can also be used in combination with the
+excellent third party open source Vision Egg software; providing a
+combined visual presentation and eye tracking scripting package.<p>Distributed with Pylink is a modified Vision Egg demo using realtime
+tracker data to move a Gaussian-windowed grating in a gaze-contingent
+fashion. Following this example, it should be easy to create other
+VisionEgg/Pylink scripts for a variety of vision experiments involving
+eye tracking.</p>
+<p>Question: Is pylink open source?
+&quot;The pylink module just wraps our C library for the EyeLink system, so
+although the pylink source itself is 'open', it is just a thin wrapper for a
+C API that is not open.
+Sol Simpson
+SR Research Ltd.&quot;</p>
 .. ############################################################################
 
 .. _visionegg@freelists.org: mailto:visionegg@freelists.org
