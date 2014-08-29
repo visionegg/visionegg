@@ -1,5 +1,8 @@
 #format rst
 
+Download and Install/Installation on IRIX
+#########################################
+
 `[[Navigation(siblings)]]`_
 
 **.. raw:: html

@@ -1,6 +1,9 @@
 #format rst
 ## page was renamed from Download and Install/installation overview
 
+Download and Install/An Installation Overview
+#############################################
+
 `[[Navigation(siblings)]]`_
 
 **.. raw:: html
