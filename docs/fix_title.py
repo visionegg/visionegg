@@ -10,13 +10,14 @@ for fname in glob.glob('*.rst'):
     new_dir, new_fname = os.path.split(title)
     new_fname += '.rst'
     new_full_fname = os.path.join( new_dir, new_fname)
-    try:
-        os.mkdir(new_dir)
-    except OSError as err:
-        if err.errno==11:
-            pass
-        else:
-            raise
+    if new_dir!='':
+        try:
+            os.mkdir(new_dir)
+        except OSError as err:
+            if err.errno==17:
+                pass
+            else:
+                raise
 
     os.unlink(fname)
 
