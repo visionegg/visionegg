@@ -1,4 +1,5 @@
-#format rst
+Documentation/FAQ
+#################
 
 `[[Navigation(siblings)]]`_
 
@@ -93,7 +94,7 @@ An alternative is  the `gluDisk()`_ utility function:
            quad = gluNewQuadric()
            gluQuadricDrawStyle(quad, GLU_FILL)
            ...
-           gluDisk(quad, 0, 0.1, 50, 1)       
+           gluDisk(quad, 0, 0.1, 50, 1)
            ...
            gluDeleteQuadric(quad)
 
@@ -107,12 +108,12 @@ You can use this construct in conjunction with display lists to improve renderin
            """ Call this function from your constructor or other initialization code. """
            quad = gluNewQuadric()
            gluQuadricDrawStyle(quad, GLU_FILL)
-                  
+
            # Construct representative disk
            self.diskList = glGenLists(1)
            glNewList(self.diskList, GL_COMPILE)
-           gluDisk(quad, 0, 0.1, 50, 1)       
-           glEndList() 
+           gluDisk(quad, 0, 0.1, 50, 1)
+           glEndList()
            gluDeleteQuadric(quad)
 
        def draw(self):

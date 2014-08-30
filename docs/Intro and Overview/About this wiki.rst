@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/AboutThisWiki
+Intro and Overview/About this wiki
+##################################
 
 `[[Navigation(siblings)]]`_
 

@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/Calibration
+Intro and Overview/Calibration
+##############################
 
 `[[Navigation(siblings)]]`_
 

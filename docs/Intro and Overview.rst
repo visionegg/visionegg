@@ -1,4 +1,5 @@
-#format rst
+Intro and Overview
+##################
 
 `[[Navigation(children)]]`_
 
@@ -48,7 +49,7 @@ The Vision Egg is a high level interface between Python and OpenGL. In addition 
 
 * Run stimuli on your laptop - great for talks
 
-* Free, open-source software 
+* Free, open-source software
 
 .. raw:: html
    <div class="figure">

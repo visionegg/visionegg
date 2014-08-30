@@ -1,4 +1,5 @@
-#format rst
+Download and Install
+####################
 
 `[[Navigation(children)]]`_
 
@@ -8,7 +9,7 @@ Stable release - 1.2.1
 Full source code and binary installers for Windows and Mac OSX
 --------------------------------------------------------------
 
-`Windows instructions`_ `OSX instructions`_ 
+`Windows instructions`_ `OSX instructions`_
 
 All files are at the `SourceForge downloads page`_ and `PyPI page`_.
 

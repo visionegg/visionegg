@@ -1,4 +1,5 @@
-#format rst
+Download and Install/Install on MacOSX
+######################################
 
 `[[Navigation(siblings)]]`_
 
@@ -113,14 +114,14 @@ Installing from source with v1.1
 
 * If you don't have it, get Xcode from apple.com so that you can compile the source code
 
-* Install by typing "python setup.py install" from the "visionegg-1.1" directory. 
+* Install by typing "python setup.py install" from the "visionegg-1.1" directory.
 
 Instructions for Tiger, 10.4
 ============================
 
 I (`Alex Holcombe`_) installed Vision Egg using the following procedure. Each of the following packages were downloaded from here_ . These are Universal versions, and worked on my 2.33 GHz Intel MacBook_ Pro, as well as a G5 non-Intel PowerPC.
 
-1. I installed `Xcode 2.4`_ (free Apple compiler)  
+1. I installed `Xcode 2.4`_ (free Apple compiler)
 
 2. "Universal-MacPython_-2.4.3-2006-04-07" was installed by double-clicking.
 

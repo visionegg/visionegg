@@ -1,8 +1,9 @@
-#format rst
+Miscellaneous/CreditsAndThanks
+##############################
 
 `[[Navigation(siblings)]]`_ We would like to thank everyone who has contributed suggetions, comments, and most of all, code to the Vision Egg.
 
-To date, the Vision Egg has been primarily developed by AndrewStraw_, a post-doctoral scholar at Caltech_ in the lab of `Michael Dickinson`_. 
+To date, the Vision Egg has been primarily developed by AndrewStraw_, a post-doctoral scholar at Caltech_ in the lab of `Michael Dickinson`_.
 
 This project began while I was a Ph.D. student at the `University of Washington`_ and later at the `University of Adelaide`_ in the lab of `David O'Carroll`_.  While a Ph.D. student, I was supported by Predoctoral Fellowship in the Biological Sciences from the `Howard Hughes Medical Institue`_.
 

@@ -1,4 +1,5 @@
-#format rst
+Intro and Overview/Citations
+############################
 
 `[[Navigation(siblings)]]`_
 
@@ -14,7 +15,7 @@ Papers using the Vision Egg
 
 *(Please add your papers here.)*
 
-* Blanche TJ, Spacek MA, Hetke JF, Swindale NV. (2005) Polytrodes: high-density silicon electrode arrays for large-scale multiunit recording. J Neurophysiol.  93(5):2987-3000. 
+* Blanche TJ, Spacek MA, Hetke JF, Swindale NV. (2005) Polytrodes: high-density silicon electrode arrays for large-scale multiunit recording. J Neurophysiol.  93(5):2987-3000.
 
 * Straw, A.D., Warrant, E.J., & O'Carroll, D. C. (2006) A 'bright zone' in male hoverfly (Eristalis tenax) eyes and associated faster motion detection and increased contrast sensitivity. *Journal of Experimental Biology* 2006 **209**(21): 4339-4354. `link <http://jeb.biologists.org/cgi/content/short/209/21/4339>`__
 
@@ -60,7 +61,7 @@ Papers using the Vision Egg
 
 * Walther, D. B., Caddigan, E.,  Fei-Fei, L. and Beck, D.M. (2010) Natural Scene Categories Revealed in Distributed Patterns of Activity in the Human Brain. *Journal of Neuroscience* `link <http://dx.doi.org/10.1523/JNEUROSCI.0559-09.2009>`__
 
-* Sakano, Y., Allison, R. S., & Howard, I. P. (2012). Motion aftereffect in depth based on binocular information. *Journal of Vision* 12(1):11, 1–15, `link <http://www.journalofvision.org/content/12/1/11>`__, doi:10.1167/12.1.11. 
+* Sakano, Y., Allison, R. S., & Howard, I. P. (2012). Motion aftereffect in depth based on binocular information. *Journal of Vision* 12(1):11, 1–15, `link <http://www.journalofvision.org/content/12/1/11>`__, doi:10.1167/12.1.11.
 
 .. ############################################################################
 

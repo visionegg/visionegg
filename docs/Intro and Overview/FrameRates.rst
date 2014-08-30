@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/FrameRates
+Intro and Overview/FrameRates
+#############################
 
 `[[Navigation(siblings)]]`_
 

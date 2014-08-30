@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/Platforms
+Intro and Overview/Platforms
+############################
 
 `[[Navigation(siblings)]]`_
 

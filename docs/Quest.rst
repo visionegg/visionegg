@@ -1,4 +1,5 @@
-#format rst
+Quest
+#####
 
 .. contents::
 
@@ -7,7 +8,7 @@ Overview
 
 The `Quest algorithm`_ has been ported directly from the MATLAB sources available with the PsychToolbox_. The MATLAB source code was written by Denis Pelli. Thanks to Denis for allowing it to be released under the BSD license to the (Python) world.
 
-This Python version **does not depend on the Vision Egg**, and may be useful in other contexts.  
+This Python version **does not depend on the Vision Egg**, and may be useful in other contexts.
 
 Download
 ========
@@ -57,7 +58,7 @@ The example above is taken directly from the demo() function of Quest.py and is 
                tActual = float(input)
            except:
                pass
-      
+
        tGuess = None
        while tGuess is None:
            sys.stdout.write('Estimate threshold: ')
@@ -66,14 +67,14 @@ The example above is taken directly from the demo() function of Quest.py and is 
                tGuess = float(input)
            except:
                pass
-      
+
        tGuessSd = 2.0 # sd of Gaussian before clipping to specified range
        pThreshold = 0.82
        beta = 3.5
        delta = 0.01
        gamma = 0.5
        q=QuestObject(tGuess,tGuessSd,pThreshold,beta,delta,gamma)
-      
+
        # Simulate a series of trials.
        trialsDesired=100
        wrongRight = 'wrong', 'right'
@@ -89,7 +90,7 @@ The example above is taken directly from the demo() function of Quest.py and is 
            response=q.simulate(tTest,tActual)
            print 'Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[response])
            timeZero=timeZero+time.time()-timeSplit;
-          
+
            # Update the pdf
            q.update(tTest,response);
        # Print results of timing.

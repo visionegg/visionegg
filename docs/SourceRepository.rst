@@ -1,4 +1,5 @@
-#format rst
+SourceRepository
+################
 
 .. contents::
 
@@ -17,11 +18,11 @@ Example command-line use
 
 To check out the Vision Egg:
 
-*  ``git clone git://github.com/visionegg/visionegg.git`` 
+*  ``git clone git://github.com/visionegg/visionegg.git``
 
 To check out Quest:
 
-*  ``git clone git://github.com/visionegg/quest.git`` 
+*  ``git clone git://github.com/visionegg/quest.git``
 
 .. ############################################################################
 

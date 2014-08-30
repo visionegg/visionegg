@@ -1,4 +1,5 @@
-#format rst
+News
+####
 
 .. contents:: :depth: 1
 
@@ -126,7 +127,7 @@ Changes for 1.0
 
 * Various patches by Tony Arkles (University of Saskatchewan),  including a suggestion to separate camera motions from the GL_PROJECTION matrix and put them in the GL_MODELVIEW matrix, where they belong.
 
-* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT. 
+* Patch for VISIONEGG_SYSTEM_DIR by Nick Knouf, MIT.
 
 * Added win32_vretrace.WaitForRetrace() (but it's not used for much, yet)
 
@@ -217,7 +218,7 @@ Changes for 0.9.9:
 
 * No installation of demos or documentation (get source or demo package)
 
-* Many small enhancements and bugfixes 
+* Many small enhancements and bugfixes
 
 New tests:
 
@@ -225,7 +226,7 @@ New tests:
 
 * incomplete DC restoration test for displays (Brainard et al., 2002)
 
-* unit-test suite: among many other things, pixel accuracy of textures 
+* unit-test suite: among many other things, pixel accuracy of textures
 
 New demos:
 

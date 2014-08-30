@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/Screenshots
+Intro and Overview/Screenshots
+##############################
 
 `[[Navigation(siblings)]]`_
 
@@ -106,7 +106,7 @@ Rendering of reStructured text is not possible, please install Docutils.**
 
    The first screenshot shows the stimuli included by default, the main
    window with parameter entry for the spinning drum experiment, and the
-   stimulus onset timing calibration window. 
+   stimulus onset timing calibration window.
 
    .. image:: ephys_gui.png
       :width: 762

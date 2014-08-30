@@ -1,4 +1,5 @@
-#format rst
+Documentation
+#############
 
 `[[Navigation(children)]]`_
 

@@ -1,4 +1,5 @@
-#format rst
+Miscellaneous/LabView
+#####################
 
 `[[Navigation(siblings)]]`_
 
@@ -56,6 +57,6 @@ Rendering of reStructured text is not possible, please install Docutils.**
       :width: 996
       :height: 654
       :alt: VI diagram
-                  
+
    .. _`Vision Egg SourceForge files page`: http://sourceforge.net/project/showfiles.php?group_id=40846
 

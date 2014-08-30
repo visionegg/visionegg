@@ -1,4 +1,5 @@
-#format rst
+Download and Install/Install on Windows
+#######################################
 
 `[[Navigation(siblings)]]`_
 

@@ -1,5 +1,5 @@
-#format rst
-## page was renamed from IntroAndOverview/Synchronization
+Intro and Overview/Synchronization
+##################################
 
 `[[Navigation(siblings)]]`_
 
@@ -11,7 +11,7 @@ Alternatively, you could begin data acquisition less precisely, digitize the ver
 
 **Important note:** As described_ by Sol Simpson of SR Research, swap_buffers() will return immediately if no buffer is already waiting to be swapped. If a buffer *is* waiting to be swapped, then swap_buffers() waits until *that* buffer is swapped. Thus, your drawing actually appears as an extra frame of later than the naive expectation in this case.
 
-**Another similar note:** Some projectors also introduce an additional frame of latency.  
+**Another similar note:** Some projectors also introduce an additional frame of latency.
 
 Another method, or a method to validate timing, is to use a photo detector on a patch of screen whose brightness might go from dark to light at the onset of the experiment.
 

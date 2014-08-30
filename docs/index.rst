@@ -1,3 +1,5 @@
+index
+#####
 .. Vision Egg documentation master file, created by
    sphinx-quickstart on Fri Aug 29 21:31:07 2014.
    You can adapt this file completely to your liking, but it should at least
