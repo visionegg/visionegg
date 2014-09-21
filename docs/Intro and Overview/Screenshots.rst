@@ -1,14 +1,7 @@
-Intro and Overview/Screenshots
-##############################
+  .. _screenshots:
 
-`[[Navigation(siblings)]]`_
-
-**.. raw:: html
-Rendering of reStructured text is not possible, please install Docutils.**
-
-
-
-::
+  Screenshots
+  ###########
 
    All of the screenshots below were produced with demos that come with
    the Vision Egg.
@@ -140,4 +133,3 @@ Rendering of reStructured text is not possible, please install Docutils.**
       :width: 761
       :height: 631
       :alt: init window
-

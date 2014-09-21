@@ -58,7 +58,7 @@ anyone wishing to make use of the features of today's graphics cards.
     :width: 320
     :height: 240
 
-  See the screenshots_.
+  See the :ref:`screenshots`.
 
 By harnessing the power of today's consumer graphics cards, producing
 visual stimuli of research quality now requires no specialized
