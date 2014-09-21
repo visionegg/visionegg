@@ -93,8 +93,7 @@ Quick links
 
 * `download page`_ (Check the Download_ page for more information.)
 
-* `subversion code repository`_ (See SourceRepository_ for more
-  information)
+* `Vision Egg @github <https://github.com/visionegg/visionegg>`__
 
 .. _talk at SciPy 09 (video available online) - 2009-08-20: ../News#SciPy09talk
 
@@ -113,11 +112,6 @@ Quick links
 .. _link: http://frontiersin.org/neuroinformatics/paper/10.3389/neuro.11/004.2008/
 
 .. _download page: http://sourceforge.net/project/showfiles.php?group_id=40846
-
-.. _subversion code repository: http://visionegg.org/svn/trunk/visionegg#egg=visionegg-dev
-
-.. _SourceRepository: ../SourceRepository
-
 
 Full Documentation Contents
 ===========================
@@ -150,7 +144,6 @@ Contents:
   Miscellaneous/UsersAndFriends.rst
   News.rst
   Quest.rst
-  SourceRepository.rst
 
 Indices and tables
 ==================
