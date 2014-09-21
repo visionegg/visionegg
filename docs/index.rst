@@ -112,8 +112,6 @@ Quick links
 
 .. _link: http://frontiersin.org/neuroinformatics/paper/10.3389/neuro.11/004.2008/
 
-.. _the citations page: /Citations
-
 .. _download page: http://sourceforge.net/project/showfiles.php?group_id=40846
 
 .. _subversion code repository: http://visionegg.org/svn/trunk/visionegg#egg=visionegg-dev
@@ -128,6 +126,7 @@ Contents:
 
 .. toctree::
 
+  Citations.rst
   Documentation.rst
   Documentation/FAQ.rst
   Documentation/Tutorial.rst
@@ -139,7 +138,6 @@ Contents:
   Download and Install/Install on Windows.rst
   Intro and Overview/About this wiki.rst
   Intro and Overview/Calibration.rst
-  Intro and Overview/Citations.rst
   Intro and Overview/FrameRates.rst
   Intro and Overview/Platforms.rst
   Intro and Overview/Screenshots.rst
