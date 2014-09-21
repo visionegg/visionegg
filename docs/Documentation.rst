@@ -1,8 +1,6 @@
 Documentation
 #############
 
-`[[Navigation(children)]]`_
-
 Article in Frontiers in Neuroinformatics
 ========================================
 
@@ -25,14 +23,14 @@ The `Vision Egg Library Reference`_ is generated automatically from the source c
 Frequently Asked Questions
 ==========================
 
-See the FAQ_.
+See :ref:`docs-faq`.
 
 Tutorial
 ========
 
-We have a Tutorial_ available.
+See :ref:`docs-tutorial`.
 
-Also, the demo programs demonstrate most of the Vision Egg features in a more immediate way!
+Also, the demo programs demonstrate most of the Vision Egg features in a more immediate way.
 
 Mailing List
 ============

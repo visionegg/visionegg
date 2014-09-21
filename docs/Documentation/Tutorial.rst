@@ -1,7 +1,7 @@
+.. _docs-tutorial:
+
 Documentation/Tutorial
 ######################
-
-`[[Navigation(siblings)]]`_
 
 .. contents::
 
@@ -13,7 +13,7 @@ with the Vision Egg.  Click on the images to see a 320x240 12 frame
 per second QuickTime_ movie of the output of the Vision Egg.  Note
 that this is very small and slow compared to what you would see
 running the same demo on your computer, especially in fullscreen mode.
-These demos and many more are a DownloadAndInstall_ away.
+These demos and many more are a :ref:`download-overview` away.
 
 grating.py
 ==========
@@ -248,7 +248,7 @@ arrays. The screen is updated with a new array on every frame, which
 will reveal tearing artifacts if you do not have buffer swaps
 synchronized to VSync.
 
-This demo also illustrates an alternative to using the FlowControl_
+This demo also illustrates an alternative to using the FlowControl
 module by using pygame's event handling.
 
 ::
