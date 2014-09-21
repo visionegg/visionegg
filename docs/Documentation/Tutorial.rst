@@ -8,12 +8,24 @@ Documentation/Tutorial
 Overview
 ========
 
-This page describes a few of the many of the demo scripts included with the Vision Egg.  Click on the images to see a 320x240 12 frame per second QuickTime_ movie of the output of the Vision Egg.  Note that this is very small and slow compared to what you would see running the same demo on your computer, especially in fullscreen mode.  These demos and many more are a DownloadAndInstall_ away.
+This page describes a few of the many of the demo scripts included
+with the Vision Egg.  Click on the images to see a 320x240 12 frame
+per second QuickTime_ movie of the output of the Vision Egg.  Note
+that this is very small and slow compared to what you would see
+running the same demo on your computer, especially in fullscreen mode.
+These demos and many more are a DownloadAndInstall_ away.
 
 grating.py
 ==========
 
-The grating demo is a simple Vision Egg application script to show basic operation.  First, the screen is initialized, which opens the OpenGL window. Second, a grating object is created with specified parameters of size, position, spatial frequency, temporal frequency, and orientation. Next, a viewport object is created, which is an intermediary between stimuli and screens.  Finally, a presentation object is created, which controls the main loop and realtime behavior of any Vision Egg script.
+The grating demo is a simple Vision Egg application script to show
+basic operation.  First, the screen is initialized, which opens the
+OpenGL window. Second, a grating object is created with specified
+parameters of size, position, spatial frequency, temporal frequency,
+and orientation. Next, a viewport object is created, which is an
+intermediary between stimuli and screens.  Finally, a presentation
+object is created, which controls the main loop and realtime behavior
+of any Vision Egg script.
 
 
    .. image:: grating-small.jpg
@@ -60,7 +72,13 @@ The grating demo is a simple Vision Egg application script to show basic operati
 target.py
 =========
 
-The target demo creates a small target which moves across the screen.  The target is spatially anti-aliased by default, meaning that the edges can have colors intermediate between the target and the background to reduce *jaggies*.  This demo also introduces the concept of *controllers* which allow realtime control of a Vision Egg stimulus through any number of means, including a data acquisition device, a network connection, or software control.
+The target demo creates a small target which moves across the screen.
+The target is spatially anti-aliased by default, meaning that the
+edges can have colors intermediate between the target and the
+background to reduce *jaggies*.  This demo also introduces the concept
+of *controllers* which allow realtime control of a Vision Egg stimulus
+through any number of means, including a data acquisition device, a
+network connection, or software control.
 
 
    .. image:: target-small.jpg
@@ -124,9 +142,21 @@ The target demo creates a small target which moves across the screen.  The targe
 targetBackground.py
 ===================
 
-The targetBackground demo illustrates how easy it is to combine multiple stimuli. A spatially anti-aliased small target is drawn as before, but this occurs over a spinning drum.
+The targetBackground demo illustrates how easy it is to combine
+multiple stimuli. A spatially anti-aliased small target is drawn as
+before, but this occurs over a spinning drum.
 
-This demo also introduces more power of OpenGL -- coordinate transforms that occur in realtime via projections. In the Vision Egg, a projection is a parameter of the viewport.  In the default case (such as for the small target), the viewport uses pixel coordinates to create an orthographic projection. This allows specification of stimulus position and size in units of pixels. However, a projection also allows other 3D to 2D projections, such as that used to draw the spinning drum.  This drum, which is defined in 3D, is drawn using a perspective projection.  Because the drum uses a different projection than the small target, it needs its another viewport to link it to the screen.
+This demo also introduces more power of OpenGL -- coordinate
+transforms that occur in realtime via projections. In the Vision Egg,
+a projection is a parameter of the viewport.  In the default case
+(such as for the small target), the viewport uses pixel coordinates to
+create an orthographic projection. This allows specification of
+stimulus position and size in units of pixels. However, a projection
+also allows other 3D to 2D projections, such as that used to draw the
+spinning drum.  This drum, which is defined in 3D, is drawn using a
+perspective projection.  Because the drum uses a different projection
+than the small target, it needs its another viewport to link it to the
+screen.
 
 
     .. image:: targetBackground-small.jpg
@@ -212,9 +242,14 @@ This demo also introduces more power of OpenGL -- coordinate transforms that occ
 put_pixels.py
 =============
 
-The put_pixels demo puts arbitrary array data to the screen.  For the sake of simplicity this example uses only solid, uniformly colored arrays. The screen is updated with a new array on every frame, which will reveal tearing artifacts if you do not have buffer swaps synchronized to VSync.
+The put_pixels demo puts arbitrary array data to the screen.  For the
+sake of simplicity this example uses only solid, uniformly colored
+arrays. The screen is updated with a new array on every frame, which
+will reveal tearing artifacts if you do not have buffer swaps
+synchronized to VSync.
 
-This demo also illustrates an alternative to using the FlowControl_ module by using pygame's event handling.
+This demo also illustrates an alternative to using the FlowControl_
+module by using pygame's event handling.
 
 ::
 
