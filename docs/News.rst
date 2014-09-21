@@ -1,27 +1,35 @@
 News
 ####
 
-.. contents:: :depth: 1
+.. _news-2009-10-05:
 
 Frontiers in Neuroscience commentary - 2009-10-05
 =================================================
 
 Rolf Kötter wrote `A primer of visual stimulus presentation software`_ about the Vision Egg and PsychoPy_ for *Frontiers in Neuroscience*.
 
+.. _news-2009-08-20:
+
 talk at SciPy 09 (video available online) - 2009-08-20
 ======================================================
 
 AndrewStraw_ gave a talk on the Vision Egg and another piece of his software, Motmot_, at `SciPy 09`_. See the talk at http://www.archive.org/details/scipy09_day1_05-Andrew_Straw . The Vision Egg part starts at 25:18.
+
+.. _news-2009-07-22:
 
 talk and tutorial at CNS*2009 - 2009-07-22
 ==========================================
 
 AndrewStraw_ is giving a talk and demo/tutorial on the Vision Egg and another piece of his software, `the Motmot camera utilities`_ at `CNS*2009`_ at the `Python for Neuroinformatics Workshop`_.
 
+.. _news-2009-07-21:
+
 Vision Egg 1.2.1 released - 2009-07-21
 ======================================
 
 Get it from PyPI_ while it's hot.
+
+.. _news-2008-10-08:
 
 Vision Egg article in Frontiers in Neuroinformatics - 2008-10-08
 ================================================================
@@ -33,6 +41,8 @@ An article about the Vision Egg has now been accepted for publication. The citat
 This article covers everything from descriptions of some of the high-level Vision Egg features, to low-level nuts-and-bolts descriptions of OpenGL and graphics hardware relevant for vision scientists. Also, there is an experiment measuring complete latency (from USB mouse movement to on-screen display). In the best configuration (a 140Hz CRT with vsync off), this latency averaged about 12 milliseconds.
 
 If you use the Vision Egg in your research, I'd appreciate citations to this article.
+
+.. _news-2008-10-01:
 
 BCPy2000, using the Vision Egg, released - 2008-10-01
 =====================================================

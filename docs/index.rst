@@ -3,17 +3,17 @@ Intro and Overview
 
 .. sidebar:: News
 
-  1. `Frontiers in Neuroscience commentary - 2009-10-05`_
+  1. :ref:`news-2009-10-05`
 
-  #. `talk at SciPy 09 (video available online) - 2009-08-20`_
+  #. :ref:`news-2009-08-20`
 
-  #. `talk and tutorial at CNS*2009 - 2009-07-22`_
+  #. :ref:`news-2009-07-22`
 
-  #. `Vision Egg 1.2.1 released - 2009-07-21`_
+  #. :ref:`news-2009-07-21`
 
-  #. `Vision Egg article in Frontiers in Neuroinformatics (2008-10-08)`_
+  #. :ref:`news-2008-10-08`
 
-  #. `BCPy2000, using the Vision Egg, released (2008-10-01)`_
+  #. :ref:`news-2008-10-01`
 
 The Vision Egg is a powerful, flexible, and free way to produce
 stimuli for vision research experiments.
@@ -93,8 +93,6 @@ Quick links
 
 * `subversion code repository`_ (See SourceRepository_ for more
   information)
-
-.. _Frontiers in Neuroscience commentary - 2009-10-05: ../News#FrontiersCommentary
 
 .. _talk at SciPy 09 (video available online) - 2009-08-20: ../News#SciPy09talk
 
