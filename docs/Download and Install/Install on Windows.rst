@@ -1,7 +1,7 @@
+.. _download-windows-page:
+
 Download and Install/Install on Windows
 #######################################
-
-`[[Navigation(siblings)]]`_
 
 Instructions for Vision Egg 1.2.1
 =================================

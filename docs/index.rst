@@ -91,27 +91,15 @@ see :ref:`ve-citations`.
 Quick links
 ===========
 
-* `download page`_ (Check the Download_ page for more information.)
+* `downloads`_ (Check the :ref:`download-overview` page for more information.)
 
 * `Vision Egg @github <https://github.com/visionegg/visionegg>`__
-
-.. _talk at SciPy 09 (video available online) - 2009-08-20: ../News#SciPy09talk
-
-.. _talk and tutorial at CNS*2009 - 2009-07-22: ../News#CNS2009talk
-
-.. _Vision Egg 1.2.1 released - 2009-07-21: ../News#Release1.2.1
-
-.. _Vision Egg article in Frontiers in Neuroinformatics (2008-10-08): ../News#VEArticle
-
-.. _BCPy2000, using the Vision Egg, released (2008-10-01): ../News#BCPy2000
-
-.. _screenshots: /Screenshots
 
 .. _Download: ../Download and Install
 
 .. _link: http://frontiersin.org/neuroinformatics/paper/10.3389/neuro.11/004.2008/
 
-.. _download page: http://sourceforge.net/project/showfiles.php?group_id=40846
+.. _downloads: http://sourceforge.net/project/showfiles.php?group_id=40846
 
 Full Documentation Contents
 ===========================

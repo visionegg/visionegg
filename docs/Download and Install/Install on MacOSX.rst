@@ -1,7 +1,7 @@
+.. _download-mac-page:
+
 Download and Install/Install on MacOSX
 ######################################
-
-`[[Navigation(siblings)]]`_
 
 Snow Leopard, OS X 10.6, VisionEgg1.2.1
 =======================================
