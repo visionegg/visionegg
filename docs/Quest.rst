@@ -6,14 +6,19 @@ Quest
 Overview
 ========
 
-The `Quest algorithm`_ has been ported directly from the MATLAB sources available with the PsychToolbox_. The MATLAB source code was written by Denis Pelli. Thanks to Denis for allowing it to be released under the BSD license to the (Python) world.
+The `Quest algorithm`_ has been ported directly from the MATLAB
+sources available with the PsychToolbox_. The MATLAB source code was
+written by Denis Pelli. Thanks to Denis for allowing it to be released
+under the BSD license to the (Python) world.
 
-This Python version **does not depend on the Vision Egg**, and may be useful in other contexts.
+This Python version **does not depend on the Vision Egg**, and may be
+useful in other contexts.
 
 Download
 ========
 
-Download the source directly from the Quest package at the `SourceForge download page`_.
+Download the source directly from the Quest package at the
+`SourceForge download page`_.
 
 Example
 =======
@@ -45,7 +50,9 @@ Example
    logC    beta    gamma
     0.50    3.5     0.50
 
-The example above is taken directly from the demo() function of Quest.py and is a direct translation of the demo included in the original MATLAB source:
+The example above is taken directly from the demo() function of
+Quest.py and is a direct translation of the demo included in the
+original MATLAB source:
 
 ::
 
@@ -110,20 +117,26 @@ The example above is taken directly from the demo() function of Quest.py and is 
 References
 ==========
 
-* Watson, A. B. and Pelli, D. G. (1983) QUEST: a Bayesian adaptive psychometric method. Percept Psychophys, 33 (2), 113-20.
+* Watson, A. B. and Pelli, D. G. (1983) QUEST: a Bayesian adaptive
+  psychometric method. Percept Psychophys, 33 (2), 113-20.
 
-* Pelli, D. G. (1987) The ideal psychometric procedure. Investigative Ophthalmology & Visual Science, 28 (Suppl), 366.
+* Pelli, D. G. (1987) The ideal psychometric procedure. Investigative
+  Ophthalmology & Visual Science, 28 (Suppl), 366.
 
-* King-Smith, P. E., Grigsby, S. S., Vingrys, A. J., Benes, S. C., and Supowit, A.  (1994) Efficient and unbiased modifications of the QUEST threshold method: theory, simulations, experimental evaluation and practical implementation.  Vision Res, 34 (7), 885-912.
+* King-Smith, P. E., Grigsby, S. S., Vingrys, A. J., Benes, S. C., and
+  Supowit, A.  (1994) Efficient and unbiased modifications of the
+  QUEST threshold method: theory, simulations, experimental evaluation
+  and practical implementation.  Vision Res, 34 (7), 885-912.
 
 License
 =======
 
-The Python Quest package is released under a BSD-style license.  (The Vision Egg itself has a LGPL license.)
+The Python Quest package is released under a BSD-style license.  (The
+Vision Egg itself has a LGPL license.)
 
 .. ############################################################################
 
-.. _Quest algorithm: http://vision.nyu.edu/VideoToolbox/Download/Quest.html
+.. _Quest algorithm: http://psych.nyu.edu/pelli/software.html
 
 .. _PsychToolbox: http://psychtoolbox.org/
 
