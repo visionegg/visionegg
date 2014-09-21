@@ -1,19 +1,21 @@
 Intro and Overview/Citations
 ############################
 
-`[[Navigation(siblings)]]`_
-
 Citing the Vision Egg
 =====================
 
-*If you use the Vision Egg for anything that results in a scientific publication, I humbly ask that you please cite my paper in your publications. The citation is:*
+**If you use the Vision Egg for anything that results in a scientific
+ publication, I ask that you please cite my paper in your
+ publications. The citation is:**
 
 * Straw, Andrew D. (2008) Vision Egg: An Open-Source Library for Realtime Visual Stimulus Generation. *Frontiers in Neuroinformatics*. doi: 10.3389/neuro.11.004.2008 link_
+
+.. _ve-citations:
 
 Papers using the Vision Egg
 ===========================
 
-*(Please add your papers here.)*
+**(Please add your papers here.)**
 
 * Blanche TJ, Spacek MA, Hetke JF, Swindale NV. (2005) Polytrodes: high-density silicon electrode arrays for large-scale multiunit recording. J Neurophysiol.  93(5):2987-3000.
 

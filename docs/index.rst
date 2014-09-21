@@ -52,11 +52,13 @@ anyone wishing to make use of the features of today's graphics cards.
 
 * Free, open-source software
 
-.. image:: multi_stim_small.jpg
-  :width: 320
-  :height: 240
+.. sidebar:: Screenshot
 
-See the screenshots_.
+  .. image:: multi_stim_small.jpg
+    :width: 320
+    :height: 240
+
+  See the screenshots_.
 
 By harnessing the power of today's consumer graphics cards, producing
 visual stimuli of research quality now requires no specialized
@@ -72,19 +74,19 @@ The Vision Egg is open source software (GNU LGPL). Therefore, you can
 be assured of a product that meets your needs but does not lock you
 in. Download_ it today and give it a try!
 
-Citing the author
-=================
+Citing the Vision Egg
+=====================
 
-*If you use the Vision Egg for anything that results in a scientific
- publication, I humbly ask that you please cite my paper in your
- publications. The citation is:*
+**If you use the Vision Egg for anything that results in a scientific
+publication, I ask that you please cite my paper in your
+publications. The citation is:**
 
 * Straw, Andrew D. (2008) Vision Egg: An Open-Source Library for
   Realtime Visual Stimulus Generation. *Frontiers in
   Neuroinformatics*. doi: 10.3389/neuro.11.004.2008 link_
 
 To see a partial list of publications that made use of the VisionEgg,
-see `the citations page`_.
+see :ref:`ve-citations`.
 
 Quick links
 ===========
@@ -119,8 +121,8 @@ Quick links
 .. _SourceRepository: ../SourceRepository
 
 
-index
-#####
+Full Documentation Contents
+===========================
 
 Contents:
 
