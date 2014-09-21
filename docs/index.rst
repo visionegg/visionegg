@@ -15,20 +15,32 @@ Intro and Overview
 
   #. `BCPy2000, using the Vision Egg, released (2008-10-01)`_
 
-The Vision Egg is a powerful, flexible, and free way to produce stimuli for vision research experiments.
+The Vision Egg is a powerful, flexible, and free way to produce
+stimuli for vision research experiments.
 
 About
 =====
 
-The Vision Egg is a high level interface between Python and OpenGL. In addition to methods for automatic generation of traditional visual stimuli such as sinusoidal gratings and random dot patterns, it has a number of functions for moving numeric data, images, movies, text, and 3D objects to and from your video card and allowing use of some of its features like perspective distortion. Therefore, it is also useful for anyone wishing to make use of the features of today's graphics cards.
+The Vision Egg is a high level interface between Python and OpenGL. In
+addition to methods for automatic generation of traditional visual
+stimuli such as sinusoidal gratings and random dot patterns, it has a
+number of functions for moving numeric data, images, movies, text, and
+3D objects to and from your video card and allowing use of some of its
+features like perspective distortion. Therefore, it is also useful for
+anyone wishing to make use of the features of today's graphics cards.
 
-* Perform experiments using an inexpensive PC and standard consumer graphics card
+* Perform experiments using an inexpensive PC and standard consumer
+  graphics card
 
-* Perform experiments using a graphics workstation if special features needed
+* Perform experiments using a graphics workstation if special features
+  needed
 
-* Data acquisition and other realtime hardware control capabilities useful in electrophysiology and fMRI experiments, including gaze-contingent stimuli
+* Data acquisition and other realtime hardware control capabilities
+  useful in electrophysiology and fMRI experiments, including
+  gaze-contingent stimuli
 
-* Dynamically generated stimuli can be changed in realtime via software or external hardware
+* Dynamically generated stimuli can be changed in realtime via
+  software or external hardware
 
 * Produce traditional stimuli to replace legacy systems
 
@@ -46,29 +58,41 @@ The Vision Egg is a high level interface between Python and OpenGL. In addition 
 
 See the screenshots_.
 
-By harnessing the power of today's consumer graphics cards, producing visual stimuli of research quality now requires no specialized hardware beyond a relatively recent computer and graphics card.
+By harnessing the power of today's consumer graphics cards, producing
+visual stimuli of research quality now requires no specialized
+hardware beyond a relatively recent computer and graphics card.
 
-Based on open standards, it runs on anything from cheap PCs to expensive special hardware for special needs. For example, running on some platforms, such as SGI workstations, the Vision Egg has a 10-bit luminance dynamic range (both pixel depth and DAC) and precise frame-by-frame control.
+Based on open standards, it runs on anything from cheap PCs to
+expensive special hardware for special needs. For example, running on
+some platforms, such as SGI workstations, the Vision Egg has a 10-bit
+luminance dynamic range (both pixel depth and DAC) and precise
+frame-by-frame control.
 
-The Vision Egg is open source software (GNU LGPL). Therefore, you can be assured of a product that meets your needs but does not lock you in. Download_ it today and give it a try!
+The Vision Egg is open source software (GNU LGPL). Therefore, you can
+be assured of a product that meets your needs but does not lock you
+in. Download_ it today and give it a try!
 
 Citing the author
 =================
 
-*If you use the Vision Egg for anything that results in a scientific publication, I humbly ask that you please cite my paper in your publications. The citation is:*
+*If you use the Vision Egg for anything that results in a scientific
+ publication, I humbly ask that you please cite my paper in your
+ publications. The citation is:*
 
-* Straw, Andrew D. (2008) Vision Egg: An Open-Source Library for Realtime Visual Stimulus Generation. *Frontiers in Neuroinformatics*. doi: 10.3389/neuro.11.004.2008 link_
+* Straw, Andrew D. (2008) Vision Egg: An Open-Source Library for
+  Realtime Visual Stimulus Generation. *Frontiers in
+  Neuroinformatics*. doi: 10.3389/neuro.11.004.2008 link_
 
-To see a partial list of publications that made use of the VisionEgg, see `the citations page`_.
+To see a partial list of publications that made use of the VisionEgg,
+see `the citations page`_.
 
 Quick links
 ===========
 
 * `download page`_ (Check the Download_ page for more information.)
 
-* `subversion code repository`_ (See SourceRepository_ for more information)
-
-.. ############################################################################
+* `subversion code repository`_ (See SourceRepository_ for more
+  information)
 
 .. _Frontiers in Neuroscience commentary - 2009-10-05: ../News#FrontiersCommentary
 
@@ -136,4 +160,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
