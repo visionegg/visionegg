@@ -15,12 +15,6 @@ grating.py
 
 The grating demo is a simple Vision Egg application script to show basic operation.  First, the screen is initialized, which opens the OpenGL window. Second, a grating object is created with specified parameters of size, position, spatial frequency, temporal frequency, and orientation. Next, a viewport object is created, which is an intermediary between stimuli and screens.  Finally, a presentation object is created, which controls the main loop and realtime behavior of any Vision Egg script.
 
-**.. raw:: html
-Rendering of reStructured text is not possible, please install Docutils.**
-
-
-
-::
 
    .. image:: grating-small.jpg
       :width: 320
@@ -68,12 +62,6 @@ target.py
 
 The target demo creates a small target which moves across the screen.  The target is spatially anti-aliased by default, meaning that the edges can have colors intermediate between the target and the background to reduce *jaggies*.  This demo also introduces the concept of *controllers* which allow realtime control of a Vision Egg stimulus through any number of means, including a data acquisition device, a network connection, or software control.
 
-**.. raw:: html
-Rendering of reStructured text is not possible, please install Docutils.**
-
-
-
-::
 
    .. image:: target-small.jpg
       :width: 320
@@ -140,12 +128,6 @@ The targetBackground demo illustrates how easy it is to combine multiple stimuli
 
 This demo also introduces more power of OpenGL -- coordinate transforms that occur in realtime via projections. In the Vision Egg, a projection is a parameter of the viewport.  In the default case (such as for the small target), the viewport uses pixel coordinates to create an orthographic projection. This allows specification of stimulus position and size in units of pixels. However, a projection also allows other 3D to 2D projections, such as that used to draw the spinning drum.  This drum, which is defined in 3D, is drawn using a perspective projection.  Because the drum uses a different projection than the small target, it needs its another viewport to link it to the screen.
 
-**.. raw:: html
-Rendering of reStructured text is not possible, please install Docutils.**
-
-
-
-::
 
     .. image:: targetBackground-small.jpg
        :width: 320
